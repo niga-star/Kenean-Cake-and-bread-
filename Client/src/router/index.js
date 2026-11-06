@@ -1,46 +1,54 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import AdminLayout from '../layouts/AdminLayout.vue';
-import CustomerLayout from '../layouts/CustomerLayout.vue';
+// Core Layouts (Lazy Loaded)
+const AdminLayout = () => import('../layouts/AdminLayout.vue');
+const CustomerLayout = () => import('../layouts/CustomerLayout.vue');
 
-// Admin views
-import OverviewView from '../views/admin/OverviewView.vue';
-import BranchManagementView from '../views/admin/BranchManagementView.vue';
-import UsersRolesView from '../views/admin/UsersRolesView.vue';
-import ProductsPricesView from '../views/admin/ProductsPricesView.vue';
-import InventoryView from '../views/admin/InventoryView.vue';
-import DistributionView from '../views/admin/DistributionView.vue';
-import NewTransferView from '../views/admin/NewTransferView.vue';
-import OrdersView from '../views/admin/OrdersView.vue';
-import CustomCakesView from '../views/admin/CustomCakesView.vue';
-import PaymentsView from '../views/admin/PaymentsView.vue';
-import ReportsView from '../views/admin/ReportsView.vue';
-import NotificationsView from '../views/admin/NotificationsView.vue';
-import SettingsView from '../views/admin/SettingsView.vue';
-import AuditLogView from '../views/admin/AuditLogView.vue';
+// Admin views (Lazy Loaded)
+const OverviewView = () => import('../views/admin/OverviewView.vue');
+const BranchManagementView = () => import('../views/admin/BranchManagementView.vue');
+const UsersRolesView = () => import('../views/admin/UsersRolesView.vue');
+const ProductsPricesView = () => import('../views/admin/ProductsPricesView.vue');
+const InventoryView = () => import('../views/admin/InventoryView.vue');
+const DistributionView = () => import('../views/admin/DistributionView.vue');
+const NewTransferView = () => import('../views/admin/NewTransferView.vue');
+const OrdersView = () => import('../views/admin/OrdersView.vue');
+const CustomCakesView = () => import('../views/admin/CustomCakesView.vue');
+const PaymentsView = () => import('../views/admin/PaymentsView.vue');
+const ReportsView = () => import('../views/admin/ReportsView.vue');
+const NotificationsView = () => import('../views/admin/NotificationsView.vue');
+const SettingsView = () => import('../views/admin/SettingsView.vue');
+const AuditLogView = () => import('../views/admin/AuditLogView.vue');
 
-// Customer views (SweetBakes theme)
-import CustomerHomeView from '../views/customer/CustomerHomeView.vue';
-import ShopView from '../views/customer/ShopView.vue';
-import ProductDetailView from '../views/customer/ProductDetailView.vue';
-import CartView from '../views/customer/CartView.vue';
-import CheckoutView from '../views/customer/CheckoutView.vue';
-import CustomCakeBuilderView from '../views/customer/CustomCakeBuilderView.vue';
-import BranchesView from '../views/customer/BranchesView.vue';
-import OrderStatusView from '../views/customer/OrderStatusView.vue';
-import OrderTrackingView from '../views/customer/OrderTrackingView.vue';
-import LoginView from '../views/customer/LoginView.vue';
-import RegisterView from '../views/customer/RegisterView.vue';
-import ContactView from '../views/customer/ContactView.vue';
-import AboutView from '../views/customer/AboutView.vue';
-import AccountView from '../views/customer/AccountView.vue';
+// Customer views (Lazy Loaded)
+const CustomerHomeView = () => import('../views/customer/CustomerHomeView.vue');
+const ShopView = () => import('../views/customer/ShopView.vue');
+const ProductDetailView = () => import('../views/customer/ProductDetailView.vue');
+const CartView = () => import('../views/customer/CartView.vue');
+const CheckoutView = () => import('../views/customer/CheckoutView.vue');
+const CustomCakeBuilderView = () => import('../views/customer/CustomCakeBuilderView.vue');
+const BranchesView = () => import('../views/customer/BranchesView.vue');
+const OrderStatusView = () => import('../views/customer/OrderStatusView.vue');
+const OrderTrackingView = () => import('../views/customer/OrderTrackingView.vue');
+const LoginView = () => import('../views/customer/LoginView.vue');
+const RegisterView = () => import('../views/customer/RegisterView.vue');
+const ContactView = () => import('../views/customer/ContactView.vue');
+const AccountView = () => import('../views/customer/AccountView.vue');
+const FAQView = () => import('../views/customer/FAQView.vue');
 
 const routes = [
   // Admin Portal Routes
   {
     path: '/admin',
     component: AdminLayout,
-    redirect: '/admin/overview',
+    redirect: () => {
+      const rawUser = localStorage.getItem('user');
+      const user = rawUser ? JSON.parse(rawUser) : null;
+      if (user?.role === 'Branch Staff') {
+        return '/admin/orders';
+      }
+      return '/admin/overview';
+    },
     children: [
       { path: 'overview', component: OverviewView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin'] } },
       { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin'] } },
@@ -79,7 +87,8 @@ const routes = [
       { path: 'login', component: LoginView },
       { path: 'register', component: RegisterView },
       { path: 'contact', component: ContactView },
-      { path: 'about', component: AboutView },
+      { path: 'about', redirect: '/#about' },
+      { path: 'faq', component: FAQView },
       { path: 'account', component: AccountView },
       { path: 'my-orders', redirect: '/account' },
     ],
@@ -98,8 +107,17 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior() {
-    return { top: 0 };
+  scrollBehavior(to, from, savedPosition) {
+    if (to.hash) {
+      return {
+        el: to.hash,
+        behavior: 'smooth',
+      };
+    }
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return { top: 0, behavior: 'smooth' };
   },
 });
 
@@ -107,12 +125,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.path.startsWith('/admin')) {
     const rawUser = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
     const user = rawUser ? JSON.parse(rawUser) : null;
-    const role = user?.role || 'Super Admin';
+
+    if (!user || !token) {
+      alert('Access restricted: Please sign in with staff credentials to access the admin portal.');
+      return next('/login');
+    }
+
+    const role = user.role;
 
     if (role === 'Customer') {
       alert('Access denied: Customer accounts cannot access the bakery admin portal.');
-      return next('/');
+      return next('/account');
     }
 
     if (to.meta?.roles && !to.meta.roles.includes(role)) {

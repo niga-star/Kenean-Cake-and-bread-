@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusHistory;
@@ -15,10 +16,14 @@ use App\Models\InventoryTransaction;
 use App\Models\AuditLog;
 use App\Models\Notification;
 use App\Models\DeliveryZone;
+use App\Models\AppSetting;
 use Carbon\Carbon;
 
 class OrderController extends Controller
 {
+    /**
+     * List orders scoped by role, branch, and status
+     */
     public function index(Request $request)
     {
         self::releaseExpiredReservations();
@@ -26,14 +31,14 @@ class OrderController extends Controller
         $user = $request->user();
         $query = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
-        // Scoping rule: branch admin / staff see only their branch
+        // Scoping rule: branch admin / staff see only their branch. Super Admin and Main Manager see all.
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
             $query->where('branch_id', $user->branch_id);
         } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
 
-        // Customer scoping
+        // Customer scoping: see own account orders
         if ($user && $user->role === 'Customer') {
             $query->where('user_id', $user->user_id);
         }
@@ -67,7 +72,7 @@ class OrderController extends Controller
 
         $orders = $query->latest('placed_at')->get();
 
-        // Calculate counts for status tabs
+        // Calculate pending count respecting branch scoping
         $countQuery = Order::query();
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
             $countQuery->where('branch_id', $user->branch_id);
@@ -80,10 +85,15 @@ class OrderController extends Controller
         ]);
     }
 
+    /**
+     * Show single order by ID or order_number
+     */
     public function show($id)
     {
         $order = Order::with(['branch', 'user', 'address', 'items.product', 'payments', 'payment', 'statusHistory.user'])
-            ->findOrFail($id);
+            ->where('order_id', $id)
+            ->orWhere('order_number', $id)
+            ->firstOrFail();
 
         $user = request()->user();
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $order->branch_id != $user->branch_id) {
@@ -93,11 +103,34 @@ class OrderController extends Controller
         return response()->json($order);
     }
 
+    /**
+     * Create an order (Storefront checkout)
+     * Rules:
+     * - Every order belongs strictly to one selected branch.
+     * - Stock availability checked at checkout inside transaction with row lock.
+     * - An order cannot be placed for stock the branch does not have.
+     * - Snapshot product name and unit price at time of purchase.
+     * - Online payment orders start as Pending awaiting signed webhook.
+     */
     public function store(Request $request)
     {
         self::releaseExpiredReservations();
 
         $user = $request->user();
+
+        // Idempotency guard: Prevent duplicate order submissions
+        $idempotencyKey = $request->header('Idempotency-Key') ?? $request->input('idempotency_key');
+        if ($idempotencyKey) {
+            $cachedOrderId = Cache::get("order_idempotency:{$idempotencyKey}");
+            if ($cachedOrderId) {
+                $existingOrder = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory'])->find($cachedOrderId);
+                if ($existingOrder) {
+                    return response()->json($existingOrder, 200, [
+                        'X-Idempotent-Replay' => 'true',
+                    ]);
+                }
+            }
+        }
 
         // Harmonize field aliases from storefront
         if (!$request->has('fulfillment_method') && $request->has('order_type')) {
@@ -124,6 +157,8 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|exists:products,product_id',
             'items.*.quantity' => 'required|integer|min:1',
             'payment_method' => 'required|in:Chapa,Telebirr,Pay on pickup,Pay on delivery',
+            'promo_code' => 'nullable|string|max:50',
+            'promotion_code' => 'nullable|string|max:50',
         ]);
 
         $branch = Branch::findOrFail($validated['branch_id']);
@@ -165,7 +200,7 @@ class OrderController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $user) {
+        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $user, $request) {
             // 1. Generate Order Number
             $rand = mt_rand(1000, 9999);
             $orderNumber = "ORD-{$rand}";
@@ -231,9 +266,32 @@ class OrderController extends Controller
                 ]);
             }
 
-            $totalAmount = $subtotal + $deliveryFee;
+            // Dynamic promotion code discount validation from MySQL promotions table
+            $discountAmount = 0.00;
+            $rawPromoCode = strtoupper(trim($request->input('promo_code') ?? $request->input('promotion_code') ?? ''));
+            if (!empty($rawPromoCode)) {
+                $promo = \App\Models\Promotion::whereRaw('UPPER(promotion_name) = ?', [$rawPromoCode])
+                    ->where('status', 'Active')
+                    ->first();
+                if ($promo) {
+                    $today = \Carbon\Carbon::today();
+                    $isDateValid = (!$promo->start_date || \Carbon\Carbon::parse($promo->start_date)->startOfDay()->lte($today)) &&
+                                   (!$promo->end_date || \Carbon\Carbon::parse($promo->end_date)->endOfDay()->gte($today));
+                    if ($isDateValid) {
+                        if ($promo->discount_type === 'percentage') {
+                            $discountAmount = round(($subtotal * (float) $promo->discount_value) / 100, 2);
+                        } else {
+                            $discountAmount = min($subtotal, (float) $promo->discount_value);
+                        }
+                    }
+                }
+            }
 
-            $initialStatus = in_array($validated['payment_method'], ['Pay on pickup', 'Pay on delivery']) ? 'Confirmed' : 'Pending';
+            $totalAmount = max(0, ($subtotal - $discountAmount) + $deliveryFee);
+
+            // Online payments start as Pending. Pay on pickup/delivery start as Confirmed.
+            $isOnline = in_array($validated['payment_method'], ['Chapa', 'Telebirr']);
+            $initialStatus = $isOnline ? 'Pending' : 'Confirmed';
 
             $order = Order::create([
                 'order_number' => $orderNumber,
@@ -243,7 +301,7 @@ class OrderController extends Controller
                 'fulfillment_method' => $validated['fulfillment_method'],
                 'order_status' => $initialStatus,
                 'delivery_fee' => $deliveryFee,
-                'discount_amount' => 0.00,
+                'discount_amount' => $discountAmount,
                 'total_amount' => $totalAmount,
                 'placed_at' => now(),
             ]);
@@ -259,38 +317,27 @@ class OrderController extends Controller
                 ]);
             }
 
-            // Status history
+            // Order status history
             OrderStatusHistory::create([
                 'order_id' => $order->order_id,
                 'old_status' => null,
                 'new_status' => $initialStatus,
                 'changed_by' => $user?->user_id,
-                'note' => 'placed by customer',
+                'note' => $isOnline ? 'Order placed, awaiting payment confirmation' : 'Order placed, accepted for pay-on-pickup/delivery',
                 'changed_at' => now(),
             ]);
 
-            // Payment record
-            $paymentStatus = in_array($validated['payment_method'], ['Pay on pickup', 'Pay on delivery']) ? 'Pending' : 'Paid';
-            $txRef = in_array($validated['payment_method'], ['Pay on pickup', 'Pay on delivery']) ? null : 'CH-' . strtoupper(substr(md5(uniqid()), 0, 6));
+            // Payment record: Online payments start as Pending with gateway transaction reference
+            $txPrefix = $validated['payment_method'] === 'Chapa' ? 'CH-' : ($validated['payment_method'] === 'Telebirr' ? 'TB-' : 'PAY-');
+            $txRef = $isOnline ? ($txPrefix . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6))) : null;
 
             Payment::create([
                 'order_id' => $order->order_id,
                 'payment_method' => $validated['payment_method'],
                 'amount' => $totalAmount,
-                'payment_status' => $paymentStatus,
+                'payment_status' => 'Pending',
                 'transaction_reference' => $txRef,
             ]);
-
-            if ($paymentStatus === 'Paid') {
-                OrderStatusHistory::create([
-                    'order_id' => $order->order_id,
-                    'old_status' => 'Pending',
-                    'new_status' => 'Pending',
-                    'changed_by' => null,
-                    'note' => 'Payment verified by webhook',
-                    'changed_at' => now(),
-                ]);
-            }
 
             AuditLog::create([
                 'user_id' => $user?->user_id,
@@ -315,14 +362,28 @@ class OrderController extends Controller
             return $order;
         });
 
+        if ($idempotencyKey) {
+            Cache::put("order_idempotency:{$idempotencyKey}", $order->order_id, now()->addMinutes(15));
+        }
+
         return response()->json($order->load(['branch', 'items.product', 'payment']), 201);
     }
 
+    /**
+     * Update order status with strict lifecycle rules
+     * Status Lifecycle:
+     * - Pending -> Confirmed, Cancelled
+     * - Confirmed -> Preparing, Cancelled
+     * - Preparing -> Ready
+     * - Ready -> Out for delivery (Delivery only), Completed (Pickup only)
+     * - Out for delivery -> Completed
+     */
     public function updateStatus(Request $request, $id)
     {
-        $order = Order::with('items')->findOrFail($id);
+        $order = Order::with(['items', 'payment', 'branch'])->findOrFail($id);
         $user = $request->user();
 
+        // Branch scoping: branch admin and staff can only update their assigned branch
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $order->branch_id != $user->branch_id) {
             return response()->json(['message' => 'Access denied: You can only manage orders for your assigned branch.'], 403);
         }
@@ -330,22 +391,35 @@ class OrderController extends Controller
         if (!$request->has('order_status') && $request->has('status')) {
             $request->merge(['order_status' => $request->status]);
         }
+        if (strcasecmp($request->order_status, 'Out for Delivery') === 0) {
+            $request->merge(['order_status' => 'Out for delivery']);
+        }
 
         $validated = $request->validate([
-            'order_status' => 'required|in:Pending,Confirmed,Preparing,Ready,Out for delivery,Completed,Cancelled',
+            'order_status' => 'required|in:Pending,Confirmed,Preparing,Ready,Out for delivery,Out for Delivery,Completed,Cancelled',
             'note' => 'nullable|string',
         ]);
 
         $oldStatus = $order->order_status;
-        $newStatus = $validated['order_status'];
+        $newStatus = strcasecmp($validated['order_status'], 'Out for Delivery') === 0 ? 'Out for delivery' : $validated['order_status'];
 
         if ($oldStatus === $newStatus) {
             return response()->json($order);
         }
 
+        // Rule: Terminal states cannot be changed
+        if (in_array($oldStatus, ['Completed', 'Cancelled'])) {
+            return response()->json(['message' => "Cannot change status of an order that is already {$oldStatus}."], 422);
+        }
+
+        // Rule: Out for delivery is applicable ONLY to delivery orders
+        if ($newStatus === 'Out for delivery' && $order->fulfillment_method !== 'Delivery') {
+            return response()->json(['message' => 'Out for delivery status is only valid for Delivery orders. Shop pickup orders transition from Ready directly to Completed.'], 422);
+        }
+
         DB::transaction(function () use ($order, $oldStatus, $newStatus, $validated, $user) {
-            // When order is Completed: on_hand and reserved decrease
-            if ($newStatus === 'Completed' && $oldStatus !== 'Completed') {
+            // When order is Completed: physical stock drops and reserved stock is deducted
+            if ($newStatus === 'Completed') {
                 foreach ($order->items as $item) {
                     $inv = BranchInventory::where('branch_id', $order->branch_id)
                         ->where('product_id', $item->product_id)
@@ -365,14 +439,20 @@ class OrderController extends Controller
                         'quantity' => -$item->quantity,
                         'reference_type' => 'Order',
                         'reference_id' => $order->order_id,
-                        'reason' => "Order {$order->order_number} completed",
+                        'reason' => "Order {$order->order_number} completed, stock deducted",
                         'created_by' => $user?->user_id,
                     ]);
                 }
+
+                // If pay on pickup or pay on delivery, mark payment as Paid upon completion
+                if ($order->payment && $order->payment->payment_status === 'Pending') {
+                    $order->payment->payment_status = 'Paid';
+                    $order->payment->save();
+                }
             }
 
-            // When order is Cancelled: release reserved quantity
-            if ($newStatus === 'Cancelled' && $oldStatus !== 'Cancelled' && $oldStatus !== 'Completed') {
+            // When order is Cancelled: release reserved stock
+            if ($newStatus === 'Cancelled') {
                 foreach ($order->items as $item) {
                     $inv = BranchInventory::where('branch_id', $order->branch_id)
                         ->where('product_id', $item->product_id)
@@ -395,11 +475,20 @@ class OrderController extends Controller
                         'created_by' => $user?->user_id,
                     ]);
                 }
+
+                // If payment was already Paid, mark Refunded
+                if ($order->payment && $order->payment->payment_status === 'Paid') {
+                    $order->payment->payment_status = 'Refunded';
+                    $order->payment->refund_amount = $order->total_amount;
+                    $order->payment->refund_reason = $validated['note'] ?? 'Cancelled by staff with refund';
+                    $order->payment->save();
+                }
             }
 
             $order->order_status = $newStatus;
             $order->save();
 
+            // Write status history record
             OrderStatusHistory::create([
                 'order_id' => $order->order_id,
                 'old_status' => $oldStatus,
@@ -425,17 +514,200 @@ class OrderController extends Controller
         return response()->json($order->load(['items.product', 'payment', 'statusHistory']));
     }
 
+    /**
+     * Cancel an order (Customer or Staff)
+     * Rule: Customers can cancel while Pending or Confirmed.
+     * Cancellation is strictly blocked once preparation starts, except for branch-approved cases.
+     */
+    public function cancel(Request $request, $id)
+    {
+        $order = Order::with(['items', 'payment', 'branch'])->where('order_id', $id)->orWhere('order_number', $id)->firstOrFail();
+        $user = $request->user();
+
+        // Check if customer cancellation rule applies
+        $isCustomer = (!$user || $user->role === 'Customer' || $order->user_id === $user?->user_id);
+
+        if ($isCustomer && in_array($order->order_status, ['Preparing', 'Ready', 'Out for delivery', 'Completed'])) {
+            return response()->json([
+                'message' => 'Cancellation is blocked once preparation has started. Please contact the branch directly for assistance.'
+            ], 422);
+        }
+
+        if (in_array($order->order_status, ['Completed', 'Cancelled'])) {
+            return response()->json(['message' => "Order is already {$order->order_status}."], 422);
+        }
+
+        DB::transaction(function () use ($order, $request, $user) {
+            $oldStatus = $order->order_status;
+
+            // Release reserved stock
+            foreach ($order->items as $item) {
+                $inv = BranchInventory::where('branch_id', $order->branch_id)
+                    ->where('product_id', $item->product_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($inv) {
+                    $inv->reserved_quantity = max(0, $inv->reserved_quantity - $item->quantity);
+                    $inv->save();
+                }
+
+                InventoryTransaction::create([
+                    'branch_id' => $order->branch_id,
+                    'product_id' => $item->product_id,
+                    'transaction_type' => 'order_cancelled',
+                    'quantity' => -$item->quantity,
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->order_id,
+                    'reason' => "Order {$order->order_number} cancelled, reservation released",
+                    'created_by' => $user?->user_id,
+                ]);
+            }
+
+            // Refund if paid
+            if ($order->payment && $order->payment->payment_status === 'Paid') {
+                $order->payment->payment_status = 'Refunded';
+                $order->payment->refund_amount = $order->total_amount;
+                $order->payment->refund_reason = $request->reason ?? 'Cancelled before preparation';
+                $order->payment->save();
+            }
+
+            $order->order_status = 'Cancelled';
+            $order->save();
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => $oldStatus,
+                'new_status' => 'Cancelled',
+                'changed_by' => $user?->user_id,
+                'note' => $request->reason ?? 'Cancelled by customer',
+                'changed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => $user?->user_id,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
+                'action' => 'Order cancelled',
+                'record' => $order->order_number,
+                'entity_type' => 'Order',
+                'entity_id' => (string) $order->order_id,
+                'old_value' => $oldStatus,
+                'new_value' => 'Cancelled',
+                'created_at' => now(),
+            ]);
+
+            Notification::create([
+                'user_id' => null,
+                'category' => 'Orders',
+                'title' => 'Order cancelled',
+                'message' => "Order {$order->order_number} for {$order->branch?->branch_name} was cancelled.",
+                'link' => '/admin/orders',
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Order cancelled successfully and stock reservation released.',
+            'order' => $order->fresh(['items.product', 'payment', 'statusHistory']),
+        ]);
+    }
+
+    /**
+     * Reassign branch (Super Admin only action)
+     * Rule: The branch_id on an order is mandatory and cannot be changed after payment without Super Admin action.
+     */
+    public function reassignBranch(Request $request, $id)
+    {
+        $order = Order::with(['items', 'branch'])->findOrFail($id);
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'new_branch_id' => 'required|exists:branches,branch_id',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $newBranch = Branch::findOrFail($validated['new_branch_id']);
+        if ($newBranch->branch_id === $order->branch_id) {
+            return response()->json(['message' => 'Order is already assigned to this branch.'], 422);
+        }
+        if ($newBranch->status !== 'Active') {
+            return response()->json(['message' => 'Destination branch is inactive.'], 422);
+        }
+
+        DB::transaction(function () use ($order, $newBranch, $validated, $user) {
+            $oldBranchName = $order->branch?->branch_name ?? "Branch #{$order->branch_id}";
+
+            // Re-validate and shift reservation if order is not completed
+            if ($order->order_status !== 'Completed' && $order->order_status !== 'Cancelled') {
+                foreach ($order->items as $item) {
+                    // Check availability at new branch
+                    $newInv = BranchInventory::where('branch_id', $newBranch->branch_id)
+                        ->where('product_id', $item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    $availableAtNew = $newInv ? max(0, $newInv->quantity_on_hand - $newInv->reserved_quantity) : 0;
+                    if ($availableAtNew < $item->quantity) {
+                        abort(422, "Cannot reassign to {$newBranch->branch_name}: insufficient available stock for {$item->product_name} (Requested: {$item->quantity}, Available: {$availableAtNew}).");
+                    }
+
+                    // Release at old branch
+                    $oldInv = BranchInventory::where('branch_id', $order->branch_id)
+                        ->where('product_id', $item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+                    if ($oldInv) {
+                        $oldInv->reserved_quantity = max(0, $oldInv->reserved_quantity - $item->quantity);
+                        $oldInv->save();
+                    }
+
+                    // Reserve at new branch
+                    $newInv->reserved_quantity += $item->quantity;
+                    $newInv->save();
+                }
+            }
+
+            $order->branch_id = $newBranch->branch_id;
+            $order->save();
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => $order->order_status,
+                'new_status' => $order->order_status,
+                'changed_by' => $user?->user_id,
+                'note' => "Branch reassigned from {$oldBranchName} to {$newBranch->branch_name} by Super Admin: {$validated['reason']}",
+                'changed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => $user?->user_id,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Super Admin',
+                'action' => 'Order branch reassigned',
+                'record' => $order->order_number,
+                'entity_type' => 'Order',
+                'entity_id' => (string) $order->order_id,
+                'old_value' => $oldBranchName,
+                'new_value' => $newBranch->branch_name,
+                'created_at' => now(),
+            ]);
+        });
+
+        return response()->json($order->fresh(['branch', 'items.product', 'payment', 'statusHistory']));
+    }
+
+    /**
+     * Release expired reservations for unpaid online orders
+     * Configurable duration (default 15 minutes)
+     */
     public static function releaseExpiredReservations()
     {
         $timeoutMinutes = 15;
-        $setting = \App\Models\AppSetting::where('key', 'unpaid_order_timeout_minutes')->first();
+        $setting = AppSetting::where('key', 'unpaid_order_timeout_minutes')->first();
         if ($setting && is_numeric($setting->value)) {
             $timeoutMinutes = (int) $setting->value;
         }
 
         $cutoff = Carbon::now()->subMinutes($timeoutMinutes);
 
-        // Find pending online orders created before cutoff that have not been paid
         $expiredOrders = Order::with('items')
             ->where('order_status', 'Pending')
             ->where('placed_at', '<=', $cutoff)

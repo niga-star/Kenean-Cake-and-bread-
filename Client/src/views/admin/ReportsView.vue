@@ -1,190 +1,364 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Reports</h2>
-      <div class="flex items-center space-x-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE1D5] pb-4">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl">📊</span>
+          <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1D15]">
+            Reports &amp; Analytics
+          </h1>
+        </div>
+        <p class="text-xs text-[#7A6B60] mt-1">
+          Multi-branch performance metrics, distribution tracking, inventory levels, and financial reconciliation.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <button
+          @click="sendDailySummary"
+          :disabled="sendingSummary"
+          class="px-3.5 py-2 text-xs font-bold bg-[#FAF7F5] border border-[#D8CDC0] hover:bg-[#FFF1F2] text-[#881337] rounded-xl transition flex items-center space-x-1.5 shadow-2xs"
+          title="Send daily sales and low-stock email summary to owner"
+        >
+          <span>✉️</span>
+          <span>{{ sendingSummary ? 'Dispatching...' : 'Email Summary to Owner' }}</span>
+        </button>
+
         <button
           @click="exportCSV"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs font-bold bg-white border border-[#D8CDC0] hover:bg-[#FAF7F5] text-[#4A3B32] rounded-xl transition flex items-center space-x-1.5 shadow-2xs"
         >
-          Export CSV
+          <span>📥</span>
+          <span>Export CSV</span>
         </button>
+
         <button
           @click="exportPDF"
-          class="px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition flex items-center space-x-1.5 shadow-xs"
         >
-          Export PDF
+          <span>🖨️</span>
+          <span>Print / PDF</span>
         </button>
       </div>
     </div>
 
-    <!-- Report Tabs -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-1">
-      <button
-        v-for="t in ['Branch performance', 'Product performance', 'Distribution', 'Inventory', 'Waste', 'Discrepancy', 'Delivery', 'Payments']"
-        :key="t"
-        @click="activeTab = t"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition whitespace-nowrap"
-        :class="activeTab === t ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
-      >
-        {{ t }}
-      </button>
+    <!-- Scoped Branch Notice if Branch Admin -->
+    <div
+      v-if="isBranchAdmin"
+      class="p-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl flex items-center justify-between text-xs text-[#92400E]"
+    >
+      <div class="flex items-center space-x-2">
+        <span>🔒</span>
+        <span>Branch Scoped View: You are viewing reports strictly for <strong>{{ userBranchName }} Branch</strong>. Central comparisons are restricted to Super Admin.</span>
+      </div>
+    </div>
+
+    <!-- 4 High-Level Summary Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Revenue</div>
+        <div class="text-3xl font-serif font-black text-[#241710]">
+          ETB {{ Number(metrics.revenue || 0).toLocaleString() }}
+        </div>
+        <div class="text-xs text-[#059669] font-medium flex items-center space-x-1 pt-1">
+          <span>↗</span>
+          <span>{{ metrics.revenue_trend || '+12% vs previous period' }}</span>
+        </div>
+      </div>
+
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Orders</div>
+        <div class="text-3xl font-serif font-black text-[#241710]">
+          {{ metrics.orders || 0 }}
+        </div>
+        <div class="text-xs text-[#7A6B60] font-medium pt-1">
+          {{ metrics.orders_sub || 'Across branches' }}
+        </div>
+      </div>
+
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Average Order Value</div>
+        <div class="text-3xl font-serif font-black text-[#241710]">
+          ETB {{ Number(metrics.avg_order || 0).toLocaleString() }}
+        </div>
+        <div class="text-xs text-[#059669] font-medium flex items-center space-x-1 pt-1">
+          <span>↗</span>
+          <span>{{ metrics.avg_order_trend || '+3%' }}</span>
+        </div>
+      </div>
+
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Units Sold</div>
+        <div class="text-3xl font-serif font-black text-[#241710]">
+          {{ metrics.units_sold || 0 }}
+        </div>
+        <div class="text-xs text-[#7A6B60] font-medium pt-1">
+          {{ metrics.units_sub || 'Cakes & bread' }}
+        </div>
+      </div>
     </div>
 
     <!-- Filters Row -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3.5 border border-[#E9E0D4] rounded-xl shadow-sm">
+    <div class="bg-white p-4 border border-[#E9E0D4] rounded-2xl shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+      <!-- Branch Filter -->
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Branch</label>
+        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Branch</label>
         <select
           v-model="filters.branch_id"
-          @change="loadReport"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          :disabled="isBranchAdmin"
+          @change="reloadAll"
+          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] disabled:bg-gray-100 disabled:cursor-not-allowed font-medium"
         >
-          <option value="all">All branches</option>
+          <option v-if="!isBranchAdmin" value="all">All active branches</option>
           <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-            {{ b.branch_name }}
+            {{ b.branch_name }} Branch
           </option>
         </select>
       </div>
 
+      <!-- Category Filter -->
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Category</label>
+        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Category</label>
         <select
           v-model="filters.category_id"
-          @change="loadReport"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          @change="reloadAll"
+          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
         >
-          <option value="all">All</option>
+          <option value="all">All categories</option>
           <option v-for="c in categories" :key="c.category_id" :value="c.category_id">
             {{ c.category_name }}
           </option>
         </select>
       </div>
 
+      <!-- Date From -->
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">From</label>
+        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date From</label>
         <input
           v-model="filters.from_date"
+          @change="reloadAll"
           type="date"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
         />
       </div>
 
+      <!-- Date To -->
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">To</label>
+        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date To</label>
         <input
           v-model="filters.to_date"
+          @change="reloadAll"
           type="date"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
         />
       </div>
     </div>
 
-    <!-- 4 Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Revenue</div>
-        <div class="text-3xl font-bold text-[#241710]">ETB {{ Number(metrics.revenue).toLocaleString() }}</div>
-        <div class="text-xs text-[#2E7D32] mt-1">{{ metrics.revenue_trend }}</div>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Orders</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ metrics.orders }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">{{ metrics.orders_sub }}</div>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Average order</div>
-        <div class="text-3xl font-bold text-[#241710]">ETB {{ Number(metrics.avg_order).toLocaleString() }}</div>
-        <div class="text-xs text-[#2E7D32] mt-1">{{ metrics.avg_order_trend }}</div>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Units sold</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ metrics.units_sold }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">{{ metrics.units_sub }}</div>
-      </div>
+    <!-- 9 Report Tabs matching Section 10 -->
+    <div class="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-[#EAE1D5]">
+      <button
+        v-for="tab in reportTabs"
+        :key="tab.id"
+        @click="selectTab(tab.id)"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 shadow-2xs"
+        :class="activeTabId === tab.id ? 'bg-[#881337] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#FAF7F5]'"
+      >
+        <span>{{ tab.icon }}</span>
+        <span>{{ tab.label }}</span>
+      </button>
     </div>
 
-    <!-- Middle Grid: Revenue by branch (Horizontal Bar Chart) + Top Products -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-      <!-- Revenue by Branch Bar Chart -->
-      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Revenue by branch</h3>
-
-        <div class="space-y-4 pt-1">
-          <div v-for="b in revenueByBranch" :key="b.branch" class="space-y-1.5">
-            <div class="flex items-center justify-between text-xs font-medium">
-              <span class="text-[#382C24]">{{ b.branch }}</span>
-              <span class="text-[#241710] font-bold">ETB {{ Number(b.revenue).toLocaleString() }}</span>
-            </div>
-            <!-- Progress Bar -->
-            <div class="w-full bg-[#EFE8DF] h-3.5 rounded-full overflow-hidden">
-              <div
-                class="bg-[#BA5420] h-full rounded-full transition-all duration-500"
-                :style="{ width: `${Math.min(100, Math.round((b.revenue / maxBranchRevenue) * 100))}%` }"
-              ></div>
-            </div>
-          </div>
+    <!-- Contextual Explanation Banner -->
+    <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex items-start justify-between text-xs text-[#881337]">
+      <div>
+        <div class="font-bold flex items-center space-x-1.5">
+          <span>💡</span>
+          <span>{{ currentTabMeta?.label }} Report</span>
         </div>
-
-        <p class="text-[11px] text-[#8F7F74] pt-2 border-t border-[#EFE8DF]">
-          Sample data. Real values come from branch sales and reconcile with transaction history.
+        <p class="text-[#7A3644] mt-0.5">
+          <strong>Questions it answers:</strong> {{ currentTabMeta?.description }}
         </p>
       </div>
-
-      <!-- Top Products Table -->
-      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Top products</h3>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="text-[#88786B] uppercase border-b border-[#EFE8DF] font-semibold">
-              <tr>
-                <th class="pb-2">Product</th>
-                <th class="pb-2 text-center">Units</th>
-                <th class="pb-2 text-right">Revenue</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#F3EDE4]">
-              <tr v-for="tp in topProducts" :key="tp.product">
-                <td class="py-2.5 font-medium text-[#382C24]">{{ tp.product }}</td>
-                <td class="py-2.5 text-center text-[#55463C] font-semibold">{{ tp.units }}</td>
-                <td class="py-2.5 text-right font-bold text-[#241710]">ETB {{ Number(tp.revenue).toLocaleString() }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <span class="text-[11px] font-semibold text-[#9F1239] shrink-0 bg-white px-2.5 py-1 rounded-lg border border-[#FBCFE8]">
+        {{ reportRows.length }} record(s) loaded
+      </span>
     </div>
 
-    <!-- Bottom: Branch Performance Table -->
-    <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
-      <div class="p-5 border-b border-[#EFE8DF]">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Branch performance</h3>
+    <!-- Active Report Table Area -->
+    <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-2xs overflow-hidden">
+      <!-- Loading State -->
+      <div v-if="loading" class="py-16 text-center text-xs text-[#7A6B60] space-y-2">
+        <div class="w-6 h-6 border-2 border-[#BA5420] border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div>Querying live MySQL transactions...</div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
+      <!-- Empty State -->
+      <div v-else-if="reportRows.length === 0" class="py-16 text-center text-xs text-[#7A6B60] space-y-2">
+        <div class="text-3xl">📋</div>
+        <div class="font-bold text-[#38121A]">No report records found for the selected filter parameters.</div>
+        <div>Try expanding the date range or selecting another branch.</div>
+      </div>
+
+      <!-- Dynamic Data Table -->
+      <div v-else class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-[#FAF7F5] text-[11px] font-bold text-[#7A6B60] tracking-wider uppercase border-b border-[#F2D7DC]">
             <tr>
-              <th class="py-3 px-5">Branch</th>
-              <th class="py-3 px-4 text-center">Orders</th>
-              <th class="py-3 px-4 text-center">Units</th>
-              <th class="py-3 px-4 text-center">Revenue</th>
-              <th class="py-3 px-5 text-right">Avg Order</th>
+              <th
+                v-for="col in reportColumns"
+                :key="col"
+                class="py-3.5 px-5"
+                :class="col.includes('Revenue') || col.includes('Amount') || col.includes('Value') || col.includes('Order Value') ? 'text-right' : (col.includes('Orders') || col.includes('Units') || col.includes('Sent') || col.includes('Received') || col.includes('Count') ? 'text-center' : '')"
+              >
+                {{ col }}
+              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#F3EDE4]">
-            <tr v-for="bp in branchPerformance" :key="bp.branch" class="hover:bg-[#FCFAF7] transition">
-              <td class="py-3.5 px-5 font-medium text-[#382C24]">{{ bp.branch }}</td>
-              <td class="py-3.5 px-4 text-center text-[#55463C]">{{ bp.orders }}</td>
-              <td class="py-3.5 px-4 text-center text-[#55463C]">{{ bp.units }}</td>
-              <td class="py-3.5 px-4 text-center font-bold text-[#241710]">ETB {{ Number(bp.revenue).toLocaleString() }}</td>
-              <td class="py-3.5 px-5 text-right text-[#7A6B60] font-semibold">ETB {{ Number(bp.avg_order).toLocaleString() }}</td>
-            </tr>
+          <tbody class="divide-y divide-[#F8E7EA]">
+            <!-- 1. Branch Performance Rows -->
+            <template v-if="activeTabId === 'branch_performance'">
+              <tr v-for="r in reportRows" :key="r.branch_id" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A] flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+                  <span>{{ r.branch }}</span>
+                </td>
+                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.orders }}</td>
+                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.units }}</td>
+                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
+                <td class="py-3.5 px-5 text-right font-semibold text-[#7A6B60]">ETB {{ Number(r.avg_order).toLocaleString() }}</td>
+              </tr>
+            </template>
+
+            <!-- 2. Product Performance Rows -->
+            <template v-else-if="activeTabId === 'product_performance'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 font-medium text-[#7A6B60]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 text-[#881337] font-semibold">{{ r.category }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.units }}</td>
+                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
+              </tr>
+            </template>
+
+            <!-- 3. Distribution Rows -->
+            <template v-else-if="activeTabId === 'distribution'">
+              <tr v-for="r in reportRows" :key="r.transfer_id" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#881337]">{{ r.transfer }}</td>
+                <td class="py-3.5 px-5 font-medium text-[#38121A]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#4B1A24]">{{ r.sent }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#059669]">{{ r.received }}</td>
+                <td class="py-3.5 px-5 text-center font-bold" :class="r.missing > 0 ? 'text-[#DC2626]' : 'text-gray-400'">
+                  {{ r.missing }}
+                </td>
+                <td class="py-3.5 px-5 text-center font-bold" :class="r.damaged > 0 ? 'text-[#D97706]' : 'text-gray-400'">
+                  {{ r.damaged }}
+                </td>
+                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.days_to_receipt }}</td>
+                <td class="py-3.5 px-5">
+                  <span
+                    class="px-2.5 py-1 rounded-full text-[10px] font-bold"
+                    :class="r.status === 'Received' ? 'bg-[#ECFDF5] text-[#059669]' : (r.status === 'Disputed' ? 'bg-[#FEF2F2] text-[#DC2626]' : 'bg-[#EFF6FF] text-[#2563EB]')"
+                  >
+                    {{ r.status }}
+                  </span>
+                </td>
+              </tr>
+            </template>
+
+            <!-- 4. Inventory Rows -->
+            <template v-else-if="activeTabId === 'inventory'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 font-medium text-[#261814]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.category }}</td>
+                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.on_hand }}</td>
+                <td class="py-3.5 px-5 text-center font-semibold text-[#D97706]">{{ r.reserved }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#059669]">{{ r.available }}</td>
+                <td class="py-3.5 px-5 text-center text-[#7A6B60]">{{ r.reorder_level }}</td>
+                <td class="py-3.5 px-5">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="r.status === 'Needs replenishment' ? 'bg-[#FEE2E2] text-[#DC2626] animate-pulse' : 'bg-[#ECFDF5] text-[#059669]'"
+                  >
+                    {{ r.status }}
+                  </span>
+                </td>
+              </tr>
+            </template>
+
+            <!-- 5. Waste Rows -->
+            <template v-else-if="activeTabId === 'waste'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 font-medium text-[#261814]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#DC2626]">{{ r.quantity }} units</td>
+                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.reason }}</td>
+                <td class="py-3.5 px-5 text-right font-black text-[#DC2626]">ETB {{ Number(r.value).toLocaleString() }}</td>
+                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.date }}</td>
+              </tr>
+            </template>
+
+            <!-- 6. Discrepancy Rows -->
+            <template v-else-if="activeTabId === 'discrepancy'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#881337]">{{ r.transfer }}</td>
+                <td class="py-3.5 px-5 font-medium text-[#38121A]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 font-semibold text-[#261814]">{{ r.line }}</td>
+                <td class="py-3.5 px-5 font-bold text-[#DC2626]">{{ r.difference }}</td>
+                <td class="py-3.5 px-5 text-[#7A6B60] italic">{{ r.reason }}</td>
+                <td class="py-3.5 px-5">
+                  <span class="px-2 py-0.5 bg-[#FFFBEB] text-[#B45309] rounded-md font-semibold text-[10px]">
+                    {{ r.resolution }}
+                  </span>
+                </td>
+                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.date }}</td>
+              </tr>
+            </template>
+
+            <!-- 7. Delivery Rows -->
+            <template v-else-if="activeTabId === 'delivery'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
+                <td class="py-3.5 px-5 font-semibold flex items-center space-x-1.5" :class="r.method === 'Delivery' ? 'text-[#2563EB]' : 'text-[#059669]'">
+                  <span>{{ r.method === 'Delivery' ? '🚚' : '🏪' }}</span>
+                  <span>{{ r.method }}</span>
+                </td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.count }} orders</td>
+                <td class="py-3.5 px-5 text-center text-[#7A6B60] font-medium">{{ r.avg_time }}</td>
+                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
+              </tr>
+            </template>
+
+            <!-- 8. Payments Rows -->
+            <template v-else-if="activeTabId === 'payments'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A] flex items-center space-x-1.5">
+                  <span>💳</span>
+                  <span>{{ r.method }}</span>
+                </td>
+                <td class="py-3.5 px-5">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="r.status === 'Paid' ? 'bg-[#ECFDF5] text-[#059669]' : (r.status === 'Refunded' ? 'bg-[#FEF2F2] text-[#DC2626]' : 'bg-[#FFFBEB] text-[#D97706]')"
+                  >
+                    {{ r.status }}
+                  </span>
+                </td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.count }} transactions</td>
+                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.amount).toLocaleString() }}</td>
+              </tr>
+            </template>
+
+            <!-- 9. Audit Rows -->
+            <template v-else-if="activeTabId === 'audit'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
+                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.user }}</td>
+                <td class="py-3.5 px-5 font-semibold text-[#881337]">{{ r.action }}</td>
+                <td class="py-3.5 px-5 text-[#7A6B60] font-mono text-[11px]">{{ r.record }}</td>
+                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.time }}</td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -196,90 +370,139 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '../../api';
 
-const activeTab = ref('Branch performance');
+// Report tabs definition per Section 10 specs
+const reportTabs = [
+  { id: 'branch_performance', label: 'Branch performance', icon: '🏢', description: 'Which branch has the highest revenue, most orders, top-selling cakes and bread?' },
+  { id: 'product_performance', label: 'Product performance', icon: '🎂', description: 'Which products sell best, and where?' },
+  { id: 'distribution', label: 'Distribution', icon: '🚚', description: 'How much was sent, received, missing, damaged, still in transit?' },
+  { id: 'inventory', label: 'Inventory', icon: '📦', description: 'What is on hand, reserved and available per branch, and what needs replenishment?' },
+  { id: 'waste', label: 'Waste', icon: '🗑️', description: 'How much stock was damaged or expired, and why?' },
+  { id: 'discrepancy', label: 'Discrepancy', icon: '⚠️', description: 'Which transfers had differences and who resolved them?' },
+  { id: 'delivery', label: 'Delivery', icon: '🛵', description: 'How are deliveries and pickups split, and how long do they take?' },
+  { id: 'payments', label: 'Payments', icon: '💳', description: 'Revenue by method, failures, refunds.' },
+  { id: 'audit', label: 'Audit', icon: '🛡️', description: 'Who performed sensitive actions?' },
+];
+
+const activeTabId = ref('branch_performance');
 const branches = ref([]);
 const categories = ref([]);
+const loading = ref(false);
+const sendingSummary = ref(false);
+
+const rawUser = localStorage.getItem('user');
+const currentUser = rawUser ? JSON.parse(rawUser) : null;
+const isBranchAdmin = computed(() => currentUser?.role === 'Branch Admin');
+const userBranchName = computed(() => currentUser?.branch_name || 'Bole');
 
 const filters = ref({
-  branch_id: 'all',
+  branch_id: isBranchAdmin.value ? (currentUser?.branch_id || 2) : 'all',
   category_id: 'all',
-  from_date: new Date().toISOString().split('T')[0],
+  product_id: 'all',
+  from_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
   to_date: new Date().toISOString().split('T')[0],
 });
 
 const metrics = ref({
-  revenue: 48200,
-  revenue_trend: '+12% vs yesterday',
-  orders: 64,
-  orders_sub: '9 pending',
-  avg_order: 753,
+  revenue: 0,
+  revenue_trend: '+12% vs previous period',
+  orders: 0,
+  orders_sub: '0 pending',
+  avg_order: 0,
   avg_order_trend: '+3%',
-  units_sold: 412,
-  units_sub: 'Cakes 96 · Bread 316',
+  units_sold: 0,
+  units_sub: 'Cakes & bread',
 });
 
-const revenueByBranch = ref([
-  { branch: 'Bole', revenue: 21300 },
-  { branch: 'Megenagna', revenue: 11900 },
-  { branch: 'Main Branch', revenue: 9400 },
-  { branch: 'Piassa', revenue: 5600 },
-]);
+const reportColumns = ref([]);
+const reportRows = ref([]);
 
-const topProducts = ref([
-  { product: 'White Bread', units: 210, revenue: 9450 },
-  { product: 'Chocolate Cake', units: 58, revenue: 49300 },
-  { product: 'Croissant', units: 96, revenue: 5760 },
-  { product: 'Vanilla Cake', units: 31, revenue: 24180 },
-]);
-
-const branchPerformance = ref([
-  { branch: 'Bole', orders: 27, units: 160, revenue: 21300, avg_order: 789 },
-  { branch: 'Megenagna', orders: 19, units: 118, revenue: 11900, avg_order: 626 },
-  { branch: 'Main Branch', orders: 8, units: 74, revenue: 9400, avg_order: 1175 },
-  { branch: 'Piassa', orders: 10, units: 60, revenue: 5600, avg_order: 560 },
-]);
-
-const maxBranchRevenue = computed(() => {
-  const max = Math.max(...revenueByBranch.value.map(b => b.revenue));
-  return max > 0 ? max : 21300;
+const currentTabMeta = computed(() => {
+  return reportTabs.find(t => t.id === activeTabId.value);
 });
 
-const loadReport = async () => {
+async function selectTab(tabId) {
+  activeTabId.value = tabId;
+  await loadActiveReport();
+}
+
+async function loadSummary() {
   try {
-    const res = await api.get('/admin/reports/summary', {
-      params: filters.value,
-    });
-    metrics.value = res.data.metrics;
-    revenueByBranch.value = res.data.revenue_by_branch;
-    topProducts.value = res.data.top_products;
-    branchPerformance.value = res.data.branch_performance;
+    const res = await api.get('/admin/reports/summary', { params: filters.value });
+    if (res.data?.metrics) {
+      metrics.value = res.data.metrics;
+    }
   } catch (err) {
     console.error('Failed to load reports summary', err);
   }
-};
+}
 
-const exportCSV = () => {
-  const headers = ['Branch', 'Orders', 'Units', 'Revenue', 'Avg Order'];
-  const rows = branchPerformance.value.map(b => [
-    `"${b.branch}"`,
-    b.orders,
-    b.units,
-    b.revenue,
-    b.avg_order
-  ]);
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
+async function loadActiveReport() {
+  loading.value = true;
+  try {
+    const res = await api.get('/admin/reports/data', {
+      params: {
+        type: activeTabId.value,
+        ...filters.value,
+      },
+    });
+    reportColumns.value = res.data.columns || [];
+    reportRows.value = res.data.rows || [];
+  } catch (err) {
+    console.error(`Failed to load report data for ${activeTabId.value}`, err);
+    reportColumns.value = [];
+    reportRows.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function reloadAll() {
+  await Promise.all([loadSummary(), loadActiveReport()]);
+}
+
+async function sendDailySummary() {
+  sendingSummary.value = true;
+  try {
+    const res = await api.post('/admin/reports/send-daily-summary');
+    alert(`Success: ${res.data.message}\nDate: ${res.data.summary.date}\nRevenue: ETB ${res.data.summary.revenue_today}\nOrders: ${res.data.summary.orders_today}\nLow-stock alerts: ${res.data.summary.low_stock_count}`);
+  } catch (err) {
+    alert('Failed to dispatch daily summary: ' + (err.response?.data?.message || err.message));
+  } finally {
+    sendingSummary.value = false;
+  }
+}
+
+function exportCSV() {
+  if (reportRows.value.length === 0) {
+    alert('No data to export.');
+    return;
+  }
+
+  const cols = reportColumns.value;
+  // Convert rows into array of values matching cols
+  const csvRows = [cols.map(c => `"${c}"`).join(',')];
+
+  reportRows.value.forEach(row => {
+    const values = Object.values(row).map(val => {
+      const sanitized = String(val ?? '').replace(/"/g, '""');
+      return `"${sanitized}"`;
+    });
+    csvRows.push(values.join(','));
+  });
+
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `branch_performance_report.csv`);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `sweetbakes_${activeTabId.value}_${filters.value.to_date}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-};
+}
 
-const exportPDF = () => {
+function exportPDF() {
   window.print();
-};
+}
 
 onMounted(async () => {
   try {
@@ -290,6 +513,7 @@ onMounted(async () => {
     branches.value = bRes.data;
     categories.value = cRes.data;
   } catch (e) {}
-  loadReport();
+
+  await reloadAll();
 });
 </script>

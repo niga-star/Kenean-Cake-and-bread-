@@ -15,10 +15,13 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PromotionController;
 
-// Public Auth & Role Switcher
-Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/register', [AuthController::class, 'register']);
+// Public Auth with Rate Limiting (Section 12 requirement)
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:30,1');
 Route::post('/auth/switch-role', [AuthController::class, 'switchRole']);
 Route::get('/auth/users', [AuthController::class, 'listUsers']);
 
@@ -34,6 +37,10 @@ Route::get('/catalog/products/{id}', [CatalogController::class, 'show']);
 Route::get('/catalog/products/{id}/branch-availability', [CatalogController::class, 'branchAvailability']);
 Route::get('/products/{id}/branch-availability', [CatalogController::class, 'branchAvailability']);
 Route::get('/branches/{id}/products', [CatalogController::class, 'products']);
+
+// Public Promotions
+Route::get('/promotions/active', [PromotionController::class, 'activePromotions']);
+Route::post('/promotions/validate', [PromotionController::class, 'validatePromo']);
 
 // Public Payment Webhook
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
@@ -63,17 +70,22 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);
     Route::get('/transfers', [TransferController::class, 'index']);
+    Route::get('/transfers/{id}', [TransferController::class, 'show']);
     Route::post('/transfers', [TransferController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/transfers/{id}/approve', [TransferController::class, 'approve'])->middleware('role:Super Admin');
     Route::post('/transfers/{id}/dispatch', [TransferController::class, 'dispatch'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/transfers/{id}/receive', [TransferController::class, 'receive']);
     Route::post('/transfers/{id}/resolve', [TransferController::class, 'resolve'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/transfers/{id}/cancel', [TransferController::class, 'cancel']);
+    Route::post('/transfers/{id}/remind', [TransferController::class, 'remind'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/stock-requests', [TransferController::class, 'storeRequest']);
     Route::post('/stock-requests/{id}/convert', [TransferController::class, 'convertRequest'])->middleware('role:Super Admin,Main Branch Manager');
 
     // Orders (Scoped by controller to caller's branch if Branch Admin / Staff)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::patch('/orders/{id}/branch', [OrderController::class, 'reassignBranch'])->middleware('role:Super Admin');
 
     // Custom Cakes (Scoped by controller to caller's branch if Branch Admin)
     Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
@@ -87,6 +99,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
     // Reports (Scoped by controller)
     Route::get('/reports/summary', [ReportController::class, 'summary']);
+    Route::get('/reports/data', [ReportController::class, 'reportData']);
+    Route::post('/reports/send-daily-summary', [ReportController::class, 'sendDailySummary']);
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -111,15 +125,35 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Super Admin');
     Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Super Admin');
     Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Super Admin');
+
+    // Database Backup (Super Admin Only, Section 12)
+    Route::post('/database/backup', function (\Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Artisan::call('db:backup');
+        return response()->json([
+            'message' => 'Automated database backup successfully created and verified.',
+            'output' => trim(\Illuminate\Support\Facades\Artisan::output()),
+        ]);
+    })->middleware('role:Super Admin');
+
+    // Expired Carts & Tokens Maintenance Purge (Super Admin Only, Section 12)
+    Route::post('/maintenance/purge-expired', function (\Illuminate\Http\Request $request) {
+        \Illuminate\Support\Facades\Artisan::call('app:purge-expired');
+        return response()->json([
+            'message' => 'Maintenance purge executed successfully.',
+            'output' => trim(\Illuminate\Support\Facades\Artisan::output()),
+        ]);
+    })->middleware('role:Super Admin');
 });
 
 // Customer Storefront Order & Cake Endpoints
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
+Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
 Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint']);
 Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
 Route::post('/custom-cakes', [CustomCakeController::class, 'store']);
+Route::post('/custom-cakes/upload-image', [CustomCakeController::class, 'uploadImage'])->middleware('throttle:60,1');
 Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
 Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
 Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);

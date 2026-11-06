@@ -25,10 +25,16 @@ class CatalogController extends Controller
         $categoryId = $request->query('category_id');
         $search = $request->query('search');
 
-        $query = Product::with(['category', 'images', 'branchPrices']);
+        $query = Product::with(['category', 'images', 'branchPrices'])
+            ->where('status', 'Active');
 
         if ($categoryId && $categoryId !== 'all') {
             $query->where('category_id', $categoryId);
+        }
+
+        if ($request->has('is_fasting') && $request->query('is_fasting') !== '' && $request->query('is_fasting') !== 'all') {
+            $isFasting = filter_var($request->query('is_fasting'), FILTER_VALIDATE_BOOLEAN);
+            $query->where('is_fasting', $isFasting);
         }
 
         if ($search) {
@@ -83,6 +89,7 @@ class CatalogController extends Controller
                 'resolved_price' => $resolvedPrice,
                 'has_branch_override' => $hasOverride,
                 'shelf_life_hours' => $product->shelf_life_hours,
+                'is_fasting' => (bool) $product->is_fasting,
                 'status' => $product->status,
                 'image_url' => $product->images->first()?->image_url ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
                 'images' => $product->images,
@@ -149,6 +156,7 @@ class CatalogController extends Controller
             'resolved_price' => $resolvedPrice,
             'has_branch_override' => $hasOverride,
             'shelf_life_hours' => $product->shelf_life_hours,
+            'is_fasting' => (bool) $product->is_fasting,
             'status' => $product->status,
             'image_url' => $product->images->first()?->image_url ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
             'images' => $product->images,

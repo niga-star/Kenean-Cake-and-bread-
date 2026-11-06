@@ -1,85 +1,87 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12 font-sans">
-    <!-- Hero Banner -->
-    <div class="text-center space-y-4 max-w-2xl mx-auto">
-      <div class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 bg-[#FFF1F2] border border-[#FECDD3] text-[#E11D48] text-xs font-bold rounded-full">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 space-y-16 lg:space-y-24 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54]">
+    <!-- Hero Header -->
+    <div class="text-center space-y-4 max-w-3xl mx-auto">
+      <div class="inline-flex items-center space-x-1.5 px-4 py-1.5 bg-rose-50 border border-rose-200 text-[#DE1B54] text-xs font-bold rounded-full">
         <span>🧁</span>
-        <span>Our Passion &amp; Craft</span>
+        <span>Since 2015 &middot; SweetBakes &middot; Addis Ababa</span>
       </div>
-      <h1 class="text-3xl sm:text-5xl font-serif font-black text-[#4A1521]">
-        Baking Happiness Daily
+      <h1 class="text-4xl sm:text-6xl font-serif font-black text-[#2A1810] tracking-tight leading-[1.15]">
+        A Bakery You Can Trust
       </h1>
-      <p class="text-xs sm:text-sm text-[#7A3644] leading-relaxed">
-        Founded with a love for traditional European viennoiserie and Ethiopian hospitality, SweetBakes creates confectionary moments that bring families together.
+      <p class="text-sm sm:text-base text-[#6E5D53] leading-relaxed">
+        At SweetBakes, we believe in the joy of fresh-baked goodness. Our cakes and bread are made with love, using the finest ingredients and creative designs to make your moments sweeter.
       </p>
     </div>
 
     <!-- Story 2-Column Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-      <div class="space-y-4 text-xs sm:text-sm text-[#5B2934] leading-relaxed">
-        <h2 class="text-2xl font-serif font-black text-[#38121A]">
-          From Our Ovens to Your Celebration
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-6 space-y-5 text-sm text-[#6E5D53] leading-relaxed">
+        <span class="text-xs font-bold uppercase tracking-widest text-[#DE1B54]">About SweetBakes</span>
+        <h2 class="text-3xl sm:text-4xl font-serif font-black text-[#2A1810] leading-tight">
+          Freshly Baked with Love for Every Special Moment
         </h2>
         <p>
-          Every loaf of sourdough, every butter croissant, and every bespoke celebration cake is crafted by master bakers who wake before dawn to ensure your breakfast table and parties have the freshest, most delicious bakes.
+          Founded in 2015 in Addis Ababa, SweetBakes began with a dream to create delightful celebration cakes, warm golden sourdough bread, and flaky French butter croissants.
         </p>
         <p>
-          We source high-grade Ethiopian grain, pure churned butter, and premium Belgian cocoa. We do not take shortcuts with artificial preservatives or additives — every bite is genuine, wholesome, and unforgettable.
+          Our bakers arrive every morning at dawn to handcraft each recipe from scratch using pure cocoa, Madagascar vanilla, stoneground whole wheat, and fresh seasonal berries.
         </p>
 
+        <!-- 4 Core Pillars -->
+        <div class="space-y-2.5 pt-2 text-xs sm:text-sm font-semibold text-[#2A1810]">
+          <div class="flex items-center space-x-3">
+            <span class="w-5 h-5 rounded-full bg-[#2A1810] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>Premium Quality</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="w-5 h-5 rounded-full bg-[#2A1810] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>Fresh Ingredients</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="w-5 h-5 rounded-full bg-[#2A1810] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>Custom Cake Orders</span>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="w-5 h-5 rounded-full bg-[#2A1810] text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span>Multi-Branch Service</span>
+          </div>
+        </div>
+
+        <!-- Stats Bar -->
         <div class="grid grid-cols-3 gap-4 pt-4 text-center">
-          <div class="p-4 bg-white rounded-2xl border border-[#F2D7DC] shadow-2xs">
-            <div class="text-2xl font-serif font-black text-[#E11D48]">4</div>
-            <div class="text-[11px] text-[#7A6B60] mt-1">Bakery Branches</div>
+          <div class="p-4 bg-white rounded-2xl border border-gray-200 shadow-2xs">
+            <div class="text-2xl sm:text-3xl font-serif font-black text-[#DE1B54]">4</div>
+            <div class="text-[11px] font-bold text-[#2A1810] mt-1">Addis Branches</div>
           </div>
-          <div class="p-4 bg-white rounded-2xl border border-[#F2D7DC] shadow-2xs">
-            <div class="text-2xl font-serif font-black text-[#E11D48]">15,000+</div>
-            <div class="text-[11px] text-[#7A6B60] mt-1">Cakes Baked</div>
+          <div class="p-4 bg-white rounded-2xl border border-gray-200 shadow-2xs">
+            <div class="text-2xl sm:text-3xl font-serif font-black text-[#DE1B54]">35,000+</div>
+            <div class="text-[11px] font-bold text-[#2A1810] mt-1">Cakes Delivered</div>
           </div>
-          <div class="p-4 bg-white rounded-2xl border border-[#F2D7DC] shadow-2xs">
-            <div class="text-2xl font-serif font-black text-[#E11D48]">100%</div>
-            <div class="text-[11px] text-[#7A6B60] mt-1">Fresh Guarantee</div>
+          <div class="p-4 bg-white rounded-2xl border border-gray-200 shadow-2xs">
+            <div class="text-2xl sm:text-3xl font-serif font-black text-[#DE1B54]">100%</div>
+            <div class="text-[11px] font-bold text-[#2A1810] mt-1">Pure Ingredients</div>
           </div>
         </div>
       </div>
 
-      <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-white">
-        <img
-          src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80"
-          alt="Artisan Baker preparing fresh bread"
-          class="w-full h-80 sm:h-96 object-cover"
-        />
-      </div>
-    </div>
-
-    <!-- Core Values -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-      <div class="bg-white rounded-3xl border border-[#F3E8E8] p-6 space-y-3 shadow-2xs text-center">
-        <div class="text-3xl">🌾</div>
-        <h3 class="font-serif font-bold text-base text-[#38121A]">Stoneground Ingredients</h3>
-        <p class="text-xs text-[#7A6B60] leading-relaxed">
-          Pure grains, real fruit compotes, and authentic butter deliver textures and aromas impossible to duplicate with factory mixes.
-        </p>
-      </div>
-
-      <div class="bg-white rounded-3xl border border-[#F3E8E8] p-6 space-y-3 shadow-2xs text-center">
-        <div class="text-3xl">🎨</div>
-        <h3 class="font-serif font-bold text-base text-[#38121A]">Bespoke Cake Artistry</h3>
-        <p class="text-xs text-[#7A6B60] leading-relaxed">
-          From multi-tiered wedding masterpieces to playful children's birthday themes, our decorators turn your vision into edible art.
-        </p>
-      </div>
-
-      <div class="bg-white rounded-3xl border border-[#F3E8E8] p-6 space-y-3 shadow-2xs text-center">
-        <div class="text-3xl">⚡</div>
-        <h3 class="font-serif font-bold text-base text-[#38121A]">Hyper-Local Delivery</h3>
-        <p class="text-xs text-[#7A6B60] leading-relaxed">
-          Each order is dispatched from your nearest local branch in Bole, Megenagna, or Piassa, arriving warm and in pristine shape.
-        </p>
+      <div class="lg:col-span-6 relative">
+        <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-white bg-amber-50">
+          <img
+            src="/mockup/baker.jpg"
+            alt="SweetBakes Baker Chef"
+            class="w-full h-88 sm:h-112 object-cover"
+          />
+        </div>
+        <div class="absolute -bottom-6 -left-6 bg-white p-5 rounded-2xl border border-gray-200 shadow-lg hidden sm:block max-w-xs">
+          <div class="text-xs font-bold text-[#2A1810] mb-1">“Making life sweeter, one cake and bread at a time.”</div>
+          <div class="text-[10px] text-[#DE1B54] font-semibold">— SweetBakes Master Pastry Chef</div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+// SweetBakes About Page
 </script>

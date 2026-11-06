@@ -17,12 +17,14 @@ class Product extends Model
         'description',
         'base_price',
         'shelf_life_hours',
+        'is_fasting',
         'status',
     ];
 
     protected $casts = [
         'base_price' => 'decimal:2',
         'shelf_life_hours' => 'integer',
+        'is_fasting' => 'boolean',
     ];
 
     public function category()

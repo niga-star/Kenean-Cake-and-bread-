@@ -286,8 +286,8 @@ import api from '../../api';
 
 const router = useRouter();
 
-const transferNumber = ref('TRF-2026-0006 (auto)');
-const destinationBranchId = ref(3); // Megenagna
+const transferNumber = ref('Generated on save (e.g. TRF-2026-XXXX)');
+const destinationBranchId = ref(null);
 const transferNotes = ref('');
 const regularBranches = ref([]);
 const catalogProducts = ref([]);
@@ -365,6 +365,19 @@ const saveTransfer = async (status) => {
   submitting.value = true;
   successMsg.value = '';
   errorMsg.value = '';
+
+  for (const p of productsToSend.value) {
+    if (!p.quantity_sent || p.quantity_sent <= 0) {
+      errorMsg.value = `Quantity to send for "${p.name}" must be at least 1.`;
+      submitting.value = false;
+      return;
+    }
+    if (p.quantity_sent > p.main_on_hand) {
+      errorMsg.value = `Sent quantity cannot exceed Main Branch on hand (${p.main_on_hand}) for "${p.name}".`;
+      submitting.value = false;
+      return;
+    }
+  }
 
   try {
     const payload = {

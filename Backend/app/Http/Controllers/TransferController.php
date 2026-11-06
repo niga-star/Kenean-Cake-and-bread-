@@ -19,6 +19,35 @@ use Carbon\Carbon;
 
 class TransferController extends Controller
 {
+    /**
+     * Generate next strictly unique transfer number in format TRF-YYYY-XXXX
+     */
+    private function generateTransferNumber(): string
+    {
+        $year = date('Y');
+        $lastTransfer = StockTransfer::where('transfer_number', 'like', "TRF-{$year}-%")
+            ->orderBy('transfer_id', 'desc')
+            ->first();
+
+        $seq = 1;
+        if ($lastTransfer && preg_match('/TRF-\d{4}-(\d+)/', $lastTransfer->transfer_number, $matches)) {
+            $seq = intval($matches[1]) + 1;
+        }
+
+        do {
+            $transferNumber = sprintf('TRF-%s-%04d', $year, $seq);
+            $exists = StockTransfer::where('transfer_number', $transferNumber)->exists();
+            if ($exists) {
+                $seq++;
+            }
+        } while ($exists);
+
+        return $transferNumber;
+    }
+
+    /**
+     * Distribution Dashboard with real database metrics and per-branch status
+     */
     public function dashboard(Request $request)
     {
         $mainBranch = Branch::where('branch_type', 'Main')->first();
@@ -37,27 +66,51 @@ class TransferController extends Controller
         $transfersMonth = StockTransfer::where('dispatched_at', '>=', $month)->get();
 
         $sentTodayCount = $transfersToday->count();
-        $sentTodayUnits = StockTransferItem::whereIn('transfer_id', $transfersToday->pluck('transfer_id'))->sum('quantity_sent');
+        $sentTodayUnits = (int) StockTransferItem::whereIn('transfer_id', $transfersToday->pluck('transfer_id'))->sum('quantity_sent');
 
         $sentWeekCount = $transfersWeek->count();
-        $sentWeekUnits = StockTransferItem::whereIn('transfer_id', $transfersWeek->pluck('transfer_id'))->sum('quantity_sent');
+        $sentWeekUnits = (int) StockTransferItem::whereIn('transfer_id', $transfersWeek->pluck('transfer_id'))->sum('quantity_sent');
 
         $sentMonthCount = $transfersMonth->count();
-        $sentMonthUnits = StockTransferItem::whereIn('transfer_id', $transfersMonth->pluck('transfer_id'))->sum('quantity_sent');
+        $sentMonthUnits = (int) StockTransferItem::whereIn('transfer_id', $transfersMonth->pluck('transfer_id'))->sum('quantity_sent');
 
         $awaitingDispatch = StockTransfer::whereIn('status', ['Draft', 'Approved'])->count();
         
         $inTransitTransfers = StockTransfer::whereIn('status', ['Dispatched', 'In transit'])->get();
-        $inTransitUnits = StockTransferItem::whereIn('transfer_id', $inTransitTransfers->pluck('transfer_id'))->sum('quantity_sent');
+        $inTransitUnits = (int) StockTransferItem::whereIn('transfer_id', $inTransitTransfers->pluck('transfer_id'))->sum('quantity_sent');
         $inTransitNote = $inTransitTransfers->first() ? "{$inTransitTransfers->first()->transfer_number} to {$inTransitTransfers->first()->destinationBranch?->branch_name}" : 'None';
 
         $receivedTransfers = StockTransfer::where('status', 'Received')->get();
-        $receivedUnits = StockTransferItem::whereIn('transfer_id', $receivedTransfers->pluck('transfer_id'))->sum('quantity_received');
+        $receivedUnits = (int) StockTransferItem::whereIn('transfer_id', $receivedTransfers->pluck('transfer_id'))->sum('quantity_received');
 
         $disputedTransfers = StockTransfer::where('status', 'Disputed')->get();
-        $missingUnits = StockTransferItem::whereIn('transfer_id', $disputedTransfers->pluck('transfer_id'))->sum('missing_quantity');
-        $damagedUnits = StockTransferItem::whereIn('transfer_id', $disputedTransfers->pluck('transfer_id'))->sum('damaged_quantity');
+        $missingUnits = (int) StockTransferItem::whereIn('transfer_id', $disputedTransfers->pluck('transfer_id'))->sum('missing_quantity');
+        $damagedUnits = (int) StockTransferItem::whereIn('transfer_id', $disputedTransfers->pluck('transfer_id'))->sum('damaged_quantity');
         $disputeNote = $disputedTransfers->first() ? "{$disputedTransfers->first()->transfer_number} disputed" : 'None';
+
+        // Check for overdue transfers (> 24 hours unreceived) and emit notifications
+        $unreceivedHours = (int) AppSetting::get('unreceived_reminder_hours', 24);
+        $overdueTransfers = StockTransfer::whereIn('status', ['Dispatched', 'In transit'])
+            ->whereNotNull('dispatched_at')
+            ->where('dispatched_at', '<=', Carbon::now()->subHours($unreceivedHours))
+            ->get();
+
+        foreach ($overdueTransfers as $overdue) {
+            $existing = Notification::where('category', 'Transfers')
+                ->where('message', 'like', "%{$overdue->transfer_number}%")
+                ->where('created_at', '>=', Carbon::now()->subHours($unreceivedHours))
+                ->first();
+
+            if (!$existing) {
+                Notification::create([
+                    'user_id' => null,
+                    'category' => 'Transfers',
+                    'title' => 'Transfer not received',
+                    'message' => "{$overdue->transfer_number} to {$overdue->destinationBranch?->branch_name} unreceived after {$unreceivedHours} hours.",
+                    'link' => '/admin/distribution',
+                ]);
+            }
+        }
 
         // Latest transfer per branch
         $branches = Branch::where('status', 'Active')->get();
@@ -70,19 +123,26 @@ class TransferController extends Controller
                 ->first();
 
             if ($latest) {
-                $totalSent = $latest->items->sum('quantity_sent');
-                $totalReceived = $latest->items->sum('quantity_received');
-                $totalMissing = $latest->items->sum('missing_quantity');
-                $totalDamaged = $latest->items->sum('damaged_quantity');
+                $totalSent = (int) $latest->items->sum('quantity_sent');
+                $totalReceived = (int) $latest->items->sum('quantity_received');
+                $totalMissing = (int) $latest->items->sum('missing_quantity');
+                $totalDamaged = (int) $latest->items->sum('damaged_quantity');
 
                 $action = 'View';
-                if ($latest->status === 'Disputed') $action = 'Resolve';
-                elseif ($latest->status === 'In transit' || $latest->status === 'Dispatched') $action = 'Remind';
-                elseif ($latest->status === 'Approved') $action = 'Dispatch';
+                if ($latest->status === 'Disputed') {
+                    $action = 'Resolve';
+                } elseif ($latest->status === 'In transit' || $latest->status === 'Dispatched') {
+                    $action = 'Receive';
+                } elseif ($latest->status === 'Approved') {
+                    $action = 'Dispatch';
+                } elseif ($latest->status === 'Draft') {
+                    $action = 'Approve';
+                }
 
                 $latestPerBranch[] = [
                     'transfer_id' => $latest->transfer_id,
                     'branch' => $branch->branch_name,
+                    'branch_id' => $branch->branch_id,
                     'transfer' => $latest->transfer_number,
                     'sent' => $totalSent,
                     'received' => $totalReceived,
@@ -91,6 +151,7 @@ class TransferController extends Controller
                     'status' => $latest->status,
                     'action' => $action,
                     'notes' => $latest->notes,
+                    'dispatched_at' => $latest->dispatched_at ? $latest->dispatched_at->format('M d, H:i') : null,
                     'items' => $latest->items,
                 ];
             }
@@ -104,28 +165,28 @@ class TransferController extends Controller
                 return [
                     'request_id' => $req->request_id,
                     'branch_id' => $req->branch_id,
-                    'branch' => $req->branch->branch_name,
+                    'branch' => $req->branch?->branch_name ?? 'Branch',
                     'product_id' => $req->items->first()?->product_id,
                     'product' => $req->items->first()?->product?->product_name ?? 'Products',
                     'qty' => $req->items->sum('quantity_requested'),
-                    'requested' => $req->created_at->format('M d, H:i'),
+                    'requested' => $req->created_at ? $req->created_at->format('M d, H:i') : 'Today',
                     'status' => $req->status,
                 ];
             });
 
         return response()->json([
-            'main_branch_stock' => $mainBranchStock > 0 ? $mainBranchStock : 1420,
-            'sent_today_units' => $sentTodayUnits > 0 ? $sentTodayUnits : 100,
-            'sent_today_count' => $sentTodayCount > 0 ? $sentTodayCount : 1,
-            'sent_week_units' => $sentWeekUnits > 0 ? $sentWeekUnits : 340,
-            'sent_week_count' => $sentWeekCount > 0 ? $sentWeekCount : 6,
-            'sent_month_units' => $sentMonthUnits > 0 ? $sentMonthUnits : 1180,
-            'sent_month_count' => $sentMonthCount > 0 ? $sentMonthCount : 21,
-            'awaiting_dispatch' => $awaitingDispatch > 0 ? $awaitingDispatch : 1,
-            'in_transit_units' => $inTransitUnits > 0 ? $inTransitUnits : 105,
+            'main_branch_stock' => $mainBranchStock,
+            'sent_today_units' => $sentTodayUnits,
+            'sent_today_count' => $sentTodayCount,
+            'sent_week_units' => $sentWeekUnits,
+            'sent_week_count' => $sentWeekCount,
+            'sent_month_units' => $sentMonthUnits,
+            'sent_month_count' => $sentMonthCount,
+            'awaiting_dispatch' => $awaitingDispatch,
+            'in_transit_units' => $inTransitUnits,
             'in_transit_note' => $inTransitNote,
-            'received_units' => $receivedUnits > 0 ? $receivedUnits : 1030,
-            'missing_units' => $missingUnits > 0 ? $missingUnits : 5,
+            'received_units' => $receivedUnits,
+            'missing_units' => $missingUnits,
             'damaged_units' => $damagedUnits,
             'dispute_note' => $disputeNote,
             'latest_transfers' => $latestPerBranch,
@@ -133,13 +194,16 @@ class TransferController extends Controller
         ]);
     }
 
+    /**
+     * List transfers with optional role scoping and status filtering
+     */
     public function index(Request $request)
     {
         $user = $request->user();
         $query = StockTransfer::with(['sourceBranch', 'destinationBranch', 'items.product', 'creator', 'approver'])
             ->latest('created_at');
 
-        // Scoping
+        // Scoping for Branch Admin / Staff to their branch
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
             $query->where('destination_branch_id', $user->branch_id);
         }
@@ -151,6 +215,20 @@ class TransferController extends Controller
         return response()->json($query->get());
     }
 
+    /**
+     * Show single transfer details
+     */
+    public function show($id)
+    {
+        $transfer = StockTransfer::with(['sourceBranch', 'destinationBranch', 'items.product', 'creator', 'approver'])
+            ->findOrFail($id);
+
+        return response()->json($transfer);
+    }
+
+    /**
+     * Create a transfer (Main Manager or Super Admin)
+     */
     public function store(Request $request)
     {
         $user = $request->user();
@@ -169,20 +247,16 @@ class TransferController extends Controller
             return response()->json(['message' => 'Destination cannot be the main branch.'], 422);
         }
 
-        // Generate sequential transfer number
-        $year = date('Y');
-        $lastTransfer = StockTransfer::where('transfer_number', 'like', "TRF-{$year}-%")->latest('transfer_id')->first();
-        $seq = 1;
-        if ($lastTransfer && preg_match('/TRF-\d{4}-(\d+)/', $lastTransfer->transfer_number, $matches)) {
-            $seq = intval($matches[1]) + 1;
-        }
-        $transferNumber = sprintf('TRF-%s-%04d', $year, $seq);
+        $transferNumber = $this->generateTransferNumber();
 
         $threshold = (int) AppSetting::get('approval_threshold_units', 200);
         $totalUnits = collect($validated['items'])->sum('quantity_sent');
 
+        // Rule: Super Admin approval required if over threshold or if explicitly forced
         $initialStatus = 'Draft';
-        if ($totalUnits <= $threshold) {
+        if (isset($validated['status']) && $validated['status'] === 'Draft') {
+            $initialStatus = 'Draft';
+        } elseif ($totalUnits <= $threshold && AppSetting::get('transfer_approval_required', '0') !== '1') {
             $initialStatus = 'Approved';
         }
 
@@ -226,16 +300,20 @@ class TransferController extends Controller
         return response()->json($transfer->load(['items.product', 'destinationBranch']), 201);
     }
 
+    /**
+     * Approve transfer (Super Admin only)
+     * Allowed transition: Draft -> Approved
+     */
     public function approve(Request $request, $id)
     {
         $transfer = StockTransfer::findOrFail($id);
 
         if ($transfer->status !== 'Draft') {
-            return response()->json(['message' => 'Transfer is not in Draft status.'], 422);
+            return response()->json(['message' => 'Only Draft transfers can be approved.'], 422);
         }
 
         $transfer->status = 'Approved';
-        $transfer->approved_by = $request->user()?->user_id;
+        $transfer->approved_by = $request->user()?->user_id ?? 1;
         $transfer->save();
 
         AuditLog::create([
@@ -253,12 +331,20 @@ class TransferController extends Controller
         return response()->json($transfer);
     }
 
+    /**
+     * Dispatch transfer (Main Manager or Super Admin)
+     * Allowed transition: Approved -> In transit (Dispatched)
+     * Rules:
+     * - Sent quantity cannot exceed source on-hand stock at dispatch time.
+     * - Source on hand drops immediately; units become In transit.
+     * - Destination available stock is NOT increased.
+     */
     public function dispatch(Request $request, $id)
     {
-        $transfer = StockTransfer::with('items')->findOrFail($id);
+        $transfer = StockTransfer::with(['items.product', 'destinationBranch'])->findOrFail($id);
 
-        if (!in_array($transfer->status, ['Approved', 'Draft'])) {
-            return response()->json(['message' => 'Transfer must be Approved or Draft before dispatch.'], 422);
+        if ($transfer->status !== 'Approved') {
+            return response()->json(['message' => 'Transfer must be Approved before dispatch. Current status: ' . $transfer->status], 422);
         }
 
         DB::transaction(function () use ($transfer, $request) {
@@ -269,7 +355,9 @@ class TransferController extends Controller
                     ->first();
 
                 if (!$mainInventory || $mainInventory->quantity_on_hand < $item->quantity_sent) {
-                    abort(422, "Sent quantity cannot exceed Main Branch on hand at dispatch time for product ID {$item->product_id}.");
+                    $prodName = $item->product?->product_name ?? "Product #{$item->product_id}";
+                    $avail = $mainInventory?->quantity_on_hand ?? 0;
+                    abort(422, "Sent quantity ({$item->quantity_sent}) cannot exceed Main Branch on hand ({$avail}) at dispatch time for {$prodName}.");
                 }
 
                 $mainInventory->quantity_on_hand -= $item->quantity_sent;
@@ -293,38 +381,48 @@ class TransferController extends Controller
 
             AuditLog::create([
                 'user_id' => $request->user()?->user_id,
-                'user_name' => $request->user()?->full_name ?? 'Main Manager',
+                'user_name' => $request->user() ? ($request->user()->full_name . ' (' . $request->user()->role . ')') : 'Main Manager',
                 'action' => 'Transfer dispatched',
                 'record' => $transfer->transfer_number,
                 'entity_type' => 'StockTransfer',
                 'entity_id' => (string) $transfer->transfer_id,
                 'old_value' => 'Approved',
-                'new_value' => 'Dispatched',
+                'new_value' => 'In transit',
                 'created_at' => now(),
             ]);
         });
 
-        return response()->json($transfer->load('items.product'));
+        return response()->json($transfer->fresh(['items.product', 'destinationBranch']));
     }
 
+    /**
+     * Receive transfer at destination branch
+     * Allowed transition: In transit / Dispatched / Partially received -> Received / Partially received / Disputed
+     * Rules:
+     * - Who sets it: destination branch staff/admin or Super Admin (Main Manager cannot confirm).
+     * - Strict Rule: For each line, received + damaged + missing must equal sent. System blocks saving until it does.
+     * - Only confirmed received quantity is added to destination on hand.
+     * - Any difference creates a discrepancy with mandatory reason and notifies Super Admin and Main Manager.
+     */
     public function receive(Request $request, $id)
     {
-        $transfer = StockTransfer::with(['items', 'destinationBranch'])->findOrFail($id);
+        $transfer = StockTransfer::with(['items.product', 'destinationBranch', 'sourceBranch'])->findOrFail($id);
         $user = $request->user();
 
+        // Permission check
         if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id != $transfer->destination_branch_id) {
             return response()->json(['message' => 'You can only confirm receipts for transfers sent to your assigned branch.'], 403);
         }
         if ($user && $user->role === 'Main Branch Manager') {
-            return response()->json(['message' => 'Main Branch Manager does not confirm receipts. Destination branch staff must confirm stock.'], 403);
+            return response()->json(['message' => 'Main Branch Manager cannot confirm receipts. Destination branch staff must count and confirm.'], 403);
         }
 
         if (!in_array($transfer->status, ['Dispatched', 'In transit', 'Partially received'])) {
-            return response()->json(['message' => 'Only in-transit or dispatched transfers can be received.'], 422);
+            return response()->json(['message' => 'Only in-transit or partially received transfers can be received. Current status: ' . $transfer->status], 422);
         }
 
         $validated = $request->validate([
-            'items' => 'required|array',
+            'items' => 'required|array|min:1',
             'items.*.transfer_item_id' => 'required|exists:stock_transfer_items,transfer_item_id',
             'items.*.quantity_received' => 'required|integer|min:0',
             'items.*.damaged_quantity' => 'required|integer|min:0',
@@ -333,26 +431,33 @@ class TransferController extends Controller
         ]);
 
         $hasDiscrepancy = false;
+        $totalSent = 0;
+        $totalAccounted = 0;
 
-        DB::transaction(function () use ($transfer, $validated, $request, &$hasDiscrepancy) {
+        DB::transaction(function () use ($transfer, $validated, $request, &$hasDiscrepancy, &$totalSent, &$totalAccounted) {
             foreach ($validated['items'] as $itemData) {
-                $item = StockTransferItem::findOrFail($itemData['transfer_item_id']);
+                $item = StockTransferItem::with('product')->findOrFail($itemData['transfer_item_id']);
 
                 $received = (int) $itemData['quantity_received'];
                 $damaged = (int) $itemData['damaged_quantity'];
                 $missing = (int) $itemData['missing_quantity'];
 
-                // Strict Rule: Received + Damaged + Missing must equal Sent
+                // Strict Rule: received + damaged + missing must equal sent
                 if (($received + $damaged + $missing) !== (int) $item->quantity_sent) {
-                    abort(422, "For each line, received plus damaged plus missing must equal sent ({$item->quantity_sent}).");
+                    $prodName = $item->product?->product_name ?? "Line item";
+                    $sum = $received + $damaged + $missing;
+                    abort(422, "For line '{$prodName}', received ({$received}) + damaged ({$damaged}) + missing ({$missing}) = {$sum}, which must equal sent ({$item->quantity_sent}). System blocks saving until it does.");
                 }
 
                 if ($damaged > 0 || $missing > 0) {
                     $hasDiscrepancy = true;
                     if (empty($itemData['discrepancy_reason'])) {
-                        abort(422, "A discrepancy reason is required when received quantity differs from sent.");
+                        abort(422, "A discrepancy reason is mandatory when received quantity differs from sent.");
                     }
                 }
+
+                $totalSent += (int) $item->quantity_sent;
+                $totalAccounted += ($received + $damaged + $missing);
 
                 $item->update([
                     'quantity_received' => $received,
@@ -384,88 +489,292 @@ class TransferController extends Controller
                 }
             }
 
-            $newStatus = $hasDiscrepancy ? 'Disputed' : 'Received';
+            // Assign status: Partially received, Disputed, or Received
+            $newStatus = 'Received';
+            if ($hasDiscrepancy) {
+                $newStatus = 'Disputed';
+            } elseif ($totalAccounted < $totalSent) {
+                $newStatus = 'Partially received';
+            }
+
             $transfer->status = $newStatus;
             $transfer->received_at = now();
             $transfer->save();
 
+            // Create notification if disputed
             if ($hasDiscrepancy) {
                 Notification::create([
                     'user_id' => null,
                     'category' => 'Discrepancies',
                     'title' => 'Transfer disputed',
                     'message' => "{$transfer->transfer_number}: Received with differences at {$transfer->destinationBranch?->branch_name}. Reason needed to resolve.",
-                    'link' => '/admin/transfers',
+                    'link' => '/admin/distribution',
                 ]);
             }
 
             AuditLog::create([
                 'user_id' => $request->user()?->user_id,
-                'user_name' => $request->user()?->full_name ?? 'Branch Admin',
+                'user_name' => $request->user() ? ($request->user()->full_name . ' (' . $request->user()->role . ')') : 'Branch Admin',
                 'action' => 'Transfer received',
                 'record' => $transfer->transfer_number,
                 'entity_type' => 'StockTransfer',
                 'entity_id' => (string) $transfer->transfer_id,
-                'old_value' => 'Dispatched',
+                'old_value' => 'In transit',
                 'new_value' => "{$newStatus}" . ($hasDiscrepancy ? ' (Discrepancy reported)' : ''),
                 'created_at' => now(),
             ]);
         });
 
-        return response()->json($transfer->fresh(['items.product', 'destinationBranch']));
+        return response()->json($transfer->fresh(['items.product', 'destinationBranch', 'sourceBranch']));
     }
 
+    /**
+     * Resolve transfer dispute (Super Admin or Main Manager)
+     * Allowed transition: Disputed -> Received after resolution
+     * Resolutions:
+     * - written_off: write off missing/damaged units
+     * - found: missing items located and added to destination stock
+     * - re_sent: replacement transfer created for missing/damaged units
+     */
     public function resolve(Request $request, $id)
     {
-        $transfer = StockTransfer::findOrFail($id);
+        $transfer = StockTransfer::with(['items.product', 'destinationBranch', 'sourceBranch'])->findOrFail($id);
+        $user = $request->user();
+
+        if ($transfer->status !== 'Disputed') {
+            return response()->json(['message' => 'Only disputed transfers can be resolved.'], 422);
+        }
 
         $validated = $request->validate([
             'resolution' => 'required|in:written_off,found,re_sent',
             'notes' => 'required|string',
         ]);
 
-        $transfer->status = 'Received';
-        $transfer->notes = ($transfer->notes ? $transfer->notes . "\n" : '') . "Dispute Resolved: " . ucfirst($validated['resolution']) . " - " . $validated['notes'];
+        DB::transaction(function () use ($transfer, $validated, $user) {
+            if ($validated['resolution'] === 'found') {
+                // Located items: add missing quantity into destination branch inventory
+                foreach ($transfer->items as $item) {
+                    if ($item->missing_quantity > 0) {
+                        $destInventory = BranchInventory::firstOrCreate(
+                            ['branch_id' => $transfer->destination_branch_id, 'product_id' => $item->product_id],
+                            ['quantity_on_hand' => 0, 'reserved_quantity' => 0, 'reorder_level' => 10]
+                        );
+                        $destInventory->quantity_on_hand += $item->missing_quantity;
+                        $destInventory->save();
+
+                        InventoryTransaction::create([
+                            'branch_id' => $transfer->destination_branch_id,
+                            'product_id' => $item->product_id,
+                            'transaction_type' => 'transfer_receive',
+                            'quantity' => $item->missing_quantity,
+                            'reference_type' => 'StockTransfer',
+                            'reference_id' => $transfer->transfer_id,
+                            'reason' => "Dispute resolved: {$item->missing_quantity} units found and added to stock ({$validated['notes']})",
+                            'created_by' => $user?->user_id,
+                        ]);
+                    }
+                }
+            } elseif ($validated['resolution'] === 're_sent') {
+                // Create a replacement transfer for the missing/damaged items
+                $replacementNumber = $this->generateTransferNumber();
+
+                $replacement = StockTransfer::create([
+                    'transfer_number' => $replacementNumber,
+                    'source_branch_id' => $transfer->source_branch_id,
+                    'destination_branch_id' => $transfer->destination_branch_id,
+                    'status' => 'Approved',
+                    'created_by' => $user?->user_id ?? 1,
+                    'approved_by' => $user?->user_id ?? 1,
+                    'notes' => "Replacement transfer for disputed items in {$transfer->transfer_number}: " . $validated['notes'],
+                ]);
+
+                foreach ($transfer->items as $item) {
+                    $replacementQty = $item->missing_quantity + $item->damaged_quantity;
+                    if ($replacementQty > 0) {
+                        StockTransferItem::create([
+                            'transfer_id' => $replacement->transfer_id,
+                            'product_id' => $item->product_id,
+                            'quantity_sent' => $replacementQty,
+                            'quantity_received' => 0,
+                            'damaged_quantity' => 0,
+                            'missing_quantity' => 0,
+                        ]);
+                    }
+                }
+            }
+
+            // Move status to Received after resolution
+            $transfer->status = 'Received';
+            $transfer->notes = ($transfer->notes ? $transfer->notes . "\n" : '') . "Dispute Resolved (" . ucfirst($validated['resolution']) . "): " . $validated['notes'];
+            $transfer->save();
+
+            AuditLog::create([
+                'user_id' => $user?->user_id,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Super Admin',
+                'action' => 'Transfer dispute resolved',
+                'record' => $transfer->transfer_number,
+                'entity_type' => 'StockTransfer',
+                'entity_id' => (string) $transfer->transfer_id,
+                'old_value' => 'Disputed',
+                'new_value' => "Received (Resolved: {$validated['resolution']})",
+                'created_at' => now(),
+            ]);
+        });
+
+        return response()->json($transfer->fresh(['items.product', 'destinationBranch', 'sourceBranch']));
+    }
+
+    /**
+     * Cancel transfer before dispatch
+     * Rule: Dispatched transfers cannot be cancelled. Must be received or resolved through dispute.
+     */
+    public function cancel(Request $request, $id)
+    {
+        $transfer = StockTransfer::findOrFail($id);
+        $user = $request->user();
+
+        // Dispatched transfers CANNOT be cancelled
+        if (in_array($transfer->status, ['Dispatched', 'In transit', 'Partially received', 'Received', 'Disputed'])) {
+            return response()->json([
+                'message' => 'A dispatched transfer cannot be cancelled. It must be received, or written off through dispute resolution.'
+            ], 422);
+        }
+
+        if ($transfer->status === 'Cancelled') {
+            return response()->json(['message' => 'Transfer is already cancelled.'], 422);
+        }
+
+        // Only Super Admin or creator can cancel
+        if ($user && $user->role !== 'Super Admin' && $transfer->created_by != $user->user_id) {
+            return response()->json(['message' => 'Only Super Admin or the transfer creator can cancel a transfer before dispatch.'], 403);
+        }
+
+        $oldStatus = $transfer->status;
+        $transfer->status = 'Cancelled';
         $transfer->save();
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
-            'action' => 'Transfer dispute resolved',
+            'user_id' => $user?->user_id,
+            'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Super Admin',
+            'action' => 'Transfer cancelled',
             'record' => $transfer->transfer_number,
             'entity_type' => 'StockTransfer',
             'entity_id' => (string) $transfer->transfer_id,
-            'old_value' => 'Disputed',
-            'new_value' => "Resolved ({$validated['resolution']})",
+            'old_value' => $oldStatus,
+            'new_value' => 'Cancelled',
             'created_at' => now(),
         ]);
 
         return response()->json($transfer);
     }
 
+    /**
+     * Send reminder for unreceived transfer
+     */
+    public function remind(Request $request, $id)
+    {
+        $transfer = StockTransfer::with(['destinationBranch', 'sourceBranch'])->findOrFail($id);
+        $user = $request->user();
+
+        if (!in_array($transfer->status, ['Dispatched', 'In transit'])) {
+            return response()->json(['message' => 'Reminder can only be sent for dispatched or in-transit transfers.'], 422);
+        }
+
+        Notification::create([
+            'user_id' => null,
+            'category' => 'Transfers',
+            'title' => 'Transfer not received',
+            'message' => "{$transfer->transfer_number} to {$transfer->destinationBranch?->branch_name} unreceived after 24 hours.",
+            'link' => '/admin/distribution',
+        ]);
+
+        AuditLog::create([
+            'user_id' => $user?->user_id,
+            'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Main Manager',
+            'action' => 'Transfer reminder sent',
+            'record' => $transfer->transfer_number,
+            'entity_type' => 'StockTransfer',
+            'entity_id' => (string) $transfer->transfer_id,
+            'old_value' => $transfer->status,
+            'new_value' => 'Reminder dispatched',
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Reminder sent to {$transfer->destinationBranch?->branch_name} and alert logged for Main Branch.",
+            'transfer' => $transfer,
+        ]);
+    }
+
+    /**
+     * Submit branch stock request (Super Admin, Main Manager, Branch Admin, Branch Staff)
+     */
+    public function storeRequest(Request $request)
+    {
+        $user = $request->user();
+        $validated = $request->validate([
+            'branch_id' => 'required|exists:branches,branch_id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,product_id',
+            'items.*.quantity_requested' => 'required|integer|min:1',
+        ]);
+
+        $stockReq = DB::transaction(function () use ($validated, $user) {
+            $req = StockRequest::create([
+                'branch_id' => $validated['branch_id'],
+                'status' => 'Pending',
+                'requested_by' => $user?->user_id ?? 1,
+            ]);
+
+            foreach ($validated['items'] as $item) {
+                StockRequestItem::create([
+                    'request_id' => $req->request_id,
+                    'product_id' => $item['product_id'],
+                    'quantity_requested' => $item['quantity_requested'],
+                ]);
+            }
+
+            Notification::create([
+                'user_id' => null,
+                'category' => 'Transfers',
+                'title' => 'New stock request',
+                'message' => "Branch #{$validated['branch_id']} submitted a stock request for {$req->items->sum('quantity_requested')} units.",
+                'link' => '/admin/distribution',
+            ]);
+
+            return $req;
+        });
+
+        return response()->json($stockReq->load(['items.product', 'branch']), 201);
+    }
+
+    /**
+     * Convert branch stock request into a transfer (Main Manager or Super Admin)
+     */
     public function convertRequest(Request $request, $id)
     {
         $stockReq = StockRequest::with('items')->findOrFail($id);
         $user = $request->user();
 
-        $mainBranch = Branch::where('branch_type', 'Main')->firstOrFail();
-
-        $year = date('Y');
-        $lastTransfer = StockTransfer::where('transfer_number', 'like', "TRF-{$year}-%")->latest('transfer_id')->first();
-        $seq = 1;
-        if ($lastTransfer && preg_match('/TRF-\d{4}-(\d+)/', $lastTransfer->transfer_number, $matches)) {
-            $seq = intval($matches[1]) + 1;
+        if ($stockReq->status !== 'Pending') {
+            return response()->json(['message' => 'Only pending stock requests can be converted.'], 422);
         }
-        $transferNumber = sprintf('TRF-%s-%04d', $year, $seq);
 
-        $transfer = DB::transaction(function () use ($stockReq, $mainBranch, $transferNumber, $user) {
+        $mainBranch = Branch::where('branch_type', 'Main')->firstOrFail();
+        $transferNumber = $this->generateTransferNumber();
+
+        $threshold = (int) AppSetting::get('approval_threshold_units', 200);
+        $totalUnits = $stockReq->items->sum('quantity_requested');
+        $initialStatus = ($totalUnits <= $threshold && AppSetting::get('transfer_approval_required', '0') !== '1') ? 'Approved' : 'Draft';
+
+        $transfer = DB::transaction(function () use ($stockReq, $mainBranch, $transferNumber, $initialStatus, $user) {
             $transfer = StockTransfer::create([
                 'transfer_number' => $transferNumber,
                 'source_branch_id' => $mainBranch->branch_id,
                 'destination_branch_id' => $stockReq->branch_id,
-                'status' => 'Approved',
+                'status' => $initialStatus,
                 'created_by' => $user?->user_id ?? 1,
-                'approved_by' => $user?->user_id ?? 1,
+                'approved_by' => ($initialStatus === 'Approved') ? ($user?->user_id ?? 1) : null,
                 'notes' => "Converted from branch stock request #{$stockReq->request_id}",
             ]);
 
@@ -485,9 +794,21 @@ class TransferController extends Controller
                 'converted_transfer_id' => $transfer->transfer_id,
             ]);
 
+            AuditLog::create([
+                'user_id' => $user?->user_id,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Main Manager',
+                'action' => 'Stock request converted',
+                'record' => $transferNumber,
+                'entity_type' => 'StockRequest',
+                'entity_id' => (string) $stockReq->request_id,
+                'old_value' => 'Pending',
+                'new_value' => "Converted to {$transferNumber} ({$initialStatus})",
+                'created_at' => now(),
+            ]);
+
             return $transfer;
         });
 
-        return response()->json($transfer->load('items.product'));
+        return response()->json($transfer->load(['items.product', 'destinationBranch']));
     }
 }

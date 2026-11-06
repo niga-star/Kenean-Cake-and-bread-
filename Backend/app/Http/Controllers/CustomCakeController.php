@@ -334,4 +334,39 @@ class CustomCakeController extends Controller
             'cake_request' => $cakeReq->load(['branch', 'images']),
         ]);
     }
+
+    /**
+     * Upload cake reference image with strict MIME type and size restrictions
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|image|mimes:jpeg,png,jpg,webp|max:5120', // restricted by type & max 5MB
+        ]);
+
+        $file = $request->file('image');
+        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        
+        $path = $file->storeAs('custom_cakes', $fileName, 'public');
+        $url = asset('storage/' . $path);
+
+        AuditLog::create([
+            'user_id' => $request->user()?->user_id,
+            'user_name' => $request->user()?->full_name ?? 'Customer',
+            'action' => 'Cake reference image uploaded',
+            'record' => $file->getClientOriginalName(),
+            'entity_type' => 'CustomCakeImage',
+            'entity_id' => '0',
+            'old_value' => null,
+            'new_value' => "Size: " . round($file->getSize() / 1024) . "KB, Type: " . $file->getMimeType(),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Image successfully uploaded and security validated.',
+            'image_url' => $url,
+            'filename' => $fileName,
+            'size_kb' => round($file->getSize() / 1024),
+        ], 201);
+    }
 }

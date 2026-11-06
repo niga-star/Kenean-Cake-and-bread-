@@ -1,25 +1,67 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-bg: #F8F3EA;
+  --color-brand-bg-alt: #E8D8C4;
+  --color-brand-accent: #A87552;
+  --color-brand-accent-hover: #916140;
+  --color-brand-dark: #553B2D;
+  --color-brand-dark-hover: #432e23;
+  --color-brand-main: #29231F;
+  --color-brand-muted: #786B60;
+  --color-brand-border: #E6DED3;
+  --color-brand-success: #387A54;
+  --color-brand-warning: #B98235;
+  --color-brand-error: #B84B42;
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-script: "Caveat", "Dancing Script", cursive;
+  --color-sweet-pink: #DE1B54;
+  --color-sweet-pink-hover: #C51345;
+  --color-sweet-dark: #27160E;
+}
+
+@layer utilities {
+  .font-script {
+    font-family: "Caveat", "Dancing Script", cursive;
+  }
+}
+
 @layer base {
   body {
-    background-color: #FAF7F5;
-    color: #261814;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #F8F3EA;
+    color: #29231F;
+    font-family: var(--font-sans);
   }
 
-  h1, h2, h3, h4, .font-display {
-    font-family: 'Playfair Display', Georgia, serif;
+  h1, h2, h3, h4, .font-serif, .font-display {
+    font-family: var(--font-serif);
   }
 }
 
-.sweet-gradient {
-  background: linear-gradient(135deg, #FFF1F2 0%, #FCE7F3 50%, #FAF5FF 100%);
+/* Premium Warm Editorial Gradients */
+.kenean-hero-gradient {
+  background: radial-gradient(circle at 80% 20%, #F5EBE1 0%, #F8F3EA 60%, #E8D8C4 100%);
 }
 
-.sweet-banner-gradient {
-  background: linear-gradient(90deg, #FDF2F8 0%, #FCE7F3 60%, #FFF1F2 100%);
+.kenean-card-gradient {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF6F0 100%);
 }
 
-.sweet-dark {
-  background-color: #38121A;
+.kenean-dark-gradient {
+  background: linear-gradient(135deg, #3D291F 0%, #553B2D 50%, #432E23 100%);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Subtle image hover zoom */
+.hover-zoom {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-zoom:hover {
+  transform: scale(1.04);
 }

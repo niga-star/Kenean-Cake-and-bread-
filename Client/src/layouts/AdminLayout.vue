@@ -20,7 +20,7 @@
               class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
               :class="$route.path === '/admin/overview' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
             >
-              Overview
+              {{ isBranchScoped ? 'Branch Overview' : 'Overview' }}
             </router-link>
           </div>
 
@@ -67,7 +67,7 @@
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/inventory' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                {{ isBranchScoped ? 'Branch Inventory' : 'Inventory by branch' }}
+                {{ isBranchScoped ? 'My Inventory' : 'Inventory by branch' }}
               </router-link>
 
               <router-link
@@ -76,7 +76,7 @@
                 class="flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/distribution' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                <span>{{ isBranchScoped ? 'Incoming transfers' : 'Distribution' }}</span>
+                <span>{{ isBranchScoped ? 'Stock Receiving' : 'Distribution' }}</span>
                 <span class="px-1.5 py-0.2 text-[11px] bg-[#33241A] text-[#D8C7BA] rounded font-bold">2</span>
               </router-link>
 
@@ -101,7 +101,7 @@
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/orders' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                {{ isBranchScoped ? 'Branch orders' : 'All orders' }}
+                {{ currentRole === 'Branch Staff' ? 'Order Preparation' : (isBranchScoped ? 'My Orders' : 'All orders') }}
               </router-link>
 
               <router-link
@@ -110,7 +110,7 @@
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/custom-cakes' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                Custom cakes
+                {{ isBranchScoped ? 'Custom Cake Orders' : 'Custom cakes' }}
               </router-link>
 
               <router-link
@@ -119,7 +119,7 @@
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/payments' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                Payments
+                {{ isBranchScoped ? 'Branch Sales' : 'Payments' }}
               </router-link>
 
               <router-link
@@ -128,7 +128,7 @@
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
                 :class="$route.path === '/admin/reports' ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
               >
-                {{ isBranchScoped ? 'Branch reports' : 'Reports' }}
+                {{ isBranchScoped ? 'Branch Reports' : 'Reports' }}
               </router-link>
             </div>
           </div>
@@ -170,9 +170,9 @@
       </div>
 
       <!-- Bottom User Profile with Role & Branch Tag -->
-      <div class="p-4 border-t border-[#2C1F16]/60 bg-[#160E0A]">
+      <div class="p-4 border-t border-[#2C1F16]/60 bg-[#160E0A] flex items-center justify-between">
         <div>
-          <div class="text-sm font-medium text-[#F4EDE4]">
+          <div class="text-sm font-medium text-[#F4EDE4] truncate max-w-[150px]">
             {{ authStore.user?.full_name || 'Admin User' }}
           </div>
           <div class="text-xs text-[#9B897D]">
@@ -181,6 +181,16 @@
             <span v-else> · All Branches</span>
           </div>
         </div>
+
+        <button
+          @click="handleLogout"
+          class="p-2 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition cursor-pointer"
+          title="Sign out of portal"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
       </div>
     </aside>
 
@@ -188,12 +198,13 @@
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Quick Role Switcher Bar with Access Indicators -->
       <header class="h-14 bg-white border-b border-[#E7DFD5] px-6 flex items-center justify-between shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div class="flex items-center space-x-3 text-sm">
+        <!-- 1. Super Admin Only: Persona Simulator -->
+        <div v-if="authStore.canSimulatePersona" class="flex items-center space-x-3 text-sm">
           <span class="text-[#88786B] font-medium text-xs">Simulate Persona:</span>
           <select
             :value="selectedRoleKey"
             @change="handleRoleChange($event.target.value)"
-            class="bg-[#F8F4EE] border border-[#DACDC0] text-[#3A2E26] text-xs font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#BA5420]"
+            class="bg-[#F8F4EE] border border-[#DACDC0] text-[#3A2E26] text-xs font-semibold rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
           >
             <option
               v-for="(r, idx) in authStore.availableRoles"
@@ -203,15 +214,50 @@
               {{ r.label }}
             </option>
           </select>
+
+          <!-- Simulating Indicator with Exit Button -->
+          <span
+            v-if="authStore.isSimulating"
+            class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-50 text-amber-900 border border-amber-300 flex items-center space-x-1.5"
+          >
+            <span>Simulating: {{ currentRole }}</span>
+            <button
+              @click="handleExitSimulation"
+              class="text-[10px] bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold px-1.5 py-0.2 rounded transition cursor-pointer"
+              title="Return to Super Admin"
+            >
+              Exit ✕
+            </button>
+          </span>
+
+          <span
+            v-else
+            class="text-xs px-2.5 py-0.5 rounded-full font-semibold border bg-[#FFF3E0] text-[#E65100] border-[#FFE0B2]"
+          >
+            Scope: {{ roleScope }}
+          </span>
+        </div>
+
+        <!-- 2. Non-Super Admin: Strictly Read-Only Role & Scope Badge (NEVER shows Simulate Persona!) -->
+        <div v-else class="flex items-center space-x-3 text-sm">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-[#88786B] font-medium">Logged in as:</span>
+            <span class="text-xs font-bold text-[#2A1810]">{{ authStore.user?.full_name || 'Staff' }}</span>
+          </div>
+
           <span
             class="text-xs px-2.5 py-0.5 rounded-full font-semibold border"
             :class="{
-              'bg-[#FFF3E0] text-[#E65100] border-[#FFE0B2]': currentRole === 'Super Admin',
               'bg-[#EBF3FB] text-[#1565C0] border-[#BBDEFB]': currentRole === 'Main Branch Manager',
               'bg-[#FAF3EC] text-[#BA5420] border-[#EACBB8]': currentRole === 'Branch Admin',
-              'bg-[#F3EFE9] text-[#7A6B60] border-[#DDD3C7]': currentRole === 'Branch Staff'
+              'bg-[#F3EFE9] text-[#7A6B60] border-[#DDD3C7]': currentRole === 'Branch Staff',
+              'bg-gray-100 text-gray-800 border-gray-200': !['Main Branch Manager', 'Branch Admin', 'Branch Staff'].includes(currentRole)
             }"
           >
+            Role: {{ currentRole }}
+          </span>
+
+          <span class="text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#FAF6F2] text-[#635347] border border-[#E7DFD5]">
             Scope: {{ roleScope }}
           </span>
         </div>
@@ -295,4 +341,14 @@ const handleRoleChange = async (index) => {
     }
   }
 };
+
+async function handleExitSimulation() {
+  await authStore.exitSimulation();
+  router.push('/admin/overview');
+}
+
+function handleLogout() {
+  authStore.logout();
+  router.push('/login');
+}
 </script>

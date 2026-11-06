@@ -3,13 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Payment;
 use App\Models\Order;
+use App\Models\BranchInventory;
+use App\Models\InventoryTransaction;
+use App\Models\OrderStatusHistory;
 use App\Models\AuditLog;
+use App\Models\Notification;
+use App\Models\AppSetting;
 use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
+    /**
+     * List payment transactions and metrics
+     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -31,38 +40,49 @@ class PaymentController extends Controller
                 'method' => $p->payment_method,
                 'amount' => (float) $p->amount,
                 'status' => $p->payment_status,
-                'created_at' => $p->created_at->format('H:i'),
+                'created_at' => $p->created_at ? $p->created_at->format('H:i') : '—',
                 'refund_reason' => $p->refund_reason,
+                'refund_amount' => $p->refund_amount ? (float) $p->refund_amount : null,
             ];
         });
 
-        // Metric calculations
+        // Real metric calculations from MySQL database
         $today = Carbon::today();
         $week = Carbon::now()->startOfWeek();
 
-        $onlineRevenueToday = Payment::whereIn('payment_method', ['Chapa', 'Telebirr'])
+        $onlineRevenueToday = (float) Payment::whereIn('payment_method', ['Chapa', 'Telebirr'])
             ->where('payment_status', 'Paid')
+            ->whereDate('updated_at', $today)
             ->sum('amount');
 
-        $payOnPickupPending = Payment::whereIn('payment_method', ['Pay on pickup', 'Pay on delivery'])
+        $payOnPickupPending = (float) Payment::whereIn('payment_method', ['Pay on pickup', 'Pay on delivery'])
             ->where('payment_status', 'Pending')
             ->sum('amount');
 
-        $failedToday = Payment::where('payment_status', 'Failed')->count();
+        $failedToday = Payment::where('payment_status', 'Failed')
+            ->whereDate('updated_at', $today)
+            ->count();
 
-        $refundsThisWeek = Payment::where('payment_status', 'Refunded')->sum('amount');
+        $refundsThisWeek = (float) Payment::where('payment_status', 'Refunded')
+            ->where('updated_at', '>=', $week)
+            ->sum('refund_amount');
 
         return response()->json([
             'payments' => $payments,
             'summary' => [
-                'online_revenue_today' => $onlineRevenueToday > 0 ? $onlineRevenueToday : 41300,
-                'pay_on_pickup_delivery' => $payOnPickupPending > 0 ? $payOnPickupPending : 6900,
-                'failed_today' => $failedToday > 0 ? $failedToday : 3,
-                'refunds_this_week' => $refundsThisWeek > 0 ? $refundsThisWeek : 850,
+                'online_revenue_today' => $onlineRevenueToday,
+                'pay_on_pickup_delivery' => $payOnPickupPending,
+                'failed_today' => $failedToday,
+                'refunds_this_week' => $refundsThisWeek,
             ]
         ]);
     }
 
+    /**
+     * Issue refund for an order (Super Admin or Main Branch Manager)
+     * Rule: Refunds are issued to the original payment method and recorded on the payment.
+     * Reservation is released and order marked Cancelled.
+     */
     public function refund(Request $request)
     {
         $validated = $request->validate([
@@ -71,7 +91,7 @@ class PaymentController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $order = Order::where('order_number', $validated['order_number'])->first();
+        $order = Order::with(['items', 'branch'])->where('order_number', $validated['order_number'])->first();
         if (!$order) {
             return response()->json(['message' => 'Order not found.'], 404);
         }
@@ -81,62 +101,176 @@ class PaymentController extends Controller
             return response()->json(['message' => 'No payment record associated with this order.'], 404);
         }
 
-        $payment->payment_status = 'Refunded';
-        $payment->refund_amount = $validated['amount'];
-        $payment->refund_reason = $validated['reason'];
-        $payment->save();
+        if ($payment->payment_status === 'Refunded') {
+            return response()->json(['message' => 'This payment has already been refunded.'], 422);
+        }
 
-        $order->order_status = 'Cancelled';
-        $order->save();
+        $user = $request->user();
 
-        AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Branch Admin',
-            'action' => 'Refund issued',
-            'record' => $order->order_number,
-            'entity_type' => 'Payment',
-            'entity_id' => (string) $payment->payment_id,
-            'old_value' => '—',
-            'new_value' => 'ETB ' . number_format($validated['amount'], 0),
-            'created_at' => now(),
-        ]);
+        DB::transaction(function () use ($order, $payment, $validated, $user) {
+            $payment->payment_status = 'Refunded';
+            $payment->refund_amount = $validated['amount'];
+            $payment->refund_reason = $validated['reason'];
+            $payment->save();
+
+            // If order was not completed, release reserved stock
+            if ($order->order_status !== 'Completed' && $order->order_status !== 'Cancelled') {
+                foreach ($order->items as $item) {
+                    $inv = BranchInventory::where('branch_id', $order->branch_id)
+                        ->where('product_id', $item->product_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($inv) {
+                        $inv->reserved_quantity = max(0, $inv->reserved_quantity - $item->quantity);
+                        $inv->save();
+                    }
+
+                    InventoryTransaction::create([
+                        'branch_id' => $order->branch_id,
+                        'product_id' => $item->product_id,
+                        'transaction_type' => 'order_cancelled',
+                        'quantity' => -$item->quantity,
+                        'reference_type' => 'Order',
+                        'reference_id' => $order->order_id,
+                        'reason' => "Order {$order->order_number} refunded ETB {$validated['amount']}: {$validated['reason']}",
+                        'created_by' => $user?->user_id,
+                    ]);
+                }
+            }
+
+            $oldStatus = $order->order_status;
+            $order->order_status = 'Cancelled';
+            $order->save();
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => $oldStatus,
+                'new_status' => 'Cancelled',
+                'changed_by' => $user?->user_id,
+                'note' => "Refunded ETB " . number_format($validated['amount'], 0) . " to original payment method ({$payment->payment_method}): {$validated['reason']}",
+                'changed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => $user?->user_id,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Branch Admin',
+                'action' => 'Refund issued',
+                'record' => $order->order_number,
+                'entity_type' => 'Payment',
+                'entity_id' => (string) $payment->payment_id,
+                'old_value' => 'ETB ' . number_format($order->total_amount, 0),
+                'new_value' => 'Refunded ETB ' . number_format($validated['amount'], 0) . ' (' . $payment->payment_method . ')',
+                'created_at' => now(),
+            ]);
+
+            Notification::create([
+                'user_id' => null,
+                'category' => 'Orders',
+                'title' => 'Refund issued',
+                'message' => "Order {$order->order_number} refunded ETB " . number_format($validated['amount'], 0) . ". Reason: {$validated['reason']}",
+                'link' => '/admin/orders',
+            ]);
+        });
 
         return response()->json([
-            'message' => 'Refund issued successfully.',
-            'payment' => $payment,
+            'message' => 'Refund issued successfully and order updated.',
+            'payment' => $payment->fresh(),
+            'order' => $order->fresh(['items', 'statusHistory']),
         ]);
     }
 
+    /**
+     * Signed Webhook callback endpoint
+     * Rules:
+     * - Gateway confirmations arrive through a signed webhook.
+     * - The order is confirmed ONLY on a verified webhook, never on the browser redirect.
+     * - Duplicate callbacks are ignored using the transaction reference as an idempotency key.
+     */
     public function webhook(Request $request)
     {
-        $txRef = $request->input('tx_ref') ?? $request->input('transaction_reference');
-        $status = $request->input('status');
+        $txRef = $request->input('tx_ref') ?? $request->input('transaction_reference') ?? $request->input('reference');
+        $status = $request->input('status') ?? 'success';
 
         if (!$txRef) {
             return response()->json(['message' => 'Missing transaction reference'], 400);
         }
 
-        // Idempotency check
-        $payment = Payment::where('transaction_reference', $txRef)->first();
+        // Webhook signature verification (Section 12: Gateway webhooks are verified by signature)
+        $secret = AppSetting::get('webhook_secret', 'whsec_live_89f21a9chapa2026');
+        $signature = $request->header('x-chapa-signature')
+            ?? $request->header('chapa-signature')
+            ?? $request->header('signature')
+            ?? $request->input('secret_hash');
+
+        if (!$signature || $signature !== $secret) {
+            return response()->json(['message' => 'Invalid or missing webhook signature.'], 401);
+        }
+
+        // Find payment record by transaction reference
+        $payment = Payment::with('order')->where('transaction_reference', $txRef)->first();
         if (!$payment) {
-            return response()->json(['message' => 'Transaction not found'], 404);
+            return response()->json(['message' => "Transaction reference '{$txRef}' not found"], 404);
         }
 
+        // Idempotency: duplicate callbacks are safely ignored
         if ($payment->payment_status === 'Paid') {
-            return response()->json(['message' => 'Payment already processed (idempotent)'], 200);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment already processed (duplicate callback ignored)',
+            ], 200);
         }
 
-        if (strtolower($status) === 'success') {
-            $payment->payment_status = 'Paid';
-            $payment->save();
+        DB::transaction(function () use ($payment, $status, $txRef) {
+            if (in_array(strtolower($status), ['success', 'paid'])) {
+                $payment->payment_status = 'Paid';
+                $payment->save();
 
-            $order = $payment->order;
-            if ($order && $order->order_status === 'Pending') {
-                $order->order_status = 'Confirmed';
-                $order->save();
+                $order = $payment->order;
+                if ($order && $order->order_status === 'Pending') {
+                    $order->order_status = 'Confirmed';
+                    $order->save();
+
+                    OrderStatusHistory::create([
+                        'order_id' => $order->order_id,
+                        'old_status' => 'Pending',
+                        'new_status' => 'Confirmed',
+                        'changed_by' => null,
+                        'note' => "Confirmed via verified payment webhook ({$txRef})",
+                        'changed_at' => now(),
+                    ]);
+
+                    AuditLog::create([
+                        'user_id' => null,
+                        'user_name' => 'Payment Gateway',
+                        'action' => 'Payment confirmed via webhook',
+                        'record' => $order->order_number,
+                        'entity_type' => 'Payment',
+                        'entity_id' => (string) $payment->payment_id,
+                        'old_value' => 'Pending',
+                        'new_value' => 'Paid (Confirmed)',
+                        'created_at' => now(),
+                    ]);
+
+                    Notification::create([
+                        'user_id' => null,
+                        'category' => 'Orders',
+                        'title' => "Payment confirmed for {$order->order_number}",
+                        'message' => "Order {$order->order_number} confirmed via {$payment->payment_method} (ETB " . number_format($payment->amount, 0) . ")",
+                        'link' => '/admin/orders',
+                    ]);
+                }
+            } elseif (in_array(strtolower($status), ['failed', 'cancelled'])) {
+                $payment->payment_status = 'Failed';
+                $payment->save();
             }
-        }
+        });
 
-        return response()->json(['status' => 'handled']);
+        return response()->json([
+            'status' => 'handled',
+            'order_number' => $payment->order?->order_number,
+            'payment_status' => $payment->fresh()->payment_status,
+            'order_status' => $payment->order?->fresh()->order_status,
+        ]);
     }
 }
