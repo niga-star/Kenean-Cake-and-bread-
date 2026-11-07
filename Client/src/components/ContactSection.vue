@@ -351,63 +351,143 @@
               </button>
             </div>
 
-            <!-- The Contact Form -->
-            <form v-else @submit.prevent="handleSubmitMessage" class="space-y-4">
+            <!-- The Contact Form with Real-time & Submit Validation -->
+            <form v-else @submit.prevent="handleSubmitMessage" novalidate class="space-y-4.5">
               
               <!-- Row 1: Full Name * & Email * -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
-                <!-- Full Name -->
+                <!-- Full Name: Required, Letters only (no numbers / special characters), 3–25 chars -->
                 <div class="space-y-1.5">
-                  <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ localeStore.isAmharic ? 'ሙሉ ስም' : 'Full Name' }} <span class="text-[#DE1B54] font-bold">*</span>
-                  </label>
-                  <input
-                    v-model="form.name"
-                    type="text"
-                    required
-                    :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Enter your full name'"
-                    class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#3E2319] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#2A1810] dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DE1B54]/20 transition"
-                  />
+                  <div class="flex items-center justify-between">
+                    <label for="contact-name" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                      {{ localeStore.isAmharic ? 'ሙሉ ስም' : 'Full Name' }} <span class="text-[#DE1B54] font-bold">*</span>
+                    </label>
+                    <span class="text-[11px] text-[#8C7A6F] dark:text-[#AFA39B]">
+                      {{ localeStore.isAmharic ? 'ፊደላት ብቻ (3–25)' : 'Letters only (3–25 chars)' }}
+                    </span>
+                  </div>
+                  <div class="relative">
+                    <input
+                      id="contact-name"
+                      ref="nameInputRef"
+                      v-model="form.name"
+                      type="text"
+                      maxlength="25"
+                      @input="onFieldInput('name')"
+                      @blur="onFieldBlur('name')"
+                      :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'e.g. Sara Mengistu'"
+                      class="w-full rounded-2xl px-4 py-3 text-xs sm:text-sm placeholder:text-gray-400 focus:outline-none transition pr-10"
+                      :class="getFieldClass('name')"
+                    />
+                    <!-- Real-time Valid / Invalid Feedback Icon -->
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                      <span v-if="touched.name && !errors.name && form.name.trim()" class="text-emerald-500 font-bold text-sm">✓</span>
+                      <span v-else-if="touched.name && errors.name" class="text-rose-500 font-bold text-sm">!</span>
+                    </div>
+                  </div>
+                  <!-- Validation Error Message below field -->
+                  <div
+                    v-if="touched.name && errors.name"
+                    class="flex items-center space-x-1.5 text-xs text-rose-600 dark:text-rose-400 pt-0.5 font-semibold animate-in fade-in duration-200"
+                  >
+                    <svg class="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ errors.name }}</span>
+                  </div>
                 </div>
 
-                <!-- Email -->
+                <!-- Email: Required, Valid Email, Must be @gmail.com -->
                 <div class="space-y-1.5">
-                  <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ localeStore.isAmharic ? 'ኢሜይል' : 'Email' }} <span class="text-[#DE1B54] font-bold">*</span>
-                  </label>
-                  <input
-                    v-model="form.email"
-                    type="email"
-                    required
-                    placeholder="sara@example.com"
-                    class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#3E2319] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#2A1810] dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DE1B54]/20 transition"
-                  />
+                  <div class="flex items-center justify-between">
+                    <label for="contact-email" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                      {{ localeStore.isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address' }} <span class="text-[#DE1B54] font-bold">*</span>
+                    </label>
+                    <span class="text-[11px] text-[#8C7A6F] dark:text-[#AFA39B]">@gmail.com</span>
+                  </div>
+                  <div class="relative">
+                    <input
+                      id="contact-email"
+                      ref="emailInputRef"
+                      v-model="form.email"
+                      type="email"
+                      @input="onFieldInput('email')"
+                      @blur="onFieldBlur('email')"
+                      placeholder="example@gmail.com"
+                      class="w-full rounded-2xl px-4 py-3 text-xs sm:text-sm placeholder:text-gray-400 focus:outline-none transition pr-10"
+                      :class="getFieldClass('email')"
+                    />
+                    <!-- Real-time Valid / Invalid Feedback Icon -->
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                      <span v-if="touched.email && !errors.email && form.email.trim()" class="text-emerald-500 font-bold text-sm">✓</span>
+                      <span v-else-if="touched.email && errors.email" class="text-rose-500 font-bold text-sm">!</span>
+                    </div>
+                  </div>
+                  <!-- Validation Error Message below field -->
+                  <div
+                    v-if="touched.email && errors.email"
+                    class="flex items-center space-x-1.5 text-xs text-rose-600 dark:text-rose-400 pt-0.5 font-semibold animate-in fade-in duration-200"
+                  >
+                    <svg class="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ errors.email }}</span>
+                  </div>
                 </div>
 
               </div>
 
-              <!-- Row 2: Phone Number & Subject -->
+              <!-- Row 2: Phone Number * & Subject -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
-                <!-- Phone Number -->
+                <!-- Phone Number: Required, Ethiopian format (09, 07, +2519, +2517) -->
                 <div class="space-y-1.5">
-                  <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ localeStore.isAmharic ? 'ስልክ ቁጥር' : 'Phone Number' }}
-                  </label>
-                  <input
-                    v-model="form.phone"
-                    type="tel"
-                    placeholder="+251 9XX XXX XXX"
-                    class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#3E2319] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#2A1810] dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DE1B54]/20 transition"
-                  />
+                  <div class="flex items-center justify-between">
+                    <label for="contact-phone" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                      {{ localeStore.isAmharic ? 'ስልክ ቁጥር' : 'Phone Number' }} <span class="text-[#DE1B54] font-bold">*</span>
+                    </label>
+                    <span class="text-[11px] text-[#8C7A6F] dark:text-[#AFA39B]">09 / 07 / +251</span>
+                  </div>
+                  <div class="relative">
+                    <input
+                      id="contact-phone"
+                      ref="phoneInputRef"
+                      v-model="form.phone"
+                      type="tel"
+                      maxlength="17"
+                      @input="onFieldInput('phone')"
+                      @blur="onFieldBlur('phone')"
+                      placeholder="09XXXXXXXX or +2519XXXXXXXX"
+                      class="w-full rounded-2xl px-4 py-3 text-xs sm:text-sm placeholder:text-gray-400 focus:outline-none transition pr-10 font-mono"
+                      :class="getFieldClass('phone')"
+                    />
+                    <!-- Real-time Valid / Invalid Feedback Icon -->
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                      <span v-if="touched.phone && !errors.phone && form.phone.trim()" class="text-emerald-500 font-bold text-sm">✓</span>
+                      <span v-else-if="touched.phone && errors.phone" class="text-rose-500 font-bold text-sm">!</span>
+                    </div>
+                  </div>
+                  <!-- Validation Error Message below field -->
+                  <div
+                    v-if="touched.phone && errors.phone"
+                    class="flex items-center space-x-1.5 text-xs text-rose-600 dark:text-rose-400 pt-0.5 font-semibold animate-in fade-in duration-200"
+                  >
+                    <svg class="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ errors.phone }}</span>
+                  </div>
                 </div>
 
                 <!-- Subject Dropdown -->
                 <div class="space-y-1.5">
-                  <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ localeStore.isAmharic ? 'ርዕሰ ጉዳይ' : 'Subject' }}
-                  </label>
+                  <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                      {{ localeStore.isAmharic ? 'ርዕሰ ጉዳይ' : 'Subject' }}
+                    </label>
+                    <span class="text-[11px] text-[#8C7A6F] dark:text-[#AFA39B]">{{ localeStore.isAmharic ? 'አማራጭ' : 'Topic' }}</span>
+                  </div>
                   <div class="relative">
                     <select
                       v-model="form.subject"
@@ -430,18 +510,60 @@
 
               </div>
 
-              <!-- Row 3: Your Message * -->
+              <!-- Row 3: Your Message * with Live Character Counter (min 10, max 300) -->
               <div class="space-y-1.5">
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                  {{ localeStore.isAmharic ? 'የእርስዎ መልእክት' : 'Your Message' }} <span class="text-[#DE1B54] font-bold">*</span>
-                </label>
-                <textarea
-                  v-model="form.message"
-                  required
-                  rows="4"
-                  :placeholder="localeStore.isAmharic ? 'የሚፈልጉትን፣ የቀን ምርጫ እና ማንኛውንም ጥያቄ እዚህ ይጻፉ...' : 'Tell us what you need, your event date, flavor preferences, or any questions...'"
-                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#3E2319] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-2xl p-4 text-xs sm:text-sm text-[#2A1810] dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DE1B54]/20 transition resize-y"
-                ></textarea>
+                <div class="flex items-center justify-between">
+                  <label for="contact-message" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                    {{ localeStore.isAmharic ? 'የእርስዎ መልእክት' : 'Your Message' }} <span class="text-[#DE1B54] font-bold">*</span>
+                  </label>
+                  
+                  <!-- Live Character Counter (e.g. 45/300) -->
+                  <div class="flex items-center space-x-1.5 font-mono text-xs">
+                    <span
+                      class="font-bold transition-colors"
+                      :class="{
+                        'text-emerald-600 dark:text-emerald-400': form.message.length >= 10 && form.message.length <= 250,
+                        'text-amber-500 font-black': form.message.length > 250 && form.message.length < 300,
+                        'text-rose-600 dark:text-rose-400 font-black': form.message.length >= 300 || (touched.message && form.message.length < 10),
+                        'text-gray-400 dark:text-gray-500': !touched.message && form.message.length < 10
+                      }"
+                    >
+                      {{ form.message.length }}
+                    </span>
+                    <span class="text-gray-400 dark:text-[#8C7A6F]">/ 300</span>
+                  </div>
+                </div>
+
+                <div class="relative">
+                  <textarea
+                    id="contact-message"
+                    ref="messageInputRef"
+                    v-model="form.message"
+                    rows="4"
+                    maxlength="300"
+                    @input="onFieldInput('message')"
+                    @blur="onFieldBlur('message')"
+                    :placeholder="localeStore.isAmharic ? 'የሚፈልጉትን፣ የቀን ምርጫ እና ማንኛውንም ጥያቄ እዚህ ይጻፉ (ቢያንስ 10 ፊደላት)...' : 'Tell us what you need, your event date, flavor preferences, or any questions (min 10 characters)...'"
+                    class="w-full rounded-2xl p-4 text-xs sm:text-sm placeholder:text-gray-400 focus:outline-none transition resize-y"
+                    :class="getFieldClass('message')"
+                  ></textarea>
+                </div>
+
+                <!-- Live Message Error or Guidance Helper below textarea -->
+                <div class="flex items-center justify-between text-xs pt-0.5">
+                  <div
+                    v-if="touched.message && errors.message"
+                    class="flex items-center space-x-1.5 text-xs text-rose-600 dark:text-rose-400 font-semibold animate-in fade-in duration-200"
+                  >
+                    <svg class="w-3.5 h-3.5 shrink-0 fill-current" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>{{ errors.message }}</span>
+                  </div>
+                  <div v-else class="text-[11px] text-[#8C7A6F] dark:text-[#AFA39B]">
+                    {{ localeStore.isAmharic ? 'ቢያንስ 10 ፊደላት፣ ቢበዛ 300 ፊደላት' : 'Min 10 characters, max 300 characters' }}
+                  </div>
+                </div>
               </div>
 
               <!-- Row 4: Submit Button (Vibrant Berry Pink Pill Button Matching Mockup) -->
@@ -523,7 +645,12 @@ onUnmounted(() => {
   }
 });
 
-// Form State
+// Form State, Input Element References & Real-time Validation
+const nameInputRef = ref(null);
+const emailInputRef = ref(null);
+const phoneInputRef = ref(null);
+const messageInputRef = ref(null);
+
 const form = ref({
   name: '',
   email: '',
@@ -531,8 +658,121 @@ const form = ref({
   subject: 'General Bakery Inquiry',
   message: '',
 });
+
+const errors = ref({
+  name: '',
+  email: '',
+  phone: '',
+  message: '',
+});
+
+const touched = ref({
+  name: false,
+  email: false,
+  phone: false,
+  message: false,
+});
+
 const isSubmitting = ref(false);
 const submitSuccess = ref(false);
+
+// Validation Regex Constants
+const NAME_REGEX = /^[\p{L}\s]+$/u;
+const GMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+const ETHIO_PHONE_REGEX = /^(?:\+251[97]\d{8}|0[97]\d{8})$/;
+
+// Field Validators (Bilingual English / Amharic)
+function validateName(val) {
+  const v = (val || '').trim();
+  if (!v) {
+    return localeStore.isAmharic ? 'ሙሉ ስም ማስገባት ግዴታ ነው።' : 'Full Name is required.';
+  }
+  if (v.length < 3) {
+    return localeStore.isAmharic ? 'ሙሉ ስም ቢያንስ 3 ፊደላት መሆን አለበት።' : 'Full Name must be at least 3 characters.';
+  }
+  if (v.length > 25) {
+    return localeStore.isAmharic ? 'ሙሉ ስም ከ 25 ፊደላት መብለጥ የለበትም።' : 'Full Name cannot exceed 25 characters.';
+  }
+  if (!NAME_REGEX.test(v)) {
+    return localeStore.isAmharic
+      ? 'ሙሉ ስም ፊደላት እና ክፍተት ብቻ መያዝ አለበት (ቁጥሮች ወይም ልዩ ምልክቶች አይፈቀዱም)።'
+      : 'Full Name must contain only letters and spaces (no numbers or special characters).';
+  }
+  return '';
+}
+
+function validateEmail(val) {
+  const v = (val || '').trim();
+  if (!v) {
+    return localeStore.isAmharic ? 'የኢሜይል አድራሻ ማስገባት ግዴታ ነው።' : 'Email Address is required.';
+  }
+  if (!GMAIL_REGEX.test(v)) {
+    return localeStore.isAmharic
+      ? 'ኢሜይል የጂሜይል (Gmail) አድራሻ መሆን አለበት (ለምሳሌ፡ example@gmail.com)።'
+      : 'Must follow the Gmail format (e.g. example@gmail.com).';
+  }
+  return '';
+}
+
+function validatePhone(val) {
+  const raw = (val || '').trim();
+  if (!raw) {
+    return localeStore.isAmharic ? 'ስልክ ቁጥር ማስገባት ግዴታ ነው።' : 'Phone Number is required.';
+  }
+  const cleaned = raw.replace(/[\s\-]+/g, '');
+  if (!ETHIO_PHONE_REGEX.test(cleaned)) {
+    return localeStore.isAmharic
+      ? 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (09XXXXXXXX፣ 07XXXXXXXX ወይም +2519XXXXXXXX)።'
+      : 'Must be a valid Ethiopian phone number (09XXXXXXXX, 07XXXXXXXX, +2519XXXXXXXX, or +2517XXXXXXXX).';
+  }
+  return '';
+}
+
+function validateMessage(val) {
+  const v = (val || '').trim();
+  if (!v) {
+    return localeStore.isAmharic ? 'መልእክት ማስገባት ግዴታ ነው።' : 'Message is required.';
+  }
+  if (v.length < 10) {
+    return localeStore.isAmharic ? 'መልእክት ቢያንስ 10 ፊደላት መሆን አለበት።' : 'Message must be at least 10 characters.';
+  }
+  if (val && val.length > 300) {
+    return localeStore.isAmharic ? 'መልእክት ከ 300 ፊደላት መብለጥ የለበትም።' : 'Message cannot exceed 300 characters.';
+  }
+  return '';
+}
+
+// Real-time Input Validation Handler (clears errors instantly when input becomes valid)
+function onFieldInput(field) {
+  touched.value[field] = true;
+  if (field === 'name') errors.value.name = validateName(form.value.name);
+  if (field === 'email') errors.value.email = validateEmail(form.value.email);
+  if (field === 'phone') errors.value.phone = validatePhone(form.value.phone);
+  if (field === 'message') errors.value.message = validateMessage(form.value.message);
+}
+
+// Blur Validation Handler
+function onFieldBlur(field) {
+  touched.value[field] = true;
+  if (field === 'name') errors.value.name = validateName(form.value.name);
+  if (field === 'email') errors.value.email = validateEmail(form.value.email);
+  if (field === 'phone') errors.value.phone = validatePhone(form.value.phone);
+  if (field === 'message') errors.value.message = validateMessage(form.value.message);
+}
+
+// Dynamic Input Styling based on validation state
+function getFieldClass(field) {
+  if (touched.value[field]) {
+    if (errors.value[field]) {
+      return 'border-2 border-rose-400 dark:border-rose-600 bg-rose-50/40 dark:bg-rose-950/20 text-[#2A1810] dark:text-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/25 shadow-xs';
+    }
+    const val = (form.value[field] || '').trim();
+    if (val) {
+      return 'border-2 border-emerald-400/80 dark:border-emerald-600/80 bg-emerald-50/20 dark:bg-emerald-950/15 text-[#2A1810] dark:text-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-xs';
+    }
+  }
+  return 'border border-gray-200 dark:border-[#3E2319] bg-[#FAF7F5] dark:bg-[#2A1810] text-[#2A1810] dark:text-white focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20';
+}
 
 // Real GPS Addis Ababa Branches
 const branchGPSList = [
@@ -675,10 +915,45 @@ function calculateDistanceToBakery() {
   );
 }
 
-// Submit Message Form to Backend API
+// Submit Message Form to Backend API with Full Validation
 async function handleSubmitMessage() {
-  if (!form.value.name.trim() || !form.value.email.trim() || !form.value.message.trim()) {
-    toast.error('Please fill in all required fields (*)');
+  // Mark all fields as touched to display errors for invalid inputs
+  touched.value.name = true;
+  touched.value.email = true;
+  touched.value.phone = true;
+  touched.value.message = true;
+
+  // Execute all validators
+  errors.value.name = validateName(form.value.name);
+  errors.value.email = validateEmail(form.value.email);
+  errors.value.phone = validatePhone(form.value.phone);
+  errors.value.message = validateMessage(form.value.message);
+
+  const hasErrors = Boolean(
+    errors.value.name ||
+    errors.value.email ||
+    errors.value.phone ||
+    errors.value.message
+  );
+
+  // Prevent form submission if any field is invalid
+  if (hasErrors) {
+    toast.error(
+      localeStore.isAmharic
+        ? 'እባክዎ የቀረቡትን የስህተት ምልክቶች አስተካክለው እንደገና ይሞክሩ።'
+        : 'Please correct the highlighted errors before submitting.'
+    );
+
+    // Focus the first invalid field for seamless UX
+    if (errors.value.name) {
+      nameInputRef.value?.focus();
+    } else if (errors.value.email) {
+      emailInputRef.value?.focus();
+    } else if (errors.value.phone) {
+      phoneInputRef.value?.focus();
+    } else if (errors.value.message) {
+      messageInputRef.value?.focus();
+    }
     return;
   }
 
@@ -687,19 +962,38 @@ async function handleSubmitMessage() {
     const payload = {
       name: form.value.name.trim(),
       email: form.value.email.trim(),
-      phone: form.value.phone.trim() || null,
+      phone: form.value.phone.trim().replace(/[\s\-]+/g, ''),
       subject: form.value.subject || 'General Bakery Inquiry',
       message: form.value.message.trim(),
     };
 
-    await api.post('/contact', payload);
+    const res = await api.post('/contact', payload);
     submitSuccess.value = true;
-    toast.success('Your message has been sent to SweetBakes!');
+    toast.success(
+      localeStore.isAmharic
+        ? 'መልእክትዎ በተሳካ ሁኔታ ለዋና ጋጋሪዎቻችን ደርሷል!'
+        : (res.data?.message || 'Your message has been sent to SweetBakes!')
+    );
   } catch (err) {
     console.error('Contact submission error:', err);
-    // Even if local network or endpoint returns non-200, ensure user has wonderful feedback
-    submitSuccess.value = true;
-    toast.success('Your message has been received! Our bakers will reach out shortly.');
+    if (err.response?.status === 422 && err.response?.data?.errors) {
+      const serverErrors = err.response.data.errors;
+      if (serverErrors.name) errors.value.name = serverErrors.name[0];
+      if (serverErrors.email) errors.value.email = serverErrors.email[0];
+      if (serverErrors.phone) errors.value.phone = serverErrors.phone[0];
+      if (serverErrors.message) errors.value.message = serverErrors.message[0];
+      toast.error(
+        localeStore.isAmharic
+          ? 'እባክዎ የቀረቡትን የስህተት ምልክቶች ያስተካክሉ።'
+          : (err.response.data.message || 'Please fix the highlighted errors before submitting.')
+      );
+    } else {
+      toast.error(
+        localeStore.isAmharic
+          ? 'መልእክቱን መላክ አልተቻለም። እባክዎ እንደገና ይሞክሩ።'
+          : 'Failed to send message. Please check your connection and try again.'
+      );
+    }
   } finally {
     isSubmitting.value = false;
   }
@@ -713,6 +1007,18 @@ function resetForm() {
     phone: '',
     subject: 'General Bakery Inquiry',
     message: '',
+  };
+  errors.value = {
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  };
+  touched.value = {
+    name: false,
+    email: false,
+    phone: false,
+    message: false,
   };
 }
 </script>

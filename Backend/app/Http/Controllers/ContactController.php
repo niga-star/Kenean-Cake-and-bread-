@@ -10,19 +10,54 @@ class ContactController extends Controller
 {
     public function store(Request $request)
     {
+        // Normalize phone by stripping any spaces or dashes before validation
+        if ($request->has('phone') && is_string($request->phone)) {
+            $request->merge([
+                'phone' => preg_replace('/[\s\-]+/', '', $request->phone),
+            ]);
+        }
+
         $validated = $request->validate([
-            'name' => 'required|string|max:150',
-            'email' => 'required|email|max:150',
-            'phone' => 'nullable|string|max:50',
+            'name' => [
+                'required',
+                'string',
+                'min:3',
+                'max:25',
+                'regex:/^[\p{L}\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^(\+251[97]\d{8}|0[97]\d{8})$/',
+            ],
             'subject' => 'nullable|string|max:200',
-            'message' => 'required|string|max:3000',
+            'message' => 'required|string|min:10|max:300',
+        ], [
+            'name.required' => 'Full Name is required.',
+            'name.min' => 'Full Name must be at least 3 characters.',
+            'name.max' => 'Full Name cannot exceed 25 characters.',
+            'name.regex' => 'Full Name must contain only letters and spaces (no numbers or special characters).',
+            'email.required' => 'Email Address is required.',
+            'email.email' => 'Please provide a valid email address.',
+            'email.regex' => 'Email must follow the Gmail format (e.g. example@gmail.com).',
+            'phone.required' => 'Phone Number is required.',
+            'phone.regex' => 'Please enter a valid Ethiopian phone number (09XXXXXXXX, 07XXXXXXXX, +2519XXXXXXXX, or +2517XXXXXXXX).',
+            'message.required' => 'Message is required.',
+            'message.min' => 'Message must be at least 10 characters.',
+            'message.max' => 'Message cannot exceed 300 characters.',
         ]);
 
         try {
             $inquiry = ContactInquiry::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'phone' => $validated['phone'] ?? null,
+                'phone' => $validated['phone'],
                 'subject' => $validated['subject'] ?? 'General Inquiry',
                 'message' => $validated['message'],
                 'status' => 'Unread',
