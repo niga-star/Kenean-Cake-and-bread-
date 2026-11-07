@@ -381,7 +381,7 @@
                   class="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810] shrink-0"
                 />
                 <div>
-                  <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</div>
+                  <div class="font-product font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
                     {{ localeStore.isAmharic ? `${Number(item.price).toLocaleString()} ብር` : `ETB ${Number(item.price).toLocaleString()}` }} &times; {{ item.quantity }}
                   </div>
@@ -416,7 +416,7 @@
           </div>
 
           <!-- Calculation Breakdown -->
-          <div class="space-y-2.5 pt-3 border-t border-gray-100 dark:border-[#382318] text-xs">
+          <div class="space-y-2.5 pt-3 border-t border-gray-100 dark:border-[#382318] text-sm">
             <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
               <span>{{ localeStore.t('subtotal') }}</span>
               <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? `${subtotal.toLocaleString()} ብር` : `ETB ${subtotal.toLocaleString()}` }}</span>
@@ -432,16 +432,16 @@
             <div v-if="discount > 0" class="flex justify-between items-center text-[#387A54] dark:text-emerald-400">
               <span class="flex items-center space-x-1.5">
                 <span>{{ localeStore.t('promo_discount') }}</span>
-                <span v-if="appliedPromo" class="font-mono text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded font-bold">
+                <span v-if="appliedPromo" class="font-mono text-xs bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold">
                   {{ appliedPromo.promotion_name }}
                 </span>
               </span>
               <span class="font-bold">- {{ localeStore.isAmharic ? `${discount.toLocaleString()} ብር` : `ETB ${discount.toLocaleString()}` }}</span>
             </div>
 
-            <div class="pt-3 border-t border-gray-100 dark:border-[#382318] flex justify-between items-center text-base font-black text-[#2A1810] dark:text-[#FAF3EE]">
+            <div class="pt-3 border-t border-gray-100 dark:border-[#382318] flex justify-between items-center text-lg font-black text-[#2A1810] dark:text-[#FAF3EE]">
               <span>{{ localeStore.t('grand_total') }}</span>
-              <span class="text-xl font-serif text-[#DE1B54]">{{ localeStore.isAmharic ? `${grandTotal.toLocaleString()} ብር` : `ETB ${grandTotal.toLocaleString()}` }}</span>
+              <span class="text-2xl sm:text-3xl font-serif text-[#DE1B54]">{{ localeStore.isAmharic ? `${grandTotal.toLocaleString()} ብር` : `ETB ${grandTotal.toLocaleString()}` }}</span>
             </div>
           </div>
 

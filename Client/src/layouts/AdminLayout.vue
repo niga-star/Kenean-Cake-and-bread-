@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#F8F4EE] text-[#2D231D] font-sans antialiased overflow-hidden relative">
+  <div class="flex h-screen bg-[#F8F4EE] text-[#2D231D] font-poppins antialiased overflow-hidden relative">
     <!-- Mobile Backdrop Overlay (< lg screens) -->
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
@@ -26,9 +26,9 @@
         <!-- Brand Logo Header + Mobile Close Button -->
         <div class="px-5 sm:px-6 py-5 sm:py-6 border-b border-[#2C1F16]/60 flex items-center justify-between">
           <div class="flex items-center space-x-2.5">
-            <span class="w-8 h-8 rounded-lg bg-[#BA5420] text-white flex items-center justify-center font-bold text-lg shadow-sm">G</span>
+            <span class="w-8 h-8 rounded-lg bg-[#DE1B54] text-white flex items-center justify-center font-bold text-lg shadow-sm">🧁</span>
             <router-link :to="homePath" @click="sidebarOpen = false" class="block">
-              <h1 class="text-xl font-serif font-bold text-[#E5B869] tracking-wide">Golden Crust</h1>
+              <h1 class="text-2xl font-logo font-bold text-[#DE1B54] tracking-normal">Sweet<span class="text-[#FAF4ED]">Bakes</span></h1>
             </router-link>
           </div>
           <!-- Close Button on Mobile (< lg) -->

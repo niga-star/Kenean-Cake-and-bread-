@@ -121,7 +121,7 @@
                 <td class="py-3.5 px-5 font-semibold text-[#382C24]">
                   {{ item.branch_name }}
                 </td>
-                <td class="py-3.5 px-4 text-[#4A3B32] font-medium">{{ item.product_name }}</td>
+                <td class="py-3.5 px-4 text-[#4A3B32] font-product font-bold">{{ item.product_name }}</td>
                 <td class="py-3.5 px-4 text-center font-bold text-[#2A1D15]">{{ item.on_hand }}</td>
                 <td class="py-3.5 px-4 text-center text-[#D97706] font-semibold">{{ item.reserved }}</td>
                 <td class="py-3.5 px-4 text-center font-black text-[#241710]">{{ item.available }}</td>
@@ -299,7 +299,7 @@
             <tr v-for="tx in transactionsList" :key="tx.transaction_id" class="hover:bg-[#FCFAF7]">
               <td class="py-3 px-4 text-[#7A6B60] font-mono text-[11px]">{{ formatDateTime(tx.created_at) }}</td>
               <td class="py-3 px-4 font-bold text-[#382C24]">{{ tx.branch?.branch_name }}</td>
-              <td class="py-3 px-4 font-medium text-[#2A1D15]">{{ tx.product?.product_name }}</td>
+              <td class="py-3 px-4 font-product font-bold text-[#2A1D15]">{{ tx.product?.product_name }}</td>
               <td class="py-3 px-4 text-center">
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold" :class="txBadgeClass(tx.transaction_type)">
                   {{ tx.transaction_type }}
@@ -348,7 +348,7 @@
             class="p-3 bg-[#FAF7F5] rounded-xl border border-[#E9E0D4] flex items-center justify-between text-xs"
           >
             <div>
-              <div class="font-bold text-[#2A1D15]">{{ rec.branch_name }} &middot; {{ rec.product_name }}</div>
+              <div class="font-product font-bold text-[#2A1D15]">{{ rec.branch_name }} &middot; {{ rec.product_name }}</div>
               <div class="text-[11px] text-[#7A6B60] mt-0.5">
                 On Hand: <strong>{{ rec.current_on_hand }}</strong> &middot; Reserved: <strong>{{ rec.reserved_quantity }}</strong> &middot; Available: <strong>{{ rec.available_quantity }}</strong>
               </div>

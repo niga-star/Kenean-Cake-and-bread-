@@ -299,7 +299,7 @@
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
               <tr v-for="item in receiveLines" :key="item.transfer_item_id">
-                <td class="py-2.5 px-3 font-medium text-[#382C24]">{{ item.product_name }}</td>
+                <td class="py-2.5 px-3 font-product font-bold text-[#382C24]">{{ item.product_name }}</td>
                 <td class="py-2.5 px-2 text-center font-bold text-[#2A1D15]">{{ item.quantity_sent }}</td>
                 <td class="py-2.5 px-2 text-center">
                   <input
@@ -455,7 +455,7 @@
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
               <tr v-for="it in activeViewTransfer.items" :key="it.transfer_item_id">
-                <td class="py-2 px-3">{{ it.product?.product_name || 'Product' }}</td>
+                <td class="py-2 px-3 font-product font-bold text-[#382C24]">{{ it.product?.product_name || 'Product' }}</td>
                 <td class="py-2 px-2 text-center">{{ it.quantity_sent }}</td>
                 <td class="py-2 px-2 text-center font-semibold text-[#2E7D32]">{{ it.quantity_received }}</td>
                 <td class="py-2 px-2 text-center text-[#C62828]">{{ it.damaged_quantity }}</td>

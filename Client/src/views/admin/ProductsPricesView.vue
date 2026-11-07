@@ -83,7 +83,7 @@
               <td class="py-3.5 px-5 flex items-center space-x-3">
                 <img :src="p.image_url" class="w-10 h-10 rounded-lg object-cover border border-[#DACDC0] shrink-0" />
                 <div>
-                  <div class="font-bold text-xs text-[#2A1D15]">{{ p.product_name }}</div>
+                  <div class="font-product font-bold text-xs sm:text-sm text-[#2A1D15]">{{ p.product_name }}</div>
                   <div class="text-[11px] text-[#8A7B71] truncate max-w-xs">{{ p.description }}</div>
                 </div>
               </td>
@@ -136,7 +136,7 @@
         <div class="flex items-center space-x-3">
           <img :src="selectedProduct.image_url || '/mockup/shop_chocolate_cake.jpg'" class="w-14 h-14 rounded-lg object-cover border border-[#DACDC0] shrink-0" />
           <div>
-            <h3 class="font-semibold text-base text-[#2A1D15]">{{ selectedProduct.product_name }}</h3>
+            <h3 class="font-product font-bold text-base sm:text-lg text-[#2A1D15]">{{ selectedProduct.product_name }}</h3>
             <span class="text-xs text-[#8A7B71]">ID: #{{ selectedProduct.product_id }} · {{ selectedProduct.category_name }}</span>
             <div class="mt-1">
               <label class="text-[11px] font-semibold text-[#BA5420] hover:underline cursor-pointer">

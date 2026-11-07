@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
+  <div class="space-y-6 max-w-7xl mx-auto pb-12 font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#EAE1D5] pb-4">
       <div>
@@ -233,7 +233,7 @@
             <!-- 2. Product Performance Rows -->
             <template v-else-if="activeTabId === 'product_performance'">
               <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 font-product font-bold text-[#38121A]">{{ r.product }}</td>
                 <td class="py-3.5 px-5 font-medium text-[#7A6B60]">{{ r.branch }}</td>
                 <td class="py-3.5 px-5 text-[#881337] font-semibold">{{ r.category }}</td>
                 <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.units }}</td>
@@ -270,7 +270,7 @@
             <template v-else-if="activeTabId === 'inventory'">
               <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
                 <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 font-medium text-[#261814]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 font-product font-bold text-[#261814]">{{ r.product }}</td>
                 <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.category }}</td>
                 <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.on_hand }}</td>
                 <td class="py-3.5 px-5 text-center font-semibold text-[#D97706]">{{ r.reserved }}</td>

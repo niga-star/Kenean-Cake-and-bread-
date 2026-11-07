@@ -242,7 +242,7 @@
             :key="item.order_item_id"
             class="flex items-center justify-between text-xs py-1"
           >
-            <span class="text-[#382C24] font-medium">{{ item.product_name }}</span>
+            <span class="text-[#382C24] font-product font-bold text-xs sm:text-sm">{{ item.product_name }}</span>
             <div class="flex items-center space-x-6 text-right">
               <span class="text-[#6A5A50] w-6 text-center">{{ item.quantity }}</span>
               <span class="font-semibold text-[#241710] w-16">ETB {{ Number(item.subtotal).toLocaleString() }}</span>

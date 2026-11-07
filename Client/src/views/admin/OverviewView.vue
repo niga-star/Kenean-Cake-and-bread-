@@ -146,7 +146,7 @@
                 </thead>
                 <tbody class="divide-y divide-[#F3EDE4]">
                   <tr v-for="it in (data.stock_items || []).slice(0, 6)" :key="it.product_id" class="hover:bg-[#FCFAF7]">
-                    <td class="py-2.5 px-4 font-medium text-[#382C24]">{{ it.product_name }}</td>
+                    <td class="py-2.5 px-4 font-product font-bold text-[#382C24]">{{ it.product_name }}</td>
                     <td class="py-2.5 px-3 text-center text-[#55463C]">{{ it.on_hand }}</td>
                     <td class="py-2.5 px-3 text-center text-[#7A6B60]">{{ it.reserved }}</td>
                     <td class="py-2.5 px-3 text-center font-bold text-[#241710]">{{ it.available }}</td>

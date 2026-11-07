@@ -576,29 +576,31 @@
             </button>
           </div>
 
+          <!-- Error State -->
+          <ErrorState
+            v-if="hasError"
+            :title="localeStore.isAmharic ? 'የምርት ካታሎግ መጫን አልተቻለም' : 'Could Not Load Bakery Catalog'"
+            :message="localeStore.isAmharic ? 'እባክዎ እንደገና ይሞክሩ ወይም ሌላ ቅርንጫፍ ይምረጡ።' : 'Please check your connection and tap retry to load fresh items.'"
+            @retry="loadProducts(selectedBranchId)"
+          />
+
           <!-- Skeleton Loading Grid -->
           <div
-            v-if="loading"
+            v-else-if="loading"
             class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-5"
           >
             <ProductCardSkeleton v-for="n in 8" :key="`shop-skel-${n}`" />
           </div>
 
           <!-- Empty State -->
-          <div v-else-if="paginatedProducts.length === 0" class="py-16 text-center bg-gray-50 dark:bg-[#1E120B] rounded-2xl border border-gray-200 dark:border-[#382318] p-8 space-y-4">
-            <div class="text-4xl">🔍</div>
-            <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምንም አይነት ምርት አልተገኘም' : 'No bakery items match your criteria' }}</h3>
-            <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-md mx-auto">
-              {{ localeStore.isAmharic ? 'እባክዎ የዋጋ ክልልዎን ያስተካክሉ ወይም ሌላ ቃል ይፈልጉ።' : 'Try adjusting your price range, clearing selected filters, or searching for another sweet delight.' }}
-            </p>
-            <button
-              type="button"
-              @click="resetFilters"
-              class="px-5 py-2.5 min-h-[42px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
-            >
-              {{ localeStore.isAmharic ? 'ሁሉንም ማጣሪያዎች አጽዳ' : 'Reset All Filters' }}
-            </button>
-          </div>
+          <EmptyState
+            v-else-if="paginatedProducts.length === 0"
+            icon="🔍"
+            :title="localeStore.isAmharic ? 'ምንም አይነት ምርት አልተገኘም' : 'No bakery items match your criteria'"
+            :description="localeStore.isAmharic ? 'እባክዎ የዋጋ ክልልዎን ያስተካክሉ ወይም ሌላ ቃል ይፈልጉ።' : 'Try adjusting your price range, clearing selected filters, or searching for another sweet delight.'"
+            :actionLabel="localeStore.isAmharic ? 'ሁሉንም ማጣሪያዎች አጽዳ' : 'Reset All Filters'"
+            @action="resetFilters"
+          />
 
           <!-- ================= BALANCED PRODUCT GRID ================= -->
           <div
@@ -662,24 +664,24 @@
                 <div>
                   <router-link
                     :to="`/product/${p.product_id}`"
-                    class="font-serif font-bold text-xs xs:text-sm text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors block truncate"
+                    class="font-product font-bold text-sm xs:text-base text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors block truncate"
                   >
                     {{ localeStore.tProduct(p.product_name) }}
                   </router-link>
 
                   <!-- Star Rating & Review Count -->
-                  <div class="flex items-center space-x-1.5 text-xs pt-0.5">
+                  <div class="flex items-center space-x-1.5 text-xs sm:text-sm pt-0.5">
                     <span class="text-amber-400 tracking-tighter">★★★★★</span>
-                    <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ getReviewCount(p) }} {{ localeStore.t('reviews_count') }})</span>
+                    <span class="text-gray-400 dark:text-gray-500 text-[11px]">({{ getReviewCount(p) }} {{ localeStore.t('reviews_count') }})</span>
                   </div>
                 </div>
 
                 <!-- Price Row -->
                 <div class="flex items-baseline space-x-1.5 pt-1">
-                  <span class="text-xs xs:text-sm font-black text-[#DE1B54]">
+                  <span class="text-sm xs:text-base font-black text-[#DE1B54]">
                     {{ localeStore.formatPrice(p.resolved_price || p.base_price) }}
                   </span>
-                  <span v-if="getOriginalPrice(p)" class="text-[10px] xs:text-[11px] text-gray-400 dark:text-gray-500 line-through">
+                  <span v-if="getOriginalPrice(p)" class="text-[11px] xs:text-xs text-gray-400 dark:text-gray-500 line-through">
                     {{ localeStore.formatPrice(getOriginalPrice(p)) }}
                   </span>
                 </div>
@@ -689,7 +691,7 @@
                   type="button"
                   @click="handleAddToCart(p)"
                   :disabled="p.isAdding || (p.available ?? 0) <= 0"
-                  class="w-full py-2 min-h-[38px] disabled:opacity-50 text-white text-[11px] xs:text-xs font-bold rounded-xl transition-all duration-300 shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+                  class="w-full py-2 min-h-[42px] disabled:opacity-50 text-white text-xs xs:text-sm font-bold rounded-xl transition-all duration-300 shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
                   :class="p.isAdding 
                     ? 'bg-[#387A54] scale-98' 
                     : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
@@ -721,14 +723,14 @@
                   class="w-20 h-20 rounded-xl object-cover shrink-0 bg-rose-50/20 group-hover:scale-105 transition"
                 />
                 <div>
-                  <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition block">
+                  <h3 class="font-product font-bold text-base sm:text-lg text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition block">
                     {{ localeStore.tProduct(p.product_name) }}
                   </h3>
-                  <div class="flex items-center space-x-1.5 text-xs text-amber-400 mt-0.5">
+                  <div class="flex items-center space-x-1.5 text-xs sm:text-sm text-amber-400 mt-0.5">
                     <span>★★★★★</span>
-                    <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ getReviewCount(p) }} {{ localeStore.t('reviews_count') }})</span>
+                    <span class="text-gray-400 dark:text-gray-500 text-[11px]">({{ getReviewCount(p) }} {{ localeStore.t('reviews_count') }})</span>
                   </div>
-                  <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] line-clamp-1 mt-1 max-w-md">
+                  <p class="text-sm text-[#6E5D53] dark:text-[#C5B7AF] line-clamp-1 mt-1 max-w-md">
                     {{ p.description || (localeStore.isAmharic ? 'በጥራት እና በፍቅር በእጅ የተዘጋጀ።' : 'Deliciously handcrafted with finest ingredients.') }}
                   </p>
                 </div>
@@ -827,6 +829,8 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ProductCardSkeleton from '../../components/ProductCardSkeleton.vue';
+import EmptyState from '../../components/EmptyState.vue';
+import ErrorState from '../../components/ErrorState.vue';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
 import { useToastStore } from '../../stores/toast';
@@ -844,6 +848,7 @@ const wishlistStore = useWishlistStore();
 
 const products = ref([]);
 const loading = ref(true);
+const hasError = ref(false);
 const bannerLoaded = ref(false);
 const shopLoadedImages = ref({});
 const mobileFiltersOpen = ref(false);
@@ -1136,6 +1141,7 @@ async function loadCategories() {
 
 async function loadProducts(targetBranchId) {
   loading.value = true;
+  hasError.value = false;
   try {
     const res = await api.get(`/catalog/products?branch_id=${targetBranchId}`);
     if (res.data) {
@@ -1143,6 +1149,7 @@ async function loadProducts(targetBranchId) {
     }
   } catch (err) {
     console.error('Failed to load catalog products', err);
+    hasError.value = true;
   } finally {
     loading.value = false;
   }

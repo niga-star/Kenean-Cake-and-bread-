@@ -16,12 +16,18 @@
   --color-brand-warning: #B98235;
   --color-brand-error: #B84B42;
 
-  --font-serif: "Fira Sans", "Plus Jakarta Sans", "Noto Sans Ethiopic", sans-serif;
-  --font-sans: "Fira Sans", "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Ethiopic", sans-serif;
-  --font-display: "Fira Sans", "Plus Jakarta Sans", "Noto Sans Ethiopic", sans-serif;
-  --font-fira: "Fira Sans", "Noto Sans Ethiopic", sans-serif;
-  --font-script: "Caveat", "Dancing Script", cursive;
-  --font-ethiopic-serif: "Noto Sans Ethiopic", "Nyala", sans-serif;
+  --font-serif: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
+  --font-sans: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Ethiopic", sans-serif;
+  --font-display: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
+  --font-heading: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
+  --font-playfair: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
+  --font-poppins: "Poppins", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+  --font-script: "Dancing Script", cursive;
+  --font-logo: "Dancing Script", cursive;
+  --font-product: "Lora", Georgia, "Noto Serif Ethiopic", serif;
+  --font-lora: "Lora", Georgia, "Noto Serif Ethiopic", serif;
+  --font-fira: "Poppins", "Noto Sans Ethiopic", sans-serif;
+  --font-ethiopic-serif: "Noto Serif Ethiopic", "Nyala", serif;
   --font-ethiopic-sans: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
   --font-amharic: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
   --color-sweet-pink: #DE1B54;
@@ -32,22 +38,35 @@
 }
 
 @layer utilities {
-  .font-fira {
-    font-family: "Fira Sans", "Noto Sans Ethiopic", sans-serif;
+  .font-heading,
+  .font-playfair {
+    font-family: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
   }
-  .font-modern-bold {
-    font-family: "Fira Sans", "Noto Sans Ethiopic", sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.015em;
+  .font-poppins {
+    font-family: "Poppins", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
+  }
+  .font-product,
+  .font-lora {
+    font-family: "Lora", Georgia, "Noto Serif Ethiopic", serif;
+  }
+  .font-logo {
+    font-family: "Dancing Script", cursive;
   }
   .font-script {
-    font-family: "Caveat", "Dancing Script", cursive;
+    font-family: "Dancing Script", cursive;
+  }
+  .font-fira {
+    font-family: "Poppins", "Noto Sans Ethiopic", sans-serif;
+  }
+  .font-modern-bold {
+    font-family: "Poppins", "Noto Sans Ethiopic", sans-serif;
+    font-weight: 700;
   }
   .font-ethiopic {
     font-family: "Noto Sans Ethiopic", "Nyala", sans-serif;
   }
   .font-ethiopic-serif {
-    font-family: "Noto Sans Ethiopic", "Nyala", sans-serif;
+    font-family: "Noto Serif Ethiopic", "Nyala", serif;
   }
 
   /* ========================================================= */
@@ -100,24 +119,24 @@
 
   /* Fluid Typography Clamps for Flawless Headings on 320px - 2560px */
   .text-fluid-hero {
-    font-size: clamp(2rem, 4.2vw + 0.75rem, 4.25rem);
-    line-height: 1.14;
+    font-size: clamp(2.35rem, 4.6vw + 0.85rem, 4.85rem);
+    line-height: 1.12;
   }
   .text-fluid-hero-sub {
-    font-size: clamp(1.5rem, 2.8vw + 0.6rem, 3rem);
-    line-height: 1.2;
+    font-size: clamp(1.75rem, 3.2vw + 0.75rem, 3.35rem);
+    line-height: 1.18;
   }
   .text-fluid-h2 {
-    font-size: clamp(1.5rem, 2.5vw + 0.6rem, 2.5rem);
-    line-height: 1.22;
+    font-size: clamp(1.75rem, 2.8vw + 0.75rem, 2.85rem);
+    line-height: 1.2;
   }
   .text-fluid-h3 {
-    font-size: clamp(1.25rem, 2vw + 0.5rem, 2rem);
-    line-height: 1.28;
+    font-size: clamp(1.4rem, 2.3vw + 0.65rem, 2.25rem);
+    line-height: 1.25;
   }
   .text-fluid-body {
-    font-size: clamp(0.85rem, 0.4vw + 0.75rem, 1.05rem);
-    line-height: 1.65;
+    font-size: clamp(1rem, 0.5vw + 0.85rem, 1.2rem);
+    line-height: 1.7;
   }
 
   /* Section spacing */
@@ -127,13 +146,30 @@
 }
 
 @layer base {
-  html, body {
+  /* Standard Responsive Base Font-Size Scale (16px Mobile -> 17px Tablet -> 17.5px Desktop) */
+  html {
+    font-size: 16px;
     overflow-x: hidden;
     width: 100%;
     max-width: 100vw;
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
     box-sizing: border-box;
+  }
+  @media (min-width: 640px) {
+    html {
+      font-size: 16.5px;
+    }
+  }
+  @media (min-width: 1024px) {
+    html {
+      font-size: 17px;
+    }
+  }
+  @media (min-width: 1440px) {
+    html {
+      font-size: 17.5px;
+    }
   }
 
   *, *::before, *::after {
@@ -144,42 +180,100 @@
     background-color: #F8F3EA;
     color: #29231F;
     font-family: var(--font-sans);
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 1.05rem;
+    line-height: 1.68;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-serif, .font-display {
-    font-family: var(--font-display);
-    font-weight: 800;
+  p {
+    font-family: var(--font-sans);
+    font-size: 1.025rem;
+    line-height: 1.68;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-serif, .font-display, .font-heading {
+    font-family: var(--font-heading);
+    font-weight: 700;
     letter-spacing: -0.015em;
+  }
+
+  button, .btn, input[type="submit"], input[type="button"] {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  input, select, textarea {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+  }
+
+  table {
+    font-size: 0.95rem;
+  }
+
+  th {
+    font-size: 0.85rem;
+  }
+
+  td {
+    font-size: 0.95rem;
+  }
+
+  table, th, td, input, select, textarea, label, nav, aside {
+    font-family: var(--font-sans);
+  }
+
+  .font-product, .font-lora, .product-title, .product-name {
+    font-family: var(--font-product);
+  }
+
+  .font-logo {
+    font-family: var(--font-logo);
   }
 
   /* ========================================================================== */
   /* SWEETBAKES BILINGUAL TYPOGRAPHY ENGINE (AMHARIC & ENGLISH)                */
-  /* English: Fira Sans (Modern Bold Sans-Serif)                               */
-  /* Amharic: Noto Sans Ethiopic (Modern Crisp Bold Sans)                      */
+  /* English: Playfair Display (Headings), Dancing Script (Logo), Poppins (Body/Buttons), Lora (Products) */
+  /* Amharic: Noto Serif Ethiopic (Headings/Products), Noto Sans Ethiopic (Body/Buttons) */
   /* ========================================================================== */
 
-  /* Global Amharic Language Activation */
+  /* Global Amharic Language Activation: Enhanced Optical Size for Ge'ez Script */
   html[lang="am"],
   html.lang-am {
-    --font-serif: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
+    font-size: 17px;
+    --font-serif: "Noto Serif Ethiopic", "Nyala", serif;
     --font-sans: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
-    --font-display: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
-    --font-script: "Noto Sans Ethiopic", "Nyala", sans-serif;
+    --font-display: "Noto Serif Ethiopic", "Nyala", serif;
+    --font-heading: "Noto Serif Ethiopic", "Nyala", serif;
+    --font-product: "Noto Serif Ethiopic", "Nyala", serif;
+    --font-lora: "Noto Serif Ethiopic", "Nyala", serif;
     font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
+  }
+  @media (min-width: 640px) {
+    html[lang="am"],
+    html.lang-am {
+      font-size: 17.5px;
+    }
+  }
+  @media (min-width: 1024px) {
+    html[lang="am"],
+    html.lang-am {
+      font-size: 18px;
+    }
   }
 
   /* Amharic Body & General Text */
   html[lang="am"] body,
-  html.lang-am body {
+  html.lang-am body,
+  html[lang="am"] p,
+  html.lang-am p {
     font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
     line-height: 1.6;
     letter-spacing: 0.005em;
   }
 
-  /* Amharic Headings & Hero Titles: Modern Bold Sans Ethiopic */
+  /* Amharic Headings & Hero Titles: Classic Elegant Serif Ethiopic */
   html[lang="am"] h1,
   html[lang="am"] h2,
   html[lang="am"] h3,
@@ -195,17 +289,31 @@
   html[lang="am"] .font-serif,
   html.lang-am .font-serif,
   html[lang="am"] .font-display,
-  html.lang-am .font-display {
-    font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif !important;
-    font-weight: 800 !important;
+  html.lang-am .font-display,
+  html[lang="am"] .font-heading,
+  html.lang-am .font-heading {
+    font-family: "Noto Serif Ethiopic", "Nyala", serif !important;
+    font-weight: 700 !important;
     line-height: 1.35 !important;
     letter-spacing: 0.005em !important;
+  }
+
+  /* Amharic Product Names: Noto Serif Ethiopic */
+  html[lang="am"] .font-product,
+  html.lang-am .font-product,
+  html[lang="am"] .font-lora,
+  html.lang-am .font-lora,
+  html[lang="am"] .product-title,
+  html.lang-am .product-title,
+  html[lang="am"] .product-name,
+  html.lang-am .product-name {
+    font-family: "Noto Serif Ethiopic", "Nyala", serif !important;
   }
 
   /* Smooth optical weight for Amharic bold elements */
   html[lang="am"] .font-black,
   html.lang-am .font-black {
-    font-weight: 800 !important;
+    font-weight: 700 !important;
   }
 
   /* Relax tight tracking in Amharic so adjacent characters don't touch */
@@ -219,13 +327,16 @@
   /* Amharic Buttons, Inputs, Selects, and UI Form Controls */
   html[lang="am"] button,
   html.lang-am button,
+  html[lang="am"] .btn,
+  html.lang-am .btn,
   html[lang="am"] input,
   html.lang-am input,
   html[lang="am"] select,
   html.lang-am select,
   html[lang="am"] textarea,
   html.lang-am textarea {
-    font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
+    font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif !important;
+    font-weight: 600;
     letter-spacing: 0.005em;
   }
 
@@ -534,4 +645,83 @@ html.dark .shimmer-wave::after {
 @keyframes sweet-gradient-move {
   0% { background-position: 100% 0; }
   100% { background-position: -100% 0; }
+}
+
+/* ========================================================= */
+/* PREMIUM SCROLL REVEAL & MICRO-ANIMATION SUITE             */
+/* High-performance, GPU-accelerated, reduced-motion aware  */
+/* ========================================================= */
+
+.reveal-init {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-init.reveal-fade-left {
+  transform: translateX(-32px);
+}
+
+.reveal-init.reveal-fade-right {
+  transform: translateX(32px);
+}
+
+.reveal-init.reveal-scale {
+  transform: scale(0.94);
+}
+
+.reveal-visible {
+  opacity: 1 !important;
+  transform: translateY(0) translateX(0) scale(1) !important;
+}
+
+/* Cart Badge Pop Animation */
+@keyframes cartBadgePop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  65% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-cart-pop {
+  animation: cartBadgePop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Premium Button Interactive Micro-Styles */
+.btn-sweet-primary {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-sweet-primary:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 10px 25px -5px rgba(222, 27, 84, 0.35);
+}
+
+.btn-sweet-primary:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Accessibility: Full Reduced Motion Respect */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-init,
+  .reveal-init.reveal-fade-left,
+  .reveal-init.reveal-fade-right,
+  .reveal-init.reveal-scale,
+  .animate-fade-in-up,
+  .animate-cart-pop,
+  .btn-sweet-primary {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
 }

@@ -133,7 +133,7 @@
         <!-- ================= RIGHT DETAILS & ORDER PANEL (6-7 cols) ================= -->
         <div class="lg:col-span-6 space-y-4 sm:space-y-5">
           <!-- Title -->
-          <h1 class="text-2xl xs:text-3xl sm:text-4xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-product font-bold text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
             {{ productName }}
           </h1>
 
@@ -168,7 +168,7 @@
 
           <!-- Price Row with Crossed Out & Discount Tag -->
           <div class="flex items-center space-x-3 pt-1">
-            <span class="text-xl sm:text-3xl font-black text-[#DE1B54]">
+            <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#DE1B54]">
               {{ localeStore.formatPrice(currentPrice) }}
             </span>
             <span v-if="originalPrice" class="text-xs sm:text-base text-gray-400 dark:text-gray-500 line-through">
@@ -180,23 +180,23 @@
           </div>
 
           <!-- Product Short Description -->
-          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
+          <p class="text-sm sm:text-base text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
             {{ productDescription }}
           </p>
 
           <!-- Ethiopian Fasting Callout if applicable -->
-          <div v-if="product?.is_fasting" class="bg-emerald-50 rounded-xl border border-emerald-200 p-3 flex items-start space-x-2.5 text-emerald-950 text-xs">
+          <div v-if="product?.is_fasting" class="bg-emerald-50 rounded-xl border border-emerald-200 p-3.5 flex items-start space-x-2.5 text-emerald-950 text-xs sm:text-sm">
             <span class="text-base shrink-0 mt-0.5">🌿</span>
             <div class="space-y-0.5">
               <div class="font-bold text-emerald-900">{{ localeStore.isAmharic ? '100% የኢትዮጵያ የጾም ምርጫ (የጾም)' : '100% Ethiopian Fasting Friendly (የጾም)' }}</div>
-              <p class="text-emerald-800 text-[11px]">{{ localeStore.isAmharic ? 'ያለ ቅቤ፣ እንቁላል እና ወተት ሙሉ በሙሉ በእጽዋት ግብአቶች የተዘጋጀ።' : 'Handcrafted strictly vegan and dairy-free without butter, eggs, or milk.' }}</p>
+              <p class="text-emerald-800 text-xs sm:text-[13px]">{{ localeStore.isAmharic ? 'ያለ ቅቤ፣ እንቁላል እና ወተት ሙሉ በሙሉ በእጽዋት ግብአቶች የተዘጋጀ።' : 'Handcrafted strictly vegan and dairy-free without butter, eggs, or milk.' }}</p>
             </div>
           </div>
 
           <!-- Size Selector (6 Inch, 8 Inch, 10 Inch, 12 Inch) -->
           <div class="space-y-2 pt-2">
             <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'መጠን:' : 'Size:' }}</span>
+              <span class="text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'መጠን:' : 'Size:' }}</span>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
               <button
@@ -204,7 +204,7 @@
                 :key="s.label"
                 type="button"
                 @click="selectedSize = s.label"
-                class="px-4 py-2 min-h-[38px] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
+                class="px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-bold transition shadow-2xs cursor-pointer"
                 :class="selectedSize === s.label
                   ? 'border-2 border-[#DE1B54] text-[#DE1B54] bg-rose-50/40 dark:bg-[#341822]'
                   : 'border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#E8DED8] bg-white dark:bg-[#1E120B] hover:bg-gray-50 dark:hover:bg-[#2A1810]'"
@@ -216,7 +216,7 @@
 
           <!-- Quantity Stepper -->
           <div class="flex items-center space-x-3 pt-1">
-            <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ብዛት:' : 'Quantity:' }}</span>
+            <span class="text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ብዛት:' : 'Quantity:' }}</span>
             <div class="flex items-center border border-gray-200 dark:border-[#382318] rounded-xl bg-white dark:bg-[#1E120B] shadow-2xs">
               <button
                 type="button"
@@ -267,13 +267,15 @@
             <button
               type="button"
               @click="handleAddToCart"
-              :disabled="(product?.available ?? 15) <= 0"
-              class="w-full sm:flex-1 py-3 px-6 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition transform active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
+              :disabled="(product?.available ?? 15) <= 0 || isAdding"
+              class="w-full sm:flex-1 py-3 px-6 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-all transform active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
+              :class="{ 'bg-emerald-600 hover:bg-emerald-700': isAdding }"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span v-if="isAdding">✓</span>
+              <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span>{{ localeStore.t('add_to_cart') }}</span>
+              <span>{{ isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : localeStore.t('add_to_cart') }}</span>
             </button>
 
             <!-- Add to Wishlist Button -->
@@ -333,7 +335,7 @@
         <div class="lg:col-span-5 bg-white dark:bg-[#1E120B] rounded-2xl border border-gray-200/80 dark:border-[#382318] p-5 sm:p-6 shadow-xs flex flex-col justify-between">
           <div>
             <!-- Tabs Header: Description, Ingredients, Reviews -->
-            <div class="flex items-center justify-between border-b border-gray-200 dark:border-[#382318] pb-3 text-xs font-bold">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-[#382318] pb-3 text-sm sm:text-base font-bold">
               <div class="flex items-center space-x-5">
                 <button
                   type="button"
@@ -645,6 +647,7 @@ const wishlistStore = useWishlistStore();
 const product = ref(null);
 const loadingProduct = ref(true);
 const mainImgLoaded = ref(false);
+const isAdding = ref(false);
 const activeTab = ref('desc');
 const activeImageIdx = ref(0);
 const quantity = ref(1);
@@ -823,14 +826,21 @@ function handleAddToCart() {
     quantity.value
   );
 
+  isAdding.value = true;
   if (result && result.reason === 'capped') {
     toastStore.warning(result.message);
   } else if (result && result.success === false) {
     toastStore.error(result.message || 'Unable to add item to cart.');
   } else {
-    toastStore.success(`Added ${quantity.value}x "${itemTitle}" to cart!`);
-    cartStore.openDrawer();
+    toastStore.success(`Added ${quantity.value}x "${itemTitle}" to cart!`, {
+      label: localeStore.isAmharic ? 'ቦርሳ ይመልከቱ' : 'View Bag',
+      onClick: () => cartStore.toggleDrawer(),
+    });
   }
+
+  setTimeout(() => {
+    isAdding.value = false;
+  }, 900);
 }
 
 async function loadProduct(branchId) {
