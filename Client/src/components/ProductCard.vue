@@ -1,18 +1,19 @@
 <template>
-  <div class="group bg-white dark:bg-[#1C120C] rounded-2xl border border-[#E6DED3] dark:border-[#3D2619] overflow-hidden hover:shadow-xl hover:shadow-rose-500/5 transition-all duration-300 flex flex-col h-full hover:border-[#DE1B54]/50">
+  <div class="group bg-white dark:bg-[#1C120C] rounded-2xl border border-[#E6DED3] dark:border-[#3D2619] overflow-hidden hover:shadow-xl hover:shadow-rose-950/5 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full hover:border-[#DE1B54]/50">
     <!-- Image Container with Hover Zoom & Shimmer Placeholder -->
     <div class="relative aspect-4/3 overflow-hidden bg-[#F0E8DF] dark:bg-[#25150E]" :class="{ 'shimmer-wave': !imageLoaded }">
       <img
         :src="productImage"
         :alt="product.product_name"
-        class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+        class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-108 will-change-transform"
         :class="imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'"
         loading="lazy"
+        decoding="async"
         @load="imageLoaded = true"
         @error="onImageError"
       />
       <!-- Category Badge -->
-      <span class="absolute top-3 left-3 bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs text-[#2A1810] dark:text-[#E8DED8] text-[11px] font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-[#3D2619] shadow-xs">
+      <span class="absolute top-3 left-3 bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs text-[#2A1810] dark:text-[#E8DED8] text-xs font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-[#3D2619] shadow-xs">
         {{ product.category?.category_name || product.category_name || 'Artisan' }}
       </span>
 
@@ -20,7 +21,7 @@
       <button
         type="button"
         @click.stop="handleToggleWishlist"
-        class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs flex items-center justify-center text-xs shadow-xs hover:scale-110 transition cursor-pointer z-10 border border-gray-200 dark:border-[#3D2619]"
+        class="absolute top-3 right-3 w-8 h-8 rounded-full bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs flex items-center justify-center text-sm shadow-xs hover:scale-110 transition cursor-pointer z-10 border border-gray-200 dark:border-[#3D2619]"
         :class="isWishlisted ? 'text-[#DE1B54]' : 'text-gray-400 hover:text-[#DE1B54]'"
         :title="localeStore.isAmharic ? 'ወደ ምኞት ዝርዝር ጨምር' : 'Add to Wishlist'"
       >
@@ -29,7 +30,7 @@
 
       <!-- Availability Badge (Bottom Right) -->
       <span
-        class="absolute bottom-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs"
+        class="absolute bottom-3 right-3 text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs"
         :class="stockStatusClasses"
       >
         {{ stockStatusText }}
@@ -38,7 +39,7 @@
       <!-- Ethiopian Fasting (Ye'Tsom) Badge -->
       <span
         v-if="product.is_fasting"
-        class="absolute bottom-3 left-3 bg-emerald-800/95 backdrop-blur-xs text-white text-[10px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-emerald-600/50 shadow-xs flex items-center space-x-1"
+        class="absolute bottom-3 left-3 bg-emerald-800/95 backdrop-blur-xs text-white text-xs font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-emerald-600/50 shadow-xs flex items-center space-x-1"
         :title="localeStore.isAmharic ? '100% የጾም ምግብ - ያለ ወተትና እንቁላል የተዘጋጀ' : '100% Ethiopian Fasting (Ye\'Tsom / ጾም) - Plant-Based & Dairy Free'"
       >
         <span class="text-xs">🌿</span>
@@ -49,30 +50,30 @@
     <!-- Content -->
     <div class="p-3.5 sm:p-4 flex flex-col flex-1 justify-between space-y-3">
       <div>
-        <div class="flex items-baseline justify-between gap-2 mb-1">
-          <router-link :to="`/product/${product.product_id}`" class="text-sm font-serif font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
+        <div class="flex items-baseline justify-between gap-2 mb-1.5">
+          <router-link :to="`/product/${product.product_id}`" class="text-base sm:text-[17px] font-product font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
             {{ localeStore.tProduct(product.product_name) }}
           </router-link>
         </div>
 
         <!-- Star rating row from real database reviews -->
-        <div class="flex items-center space-x-1.5 text-xs mb-2">
+        <div class="flex items-center space-x-1.5 text-xs sm:text-sm mb-2">
           <span class="text-amber-400 tracking-tighter">
             <span v-for="s in 5" :key="s" :class="s <= Math.round(ratingNumber) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
           </span>
-          <span class="text-gray-700 dark:text-gray-300 text-[11px] font-bold">{{ ratingNumber > 0 ? ratingNumber.toFixed(1) : '—' }}</span>
-          <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ reviewCountNumber }} {{ localeStore.isAmharic ? 'አስተያየት' : (reviewCountNumber === 1 ? 'review' : 'reviews') }})</span>
+          <span class="text-gray-700 dark:text-gray-300 text-xs font-bold">{{ ratingNumber > 0 ? ratingNumber.toFixed(1) : '—' }}</span>
+          <span class="text-gray-400 dark:text-gray-500 text-[11px] sm:text-xs">({{ reviewCountNumber }} {{ localeStore.isAmharic ? 'አስተያየት' : (reviewCountNumber === 1 ? 'review' : 'reviews') }})</span>
         </div>
 
-        <p class="text-xs text-[#786B60] dark:text-[#B3A69C] line-clamp-2 leading-relaxed">
+        <p class="text-[13px] sm:text-sm text-[#786B60] dark:text-[#B3A69C] line-clamp-2 leading-relaxed">
           {{ product.description || 'Handcrafted daily with premium unbleached flour, natural sourdough yeast, and finest ingredients.' }}
         </p>
       </div>
 
       <div class="pt-3 border-t border-gray-100 dark:border-[#331E14] flex items-center justify-between gap-2 sm:gap-3">
         <div>
-          <div class="text-[9px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold">{{ localeStore.t('price_label') }}</div>
-          <div class="text-sm sm:text-base font-black text-[#DE1B54]">
+          <div class="text-[10px] sm:text-[11px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold">{{ localeStore.t('price_label') }}</div>
+          <div class="text-base sm:text-lg font-black text-[#DE1B54]">
             {{ localeStore.formatPrice(displayPrice) }}
           </div>
         </div>
@@ -80,7 +81,7 @@
         <div class="flex items-center space-x-1.5 sm:space-x-2">
           <router-link
             :to="`/product/${product.product_id}`"
-            class="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-[#3D2619] text-gray-700 dark:text-[#E8DED8] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] hover:border-[#DE1B54] transition cursor-pointer"
+            class="min-h-[42px] min-w-[42px] flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-[#3D2619] text-gray-700 dark:text-[#E8DED8] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] hover:border-[#DE1B54] transition cursor-pointer"
             :title="localeStore.t('view_details')"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,7 +93,7 @@
           <button
             @click="handleAddToCart"
             :disabled="isOutOfStock || isAdding"
-            class="min-h-[40px] flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+            class="min-h-[42px] flex items-center space-x-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
             :class="isOutOfStock 
               ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed' 
               : 'bg-[#DE1B54] hover:bg-[#C51345] text-white active:scale-95'"
@@ -229,7 +230,10 @@ function handleAddToCart() {
   } else if (res && res.success === false) {
     toastStore.error(res.message || 'Could not add to cart.');
   } else {
-    toastStore.success(`Added "${props.product.product_name}" to your bag.`);
+    toastStore.success(`Added "${props.product.product_name}" to your bag.`, {
+      label: localeStore.isAmharic ? 'ቦርሳ ይመልከቱ' : 'View Bag',
+      onClick: () => cartStore.toggleDrawer(),
+    });
   }
 
   setTimeout(() => {
