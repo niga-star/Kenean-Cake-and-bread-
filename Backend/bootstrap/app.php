@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->api(prepend: [
+            \App\Http\Middleware\AuthenticateBearerToken::class,
+        ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleAuthorizationMiddleware::class,
             'admin.auth' => \App\Http\Middleware\RoleAuthorizationMiddleware::class,

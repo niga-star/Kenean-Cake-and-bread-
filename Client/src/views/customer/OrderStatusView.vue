@@ -1,54 +1,85 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-sans">
-    <!-- Status Alert Header Banner -->
-    <div
-      class="p-5 rounded-3xl text-xs space-y-1.5 shadow-2xs border transition"
-      :class="{
-        'bg-[#387A54]/10 border-[#387A54]/30 text-[#387A54]': order?.order_status === 'Confirmed' || order?.order_status === 'Completed',
-        'bg-[#B98235]/10 border-[#B98235]/30 text-[#B98235]': order?.order_status === 'Pending',
-        'bg-[#A87552]/10 border-[#A87552]/30 text-[#553B2D]': order?.order_status === 'Preparing',
-        'bg-[#553B2D]/10 border-[#553B2D]/30 text-[#553B2D]': order?.order_status === 'Out for delivery' || order?.order_status === 'Ready',
-        'bg-[#B84B42]/10 border-[#B84B42]/30 text-[#B84B42]': order?.order_status === 'Cancelled'
-      }"
-    >
-      <div class="font-bold text-sm sm:text-base flex items-center space-x-2">
-        <span>{{ statusIcon }}</span>
-        <span>{{ statusHeadline }}</span>
-      </div>
-      <div class="text-xs text-[#786B60]">
-        Fulfilling bakery: <strong class="text-[#29231F]">{{ order?.branch?.branch_name || 'Bole Flagship' }} ({{ currentBranchCode }})</strong>. Stock was reserved and items are fulfilled directly from this kitchen.
+  <div class="sweetbakes-container py-8 sm:py-10 space-y-8 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] text-[#29231F] dark:text-[#FAF3EE]">
+    <!-- Loading State -->
+    <div v-if="loadingOrder" class="py-20 text-center space-y-3">
+      <div class="text-3xl animate-bounce">🧁</div>
+      <div class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">Loading Order Confirmation...</div>
+    </div>
+
+    <!-- Clean Empty State when Order Not Found -->
+    <div v-else-if="!order" class="text-center py-20 px-4 bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] max-w-lg mx-auto space-y-4">
+      <div class="text-4xl">🔍</div>
+      <h2 class="font-serif font-black text-2xl text-[#2A1810] dark:text-[#FAF3EE]">Order Not Found</h2>
+      <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
+        We could not locate records for this order number. Please verify your order number in your account dashboard.
+      </p>
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <router-link
+          to="/shop"
+          class="px-6 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition"
+        >
+          Browse Bakery Shop →
+        </router-link>
+        <router-link
+          to="/account"
+          class="px-6 py-2.5 bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-xl shadow-xs transition"
+        >
+          My Account Orders
+        </router-link>
       </div>
     </div>
 
-    <!-- Order Header Row -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E6DED3] pb-6">
-      <div>
-        <div class="text-[11px] font-bold uppercase tracking-widest text-[#786B60]">Order Confirmation</div>
-        <h1 class="text-3xl sm:text-4xl font-serif font-bold text-[#29231F] mt-0.5">
-          {{ order?.order_number || orderNumberParam }}
-        </h1>
-        <div class="text-xs text-[#786B60] mt-1">
-          Placed on {{ orderDateFormatted }} &middot; Estimated fulfillment: 45–60 mins
+    <!-- Loaded Real Order Content -->
+    <div v-else class="space-y-8">
+      <!-- Status Alert Header Banner -->
+      <div
+        class="p-5 rounded-3xl text-xs space-y-1.5 shadow-2xs border transition"
+        :class="{
+          'bg-[#387A54]/10 border-[#387A54]/30 text-[#387A54] dark:text-emerald-400': order.order_status === 'Confirmed' || order.order_status === 'Completed',
+          'bg-[#B98235]/10 border-[#B98235]/30 text-[#B98235] dark:text-amber-400': order.order_status === 'Pending',
+          'bg-[#DE1B54]/10 border-[#DE1B54]/30 text-[#DE1B54]': order.order_status === 'Preparing',
+          'bg-[#2A1810]/10 border-[#2A1810]/30 text-[#2A1810] dark:text-[#FAF3EE]': order.order_status === 'Out for delivery' || order.order_status === 'Ready',
+          'bg-[#B84B42]/10 border-[#B84B42]/30 text-[#B84B42]': order.order_status === 'Cancelled'
+        }"
+      >
+        <div class="font-bold text-sm sm:text-base flex items-center space-x-2">
+          <span>{{ statusIcon }}</span>
+          <span>{{ statusHeadline }}</span>
+        </div>
+        <div class="text-xs text-[#786B60] dark:text-[#C5B7AF]">
+          Fulfilling bakery: <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ order.branch?.branch_name || 'Bole Flagship' }} ({{ currentBranchCode }})</strong>. Stock was reserved and items are fulfilled directly from this kitchen.
         </div>
       </div>
 
-      <div class="flex items-center space-x-3">
-        <span
-          class="px-4 py-1.5 rounded-full text-xs font-bold capitalize shadow-2xs"
-          :class="statusBadgeClass(order?.order_status || 'Pending')"
-        >
-          {{ order?.order_status || 'Pending' }}
-        </span>
+      <!-- Order Header Row -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-[#382318] pb-6">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-widest text-[#786B60] dark:text-[#C5B7AF]">Order Confirmation</div>
+          <h1 class="text-2xl sm:text-4xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] mt-0.5">
+            {{ order.order_number }}
+          </h1>
+          <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-1">
+            Placed on {{ orderDateFormatted }} &middot; Estimated fulfillment: 45–60 mins
+          </div>
+        </div>
 
-        <button
-          @click="printReceipt"
-          class="px-4 py-2 bg-white border border-[#E6DED3] hover:border-[#A87552] text-xs font-bold text-[#553B2D] rounded-xl transition shadow-2xs flex items-center space-x-1.5"
-        >
-          <span>🖨️</span>
-          <span>Print Receipt</span>
-        </button>
+        <div class="flex items-center space-x-3">
+          <span
+            class="px-4 py-1.5 rounded-full text-xs font-bold capitalize shadow-2xs"
+            :class="statusBadgeClass(order.order_status || 'Pending')"
+          >
+            {{ order.order_status || 'Pending' }}
+          </span>
+
+          <button
+            @click="printReceipt"
+            class="px-4 py-2 min-h-[40px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] hover:text-[#DE1B54] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+          >
+            <span>🖨️</span>
+            <span>Print Receipt</span>
+          </button>
+        </div>
       </div>
-    </div>
 
     <!-- Main Content 2-Column Grid -->
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
@@ -119,7 +150,7 @@
           <div class="flex items-start space-x-3.5 relative">
             <div
               class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 z-10 shadow-xs transition"
-              :class="isStepActiveOrDone(4) ? (isStepActiveOrDone(5) ? 'bg-[#387A54] text-white' : 'bg-[#553B2D] text-white') : 'bg-[#F8F3EA] text-[#786B60] border border-[#E6DED3]'"
+              :class="isStepActiveOrDone(4) ? (isStepActiveOrDone(5) ? 'bg-[#387A54] text-white' : 'bg-[#DE1B54] text-white') : 'bg-rose-50 text-[#786B60] border border-gray-200'"
             >
               {{ isStepActiveOrDone(5) ? '✓' : '4' }}
             </div>
@@ -164,6 +195,16 @@
         <!-- Metadata Grid -->
         <div class="space-y-3 text-xs border-b border-[#E6DED3] pb-4">
           <div class="flex justify-between items-center">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Customer</span>
+            <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+              {{ order?.customer_name || order?.user?.full_name || 'Customer' }}
+              <span v-if="order?.customer_phone || order?.user?.phone" class="text-xs font-normal text-[#786B60] dark:text-[#A8988E]">
+                ({{ order?.customer_phone || order?.user?.phone }})
+              </span>
+            </span>
+          </div>
+
+          <div class="flex justify-between items-center">
             <span class="text-[#786B60]">Fulfilling Branch</span>
             <span class="font-bold text-[#29231F]">
               {{ order?.branch?.branch_name || 'Bole Flagship' }} ({{ currentBranchCode }})
@@ -171,22 +212,22 @@
           </div>
 
           <div class="flex justify-between items-center">
-            <span class="text-[#786B60]">Fulfillment Mode</span>
-            <span class="font-bold text-[#553B2D]">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Fulfillment Mode</span>
+            <span class="font-bold text-[#DE1B54]">
               {{ order?.fulfillment_method === 'Delivery' ? '🚀 Doorstep Delivery' : '🛍️ In-Store Pickup' }}
             </span>
           </div>
 
           <div class="flex justify-between items-center">
-            <span class="text-[#786B60]">Payment Method</span>
+            <span class="text-[#786B60] dark:text-[#A8988E]">Payment Method</span>
             <span class="font-bold text-[#387A54]">
               {{ order?.payment?.payment_method || 'Online (Chapa)' }} &middot; {{ order?.payment?.payment_status || 'Paid' }}
             </span>
           </div>
 
           <div class="flex justify-between items-start">
-            <span class="text-[#786B60]">{{ order?.fulfillment_method === 'Pickup' ? 'Pickup Location' : 'Delivery Address' }}</span>
-            <span class="font-semibold text-[#29231F] text-right max-w-[280px]">
+            <span class="text-[#786B60] dark:text-[#A8988E]">{{ order?.fulfillment_method === 'Pickup' ? 'Pickup Location' : 'Delivery Address' }}</span>
+            <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE] text-right max-w-[280px]">
               {{ order?.fulfillment_method === 'Pickup' ? (order?.branch?.address || 'Cameroon St, Bole, Addis Ababa') : (order?.address?.street || order?.delivery_address || 'Customer Address, Addis Ababa') }}
             </span>
           </div>
@@ -194,23 +235,23 @@
 
         <!-- Items Breakdown -->
         <div class="space-y-3 text-xs">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#786B60]">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#786B60] dark:text-[#A8988E]">
             Bakes in this Order ({{ displayItems.length }})
           </div>
 
-          <div class="space-y-2 divide-y divide-[#F8F3EA]">
+          <div class="space-y-2 divide-y divide-gray-100 dark:divide-[#382318]">
             <div
               v-for="item in displayItems"
               :key="item.order_item_id || item.product_name"
               class="pt-2 first:pt-0 flex justify-between items-center"
             >
               <div class="flex items-center space-x-2.5">
-                <span class="w-6 h-6 rounded-lg bg-[#F8F3EA] flex items-center justify-center text-xs font-bold text-[#553B2D]">
+                <span class="w-6 h-6 rounded-lg bg-rose-50 dark:bg-[#341822] flex items-center justify-center text-xs font-bold text-[#DE1B54]">
                   {{ item.quantity }}×
                 </span>
-                <span class="text-[#29231F] font-medium">{{ item.product?.product_name || item.product_name }}</span>
+                <span class="text-[#2A1810] dark:text-[#FAF3EE] font-medium">{{ item.product?.product_name || item.product_name }}</span>
               </div>
-              <span class="font-bold text-[#553B2D]">
+              <span class="font-bold text-[#2A1810] dark:text-rose-400">
                 ETB {{ ((item.unit_price || item.price) * item.quantity).toLocaleString() }}
               </span>
             </div>
@@ -218,42 +259,42 @@
         </div>
 
         <!-- Totals Breakdown -->
-        <div class="pt-4 border-t border-[#E6DED3] space-y-2 text-xs">
-          <div class="flex justify-between items-center text-[#786B60]">
+        <div class="pt-4 border-t border-gray-100 dark:border-[#382318] space-y-2 text-xs">
+          <div class="flex justify-between items-center text-[#786B60] dark:text-[#A8988E]">
             <span>Subtotal</span>
-            <span class="font-semibold text-[#29231F]">ETB {{ itemsSubtotal.toLocaleString() }}</span>
+            <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ itemsSubtotal.toLocaleString() }}</span>
           </div>
 
-          <div v-if="Number(order?.delivery_fee) > 0" class="flex justify-between items-center text-[#786B60]">
+          <div v-if="Number(order?.delivery_fee) > 0" class="flex justify-between items-center text-[#786B60] dark:text-[#A8988E]">
             <span>Delivery Fee</span>
-            <span class="font-semibold text-[#29231F]">ETB {{ Number(order?.delivery_fee).toLocaleString() }}</span>
+            <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ Number(order?.delivery_fee).toLocaleString() }}</span>
           </div>
 
-          <div class="pt-2 border-t border-[#E6DED3] flex justify-between items-center text-base font-bold text-[#29231F]">
+          <div class="pt-2 border-t border-gray-100 dark:border-[#382318] flex justify-between items-center text-base font-bold text-[#2A1810] dark:text-[#FAF3EE]">
             <span>Grand Total</span>
-            <span class="text-[#553B2D] text-lg font-black">ETB {{ Number(order?.total_amount || itemsSubtotal).toLocaleString() }}</span>
+            <span class="text-[#DE1B54] text-lg font-black">ETB {{ Number(order?.total_amount || itemsSubtotal).toLocaleString() }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <!-- Questions Box -->
-    <div class="bg-[#F8F3EA] rounded-3xl border border-[#E6DED3] p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="bg-rose-50/60 dark:bg-[#20120B] rounded-3xl border border-rose-100 dark:border-[#382318] p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="space-y-1">
-        <h3 class="text-xs font-bold text-[#29231F] uppercase tracking-wider flex items-center space-x-1.5">
+        <h3 class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] uppercase tracking-wider flex items-center space-x-1.5">
           <span>📞</span>
           <span>Questions about this bake order?</span>
         </h3>
-        <p class="text-xs text-[#786B60] leading-relaxed">
+        <p class="text-xs text-[#786B60] dark:text-[#A8988E] leading-relaxed">
           Call {{ order?.branch?.branch_name || 'Bole Flagship' }} directly at
-          <strong class="text-[#553B2D]">{{ order?.branch?.phone || '+251 911 123 456' }}</strong>.
+          <strong class="text-[#DE1B54]">{{ order?.branch?.phone || '+251 911 123 456' }}</strong>.
           Every stock item and order is scoped strictly to this branch.
         </p>
       </div>
 
       <a
         :href="`tel:${order?.branch?.phone || '+251911123456'}`"
-        class="px-5 py-2.5 bg-white border border-[#E6DED3] hover:border-[#A87552] text-xs font-bold text-[#553B2D] rounded-xl shadow-2xs transition shrink-0"
+        class="px-5 py-2.5 min-h-[40px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] rounded-xl shadow-2xs transition shrink-0 flex items-center justify-center cursor-pointer"
       >
         Call Bakery
       </a>
@@ -263,7 +304,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
       <router-link
         to="/shop"
-        class="px-6 py-3 bg-[#553B2D] hover:bg-[#3D291F] text-white text-xs font-bold rounded-xl shadow-xs transition"
+        class="px-6 py-3 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center cursor-pointer"
       >
         ← Continue Shopping
       </router-link>
@@ -287,6 +328,7 @@
         </span>
       </div>
     </div>
+    </div>
   </div>
 </template>
 
@@ -298,9 +340,10 @@ import api from '../../api';
 
 const route = useRoute();
 const toast = useToastStore();
-const orderNumberParam = computed(() => route.params.order_number || route.params.id || 'ORD-1001');
+const orderNumberParam = computed(() => route.params.order_number || route.params.id || '');
 
 const order = ref(null);
+const loadingOrder = ref(true);
 const cancelling = ref(false);
 
 const orderDateFormatted = computed(() => {
@@ -349,13 +392,7 @@ const canCustomerCancel = computed(() => {
 });
 
 const displayItems = computed(() => {
-  if (order.value?.items && order.value.items.length > 0) {
-    return order.value.items;
-  }
-  return [
-    { product_name: 'Belgian Chocolate Cake', quantity: 1, unit_price: 1200 },
-    { product_name: 'Artisan Sourdough Loaf', quantity: 2, unit_price: 225 },
-  ];
+  return order.value?.items || [];
 });
 
 const itemsSubtotal = computed(() => {
@@ -363,11 +400,20 @@ const itemsSubtotal = computed(() => {
 });
 
 const loadOrder = async () => {
+  if (!orderNumberParam.value) {
+    order.value = null;
+    loadingOrder.value = false;
+    return;
+  }
+  loadingOrder.value = true;
   try {
     const res = await api.get(`/orders/${orderNumberParam.value}`);
     order.value = res.data;
   } catch (err) {
     console.error('Failed to load order', err);
+    order.value = null;
+  } finally {
+    loadingOrder.value = false;
   }
 };
 
@@ -391,9 +437,9 @@ function statusBadgeClass(status) {
     case 'Pending':
       return 'bg-[#B98235]/15 text-[#B98235] border border-[#B98235]/30';
     case 'Confirmed':
-      return 'bg-[#553B2D]/10 text-[#553B2D] border border-[#553B2D]/20';
+      return 'bg-rose-50 text-[#DE1B54] border border-rose-200 dark:bg-[#341822] dark:border-[#58263A]';
     case 'Preparing':
-      return 'bg-[#A87552]/15 text-[#A87552] border border-[#A87552]/30';
+      return 'bg-[#B98235]/15 text-[#B98235] border border-[#B98235]/30';
     case 'Out for delivery':
     case 'Ready':
       return 'bg-[#387A54]/15 text-[#387A54] border border-[#387A54]/30';
@@ -402,7 +448,7 @@ function statusBadgeClass(status) {
     case 'Cancelled':
       return 'bg-[#B84B42]/15 text-[#B84B42] border border-[#B84B42]/30';
     default:
-      return 'bg-[#F8F3EA] text-[#553B2D] border border-[#E6DED3]';
+      return 'bg-gray-100 text-[#2A1810] border border-gray-200 dark:bg-[#20120B] dark:text-[#FAF3EE] dark:border-[#382318]';
   }
 }
 

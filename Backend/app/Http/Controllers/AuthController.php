@@ -113,9 +113,109 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:150',
+            'phone' => [
+                'nullable',
+                'string',
+                'max:30',
+                'regex:/^(\+251[\s\-]?[79]\d{2}[\s\-]?\d{3}[\s\-]?\d{3}|0[79]\d{2}[\s\-]?\d{3}[\s\-]?\d{3}|\+251[79]\d{8}|0[79]\d{8})$/'
+            ],
+        ], [
+            'phone.regex' => 'Phone numbers must follow valid Ethiopian format: +251 9XX XXX XXX, +251 7XX XXX XXX, or 09XX XXX XXX.',
+        ]);
+
+        $oldName = $user->full_name;
+        $user->full_name = $validated['full_name'];
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+        $user->save();
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (' . $user->role . ')',
+            'action' => 'Profile updated',
+            'record' => $user->email,
+            'entity_type' => 'User',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => $oldName,
+            'new_value' => $user->full_name,
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Profile details updated successfully.',
+            'user' => $user->fresh()->load('branch'),
+        ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $validated = $request->validate([
+            'current_password' => 'nullable|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!empty($validated['current_password'])) {
+            if (!Hash::check($validated['current_password'], $user->password)) {
+                return response()->json([
+                    'message' => 'The provided current password does not match our records.',
+                    'errors' => ['current_password' => ['Incorrect current password.']],
+                ], 422);
+            }
+        }
+
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (' . $user->role . ')',
+            'action' => 'Password changed',
+            'record' => $user->email,
+            'entity_type' => 'User',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => '—',
+            'new_value' => 'Password securely updated',
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Your password has been changed successfully.',
+        ]);
+    }
+
     // Role switcher helper for demonstration & evaluation
     public function switchRole(Request $request)
     {
+        // In production, ensure only authenticated Super Admin can switch personas
+        if (app()->environment('production')) {
+            $currentUser = $request->user();
+            if (!$currentUser) {
+                $tokenString = $request->bearerToken();
+                if ($tokenString) {
+                    $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                    $currentUser = $token?->tokenable;
+                }
+            }
+            if (!$currentUser || $currentUser->role !== 'Super Admin') {
+                return response()->json(['message' => 'Unauthorized persona simulation.'], 403);
+            }
+        }
+
         $validated = $request->validate([
             'role' => 'required|string',
             'branch_code' => 'nullable|string',

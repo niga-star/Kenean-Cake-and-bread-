@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white min-h-screen text-[#29231F] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
+  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
     <!-- 1. HERO BANNER: SweetBakes Style Matching Shop & Home Pages -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD]">
+    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
       <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] overflow-hidden pointer-events-none">
         <img
           src="/mockup/shop_banner_right.jpg"
@@ -9,23 +9,23 @@
           class="w-full h-full object-cover object-center lg:object-left"
           loading="eager"
         />
-        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block"></div>
-        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 lg:hidden"></div>
+        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block dark:from-[#170E0A] dark:via-[#170E0A]/80"></div>
+        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 dark:bg-[#170E0A]/85 lg:hidden"></div>
       </div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 relative z-10">
+      <div class="sweetbakes-container w-full py-8 relative z-10">
         <div class="max-w-xl space-y-2 text-center lg:text-left">
           <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
-            <span class="text-gray-300 select-none">&mdash;</span>
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
             <span>Help Center</span>
-            <span class="text-gray-300 select-none">&mdash;</span>
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] tracking-tight leading-tight">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
             Frequently Asked Questions
           </h1>
 
-          <p class="text-xs sm:text-sm text-[#6E5D53] flex items-center justify-center lg:justify-start space-x-1.5">
+          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
             <span>Everything you need to know about our bakery!</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
@@ -34,7 +34,7 @@
     </section>
 
     <!-- 2. MAIN FAQ SECTION -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+    <div class="sweetbakes-container max-w-5xl py-8 sm:py-10 space-y-8">
       
       <!-- Category Filter Tabs -->
       <div class="flex flex-wrap items-center justify-center gap-2">
@@ -42,10 +42,10 @@
           v-for="cat in categories"
           :key="cat.key"
           @click="activeCategory = cat.key"
-          class="px-4 py-2 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
+          class="px-4 py-2 min-h-[38px] rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
           :class="activeCategory === cat.key 
             ? 'bg-[#DE1B54] text-white shadow-xs' 
-            : 'bg-white border border-[#EFE8E1] text-[#6E5D53] hover:text-[#2A1810] hover:bg-rose-50/40'"
+            : 'bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#2A1810] dark:hover:text-[#FAF3EE] hover:bg-rose-50/40 dark:hover:bg-[#341822]'"
         >
           {{ cat.label }}
         </button>
@@ -56,17 +56,17 @@
         <div
           v-for="(item, idx) in filteredFaqs"
           :key="idx"
-          class="bg-white rounded-2xl border border-[#EFE8E1] p-5 sm:p-6 transition shadow-2xs hover:shadow-xs"
+          class="bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-6 transition shadow-2xs hover:shadow-xs"
         >
           <button
             @click="toggleItem(idx)"
             class="w-full text-left flex items-start justify-between gap-4 focus:outline-none cursor-pointer"
           >
-            <span class="font-serif font-bold text-base sm:text-lg text-[#2A1810] hover:text-[#DE1B54] transition">
+            <span class="font-serif font-bold text-base sm:text-lg text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] transition">
               {{ item.q }}
             </span>
             <span
-              class="w-7 h-7 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-xs font-bold text-[#DE1B54] shrink-0 transition-transform duration-200"
+              class="w-7 h-7 rounded-full bg-rose-50 dark:bg-[#341822] border border-rose-100 dark:border-[#DE1B54]/40 flex items-center justify-center text-xs font-bold text-[#DE1B54] shrink-0 transition-transform duration-200"
               :class="openIdx === idx ? 'rotate-180 bg-[#DE1B54] text-white' : ''"
             >
               ▼
@@ -75,7 +75,7 @@
 
           <div
             v-if="openIdx === idx"
-            class="pt-3.5 text-xs sm:text-sm text-[#6E5D53] leading-relaxed border-t border-gray-100 mt-3.5"
+            class="pt-3.5 text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed border-t border-gray-100 dark:border-[#382318] mt-3.5"
           >
             {{ item.a }}
           </div>
@@ -83,44 +83,44 @@
       </div>
 
       <!-- Still Have Questions Banner -->
-      <div class="bg-gradient-to-br from-[#FFF5F2] via-[#FAF7F5] to-[#FFF5F2] rounded-2xl border border-rose-200/60 p-8 text-center space-y-4 shadow-xs">
-        <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 text-[#DE1B54] flex items-center justify-center mx-auto text-2xl shadow-2xs">
+      <div class="bg-gradient-to-br from-[#FFF5F2] via-[#FAF7F5] to-[#FFF5F2] dark:from-[#25150E] dark:via-[#1E120B] dark:to-[#25150E] rounded-2xl border border-rose-200/60 dark:border-[#382318] p-8 text-center space-y-4 shadow-xs">
+        <div class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-[#341822] border border-rose-100 dark:border-[#DE1B54]/40 text-[#DE1B54] flex items-center justify-center mx-auto text-2xl shadow-2xs">
           💬
         </div>
         <div class="space-y-1">
-          <h3 class="font-serif font-black text-xl text-[#2A1810]">
+          <h3 class="font-serif font-black text-xl text-[#2A1810] dark:text-[#FAF3EE]">
             Still Have Questions?
           </h3>
-          <p class="text-xs sm:text-sm text-[#6E5D53] max-w-md mx-auto leading-relaxed">
+          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] max-w-md mx-auto leading-relaxed">
             Our bakery support team and branch master bakers are ready to assist you anytime.
           </p>
         </div>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <router-link
             to="/contact"
-            class="w-full sm:w-auto px-6 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer active:scale-95"
+            class="w-full sm:w-auto px-6 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center space-x-1.5 active:scale-95"
           >
-            Contact SweetBakes &rarr;
+            <span>Contact Us Directly</span>
+            <span>&rarr;</span>
           </router-link>
           <a
-            href="tel:+251911123456"
-            class="w-full sm:w-auto px-6 py-2.5 bg-white border border-[#DE1B54] hover:bg-rose-50 text-[#DE1B54] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer"
+            :href="`tel:${supportPhone}`"
+            class="w-full sm:w-auto px-6 py-2.5 min-h-[40px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer flex items-center justify-center space-x-1.5"
           >
-            📞 Call +251 911 123 456
+            <span>📞 {{ supportPhone }}</span>
           </a>
         </div>
       </div>
-
     </div>
 
     <!-- 3. DECORATIVE WAVE RIBBON ABOVE FOOTER -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 border-t border-rose-200/60 py-4 mt-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 dark:from-[#25150E] dark:via-[#20110A] dark:to-[#170E0A] border-t border-rose-200/60 dark:border-[#382318] py-4 mt-8">
+      <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
         <div class="flex items-center space-x-1.5 font-script text-2xl text-[#DE1B54]">
           <span class="font-bold">SweetBakes</span>
           <span>♡</span>
         </div>
-        <div class="font-script text-lg sm:text-xl text-[#2A1810] flex items-center space-x-1.5">
+        <div class="font-script text-lg sm:text-xl text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
           <span class="italic">Because life is sweeter with cake!</span>
           <span class="text-[#DE1B54] not-italic">♡</span>
         </div>
@@ -130,10 +130,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import api from '../../api';
 
 const activeCategory = ref('all');
 const openIdx = ref(0);
+const supportPhone = ref('+251 911 123 456');
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/business-info');
+    if (res.data?.phone) {
+      supportPhone.value = res.data.phone;
+    }
+  } catch (e) {}
+});
 
 const categories = [
   { key: 'all', label: 'All Questions' },

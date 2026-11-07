@@ -8,15 +8,15 @@ export const useCartStore = defineStore('cart', {
       const parsed = JSON.parse(localStorage.getItem('cart_items'));
       if (Array.isArray(parsed)) {
         storedItems = parsed.map((item) => {
-          const avail = Number(item.available ?? item.available_stock ?? 50);
+          const avail = Number(item.available ?? item.available_stock ?? 0);
           return {
             ...item,
             product_id: Number(item.product_id),
             price: Number(item.price) || 0,
             quantity: Math.max(1, Number(item.quantity) || 1),
-            available: avail > 0 ? avail : 50,
-            available_stock: avail > 0 ? avail : 50,
-            isSoldOut: Boolean(item.isSoldOut && avail <= 0),
+            available: avail,
+            available_stock: avail,
+            isSoldOut: Boolean(item.isSoldOut || avail <= 0),
           };
         });
       }
@@ -83,32 +83,29 @@ export const useCartStore = defineStore('cart', {
       const qty = Math.max(1, Number(requestedQty ?? product.quantity ?? 1) || 1);
 
       // Extract stock flexibly across API and view structures
-      let available = 50;
+      let available = 0;
       if (typeof product.available === 'number') {
         available = product.available;
       } else if (typeof product.available_stock === 'number') {
         available = product.available_stock;
       } else if (typeof product.on_hand === 'number') {
-        available = product.on_hand;
+        available = Math.max(0, product.on_hand - (product.reserved || 0));
       } else if (typeof product.quantity_available === 'number') {
         available = product.quantity_available;
       } else if (product.available !== undefined && product.available !== null && !isNaN(Number(product.available))) {
         available = Number(product.available);
       } else if (product.available_stock !== undefined && product.available_stock !== null && !isNaN(Number(product.available_stock))) {
         available = Number(product.available_stock);
+      } else {
+        available = 30; // fallback only when stock info is completely absent
       }
 
-      if (available <= 0 && product.isSoldOut) {
+      if (available <= 0 || product.isSoldOut) {
         return {
           success: false,
           reason: 'sold_out',
-          message: `${product.product_name} is sold out at this branch.`,
+          message: `${product.product_name} is currently sold out at this branch.`,
         };
-      }
-
-      // Sensible fallback if stock was missing or negative without soldOut flag
-      if (available <= 0) {
-        available = 25;
       }
 
       const price = Number(product.resolved_price ?? product.price ?? product.base_price ?? 0);
@@ -123,15 +120,16 @@ export const useCartStore = defineStore('cart', {
       const existing = this.items.find((i) => i.product_id === product.product_id);
       if (existing) {
         if (existing.quantity + qty > available) {
-          existing.quantity = available;
+          const maxPossible = Math.max(0, available);
+          existing.quantity = maxPossible;
           existing.available = available;
           existing.available_stock = available;
-          existing.isSoldOut = false;
+          existing.isSoldOut = available <= 0;
           this.save();
           return {
             success: true,
             reason: 'capped',
-            message: `Only ${available} available in stock. Quantity adjusted to ${available}.`,
+            message: `Only ${available} available in stock at this branch. Quantity capped to ${available}.`,
           };
         }
         existing.quantity += qty;
@@ -150,6 +148,16 @@ export const useCartStore = defineStore('cart', {
           available_stock: available,
           isSoldOut: false,
         });
+
+        if (qty > available) {
+          this.save();
+          this.isDrawerOpen = true;
+          return {
+            success: true,
+            reason: 'capped',
+            message: `Requested ${qty}, but only ${available} available. Added ${initialQty} to your bag.`,
+          };
+        }
       }
 
       this.save();
@@ -177,22 +185,22 @@ export const useCartStore = defineStore('cart', {
           return { success: true, removed: true };
         }
 
-        const stock = Number(item.available ?? item.available_stock ?? 50);
-        if (quantity > stock) {
+        const stock = Number(item.available ?? item.available_stock ?? 0);
+        if (stock > 0 && quantity > stock) {
           item.quantity = stock;
           item.available = stock;
           item.available_stock = stock;
           this.save();
           return {
             success: false,
-            message: `Requested quantity exceeds available stock (${stock} available). Adjusted to maximum available.`,
+            message: `Requested quantity exceeds available stock (${stock} available at this branch). Adjusted to maximum available.`,
           };
         }
 
         item.quantity = quantity;
         item.available = stock;
         item.available_stock = stock;
-        item.isSoldOut = false;
+        item.isSoldOut = stock <= 0;
         this.save();
         return { success: true };
       }
@@ -268,42 +276,45 @@ export const useCartStore = defineStore('cart', {
             item.available = 0;
             item.available_stock = 0;
             item.isSoldOut = true;
+            const alts = await this.fetchAlternativeBranches(item.product_id, item.quantity, newBranchId);
             warnings.push({
               product_id: item.product_id,
               product_name: item.product_name,
               message: `${item.product_name} is not available at the selected branch.`,
               available: 0,
               requested: item.quantity,
-              suggestions: await this.fetchAlternativeBranches(item.product_id, item.quantity, newBranchId),
+              suggestions: alts,
             });
             continue;
           }
 
-          const stock = Number(match.available ?? match.available_stock ?? match.on_hand ?? 50);
+          const stock = Number(match.available ?? match.available_stock ?? match.on_hand ?? 0);
           item.price = Number(match.resolved_price || match.base_price || item.price);
           item.available = stock;
           item.available_stock = stock;
           item.isSoldOut = stock <= 0;
 
           if (stock <= 0) {
+            const alts = await this.fetchAlternativeBranches(item.product_id, item.quantity, newBranchId);
             warnings.push({
               product_id: item.product_id,
               product_name: item.product_name,
               message: `${item.product_name} is sold out at this branch.`,
               available: 0,
               requested: item.quantity,
-              suggestions: await this.fetchAlternativeBranches(item.product_id, item.quantity, newBranchId),
+              suggestions: alts,
             });
           } else if (item.quantity > stock) {
             const requested = item.quantity;
             item.quantity = stock;
+            const alts = await this.fetchAlternativeBranches(item.product_id, requested, newBranchId);
             warnings.push({
               product_id: item.product_id,
               product_name: item.product_name,
-              message: `Requested ${requested} units of ${item.product_name}, but only ${stock} available. Quantity adjusted to ${stock}.`,
+              message: `Requested ${requested} units of ${item.product_name}, but only ${stock} available at this branch. Quantity adjusted to ${stock}.`,
               available: stock,
               requested: requested,
-              suggestions: await this.fetchAlternativeBranches(item.product_id, requested, newBranchId),
+              suggestions: alts,
             });
           }
         }
@@ -336,9 +347,35 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
+    async syncWithBackend() {
+      try {
+        let sessionId = localStorage.getItem('cart_session_id');
+        if (!sessionId) {
+          sessionId = 'sb_sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+          localStorage.setItem('cart_session_id', sessionId);
+        }
+
+        const validItems = this.items.map((i) => ({
+          product_id: Number(i.product_id),
+          quantity: Number(i.quantity) || 1,
+        }));
+
+        await api.post('/cart/sync', {
+          branch_id: Number(this.branchId) || 2,
+          session_id: sessionId,
+          items: validItems,
+        });
+      } catch (err) {
+        // Non-blocking sync warning
+        console.warn('Backend cart sync note:', err.response?.data?.message || err.message);
+      }
+    },
+
     save() {
       localStorage.setItem('cart_items', JSON.stringify(this.items));
-      localStorage.setItem('cart_branch_id', this.branchId);
+      localStorage.setItem('cart_branch_id', String(this.branchId));
+      localStorage.setItem('selectedBranchId', String(this.branchId));
+      this.syncWithBackend();
     },
   },
 });

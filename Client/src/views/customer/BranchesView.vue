@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white min-h-screen text-[#29231F] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
-    <!-- 1. HERO BANNER: Exact SweetBakes Style Matching Shop & Home Pages -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD]">
+  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
+    <!-- 1. HERO BANNER: Responsive with fluid typography and dark mode overlay -->
+    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[170px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
       <!-- Background Bakery Imagery on Right -->
       <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] overflow-hidden pointer-events-none">
         <img
@@ -10,27 +10,27 @@
           class="w-full h-full object-cover object-center lg:object-left"
           loading="eager"
         />
-        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block"></div>
-        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 lg:hidden"></div>
+        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block dark:from-[#170E0A] dark:via-[#170E0A]/80"></div>
+        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 dark:bg-[#170E0A]/85 lg:hidden"></div>
       </div>
 
       <!-- Banner Text on Left -->
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 relative z-10">
-        <div class="max-w-xl space-y-2 text-center lg:text-left">
+      <div class="sweetbakes-container w-full py-6 sm:py-8 relative z-10">
+        <div class="max-w-xl space-y-1.5 sm:space-y-2 text-center lg:text-left">
           <!-- Script Subtitle with Dash Flourishes -->
-          <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
-            <span class="text-gray-300 select-none">&mdash;</span>
+          <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-xl sm:text-3xl text-[#DE1B54]">
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
             <span>Our Bakehouses</span>
-            <span class="text-gray-300 select-none">&mdash;</span>
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
           <!-- Large Bold Serif Title -->
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] tracking-tight leading-tight">
+          <h1 class="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
             Find &amp; Switch Branches
           </h1>
 
           <!-- Tagline with Pink Heart -->
-          <p class="text-xs sm:text-sm text-[#6E5D53] flex items-center justify-center lg:justify-start space-x-1.5">
+          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
             <span>Freshly baked at your local Addis Ababa branch!</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
@@ -39,8 +39,8 @@
     </section>
 
     <!-- 2. SEARCH, FILTER & ACTIVE BRANCH TOOLBAR -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-[#EFE8E1] shadow-xs">
+    <div class="sweetbakes-container py-4 sm:py-6">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-[#1E120B] p-4 sm:p-5 rounded-2xl border border-[#EFE8E1] dark:border-[#382318] shadow-xs">
         
         <!-- Search Input -->
         <div class="relative flex-1">
@@ -51,22 +51,22 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search branch by name, area, or street in Addis Ababa..."
-            class="w-full pl-10 pr-8 py-2 bg-[#FAF7F5] border border-gray-200 focus:border-[#DE1B54] focus:bg-white rounded-xl text-xs text-[#2A1810] focus:outline-none transition"
+            class="w-full pl-10 pr-8 py-2 min-h-[40px] bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
           />
           <button
             v-if="searchQuery"
             @click="searchQuery = ''"
-            class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+            class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         <!-- Filter Dropdowns & Active Branch Indicator -->
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <select
             v-model="cityFilter"
-            class="bg-[#FAF7F5] border border-gray-200 focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] font-semibold focus:outline-none transition cursor-pointer"
+            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
           >
             <option value="all">All Sub-Cities</option>
             <option value="Bole">Bole</option>
@@ -77,7 +77,7 @@
 
           <select
             v-model="fulfillmentFilter"
-            class="bg-[#FAF7F5] border border-gray-200 focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] font-semibold focus:outline-none transition cursor-pointer"
+            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
           >
             <option value="all">Delivery &amp; Pickup</option>
             <option value="delivery">Delivery Fleet Only</option>
@@ -85,7 +85,7 @@
           </select>
 
           <!-- Current Active Branch Badge -->
-          <div class="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-[#DE1B54] flex items-center space-x-1.5">
+          <div class="px-3 py-1.5 min-h-[40px] rounded-xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] text-xs font-bold text-[#DE1B54] flex items-center space-x-1.5">
             <span class="w-2 h-2 rounded-full bg-[#DE1B54] animate-ping"></span>
             <span>Active: {{ activeBranchName }}</span>
           </div>
@@ -95,19 +95,19 @@
     </div>
 
     <!-- 3. MAIN SECTION: Branch Cards List (7 cols) & Interactive Map (5 cols) -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="sweetbakes-container pb-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         
         <!-- ================= LEFT: BRANCH LIST (7 cols) ================= -->
         <div class="lg:col-span-7 space-y-4">
           <!-- Empty State -->
-          <div v-if="filteredBranches.length === 0" class="py-12 text-center bg-gray-50 rounded-2xl border border-gray-200 p-6 space-y-2">
+          <div v-if="filteredBranches.length === 0" class="py-12 text-center bg-gray-50 dark:bg-[#1E120B] rounded-2xl border border-gray-200 dark:border-[#382318] p-6 space-y-2">
             <div class="text-3xl">🔍</div>
-            <h3 class="font-serif font-bold text-base text-[#2A1810]">No branches found matching your search</h3>
-            <p class="text-xs text-gray-500">Try clearing your search query or selecting "All Sub-Cities".</p>
+            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">No branches found matching your search</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Try clearing your search query or selecting "All Sub-Cities".</p>
             <button
               @click="searchQuery = ''; cityFilter = 'all';"
-              class="px-4 py-2 bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
+              class="px-4 py-2 min-h-[38px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
             >
               Reset Filters
             </button>
@@ -117,34 +117,34 @@
           <div
             v-for="branch in filteredBranches"
             :key="branch.branch_id"
-            class="bg-white rounded-2xl border transition-all duration-300 p-6 relative space-y-4 shadow-xs"
+            class="bg-white dark:bg-[#1E120B] rounded-2xl border transition-all duration-300 p-5 sm:p-6 relative space-y-4 shadow-xs"
             :class="branchStore.selectedBranchId === branch.branch_id 
-              ? 'border-[#DE1B54] ring-2 ring-[#DE1B54]/20 bg-rose-50/10' 
-              : 'border-[#EFE8E1] hover:border-[#DE1B54]/40 hover:shadow-md'"
+              ? 'border-[#DE1B54] ring-2 ring-[#DE1B54]/20 bg-rose-50/10 dark:bg-[#341822]/20' 
+              : 'border-[#EFE8E1] dark:border-[#382318] hover:border-[#DE1B54]/40 hover:shadow-md'"
           >
             <!-- Top Row: Name, Badge & Status -->
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">
                 <div class="flex items-center space-x-2.5">
-                  <h3 class="text-lg font-serif font-bold text-[#2A1810]">
+                  <h3 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                     {{ branch.branch_name }}
                   </h3>
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
                     :class="branch.branch_type === 'Main' || branch.is_main 
                       ? 'bg-[#24150D] text-white' 
-                      : 'bg-rose-50 text-[#DE1B54] border border-rose-200'"
+                      : 'bg-rose-50 dark:bg-[#341822] text-[#DE1B54] border border-rose-200 dark:border-[#58263A]'"
                   >
                     {{ branch.branch_type === 'Main' || branch.is_main ? 'Central Kitchen HQ' : `Branch ${String(branch.branch_id).padStart(2, '0')}` }}
                   </span>
                 </div>
 
-                <p class="text-xs text-[#6E5D53] flex items-center space-x-1.5">
+                <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-1.5">
                   <span class="text-gray-400">📍</span>
                   <span>{{ branch.address || branch.address_line1 || branch.city }}, Addis Ababa</span>
                 </p>
 
-                <p class="text-xs text-[#6E5D53] flex items-center space-x-2 pt-0.5">
+                <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-2 pt-0.5">
                   <span class="flex items-center space-x-1">
                     <span>📞</span>
                     <a :href="`tel:${branch.phone || '+251911123456'}`" class="hover:text-[#DE1B54] font-medium">{{ branch.phone || '+251 911 123 456' }}</a>
@@ -418,13 +418,13 @@
     </div>
 
     <!-- 5. DECORATIVE WAVE RIBBON ABOVE FOOTER -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 border-t border-rose-200/60 py-4 mt-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 dark:from-[#25150E] dark:via-[#20110A] dark:to-[#170E0A] border-t border-rose-200/60 dark:border-[#382318] py-4 mt-8">
+      <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
         <div class="flex items-center space-x-1.5 font-script text-2xl text-[#DE1B54]">
           <span class="font-bold">SweetBakes</span>
           <span>♡</span>
         </div>
-        <div class="font-script text-lg sm:text-xl text-[#2A1810] flex items-center space-x-1.5">
+        <div class="font-script text-lg sm:text-xl text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
           <span class="italic">Because life is sweeter with cake!</span>
           <span class="text-[#DE1B54] not-italic">♡</span>
         </div>
@@ -457,21 +457,13 @@ onMounted(async () => {
   }
 });
 
-const defaultBranches = [
-  { branch_id: 1, branch_name: 'Mexico HQ & Kitchen', branch_type: 'Main', address: 'Ras Abebe Aregay St, Mexico Square', phone: '+251 11 550 1111', city: 'Kirkos', opening_hours: '06:30 – 21:00' },
-  { branch_id: 2, branch_name: 'Bole Flagship & Espresso', branch_type: 'Branch', address: 'Cameroon St, Near Edna Mall, Bole', phone: '+251 911 123 456', city: 'Bole', opening_hours: '07:00 – 21:30' },
-  { branch_id: 3, branch_name: 'Megenagna Bakehouse', branch_type: 'Branch', address: 'Sileshi Sehin Building, Megenagna', phone: '+251 11 662 2222', city: 'Yeka', opening_hours: '07:00 – 20:30' },
-  { branch_id: 4, branch_name: 'Piassa Heritage Bakehouse', branch_type: 'Branch', address: 'Churchill Avenue, Historic Piassa', phone: '+251 11 155 3333', city: 'Arada', opening_hours: '06:30 – 20:00' },
-  { branch_id: 5, branch_name: 'CMC Royal Pastry Hub', branch_type: 'Branch', address: 'CMC Michael, Near St. Michael Church', phone: '+251 11 647 4444', city: 'Bole', opening_hours: '07:00 – 21:00' },
-];
-
 const branchesList = computed(() => {
-  return branchStore.branches.length > 0 ? branchStore.branches : defaultBranches;
+  return branchStore.branches || [];
 });
 
 const activeBranchName = computed(() => {
   const current = branchesList.value.find(b => b.branch_id === branchStore.selectedBranchId);
-  return current?.branch_name || 'Bole Flagship & Espresso';
+  return current?.branch_name || (branchesList.value[0]?.branch_name || 'Select Branch');
 });
 
 const filteredBranches = computed(() => {
@@ -505,13 +497,9 @@ async function showZonesFor(branch) {
   activeZoneModalBranch.value = branch;
   try {
     const res = await api.get(`/branches/${branch.branch_id}/delivery-zones`);
-    modalZones.value = res.data;
+    modalZones.value = Array.isArray(res.data) ? res.data : [];
   } catch {
-    modalZones.value = [
-      { zone_id: 1, zone_name: `${branch.branch_name} Immediate Radius (1-3 km)`, delivery_fee: 50 },
-      { zone_id: 2, zone_name: `${branch.branch_name} Outer Zone (3-7 km)`, delivery_fee: 80 },
-      { zone_id: 3, zone_name: `${branch.branch_name} Extended Zone (7-12 km)`, delivery_fee: 120 },
-    ];
+    modalZones.value = [];
   }
 }
 </script>

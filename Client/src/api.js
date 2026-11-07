@@ -19,6 +19,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response && error.response.status === 401) {
+      const publicPaths = ['/login', '/register', '/', '/shop'];
+      const currentPath = window.location.pathname;
+      const isPublic = publicPaths.some((p) => currentPath === p || currentPath.startsWith('/product/'));
+
+      if (!isPublic && localStorage.getItem('token')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login?expired=1';
+      }
+    }
     return Promise.reject(error);
   }
 );

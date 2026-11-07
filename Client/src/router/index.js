@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useToastStore } from '../stores/toast';
 
 // Core Layouts (Lazy Loaded)
 const AdminLayout = () => import('../layouts/AdminLayout.vue');
@@ -123,25 +124,45 @@ const router = createRouter({
 
 // Navigation Guard for Role Enforcement
 router.beforeEach((to, from, next) => {
+  const rawUser = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
+  const user = rawUser ? JSON.parse(rawUser) : null;
+
+  // Protect Customer Account from unauthenticated guest access
+  if (to.path === '/account') {
+    if (!user || !token) {
+      return next('/login?redirect=/account');
+    }
+  }
+
+  // Redirect already authenticated users away from login/register
+  if ((to.path === '/login' || to.path === '/register') && token && user) {
+    if (['Super Admin', 'Main Branch Manager', 'Branch Admin'].includes(user.role)) {
+      return next('/admin/overview');
+    } else if (user.role === 'Branch Staff') {
+      return next('/admin/orders');
+    } else {
+      return next('/account');
+    }
+  }
+
   if (to.path.startsWith('/admin')) {
-    const rawUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    const user = rawUser ? JSON.parse(rawUser) : null;
+    const toast = useToastStore();
 
     if (!user || !token) {
-      alert('Access restricted: Please sign in with staff credentials to access the admin portal.');
+      toast.error('Access restricted: Please sign in with staff credentials to access the admin portal.');
       return next('/login');
     }
 
     const role = user.role;
 
     if (role === 'Customer') {
-      alert('Access denied: Customer accounts cannot access the bakery admin portal.');
+      toast.error('Access denied: Customer accounts cannot access the bakery admin portal.');
       return next('/account');
     }
 
     if (to.meta?.roles && !to.meta.roles.includes(role)) {
-      alert(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
+      toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
       if (role === 'Branch Staff') {
         return next('/admin/orders');
       }

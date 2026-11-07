@@ -197,13 +197,22 @@ class PaymentController extends Controller
         }
 
         // Webhook signature verification (Section 12: Gateway webhooks are verified by signature)
-        $secret = AppSetting::get('webhook_secret', 'whsec_live_89f21a9chapa2026');
+        $secret = env('CHAPA_WEBHOOK_SECRET') ?? AppSetting::get('webhook_secret', 'whsec_live_89f21a9chapa2026');
         $signature = $request->header('x-chapa-signature')
             ?? $request->header('chapa-signature')
             ?? $request->header('signature')
             ?? $request->input('secret_hash');
 
-        if (!$signature || $signature !== $secret) {
+        if (!$signature) {
+            return response()->json(['message' => 'Invalid or missing webhook signature.'], 401);
+        }
+
+        // Support both direct secret token match and HMAC-SHA256 payload digest with timing-safe hash_equals
+        $payload = $request->getContent();
+        $expectedHmac = hash_hmac('sha256', $payload, $secret);
+        $isValid = hash_equals($secret, $signature) || hash_equals($expectedHmac, $signature);
+
+        if (!$isValid) {
             return response()->json(['message' => 'Invalid or missing webhook signature.'], 401);
         }
 

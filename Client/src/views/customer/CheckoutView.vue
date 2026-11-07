@@ -1,45 +1,49 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 font-sans selection:bg-[#E8D8C4] selection:text-[#553B2D]">
-    <div class="flex items-center justify-between border-b border-[#E6DED3] pb-4">
+  <div class="sweetbakes-container py-8 sm:py-10 space-y-8 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] text-[#29231F] dark:text-[#FAF3EE]">
+    <div class="flex items-center justify-between border-b border-gray-200 dark:border-[#382318] pb-4">
       <div>
-        <h1 class="text-3xl font-serif font-black text-[#553B2D]">Checkout</h1>
-        <p class="text-xs text-[#786B60] mt-1">Please enter your fulfillment and payment details to place your order.</p>
+        <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">Checkout</h1>
+        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-1">Please enter your fulfillment and payment details to place your order.</p>
       </div>
 
-      <router-link to="/cart" class="text-xs font-bold text-[#A87552] hover:text-[#553B2D] flex items-center space-x-1">
+      <router-link to="/cart" class="text-xs font-bold text-[#DE1B54] hover:text-[#C51345] flex items-center space-x-1">
         <span>← Back to Bag</span>
       </router-link>
     </div>
 
     <!-- Active Branch Notice -->
-    <div class="bg-white border border-[#E6DED3] px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#29231F] shadow-2xs gap-3">
+    <div class="bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#29231F] dark:text-[#FAF3EE] shadow-2xs gap-3">
       <div class="flex items-center space-x-2.5">
         <span class="w-2.5 h-2.5 rounded-full bg-[#387A54] animate-pulse shrink-0"></span>
-        <span>Order will be fulfilled strictly by <strong class="text-[#553B2D]">{{ currentBranchName }} Branch</strong>. Stock and prices are locked to this location.</span>
+        <span>Order will be fulfilled strictly by <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ currentBranchName }} Branch</strong>. Stock and prices are locked to this location.</span>
       </div>
-      <router-link to="/branches" class="font-bold text-[#A87552] hover:text-[#553B2D] underline text-xs shrink-0">
+      <button
+        type="button"
+        @click="branchStore.openPicker()"
+        class="font-bold text-[#DE1B54] hover:underline text-xs shrink-0 cursor-pointer"
+      >
         Switch branch →
-      </router-link>
+      </button>
     </div>
 
     <!-- Checkout Grid -->
-    <form @submit.prevent="handlePlaceOrder" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <form @submit.prevent="handlePlaceOrder" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
       <!-- Left Column: Fulfillment Details (7 cols) -->
       <div class="lg:col-span-7 space-y-6">
-        <div class="bg-white rounded-3xl border border-[#E6DED3] p-6 sm:p-8 space-y-6 shadow-2xs">
-          <h2 class="text-base font-serif font-bold text-[#553B2D] border-b border-[#E6DED3] pb-3">
+        <div class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-8 space-y-6 shadow-2xs">
+          <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] border-b border-gray-100 dark:border-[#382318] pb-3">
             1. Fulfillment Method
           </h2>
 
           <!-- Fulfillment Toggle -->
-          <div class="flex items-center space-x-3">
+          <div class="flex flex-col xs:flex-row items-stretch gap-2.5 sm:gap-3">
             <button
               type="button"
               @click="setMethod('Delivery')"
-              class="flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer"
+              class="flex-1 py-3.5 px-4 min-h-[44px] rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
               :class="fulfillmentMethod === 'Delivery' 
-                ? 'bg-[#553B2D] text-white shadow-xs' 
-                : 'bg-[#F8F3EA] border border-[#E6DED3] text-[#786B60] hover:bg-[#E8D8C4]'"
+                ? 'bg-[#DE1B54] text-white shadow-xs' 
+                : 'bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#341822]'"
             >
               <span>🚚</span>
               <span>Citywide Doorstep Delivery</span>
@@ -48,10 +52,10 @@
             <button
               type="button"
               @click="setMethod('Pickup')"
-              class="flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer"
+              class="flex-1 py-3.5 px-4 min-h-[44px] rounded-2xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
               :class="fulfillmentMethod === 'Pickup' 
-                ? 'bg-[#553B2D] text-white shadow-xs' 
-                : 'bg-[#F8F3EA] border border-[#E6DED3] text-[#786B60] hover:bg-[#E8D8C4]'"
+                ? 'bg-[#DE1B54] text-white shadow-xs' 
+                : 'bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#341822]'"
             >
               <span>🏪</span>
               <span>Shop Pickup ({{ currentBranchName }})</span>
@@ -60,7 +64,7 @@
 
           <!-- Preferred Time Window (Pickup or Delivery) -->
           <div class="space-y-2 pt-1">
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D]">
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
               Preferred {{ fulfillmentMethod === 'Pickup' ? 'Pickup' : 'Delivery' }} Window
             </label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -69,10 +73,10 @@
                 v-for="slot in timeSlots"
                 :key="slot.value"
                 @click="selectedTimeSlot = slot.value"
-                class="py-2.5 px-3 rounded-xl text-xs font-bold transition border text-center cursor-pointer"
+                class="py-2.5 px-3 min-h-[40px] rounded-xl text-xs font-bold transition border text-center cursor-pointer"
                 :class="selectedTimeSlot === slot.value 
-                  ? 'bg-[#553B2D] text-white border-[#553B2D] shadow-xs' 
-                  : 'bg-[#F8F3EA] border-[#E6DED3] text-[#553B2D] hover:bg-[#E8D8C4]'"
+                  ? 'bg-[#DE1B54] text-white border-[#DE1B54] shadow-xs' 
+                  : 'bg-[#FAF7F5] dark:bg-[#2A1810] border-gray-200 dark:border-[#382318] text-[#2A1810] dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822]'"
               >
                 <div class="text-[10px] opacity-75">{{ slot.period }}</div>
                 <div class="text-xs mt-0.5">{{ slot.time }}</div>
@@ -81,54 +85,54 @@
           </div>
 
           <!-- Pickup Details Card if Shop Pickup -->
-          <div v-if="fulfillmentMethod === 'Pickup'" class="p-4 bg-[#F8F3EA] rounded-2xl border border-[#E6DED3] space-y-2 text-xs">
-            <div class="font-bold text-[#553B2D] flex items-center space-x-2">
+          <div v-if="fulfillmentMethod === 'Pickup'" class="p-4 bg-rose-50/40 dark:bg-[#2A1810] rounded-2xl border border-rose-100 dark:border-[#382318] space-y-2 text-xs">
+            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-2">
               <span class="text-base">📍</span>
               <span>Pickup Counter: {{ currentBranchName }} Branch</span>
             </div>
-            <div class="text-[#786B60] pl-6">
+            <div class="text-[#786B60] dark:text-[#C5B7AF] pl-6">
               {{ branchDetails?.address || 'Bole Medhanialem Area, Addis Ababa' }}
             </div>
-            <div class="text-[#A87552] font-semibold pl-6">
+            <div class="text-[#DE1B54] font-semibold pl-6">
               🕒 Daily Hours: {{ branchDetails?.opening_hours || 'Mon - Sun: 07:00 - 21:00' }}
             </div>
-            <div class="text-[#786B60] pl-6">
+            <div class="text-[#786B60] dark:text-[#C5B7AF] pl-6">
               📞 Branch Phone: {{ branchDetails?.phone || '+251 911 123 456' }}
             </div>
-            <div class="text-[11px] text-[#387A54] font-bold pl-6 pt-1">
+            <div class="text-[11px] text-[#387A54] dark:text-emerald-400 font-bold pl-6 pt-1">
               ✓ Free Shop Pickup (ETB 0 fulfillment fee)
             </div>
           </div>
 
           <!-- Form Fields -->
           <div class="space-y-4 pt-2">
-            <h2 class="text-base font-serif font-bold text-[#553B2D] border-b border-[#E6DED3] pb-3">
+            <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] border-b border-gray-100 dark:border-[#382318] pb-3">
               2. Contact Information
             </h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D] mb-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                   Full Name
                 </label>
                 <input
                   v-model="customer.name"
                   type="text"
-                  placeholder="e.g. Abebe Kebede"
-                  class="w-full bg-[#F8F3EA] border border-[#E6DED3] focus:border-[#A87552] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-[#29231F] focus:outline-none transition"
+                  placeholder="Enter your full name"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
                   required
                 />
               </div>
 
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D] mb-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                   Phone Number (Ethiopian format)
                 </label>
                 <input
                   v-model="customer.phone"
                   type="text"
                   placeholder="+251 9XX XXX XXX or 09XX XXX XXX"
-                  class="w-full bg-[#F8F3EA] border border-[#E6DED3] focus:border-[#A87552] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-[#29231F] focus:outline-none transition"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
                   required
                 />
               </div>
@@ -136,18 +140,18 @@
 
             <!-- Home Delivery: Zone & Address -->
             <div v-if="fulfillmentMethod === 'Delivery'" class="space-y-4 pt-2">
-              <h2 class="text-base font-serif font-bold text-[#553B2D] border-b border-[#E6DED3] pb-3">
+              <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] border-b border-gray-100 dark:border-[#382318] pb-3">
                 3. Delivery Address
               </h2>
 
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D] mb-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                   Select Delivery Zone ({{ currentBranchName }} Coverage Area)
                 </label>
                 <select
                   v-model="selectedZoneId"
                   @change="onZoneChange"
-                  class="w-full bg-[#F8F3EA] border border-[#E6DED3] focus:border-[#A87552] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-[#29231F] focus:outline-none font-medium"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none font-medium min-h-[40px]"
                   required
                 >
                   <option value="" disabled>-- Select your delivery zone in Addis Ababa --</option>
@@ -163,7 +167,7 @@
               </div>
 
               <!-- Warning if outside zone -->
-              <div v-if="selectedZoneId === 'outside'" class="p-4 bg-[#FAF0F0] border border-[#E8C4C4] rounded-2xl text-xs text-[#B84B42] space-y-2">
+              <div v-if="selectedZoneId === 'outside'" class="p-4 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-2xl text-xs text-[#B84B42] space-y-2">
                 <div class="font-bold flex items-center space-x-1.5">
                   <span>⚠️</span>
                   <span>Outside Delivery Coverage</span>
@@ -179,35 +183,39 @@
                   >
                     Switch to Shop Pickup (ETB 0)
                   </button>
-                  <router-link to="/branches" class="font-bold text-[#B84B42] underline">
+                  <button
+                    type="button"
+                    @click="branchStore.openPicker()"
+                    class="font-bold text-[#B84B42] underline cursor-pointer"
+                  >
                     Switch to another branch
-                  </router-link>
+                  </button>
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D] mb-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                   Specific Street Address / Building / House No.
                 </label>
                 <input
                   v-model="customer.address"
                   type="text"
                   placeholder="e.g. Bole Medhanialem, Street 3, Edna Mall Area, House 42"
-                  class="w-full bg-[#F8F3EA] border border-[#E6DED3] focus:border-[#A87552] focus:bg-white rounded-xl px-4 py-2.5 text-xs text-[#29231F] focus:outline-none transition"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#553B2D] mb-1.5">
+              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                 Special Delivery Instructions / Gate Code (Optional)
               </label>
               <textarea
                 v-model="customer.notes"
                 rows="2"
                 placeholder="Gate code, gift card greeting note, or landmark instructions..."
-                class="w-full bg-[#F8F3EA] border border-[#E6DED3] focus:border-[#A87552] focus:bg-white rounded-xl p-3 text-xs text-[#29231F] focus:outline-none transition"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl p-3 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition"
               ></textarea>
             </div>
           </div>
@@ -216,13 +224,13 @@
 
       <!-- Right Column: Order Summary & Payment (5 cols) -->
       <div class="lg:col-span-5 space-y-6">
-        <div class="bg-white rounded-3xl border border-[#E6DED3] p-6 sm:p-8 space-y-5 shadow-2xs">
-          <h2 class="text-base font-serif font-bold text-[#553B2D] border-b border-[#E6DED3] pb-3">
+        <div class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-8 space-y-5 shadow-2xs">
+          <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] border-b border-gray-100 dark:border-[#382318] pb-3">
             Order Review &amp; Payment
           </h2>
 
           <!-- Purchased Items Summary -->
-          <div class="space-y-3 divide-y divide-[#E6DED3] max-h-56 overflow-y-auto">
+          <div class="space-y-3 divide-y divide-gray-100 dark:divide-[#382318] max-h-56 overflow-y-auto pr-1">
             <div
               v-for="item in cartItems"
               :key="item.product_id"
@@ -232,58 +240,58 @@
                 <img
                   :src="item.image_url || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=100'"
                   :alt="item.product_name"
-                  class="w-12 h-12 rounded-xl object-cover border border-[#E6DED3] bg-[#E8D8C4]/30"
+                  class="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810]"
                 />
                 <div>
-                  <div class="font-bold text-[#29231F]">{{ item.product_name }}</div>
-                  <div class="text-[11px] text-[#786B60]">ETB {{ Number(item.price).toLocaleString() }} &times; {{ item.quantity }}</div>
+                  <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ item.product_name }}</div>
+                  <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">ETB {{ Number(item.price).toLocaleString() }} &times; {{ item.quantity }}</div>
                 </div>
               </div>
 
-              <div class="font-black text-[#553B2D]">
+              <div class="font-black text-[#DE1B54]">
                 ETB {{ (item.price * item.quantity).toLocaleString() }}
               </div>
             </div>
           </div>
 
           <!-- Price Calculations -->
-          <div class="space-y-2.5 pt-3 border-t border-[#E6DED3] text-xs">
-            <div class="flex justify-between items-center text-[#786B60]">
+          <div class="space-y-2.5 pt-3 border-t border-gray-100 dark:border-[#382318] text-xs">
+            <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
               <span>Subtotal</span>
-              <span class="font-bold text-[#29231F]">ETB {{ subtotal.toLocaleString() }}</span>
+              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ subtotal.toLocaleString() }}</span>
             </div>
 
-            <div class="flex justify-between items-center text-[#786B60]">
+            <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
               <span>Delivery Fee</span>
-              <span class="font-bold" :class="actualDeliveryFee === 0 ? 'text-[#387A54]' : 'text-[#29231F]'">
+              <span class="font-bold" :class="actualDeliveryFee === 0 ? 'text-[#387A54] dark:text-emerald-400' : 'text-[#2A1810] dark:text-[#FAF3EE]'">
                 {{ fulfillmentMethod === 'Delivery' ? (actualDeliveryFee === 0 ? 'FREE (Over ETB 1,000)' : `ETB ${actualDeliveryFee}`) : 'ETB 0 (Pickup)' }}
               </span>
             </div>
 
-            <div v-if="discount > 0" class="flex justify-between items-center text-[#387A54]">
+            <div v-if="discount > 0" class="flex justify-between items-center text-[#387A54] dark:text-emerald-400">
               <span class="flex items-center space-x-1.5">
                 <span>Promo Discount</span>
-                <span v-if="appliedPromo" class="font-mono text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">
+                <span v-if="appliedPromo" class="font-mono text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded font-bold">
                   {{ appliedPromo.promotion_name }}
                 </span>
               </span>
               <span class="font-bold">- ETB {{ discount.toLocaleString() }}</span>
             </div>
 
-            <div class="pt-3 border-t border-[#E6DED3] flex justify-between items-center text-base font-black text-[#553B2D]">
+            <div class="pt-3 border-t border-gray-100 dark:border-[#382318] flex justify-between items-center text-base font-black text-[#2A1810] dark:text-[#FAF3EE]">
               <span>Grand Total</span>
-              <span class="text-xl font-serif">ETB {{ grandTotal.toLocaleString() }}</span>
+              <span class="text-xl font-serif text-[#DE1B54]">ETB {{ grandTotal.toLocaleString() }}</span>
             </div>
           </div>
 
           <!-- Checkout Promo Code Box -->
-          <div class="p-3 bg-[#F8F3EA] rounded-2xl border border-[#E6DED3] space-y-2">
+          <div class="p-3 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-2xl border border-gray-200 dark:border-[#382318] space-y-2">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-[#553B2D] flex items-center space-x-1">
+              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1">
                 <span>🎟️</span>
                 <span>Coupon Code</span>
               </span>
-              <span v-if="appliedPromo" class="font-mono font-bold text-emerald-800 text-[11px]">
+              <span v-if="appliedPromo" class="font-mono font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
                 {{ appliedPromo.promotion_name }} Active
               </span>
             </div>
@@ -293,17 +301,17 @@
                 @keyup.enter="applyCheckoutPromo"
                 type="text"
                 placeholder="Code (KENEAN10, YETSOM15...)"
-                class="flex-1 bg-white border border-[#D5C2AD] rounded-xl px-2.5 py-1.5 text-xs font-mono uppercase focus:outline-none focus:border-[#A87552]"
+                class="flex-1 bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-2.5 py-1.5 text-xs font-mono uppercase text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
               />
               <button
                 @click="applyCheckoutPromo"
                 :disabled="checkoutPromoLoading || !checkoutPromoInput.trim()"
-                class="px-3.5 py-1.5 bg-[#553B2D] hover:bg-[#432E23] text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
+                class="px-3.5 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
               >
                 {{ checkoutPromoLoading ? '...' : 'Apply' }}
               </button>
             </div>
-            <div v-else class="flex items-center justify-between text-[11px] text-emerald-800 font-semibold bg-white p-2 rounded-xl border border-emerald-200">
+            <div v-else class="flex items-center justify-between text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold bg-white dark:bg-[#1E120B] p-2 rounded-xl border border-emerald-200 dark:border-emerald-800/50">
               <span>Savings: - ETB {{ discount.toLocaleString() }}</span>
               <button @click="removeCheckoutPromo" class="text-red-600 hover:text-red-800 text-xs font-bold cursor-pointer">
                 Remove
@@ -315,25 +323,25 @@
           </div>
 
           <!-- Payment Options -->
-          <div class="space-y-3 pt-3 border-t border-[#E6DED3]">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[#553B2D]">Select Payment Method</h3>
+          <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-[#382318]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">Select Payment Method</h3>
 
             <div class="space-y-2">
               <label
                 class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition"
-                :class="paymentMethod === 'cod' ? 'border-[#A87552] bg-[#F8F3EA]' : 'border-[#E6DED3] bg-white'"
+                :class="paymentMethod === 'cod' ? 'border-[#DE1B54] bg-rose-50/50 dark:bg-[#341822]/40' : 'border-gray-200 dark:border-[#382318] bg-white dark:bg-[#1E120B]'"
               >
                 <input
                   type="radio"
                   value="cod"
                   v-model="paymentMethod"
-                  class="text-[#A87552] focus:ring-[#A87552]"
+                  class="text-[#DE1B54] focus:ring-[#DE1B54]"
                 />
                 <div>
-                  <span class="text-xs font-bold text-[#29231F]">
+                  <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                     💵 {{ fulfillmentMethod === 'Pickup' ? 'Pay on Pickup' : 'Pay on Delivery (Cash)' }}
                   </span>
-                  <div class="text-[10px] text-[#786B60]">
+                  <div class="text-[10px] text-[#786B60] dark:text-[#C5B7AF]">
                     {{ fulfillmentMethod === 'Pickup' ? 'Pay upon collecting your order at the counter' : 'Pay cash to driver upon doorstep arrival' }}
                   </div>
                 </div>
@@ -341,24 +349,24 @@
 
               <label
                 class="flex items-center space-x-3 p-3.5 rounded-2xl border cursor-pointer transition"
-                :class="paymentMethod === 'online' ? 'border-[#A87552] bg-[#F8F3EA]' : 'border-[#E6DED3] bg-white'"
+                :class="paymentMethod === 'online' ? 'border-[#DE1B54] bg-rose-50/50 dark:bg-[#341822]/40' : 'border-gray-200 dark:border-[#382318] bg-white dark:bg-[#1E120B]'"
               >
                 <input
                   type="radio"
                   value="online"
                   v-model="paymentMethod"
-                  class="text-[#A87552] focus:ring-[#A87552]"
+                  class="text-[#DE1B54] focus:ring-[#DE1B54]"
                 />
                 <div class="text-xs">
-                  <div class="font-bold text-[#29231F]">💳 Online Payment (Telebirr / Chapa)</div>
-                  <div class="text-[10px] text-[#786B60]">Instant encrypted digital payment confirmation</div>
+                  <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">💳 Online Payment (Telebirr / Chapa)</div>
+                  <div class="text-[10px] text-[#786B60] dark:text-[#C5B7AF]">Instant encrypted digital payment confirmation</div>
                 </div>
               </label>
             </div>
           </div>
 
           <!-- Error Alert Banner -->
-          <div v-if="orderError" class="p-3 bg-[#FAF0F0] border border-[#E8C4C4] text-xs text-[#B84B42] rounded-xl">
+          <div v-if="orderError" class="p-3 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 text-xs text-[#B84B42] rounded-xl">
             {{ orderError }}
           </div>
 
@@ -366,7 +374,7 @@
           <button
             type="submit"
             :disabled="isSubmitting || (fulfillmentMethod === 'Delivery' && selectedZoneId === 'outside')"
-            class="w-full py-4 bg-[#A87552] hover:bg-[#916140] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 cursor-pointer"
+            class="w-full py-4 min-h-[46px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 cursor-pointer"
           >
             {{ isSubmitting ? 'Confirming with bakery...' : `Place Order &middot; ETB ${grandTotal.toLocaleString()} →` }}
           </button>
@@ -377,7 +385,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
@@ -399,6 +407,7 @@ const activeZones = ref([]);
 const branchDetails = ref(null);
 const isSubmitting = ref(false);
 const orderError = ref(null);
+const loadingZones = ref(false);
 
 const timeSlots = [
   { period: '🌅 Morning', time: '08:00 – 11:00 AM', value: 'Morning (08:00 - 11:00 AM)' },
@@ -415,7 +424,23 @@ const customer = ref({
   notes: '',
 });
 
-const currentBranchName = computed(() => branchStore.selectedBranch?.branch_name || 'Bole');
+// Strictly scoped reactive branch ID
+const branchId = computed(() => {
+  return Number(cartStore.branchId || branchStore.selectedBranchId || 2);
+});
+
+const currentBranch = computed(() => {
+  const bList = branchStore.branches || [];
+  return bList.find((b) => b.branch_id === branchId.value) || branchStore.selectedBranch;
+});
+
+const currentBranchName = computed(() => {
+  if (currentBranch.value?.branch_name) return currentBranch.value.branch_name;
+  if (branchId.value === 3) return 'Megenagna';
+  if (branchId.value === 4) return 'Piassa';
+  if (branchId.value === 1) return 'Main Branch';
+  return 'Bole';
+});
 
 const cartItems = computed(() => cartStore.items);
 
@@ -452,7 +477,7 @@ async function applyCheckoutPromo() {
     const res = await api.post('/promotions/validate', {
       code,
       subtotal: subtotal.value,
-      branch_id: branchStore.selectedBranchId || cartStore.branchId || 2,
+      branch_id: branchId.value,
     });
     if (res.data?.valid) {
       cartStore.setPromo(res.data);
@@ -486,39 +511,60 @@ function onZoneChange() {
   }
 }
 
+async function loadBranchAndZones(targetBranchId) {
+  if (!targetBranchId) return;
+  loadingZones.value = true;
+  try {
+    const [zoneRes, branchRes] = await Promise.all([
+      api.get(`/branches/${targetBranchId}/delivery-zones`),
+      api.get(`/branches/${targetBranchId}`),
+    ]);
+
+    const zones = zoneRes.data || [];
+    activeZones.value = zones.filter((z) => z.status === 'Active');
+
+    if (activeZones.value.length > 0) {
+      const exists = activeZones.value.some((z) => z.zone_id === selectedZoneId.value);
+      if (!exists) {
+        selectedZoneId.value = activeZones.value[0].zone_id;
+        baseDeliveryFee.value = parseFloat(activeZones.value[0].delivery_fee) || 60;
+      }
+    } else {
+      selectedZoneId.value = null;
+      baseDeliveryFee.value = 60;
+    }
+
+    branchDetails.value = branchRes.data;
+  } catch (err) {
+    console.error('Failed to load branch delivery zones or details', err);
+    activeZones.value = [];
+    selectedZoneId.value = null;
+  } finally {
+    loadingZones.value = false;
+  }
+}
+
+watch(
+  () => branchId.value,
+  (newId) => {
+    if (newId) {
+      loadBranchAndZones(newId);
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(async () => {
+  if (branchStore.branches.length === 0) {
+    await branchStore.fetchBranches();
+  }
+
   if (authStore.user) {
     customer.value.name = authStore.user.full_name || '';
     customer.value.phone = authStore.user.phone || '';
   }
 
-  const branchId = branchStore.selectedBranchId || 2;
-
-  // Load branch delivery zones
-  try {
-    const zoneRes = await api.get(`/branches/${branchId}/delivery-zones`);
-    const zones = zoneRes.data || [];
-    activeZones.value = zones.filter((z) => z.status === 'Active');
-
-    if (activeZones.value.length > 0) {
-      selectedZoneId.value = activeZones.value[0].zone_id;
-      baseDeliveryFee.value = parseFloat(activeZones.value[0].delivery_fee) || 60;
-    }
-  } catch (err) {
-    activeZones.value = [
-      { zone_id: 1, zone_name: 'Bole Medhanialem & Edna Mall Area', delivery_fee: 60, status: 'Active' },
-      { zone_id: 2, zone_name: 'Atlas & Rwanda Area', delivery_fee: 50, status: 'Active' },
-      { zone_id: 3, zone_name: 'Olympia & Meskel Flower', delivery_fee: 60, status: 'Active' },
-    ];
-    selectedZoneId.value = 1;
-  }
-
-  try {
-    const branchRes = await api.get(`/branches/${branchId}`);
-    branchDetails.value = branchRes.data;
-  } catch (err) {
-    console.error('Failed to load branch details', err);
-  }
+  loadBranchAndZones(branchId.value);
 });
 
 async function handlePlaceOrder() {
@@ -529,9 +575,20 @@ async function handlePlaceOrder() {
     return;
   }
 
-  if (fulfillmentMethod.value === 'Delivery' && selectedZoneId.value === 'outside') {
-    orderError.value = 'Home delivery is only available within designated active delivery zones for this branch. Please choose an active zone or select Shop Pickup.';
+  if (cartStore.hasSoldOutItems) {
+    orderError.value = `Some items in your bag are sold out at ${currentBranchName.value} Branch. Please review your bag before checkout.`;
     return;
+  }
+
+  if (fulfillmentMethod.value === 'Delivery') {
+    if (selectedZoneId.value === 'outside') {
+      orderError.value = `${currentBranchName.value} branch does not deliver to addresses outside its designated coverage zone. Please select an active delivery zone or choose Shop Pickup.`;
+      return;
+    }
+    if (!selectedZoneId.value && activeZones.value.length > 0) {
+      orderError.value = 'Please select a delivery zone.';
+      return;
+    }
   }
 
   isSubmitting.value = true;
@@ -542,11 +599,15 @@ async function handlePlaceOrder() {
 
     const idempotencyKey = 'order_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 
+    const targetBranch = branchId.value;
+
     const payload = {
-      branch_id: branchStore.selectedBranchId || 2,
+      branch_id: targetBranch,
+      customer_name: customer.value.name ? customer.value.name.trim() : '',
+      customer_phone: customer.value.phone ? customer.value.phone.trim() : '',
       fulfillment_method: fulfillmentMethod.value,
       payment_method: mappedPayment,
-      delivery_address: customer.value.address || 'Shop Counter Pickup',
+      delivery_address: customer.value.address || (fulfillmentMethod.value === 'Pickup' ? `${currentBranchName.value} Branch Counter Pickup` : 'Addis Ababa Doorstep Delivery'),
       promo_code: appliedPromo.value?.promotion_name || null,
       order_notes: (selectedTimeSlot.value ? `[Slot: ${selectedTimeSlot.value}] ` : '') + (customer.value.notes || ''),
       zone_id: fulfillmentMethod.value === 'Delivery' ? selectedZoneId.value : null,
@@ -565,7 +626,7 @@ async function handlePlaceOrder() {
 
     const orderNumber = res.data?.order_number || 'ORD-1001';
     cartStore.clearCart();
-    toastStore.success(`Order ${orderNumber} placed successfully!`);
+    toastStore.success(`Order ${orderNumber} placed successfully with ${currentBranchName.value} Branch!`);
     router.push(`/orders/${orderNumber}`);
   } catch (err) {
     orderError.value = err.response?.data?.message || 'Failed to place order. Please review your stock or address.';

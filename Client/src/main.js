@@ -3,8 +3,19 @@ import { createPinia } from 'pinia';
 import router from './router';
 import './style.css';
 import App from './App.vue';
+import { useThemeStore } from './stores/theme';
+import { useLocaleStore } from './stores/locale';
 
 const app = createApp(App);
-app.use(createPinia());
+const pinia = createPinia();
+app.use(pinia);
 app.use(router);
+
+// Initialize theme and language from persisted localStorage
+const themeStore = useThemeStore(pinia);
+themeStore.initTheme();
+
+const localeStore = useLocaleStore(pinia);
+localeStore.initLocale();
+
 app.mount('#app');

@@ -20,18 +20,7 @@ export const useAuthStore = defineStore('auth', {
       actualUser = user;
     }
 
-    // Default to Super Admin only if nothing in storage, and retain actualUser as Super Admin
-    if (!user) {
-      user = {
-        user_id: 1,
-        full_name: 'Abebe Kebede',
-        email: 'admin@goldencrust.com',
-        role: 'Super Admin',
-        branch_id: null,
-        branch: null,
-      };
-      actualUser = user;
-    }
+
 
     return {
       user,

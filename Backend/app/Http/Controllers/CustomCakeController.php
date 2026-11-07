@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\CustomCakeRequest;
 use App\Models\CustomCakeImage;
 use App\Models\Branch;
+use App\Models\User;
 use App\Models\AuditLog;
 use App\Models\Notification;
 
@@ -14,24 +15,56 @@ class CustomCakeController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'requests' => [],
+                'summary' => [
+                    'submitted' => 0,
+                    'quoted' => 0,
+                    'confirmed' => 0,
+                    'ready_this_week' => 0,
+                ]
+            ]);
+        }
+
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = CustomCakeRequest::with(['branch', 'user', 'images'])->latest('created_at');
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+            $query->where('branch_id', $userBranchId);
         } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
 
         if ($user && $user->role === 'Customer') {
-            $query->where('user_id', $user->user_id);
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->user_id);
+                if (!empty($user->phone)) {
+                    $q->orWhere('customer_phone', $user->phone);
+                }
+            });
+        }
+
+        if ($request->has('status') && $request->status && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('request_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
+                  ->orWhere('flavor', 'like', "%{$search}%");
+            });
         }
 
         $requests = $query->get();
 
         // Calculate card metrics
         $allForMetrics = CustomCakeRequest::query();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $allForMetrics->where('branch_id', $user->branch_id);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+            $allForMetrics->where('branch_id', $userBranchId);
         }
 
         $submittedCount = (clone $allForMetrics)->where('status', 'Submitted')->count();
@@ -52,10 +85,25 @@ class CustomCakeController extends Controller
 
     public function show(Request $request, $id)
     {
-        $cakeRequest = CustomCakeRequest::with(['branch', 'user', 'images'])->findOrFail($id);
+        $cakeRequest = CustomCakeRequest::with(['branch', 'user', 'images'])
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('request_id', $id)->orWhere('request_number', $id);
+                } else {
+                    $q->where('request_number', $id);
+                }
+            })
+            ->firstOrFail();
+
         $user = $request->user();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $cakeRequest->branch_id != $user->branch_id) {
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId && $cakeRequest->branch_id != $userBranchId) {
             return response()->json(['message' => 'Access denied: You can only view custom cake requests for your assigned branch.'], 403);
+        }
+        if ($user && $user->role === 'Customer' && $cakeRequest->user_id && $cakeRequest->user_id != $user->user_id) {
+            if (!$user->phone || $cakeRequest->customer_phone !== $user->phone) {
+                return response()->json(['message' => 'Access denied: You can only view your own custom cake requests.'], 403);
+            }
         }
         return response()->json($cakeRequest);
     }
@@ -68,8 +116,14 @@ class CustomCakeController extends Controller
         if (!$request->has('cake_size') && $request->has('size')) {
             $request->merge(['cake_size' => $request->size]);
         }
+        if (!$request->has('cake_size') && $request->has('servings')) {
+            $request->merge(['cake_size' => $request->servings]);
+        }
         if (!$request->has('needed_by') && $request->has('needed_by_date')) {
             $request->merge(['needed_by' => $request->needed_by_date]);
+        }
+        if (!$request->has('needed_by') && $request->has('needed_date')) {
+            $request->merge(['needed_by' => $request->needed_date]);
         }
         if (!$request->has('design') && $request->has('description')) {
             $desc = $request->description;
@@ -84,6 +138,8 @@ class CustomCakeController extends Controller
 
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,branch_id',
+            'customer_name' => 'nullable|string|max:150',
+            'customer_phone' => 'nullable|string|max:40',
             'cake_size' => 'required|string',
             'flavor' => 'required|string',
             'design' => 'nullable|string',
@@ -93,6 +149,60 @@ class CustomCakeController extends Controller
             'image_urls.*' => 'nullable|string',
         ]);
 
+        $customerName = trim($request->input('customer_name') ?? $request->input('name') ?? '');
+        $customerPhone = trim($request->input('customer_phone') ?? $request->input('phone') ?? '');
+
+        $cakeUserId = null;
+        if ($user && $user->role === 'Customer') {
+            $cakeUserId = $user->user_id;
+            if (empty($customerName)) {
+                $customerName = $user->full_name;
+            }
+            if (empty($customerPhone)) {
+                $customerPhone = $user->phone;
+            }
+        } elseif (!empty($customerPhone)) {
+            $existingCustomer = \App\Models\User::where('phone', $customerPhone)->first();
+            if ($existingCustomer) {
+                $cakeUserId = $existingCustomer->user_id;
+                if (empty($customerName)) {
+                    $customerName = $existingCustomer->full_name;
+                }
+            } else {
+                $realCustomer = \App\Models\User::create([
+                    'full_name' => $customerName ?: 'Customer',
+                    'email' => 'cake_cust_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                    'phone' => $customerPhone,
+                    'password' => \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16))),
+                    'role' => 'Customer',
+                    'status' => 'Active',
+                ]);
+                $cakeUserId = $realCustomer->user_id;
+            }
+        } elseif ($user) {
+            $cakeUserId = $user->user_id;
+            if (empty($customerName)) {
+                $customerName = $user->full_name;
+            }
+            if (empty($customerPhone)) {
+                $customerPhone = $user->phone;
+            }
+        } else {
+            $guestCustomer = \App\Models\User::create([
+                'full_name' => $customerName ?: 'Guest Customer',
+                'email' => 'cake_guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                'phone' => null,
+                'password' => \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16))),
+                'role' => 'Customer',
+                'status' => 'Active',
+            ]);
+            $cakeUserId = $guestCustomer->user_id;
+        }
+
+        if (empty($customerName)) {
+            $customerName = 'Customer';
+        }
+
         $rand = mt_rand(100, 999);
         $reqNum = "CC-0{$rand}";
         while (CustomCakeRequest::where('request_number', $reqNum)->exists()) {
@@ -101,7 +211,9 @@ class CustomCakeController extends Controller
 
         $cakeReq = CustomCakeRequest::create([
             'request_number' => $reqNum,
-            'user_id' => $user?->user_id ?? 1,
+            'user_id' => $cakeUserId,
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone ?: null,
             'branch_id' => $validated['branch_id'],
             'cake_size' => $validated['cake_size'],
             'flavor' => $validated['flavor'],
@@ -249,6 +361,7 @@ class CustomCakeController extends Controller
         $amountPaid = $paymentChoice === 'full' ? (float) $cakeReq->quoted_price : ((float) $cakeReq->quoted_price * ($depositPct / 100.0));
 
         $cakeReq->status = 'Confirmed';
+        $cakeReq->deposit_paid = $amountPaid;
         $cakeReq->save();
 
         AuditLog::create([
@@ -348,7 +461,7 @@ class CustomCakeController extends Controller
         $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         
         $path = $file->storeAs('custom_cakes', $fileName, 'public');
-        $url = asset('storage/' . $path);
+        $url = '/storage/' . $path;
 
         AuditLog::create([
             'user_id' => $request->user()?->user_id,

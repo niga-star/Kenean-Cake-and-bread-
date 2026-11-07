@@ -108,12 +108,21 @@
                 </span>
               </td>
               <td class="py-3.5 px-5 text-right">
-                <button
-                  @click.stop="selectProductForEdit(p)"
-                  class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
-                >
-                  Edit
-                </button>
+                <div class="flex items-center justify-end space-x-2">
+                  <button
+                    @click.stop="selectProductForEdit(p)"
+                    class="px-2.5 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    @click.stop="confirmDeleteProduct(p)"
+                    class="px-2.5 py-1 text-xs font-medium bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 rounded-md shadow-sm transition cursor-pointer"
+                    title="Delete product"
+                  >
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -123,23 +132,38 @@
 
     <!-- Product Editor Box -->
     <div v-if="selectedProduct" class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-5">
-      <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EFE8DF] pb-3">
         <div class="flex items-center space-x-3">
-          <img :src="selectedProduct.image_url" class="w-12 h-12 rounded-lg object-cover border border-[#DACDC0]" />
+          <img :src="selectedProduct.image_url || '/mockup/shop_chocolate_cake.jpg'" class="w-14 h-14 rounded-lg object-cover border border-[#DACDC0] shrink-0" />
           <div>
             <h3 class="font-semibold text-base text-[#2A1D15]">{{ selectedProduct.product_name }}</h3>
             <span class="text-xs text-[#8A7B71]">ID: #{{ selectedProduct.product_id }} · {{ selectedProduct.category_name }}</span>
+            <div class="mt-1">
+              <label class="text-[11px] font-semibold text-[#BA5420] hover:underline cursor-pointer">
+                📷 Upload New Photo
+                <input type="file" accept="image/*" class="hidden" @change="e => uploadImage(e, selectedProduct)" />
+              </label>
+            </div>
           </div>
         </div>
-        <div class="flex items-center space-x-2">
-          <label class="text-xs font-medium text-[#7D6E64]">Status:</label>
-          <select
-            v-model="selectedProduct.status"
-            class="bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs font-semibold text-[#2D231D]"
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-1.5">
+            <label class="text-xs font-medium text-[#7D6E64]">Status:</label>
+            <select
+              v-model="selectedProduct.status"
+              class="bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs font-semibold text-[#2D231D]"
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            @click="confirmDeleteProduct(selectedProduct)"
+            class="px-3 py-1 text-xs font-semibold bg-red-50 border border-red-200 hover:bg-red-100 text-red-700 rounded-lg shadow-sm transition cursor-pointer"
           >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+            🗑️ Delete
+          </button>
         </div>
       </div>
 
@@ -249,6 +273,7 @@
                 <th class="py-2.5 px-4">Category Name</th>
                 <th class="py-2.5 px-3">Description</th>
                 <th class="py-2.5 px-3 text-right">Products</th>
+                <th class="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
@@ -256,6 +281,15 @@
                 <td class="py-2.5 px-4 font-bold text-[#2A1D15]">{{ cat.category_name }}</td>
                 <td class="py-2.5 px-3 text-[#6A5A50]">{{ cat.description || '—' }}</td>
                 <td class="py-2.5 px-3 text-right font-semibold text-[#BA5420]">{{ cat.products_count ?? cat.products?.length ?? '—' }}</td>
+                <td class="py-2.5 px-3 text-right">
+                  <button
+                    type="button"
+                    @click.stop="deleteCategory(cat)"
+                    class="text-red-600 hover:text-red-800 font-semibold text-xs transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -374,13 +408,19 @@
           </div>
 
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Image URL</label>
-            <input
-              v-model="newProduct.image_url"
-              type="url"
-              placeholder="https://images.unsplash.com/photo-..."
-              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
-            />
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Product Photo</label>
+            <div class="flex items-center space-x-2">
+              <input
+                v-model="newProduct.image_url"
+                type="text"
+                placeholder="Image URL or upload file"
+                class="flex-1 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+              />
+              <label class="px-3 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg shadow-sm transition cursor-pointer shrink-0">
+                📁 Upload
+                <input type="file" accept="image/*" class="hidden" @change="e => uploadImage(e, newProduct)" />
+              </label>
+            </div>
             <!-- Quick preset buttons -->
             <div class="flex items-center space-x-2 mt-2">
               <span class="text-[11px] text-[#8A7B71]">Presets:</span>
@@ -524,6 +564,7 @@ const saveProduct = async () => {
       shelf_life_hours: selectedProduct.value.shelf_life_hours,
       description: selectedProduct.value.description,
       status: selectedProduct.value.status,
+      image_url: selectedProduct.value.image_url,
     });
 
     // 2. Save branch price overrides
@@ -584,6 +625,48 @@ const submitNewCategory = async () => {
     errorMsg.value = err.response?.data?.message || 'Failed to create category';
   } finally {
     isSubmittingCategory.value = false;
+  }
+};
+
+const deleteCategory = async (cat) => {
+  if (!confirm(`Are you sure you want to delete category "${cat.category_name}"?`)) return;
+  try {
+    const res = await api.delete(`/admin/categories/${cat.category_id}`);
+    successMsg.value = res.data.message || 'Category deleted.';
+    await loadCatalog();
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Failed to delete category';
+  }
+};
+
+const confirmDeleteProduct = async (prod) => {
+  if (!confirm(`Are you sure you want to delete "${prod.product_name}"?`)) return;
+  try {
+    const res = await api.delete(`/admin/products/${prod.product_id}`);
+    successMsg.value = res.data.message || 'Product deleted.';
+    if (selectedProduct.value?.product_id === prod.product_id) {
+      selectedProduct.value = null;
+    }
+    await loadCatalog();
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Failed to delete product';
+  }
+};
+
+const uploadImage = async (event, targetObj) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('image', file);
+  try {
+    const res = await api.post('/admin/products/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    targetObj.image_url = res.data.image_url;
+    successMsg.value = 'Product photo uploaded successfully!';
+    setTimeout(() => { successMsg.value = ''; }, 3500);
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Failed to upload photo';
   }
 };
 

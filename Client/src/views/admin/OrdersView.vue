@@ -151,7 +151,10 @@
               >
                 <td class="py-3 px-4 font-mono text-xs font-semibold text-[#382C24]">{{ ord.order_number }}</td>
                 <td class="py-3 px-3 text-xs text-[#4A3B32]">{{ ord.branch?.branch_name }}</td>
-                <td class="py-3 px-3 text-xs text-[#5A4B41]">{{ ord.user?.full_name || 'Customer' }}</td>
+                <td class="py-3 px-3 text-xs text-[#5A4B41]">
+                  <div class="font-medium text-[#241710]">{{ ord.customer_name || ord.user?.full_name || 'Customer' }}</div>
+                  <div v-if="ord.customer_phone || ord.user?.phone" class="text-[10px] text-[#8A7B71]">{{ ord.customer_phone || ord.user?.phone }}</div>
+                </td>
                 <td class="py-3 px-3 text-xs text-[#6A5A50]">{{ ord.fulfillment_method }}</td>
                 <td class="py-3 px-3 text-xs text-[#6A5A50]">
                   {{ ord.payment ? `${ord.payment.payment_method} · ${ord.payment.payment_status}` : '—' }}
@@ -201,6 +204,23 @@
           >
             Change branch
           </button>
+        </div>
+
+        <!-- Customer Contact Details -->
+        <div class="bg-[#FAF7F5] p-3 rounded-xl border border-[#EFE8DF] space-y-1 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-[#8A7B71]">Customer Contact</span>
+            <span class="text-[10px] px-2 py-0.2 bg-[#387A54]/10 text-[#387A54] rounded font-bold">Verified Order</span>
+          </div>
+          <div class="font-bold text-[#2A1D15]">
+            👤 {{ selectedOrder.customer_name || selectedOrder.user?.full_name || 'Customer' }}
+          </div>
+          <div v-if="selectedOrder.customer_phone || selectedOrder.user?.phone" class="text-[#6A5A50] text-[11px]">
+            📞 {{ selectedOrder.customer_phone || selectedOrder.user?.phone }}
+          </div>
+          <div v-if="selectedOrder.address?.street || selectedOrder.delivery_address" class="text-[#6A5A50] text-[11px]">
+            📍 {{ selectedOrder.address?.street || selectedOrder.delivery_address }}
+          </div>
         </div>
 
         <div class="text-[11px] bg-[#FCFAF7] border border-[#EFE8DF] p-2.5 rounded-lg text-[#7A6B60] leading-tight">
@@ -508,7 +528,7 @@ const exportCSV = () => {
   const rows = orders.value.map(o => [
     `"${o.order_number}"`,
     `"${o.branch?.branch_name}"`,
-    `"${o.user?.full_name || 'Customer'}"`,
+    `"${o.customer_name || o.user?.full_name || 'Customer'}"`,
     `"${o.fulfillment_method}"`,
     o.total_amount,
     `"${o.order_status}"`,

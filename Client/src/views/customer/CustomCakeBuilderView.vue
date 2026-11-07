@@ -1,7 +1,7 @@
 <template>
-  <div class="bg-white min-h-screen text-[#29231F] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
+  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
     <!-- 1. HERO BANNER: SweetBakes Style Matching Shop & Home Pages -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD]">
+    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
       <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] overflow-hidden pointer-events-none">
         <img
           src="/mockup/shop_banner_right.jpg"
@@ -9,23 +9,23 @@
           class="w-full h-full object-cover object-center lg:object-left"
           loading="eager"
         />
-        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block"></div>
-        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 lg:hidden"></div>
+        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block dark:from-[#170E0A] dark:via-[#170E0A]/80"></div>
+        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 dark:bg-[#170E0A]/85 lg:hidden"></div>
       </div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 relative z-10">
+      <div class="sweetbakes-container w-full py-8 relative z-10">
         <div class="max-w-xl space-y-2 text-center lg:text-left">
           <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
-            <span class="text-gray-300 select-none">&mdash;</span>
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
             <span>Custom Cake Studio</span>
-            <span class="text-gray-300 select-none">&mdash;</span>
+            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] tracking-tight leading-tight">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
             Design Your Dream Cake
           </h1>
 
-          <p class="text-xs sm:text-sm text-[#6E5D53] flex items-center justify-center lg:justify-start space-x-1.5">
+          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
             <span>Bespoke celebration centerpieces handcrafted with love!</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
@@ -34,9 +34,9 @@
     </section>
 
     <!-- 2. QUICK INSPIRATION PRESET CHIPS -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-      <div class="bg-gradient-to-r from-rose-50/50 via-white to-rose-50/50 border border-rose-100 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center space-x-2 text-xs text-[#2A1810] font-bold">
+    <div class="sweetbakes-container pt-8">
+      <div class="bg-gradient-to-r from-rose-50/50 via-white to-rose-50/50 dark:from-[#25150E] dark:via-[#1E120B] dark:to-[#25150E] border border-rose-100 dark:border-[#382318] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-bold">
           <span class="text-rose-500 text-base">✨</span>
           <span>Quick Inspiration Presets:</span>
         </div>
@@ -46,7 +46,7 @@
             :key="preset.name"
             type="button"
             @click="applyPreset(preset)"
-            class="px-3.5 py-1.5 bg-white hover:bg-[#DE1B54] text-[#2A1810] hover:text-white border border-gray-200 hover:border-[#DE1B54] rounded-full text-xs font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center space-x-1.5"
+            class="px-3.5 py-1.5 bg-white dark:bg-[#1E120B] hover:bg-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] hover:text-white border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] rounded-full text-xs font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center space-x-1.5"
           >
             <span>{{ preset.icon }}</span>
             <span>{{ preset.name }}</span>
@@ -56,15 +56,15 @@
     </div>
 
     <!-- 3. TWO-COLUMN BUILDER FORM -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="sweetbakes-container py-8">
       <form @submit.prevent="handleSubmitCustomCake" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- ================= LEFT COLUMN: CAKE ARCHITECTURE & FLAVORS (7 cols) ================= -->
-        <div class="lg:col-span-7 bg-white rounded-2xl border border-[#EFE8E1] p-6 sm:p-8 space-y-6 shadow-xs">
-          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="lg:col-span-7 bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-6 sm:p-8 space-y-6 shadow-xs">
+          <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <div class="flex items-center space-x-2">
               <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">1</span>
-              <h2 class="text-lg font-serif font-bold text-[#2A1810]">
+              <h2 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                 Cake Architecture &amp; Flavors
               </h2>
             </div>
@@ -246,11 +246,11 @@
         </div>
 
         <!-- ================= RIGHT COLUMN: DESIGN INSPIRATION & QUOTE (5 cols) ================= -->
-        <div class="lg:col-span-5 bg-white rounded-2xl border border-[#EFE8E1] p-6 sm:p-8 space-y-6 shadow-xs">
-          <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="lg:col-span-5 bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-6 sm:p-8 space-y-6 shadow-xs">
+          <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <div class="flex items-center space-x-2">
               <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">2</span>
-              <h2 class="text-lg font-serif font-bold text-[#2A1810]">
+              <h2 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                 Design Inspiration &amp; Quote
               </h2>
             </div>
@@ -260,27 +260,35 @@
           <!-- Upload Dropzone -->
           <div
             @click="triggerUpload"
-            class="border-2 border-dashed border-[#DE1B54]/40 hover:border-[#DE1B54] bg-[#FAF7F5] hover:bg-rose-50/20 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2 group"
+            @dragover.prevent
+            @drop.prevent="onFileDrop"
+            class="border-2 border-dashed border-[#DE1B54]/40 hover:border-[#DE1B54] bg-[#FAF7F5] dark:bg-[#2A1810] hover:bg-rose-50/20 dark:hover:bg-[#341822]/40 rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2 group"
           >
             <input ref="fileInput" type="file" multiple accept="image/*" class="hidden" @change="onFileChange" />
-            <div class="w-12 h-12 rounded-full bg-rose-50 text-[#DE1B54] flex items-center justify-center mx-auto text-xl shadow-2xs group-hover:scale-110 transition-transform">
-              📸
+            <div v-if="isUploadingImage" class="space-y-2 py-2">
+              <div class="w-10 h-10 border-3 border-[#DE1B54] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div class="text-xs font-bold text-[#DE1B54]">Uploading &amp; validating reference photo(s)...</div>
             </div>
-            <div class="text-xs font-bold text-[#2A1810]">Upload Reference Photos or Drag &amp; Drop</div>
-            <div class="text-[10px] text-gray-500">PNG, JPG up to 10MB (Pinterest, Instagram, or personal sketch)</div>
+            <template v-else>
+              <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-[#341822] text-[#DE1B54] flex items-center justify-center mx-auto text-xl shadow-2xs group-hover:scale-110 transition-transform">
+                📸
+              </div>
+              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">Upload Reference Photos or Drag &amp; Drop</div>
+              <div class="text-[10px] text-gray-500 dark:text-gray-400">PNG, JPG, WebP up to 5MB (Pinterest, Instagram, or sketch)</div>
+            </template>
           </div>
 
           <!-- Attached Photo Gallery -->
           <div class="space-y-2">
-            <div class="flex items-center justify-between text-xs font-bold text-[#2A1810]">
+            <div class="flex items-center justify-between text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
               <span>Inspiration References ({{ referenceSamples.length }}):</span>
-              <span class="text-[10px] text-gray-400">Click photo to zoom</span>
+              <span v-if="referenceSamples.length > 0" class="text-[10px] text-gray-400 dark:text-gray-500">Click photo to zoom</span>
             </div>
-            <div class="grid grid-cols-3 gap-2.5">
+            <div v-if="referenceSamples.length > 0" class="grid grid-cols-3 gap-2.5">
               <div
                 v-for="(img, idx) in referenceSamples"
                 :key="idx"
-                class="aspect-square rounded-xl overflow-hidden border border-gray-200 shadow-2xs relative group cursor-pointer"
+                class="aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-[#382318] shadow-2xs relative group cursor-pointer"
                 @click="previewImage(img)"
               >
                 <img :src="img" alt="Reference Cake" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" loading="lazy" />
@@ -294,26 +302,29 @@
                 </button>
               </div>
             </div>
+            <div v-else class="p-3 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-xl border border-dashed border-gray-200 dark:border-[#382318] text-[11px] text-[#786B60] dark:text-[#C5B7AF] text-center">
+              Optional: Drag or upload reference images, or simply describe your design below.
+            </div>
           </div>
 
           <!-- Live Price Estimate Range Box -->
-          <div class="p-4 bg-gradient-to-br from-rose-50/80 to-[#FAF7F5] rounded-xl border border-rose-100 space-y-2 shadow-2xs">
+          <div class="p-4 bg-gradient-to-br from-rose-50/80 to-[#FAF7F5] dark:from-[#2A1810] dark:to-[#1E120B] rounded-xl border border-rose-100 dark:border-[#382318] space-y-2 shadow-2xs">
             <div class="flex items-center justify-between text-xs">
-              <span class="text-[#6E5D53] font-medium">Estimated Price Range:</span>
+              <span class="text-[#6E5D53] dark:text-[#C5B7AF] font-medium">Estimated Price Range:</span>
               <span class="font-black text-[#DE1B54] text-base">{{ estimatedPriceRange }}</span>
             </div>
-            <p class="text-[11px] text-[#6E5D53] leading-snug">
+            <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF] leading-snug">
               Final price depends on decorative complexity, edible gold leaf, and fresh florals. You will receive an official quotation from <strong>{{ chosenBranchName }}</strong> to review before committing.
             </p>
           </div>
 
           <!-- How Custom Cake Ordering Works: 4 Steps -->
-          <div class="p-4 rounded-xl bg-[#FAF7F5] border border-gray-100 text-xs space-y-2.5">
-            <div class="font-bold text-[#2A1810] flex items-center space-x-1.5 text-xs">
+          <div class="p-4 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318] text-xs space-y-2.5">
+            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5 text-xs">
               <span class="text-rose-500">🛡️</span>
               <span>How Bespoke Cake Ordering Works:</span>
             </div>
-            <div class="space-y-2 text-[11px] text-[#6E5D53]">
+            <div class="space-y-2 text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
               <div class="flex items-start space-x-2">
                 <span class="w-4 h-4 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">1</span>
                 <span>Submit your dream cake brief and reference photos.</span>
@@ -328,7 +339,37 @@
               </div>
               <div class="flex items-start space-x-2">
                 <span class="w-4 h-4 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">4</span>
-                <span>Bakehouse prepares and safely delivers your masterpiece on event day.</span>
+                <span>Bakehouse prepares and safely delivers your centerpiece on event day.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="p-4 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318] space-y-3">
+            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-xs flex items-center space-x-1.5">
+              <span>👤</span>
+              <span>Contact Information (For Quotation Updates)</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Your Full Name *</label>
+                <input
+                  v-model="customerName"
+                  type="text"
+                  required
+                  placeholder="Enter your full name"
+                  class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Phone Number *</label>
+                <input
+                  v-model="customerPhone"
+                  type="text"
+                  required
+                  placeholder="+251 9XX XXX XXX"
+                  class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none"
+                />
               </div>
             </div>
           </div>
@@ -407,13 +448,13 @@
     </div>
 
     <!-- 6. DECORATIVE WAVE RIBBON ABOVE FOOTER -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 border-t border-rose-200/60 py-4 mt-8">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+    <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 dark:from-[#25150E] dark:via-[#20110A] dark:to-[#170E0A] border-t border-rose-200/60 dark:border-[#382318] py-4 mt-8">
+      <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
         <div class="flex items-center space-x-1.5 font-script text-2xl text-[#DE1B54]">
           <span class="font-bold">SweetBakes</span>
           <span>♡</span>
         </div>
-        <div class="font-script text-lg sm:text-xl text-[#2A1810] flex items-center space-x-1.5">
+        <div class="font-script text-lg sm:text-xl text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
           <span class="italic">Because life is sweeter with cake!</span>
           <span class="text-[#DE1B54] not-italic">♡</span>
         </div>
@@ -423,20 +464,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useBranchStore } from '../../stores/branch';
+import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const branchStore = useBranchStore();
+const authStore = useAuthStore();
 const toast = useToastStore();
 
 const fileInput = ref(null);
 const isSubmitting = ref(false);
+const isUploadingImage = ref(false);
 const submittedModal = ref(false);
 const previewZoomImg = ref(null);
 const isFasting = ref(false);
 const requestNumber = ref('CC-0840');
+
+const customerName = ref(authStore.user?.full_name || '');
+const customerPhone = ref(authStore.user?.phone || '');
 
 const preparingBranchId = ref(2); // Bole Flagship default
 const cakeSize = ref('Single Tier 8"');
@@ -444,7 +491,7 @@ const flavor = ref('Belgian Dark Chocolate');
 const filling = ref('Silky Chocolate Ganache');
 const occasion = ref('Birthday');
 const neededBy = ref(new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0]);
-const message = ref('Happy 30th Birthday Sara! 🎉');
+const message = ref('Happy Birthday! 🎉');
 const description = ref('Warm ivory buttercream with blush rose accents, 24k edible gold leaf, and fresh berries.');
 
 const minDate = computed(() => {
@@ -500,15 +547,17 @@ const estimatedPriceRange = computed(() => {
   return opt ? opt.baseEstimate : 'ETB 1,800 – 2,800';
 });
 
-const referenceSamples = ref([
-  '/mockup/detail_promo_card.jpg',
-  '/mockup/shop_strawberry_cake.jpg',
-  '/mockup/detail_main_cake.jpg',
-]);
+const referenceSamples = ref([]);
 
 const chosenBranchName = computed(() => {
   const b = branchStore.branches.find((br) => br.branch_id === preparingBranchId.value);
   return b ? b.branch_name : 'Bole Flagship & Espresso';
+});
+
+watch(() => branchStore.selectedBranchId, (newId) => {
+  if (newId) {
+    preparingBranchId.value = newId;
+  }
 });
 
 onMounted(async () => {
@@ -533,14 +582,57 @@ function triggerUpload() {
   fileInput.value?.click();
 }
 
-function onFileChange(e) {
+async function onFileDrop(e) {
+  const files = e.dataTransfer?.files;
+  if (files && files.length > 0) {
+    await processFiles(files);
+  }
+}
+
+async function onFileChange(e) {
   const files = e.target.files;
   if (files && files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
-      const url = URL.createObjectURL(files[i]);
-      referenceSamples.value.unshift(url);
+    await processFiles(files);
+  }
+  if (fileInput.value) {
+    fileInput.value.value = '';
+  }
+}
+
+async function processFiles(files) {
+  isUploadingImage.value = true;
+  let successCount = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file.type.startsWith('image/')) {
+      toast.error(`"${file.name}" is not an image file.`);
+      continue;
     }
-    toast.success(`Attached ${files.length} design photo(s).`);
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await api.post('/custom-cakes/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (res.data?.image_url) {
+        referenceSamples.value.unshift(res.data.image_url);
+        successCount++;
+      }
+    } catch (err) {
+      console.error('Failed to upload image', err);
+      toast.error(err.response?.data?.message || `Failed to upload "${file.name}". Ensure it is a valid image under 5MB.`);
+    }
+  }
+
+  isUploadingImage.value = false;
+  if (successCount > 0) {
+    toast.success(`Successfully uploaded ${successCount} design photo(s) to bakery!`);
   }
 }
 
@@ -558,6 +650,8 @@ async function handleSubmitCustomCake() {
   try {
     const payload = {
       branch_id: preparingBranchId.value,
+      customer_name: customerName.value ? customerName.value.trim() : '',
+      customer_phone: customerPhone.value ? customerPhone.value.trim() : '',
       cake_size: cakeSize.value,
       flavor: `${flavor.value} with ${filling.value}${isFasting.value ? ' (100% Ye\'Tsom Fasting Certified)' : ''}`,
       needed_by: neededBy.value,
@@ -567,14 +661,12 @@ async function handleSubmitCustomCake() {
     };
 
     const res = await api.post('/custom-cakes', payload);
-    requestNumber.value = res.data?.request_number || 'CC-0840';
+    requestNumber.value = res.data?.request_number || res.data?.cake_request?.request_number;
     submittedModal.value = true;
     toast.success('Custom cake brief forwarded to head baker!');
   } catch (err) {
     console.error('Failed submitting custom cake', err);
-    requestNumber.value = 'CC-0840';
-    submittedModal.value = true;
-    toast.info('Custom cake brief registered for bakery review.');
+    toast.error(err.response?.data?.message || 'Failed to submit custom cake brief. Please check all required fields.');
   } finally {
     isSubmitting.value = false;
   }

@@ -14,6 +14,8 @@ class CustomCakeRequest extends Model
     protected $fillable = [
         'request_number',
         'user_id',
+        'customer_name',
+        'customer_phone',
         'branch_id',
         'cake_size',
         'flavor',

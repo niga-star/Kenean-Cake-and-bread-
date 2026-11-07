@@ -25,7 +25,7 @@ class CatalogController extends Controller
         $categoryId = $request->query('category_id');
         $search = $request->query('search');
 
-        $query = Product::with(['category', 'images', 'branchPrices'])
+        $query = Product::with(['category', 'images', 'branchPrices', 'reviews'])
             ->where('status', 'Active');
 
         if ($categoryId && $categoryId !== 'all') {
@@ -41,7 +41,23 @@ class CatalogController extends Controller
             $query->where('product_name', 'like', "%{$search}%");
         }
 
-        $products = $query->get()->map(function ($product) use ($branchId) {
+        $activePromos = \App\Models\Promotion::where('status', 'Active')
+            ->where('start_date', '<=', \Carbon\Carbon::today())
+            ->where('end_date', '>=', \Carbon\Carbon::today())
+            ->with('products')
+            ->get();
+
+        $discountedMap = [];
+        foreach ($activePromos as $pr) {
+            foreach ($pr->products as $pProd) {
+                $discountedMap[$pProd->product_id] = [
+                    'type' => $pr->discount_type,
+                    'value' => (float) $pr->discount_value,
+                ];
+            }
+        }
+
+        $products = $query->get()->map(function ($product) use ($branchId, $discountedMap) {
             $resolvedPrice = (float) $product->base_price;
             $hasOverride = false;
 
@@ -79,6 +95,20 @@ class CatalogController extends Controller
                 }
             }
 
+            // Real dynamic reviews & ratings from MySQL
+            $revCount = $product->reviews->count();
+            $avgRating = $revCount > 0 ? round((float) $product->reviews->avg('rating'), 1) : null;
+            $displayReviewCount = $revCount;
+
+            // Discount computation from MySQL promotions
+            $discountBadge = null;
+            $originalPrice = null;
+            if (isset($discountedMap[$product->product_id])) {
+                $disc = $discountedMap[$product->product_id];
+                $discountBadge = "-{$disc['value']}%";
+                $originalPrice = round($resolvedPrice / (1 - ($disc['value'] / 100)));
+            }
+
             return [
                 'product_id' => $product->product_id,
                 'category_id' => $product->category_id,
@@ -91,13 +121,17 @@ class CatalogController extends Controller
                 'shelf_life_hours' => $product->shelf_life_hours,
                 'is_fasting' => (bool) $product->is_fasting,
                 'status' => $product->status,
-                'image_url' => $product->images->first()?->image_url ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
+                'image_url' => $product->images->first()?->image_url ?? '/mockup/shop_chocolate_cake.jpg',
                 'images' => $product->images,
                 'on_hand' => $onHand,
                 'reserved' => $reserved,
                 'available' => $available,
                 'reorder_level' => $reorderLevel,
                 'stock_status' => $stockStatus,
+                'rating' => (string) $avgRating,
+                'reviews_count' => $displayReviewCount,
+                'discount_badge' => $discountBadge,
+                'original_price' => $originalPrice,
             ];
         });
 
@@ -107,7 +141,7 @@ class CatalogController extends Controller
     public function show(Request $request, $id)
     {
         $branchId = $request->query('branch_id');
-        $product = Product::with(['category', 'images', 'branchPrices'])->findOrFail($id);
+        $product = Product::with(['category', 'images', 'branchPrices', 'reviews'])->findOrFail($id);
 
         $resolvedPrice = (float) $product->base_price;
         $hasOverride = false;
@@ -145,6 +179,25 @@ class CatalogController extends Controller
             }
         }
 
+        $revCount = $product->reviews->count();
+        $avgRating = $revCount > 0 ? round((float) $product->reviews->avg('rating'), 1) : null;
+        $displayReviewCount = $revCount;
+
+        $activePromo = \App\Models\Promotion::where('status', 'Active')
+            ->where('start_date', '<=', \Carbon\Carbon::today())
+            ->where('end_date', '>=', \Carbon\Carbon::today())
+            ->whereHas('products', function ($q) use ($product) {
+                $q->where('promotion_products.product_id', $product->product_id);
+            })
+            ->first();
+
+        $discountBadge = null;
+        $originalPrice = null;
+        if ($activePromo) {
+            $discountBadge = "-{$activePromo->discount_value}%";
+            $originalPrice = round($resolvedPrice / (1 - ((float)$activePromo->discount_value / 100)));
+        }
+
         return response()->json([
             'product_id' => $product->product_id,
             'category_id' => $product->category_id,
@@ -158,13 +211,17 @@ class CatalogController extends Controller
             'shelf_life_hours' => $product->shelf_life_hours,
             'is_fasting' => (bool) $product->is_fasting,
             'status' => $product->status,
-            'image_url' => $product->images->first()?->image_url ?? 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
+            'image_url' => $product->images->first()?->image_url ?? '/mockup/shop_chocolate_cake.jpg',
             'images' => $product->images,
             'on_hand' => $onHand,
             'reserved' => $reserved,
             'available' => $available,
             'reorder_level' => $reorderLevel,
             'stock_status' => $stockStatus,
+            'rating' => (string) $avgRating,
+            'reviews_count' => $displayReviewCount,
+            'discount_badge' => $discountBadge,
+            'original_price' => $originalPrice,
         ]);
     }
 
@@ -247,7 +304,6 @@ class CatalogController extends Controller
                     'quantity_on_hand' => 20,
                     'reserved_quantity' => 0,
                     'reorder_level' => 10,
-                    'status' => 'Healthy',
                 ]
             );
         }
@@ -278,10 +334,24 @@ class CatalogController extends Controller
             'shelf_life_hours' => 'sometimes|integer|min:1',
             'description' => 'sometimes|string',
             'status' => 'sometimes|in:Active,Inactive',
+            'image_url' => 'nullable|string',
         ]);
 
         $oldPrice = $product->base_price;
         $product->update($validated);
+
+        if (!empty($validated['image_url'])) {
+            $primaryImg = $product->images()->orderBy('sort_order')->first();
+            if ($primaryImg) {
+                $primaryImg->update(['image_url' => $validated['image_url']]);
+            } else {
+                ProductImage::create([
+                    'product_id' => $product->product_id,
+                    'image_url' => $validated['image_url'],
+                    'sort_order' => 0,
+                ]);
+            }
+        }
 
         if (isset($validated['base_price']) && (float) $validated['base_price'] !== (float) $oldPrice) {
             AuditLog::create([
@@ -298,6 +368,94 @@ class CatalogController extends Controller
         }
 
         return response()->json($product->load(['category', 'images']));
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+        $name = $product->product_name;
+
+        // Check if referenced in historical orders
+        $hasOrders = \App\Models\OrderItem::where('product_id', $id)->exists();
+
+        if ($hasOrders) {
+            $product->update(['status' => 'Inactive']);
+            $msg = 'Product is referenced in existing orders; marked as Inactive instead of deleting.';
+        } else {
+            \App\Models\BranchInventory::where('product_id', $id)->delete();
+            \App\Models\BranchProductPrice::where('product_id', $id)->delete();
+            \App\Models\ProductImage::where('product_id', $id)->delete();
+            \App\Models\Review::where('product_id', $id)->delete();
+            $product->delete();
+            $msg = 'Product permanently deleted.';
+        }
+
+        AuditLog::create([
+            'user_id' => $request->user()?->user_id,
+            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'action' => 'Product deleted',
+            'record' => $name,
+            'entity_type' => 'Product',
+            'entity_id' => (string) $id,
+            'old_value' => $name,
+            'new_value' => 'Deleted',
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['message' => $msg, 'product_id' => (int) $id]);
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        $file = $request->file('image');
+        $safeExtension = in_array(strtolower($file->extension()), ['jpeg', 'png', 'jpg', 'webp']) ? $file->extension() : 'jpg';
+        $filename = 'product_' . time() . '_' . uniqid() . '.' . $safeExtension;
+        $targetDir = public_path('uploads/products');
+
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $file->move($targetDir, $filename);
+        $imageUrl = '/uploads/products/' . $filename;
+
+        return response()->json([
+            'message' => 'Image uploaded successfully',
+            'image_url' => $imageUrl,
+        ]);
+    }
+
+    public function destroyCategory(Request $request, $id)
+    {
+        $category = Category::findOrFail($id);
+        $name = $category->category_name;
+
+        $productCount = Product::where('category_id', $id)->count();
+        if ($productCount > 0) {
+            return response()->json([
+                'message' => "Cannot delete category '{$name}' because {$productCount} product(s) are assigned to it.",
+            ], 422);
+        }
+
+        $category->delete();
+
+        AuditLog::create([
+            'user_id' => $request->user()?->user_id,
+            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'action' => 'Category deleted',
+            'record' => $name,
+            'entity_type' => 'Category',
+            'entity_id' => (string) $id,
+            'old_value' => $name,
+            'new_value' => 'Deleted',
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['message' => "Category '{$name}' deleted successfully"]);
     }
 
     public function storeCategory(Request $request)

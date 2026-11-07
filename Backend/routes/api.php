@@ -16,14 +16,19 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\WebsiteSettingController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\CartController;
 
 // Public Auth with Rate Limiting (Section 12 requirement)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:30,1');
-Route::post('/auth/switch-role', [AuthController::class, 'switchRole']);
-Route::get('/auth/users', [AuthController::class, 'listUsers']);
+Route::post('/auth/switch-role', [AuthController::class, 'switchRole'])->middleware('throttle:30,1');
 
 // Public Branches & Catalog
 Route::get('/branches', [BranchController::class, 'index']);
@@ -38,6 +43,32 @@ Route::get('/catalog/products/{id}/branch-availability', [CatalogController::cla
 Route::get('/products/{id}/branch-availability', [CatalogController::class, 'branchAvailability']);
 Route::get('/branches/{id}/products', [CatalogController::class, 'products']);
 
+// Public Reviews & Testimonials
+Route::get('/reviews/featured', [ReviewController::class, 'featured']);
+Route::get('/products/{id}/reviews', [ReviewController::class, 'productReviews']);
+Route::post('/products/{id}/reviews', [ReviewController::class, 'store']);
+
+// Public Dynamic Website Settings & Banners
+Route::get('/business-info', [WebsiteSettingController::class, 'businessInfo']);
+Route::get('/banners', [WebsiteSettingController::class, 'banners']);
+
+// Public Wishlist (Authenticated or Local)
+Route::get('/wishlist', [WishlistController::class, 'index']);
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle']);
+Route::post('/wishlist/sync', [WishlistController::class, 'sync']);
+Route::post('/wishlist/guest-products', [WishlistController::class, 'guestProducts']);
+
+// Public Newsletter
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->middleware('throttle:20,1');
+
+// Shopping Cart (Database Backed)
+Route::get('/cart', [CartController::class, 'getCart']);
+Route::post('/cart/sync', [CartController::class, 'syncCart']);
+Route::delete('/cart', [CartController::class, 'clearCart']);
+
+// Public Contact Form
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:30,1');
+
 // Public Promotions
 Route::get('/promotions/active', [PromotionController::class, 'activePromotions']);
 Route::post('/promotions/validate', [PromotionController::class, 'validatePromo']);
@@ -49,6 +80,8 @@ Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/auth/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 });
 
 // Admin & Branch Scoped Endpoints - Protected with RoleAuthorizationMiddleware
@@ -58,6 +91,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
     // Users and Roles (Super Admin full, Main Branch Manager limited to Main Branch)
     Route::get('/users-list', [UserController::class, 'index']);
+    Route::get('/auth/users', [AuthController::class, 'listUsers'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/users', [UserController::class, 'store']);
     Route::patch('/users/{id}', [UserController::class, 'update']);
 
@@ -123,8 +157,23 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Catalog & Pricing Management (Super Admin Only)
     Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Super Admin');
     Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Super Admin');
+    Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Super Admin');
+    Route::post('/products/upload-image', [CatalogController::class, 'uploadImage'])->middleware('role:Super Admin');
     Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Super Admin');
+    Route::delete('/categories/{id}', [CatalogController::class, 'destroyCategory'])->middleware('role:Super Admin');
     Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Super Admin');
+
+    // Banners & Website Content Management
+    Route::get('/banners', [WebsiteSettingController::class, 'adminBanners']);
+    Route::post('/banners', [WebsiteSettingController::class, 'storeBanner'])->middleware('role:Super Admin');
+    Route::patch('/banners/{id}', [WebsiteSettingController::class, 'updateBanner'])->middleware('role:Super Admin');
+    Route::delete('/banners/{id}', [WebsiteSettingController::class, 'destroyBanner'])->middleware('role:Super Admin');
+
+    // Customer Inquiries, Reviews & Newsletter Management
+    Route::get('/contact-inquiries', [ContactController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::get('/reviews', [ReviewController::class, 'adminIndex'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::delete('/reviews/{id}', [ReviewController::class, 'destroy'])->middleware('role:Super Admin');
+    Route::get('/newsletter-subscribers', [NewsletterController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager');
 
     // Database Backup (Super Admin Only, Section 12)
     Route::post('/database/backup', function (\Illuminate\Http\Request $request) {
@@ -150,6 +199,8 @@ Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+Route::post('/orders/clear-finished', [OrderController::class, 'clearFinishedHistory']);
 Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint']);
 Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
 Route::post('/custom-cakes', [CustomCakeController::class, 'store']);
@@ -157,3 +208,9 @@ Route::post('/custom-cakes/upload-image', [CustomCakeController::class, 'uploadI
 Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
 Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
 Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);
+
+// Customer Addresses
+Route::get('/addresses', [\App\Http\Controllers\AddressController::class, 'index']);
+Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store']);
+Route::delete('/addresses/{id}', [\App\Http\Controllers\AddressController::class, 'destroy']);
+Route::post('/addresses/{id}/default', [\App\Http\Controllers\AddressController::class, 'makeDefault']);

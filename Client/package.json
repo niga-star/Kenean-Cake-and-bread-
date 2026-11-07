@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lucide/vue": "^1.70.0",
     "axios": "^1.21.0",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^4.1.0",

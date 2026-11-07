@@ -31,8 +31,8 @@ class RoleAuthorizationMiddleware
             }
         }
 
-        // Fallback for development if no token provided: Super Admin
-        if (!$user && app()->environment('local', 'testing')) {
+        // Local testing environment fallback for test scripts (strictly disallowed in production)
+        if (!$user && (app()->environment('local', 'testing') && !app()->environment('production'))) {
             $user = User::where('role', 'Super Admin')->first();
             if ($user) {
                 $request->setUserResolver(fn () => $user);

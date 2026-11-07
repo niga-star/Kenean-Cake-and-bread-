@@ -1,65 +1,41 @@
 <template>
-  <div class="min-h-screen bg-white text-[#29231F] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54]">
+  <div class="min-h-screen bg-white dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-hidden w-full relative">
     <!-- Top Bar: Dark Charcoal #1A1412 -->
-    <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-2 px-4 sm:px-8 border-b border-[#281E19]">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+    <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-1.5 sm:py-2 border-b border-[#281E19]">
+      <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2">
         <!-- Left: Location, Phone, Email -->
-        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-[#D8CDC5]">
-          <!-- Branch Location Dropdown Trigger -->
-          <div class="relative">
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 sm:gap-x-3 gap-y-1 text-[11px] sm:text-xs text-[#D8CDC5] w-full sm:w-auto">
+          <!-- Branch Location Trigger -->
+          <div>
             <button
-              @click="branchMenuOpen = !branchMenuOpen"
-              class="flex items-center space-x-1.5 hover:text-white transition font-medium cursor-pointer"
+              @click="branchStore.openPicker()"
+              class="flex items-center space-x-1 sm:space-x-1.5 hover:text-white transition font-medium cursor-pointer"
+              title="Choose Your Branch"
             >
               <span class="text-rose-400">📍</span>
-              <span>{{ activeBranchLabel }}</span>
+              <span class="truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">{{ activeBranchLabel }}</span>
               <span class="text-[10px] opacity-70">▾</span>
             </button>
-
-            <!-- Branch Dropdown Popover -->
-            <div
-              v-if="branchMenuOpen"
-              class="absolute left-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 text-[#29231F] animate-in fade-in"
-            >
-              <div class="px-4 py-1.5 border-b border-gray-100">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Select Bakery Branch</span>
-              </div>
-              <div class="space-y-1 max-h-60 overflow-y-auto p-1 text-xs">
-                <button
-                  v-for="b in branchStore.branches"
-                  :key="b.branch_id"
-                  @click="selectHeaderBranch(b)"
-                  class="w-full text-left p-2 rounded-xl transition flex items-center justify-between cursor-pointer"
-                  :class="branchStore.selectedBranchId === b.branch_id ? 'bg-rose-50 text-[#DE1B54] font-bold' : 'hover:bg-gray-50 text-gray-700'"
-                >
-                  <div class="truncate">
-                    <div class="font-semibold">{{ b.branch_name }}</div>
-                    <div class="text-[10px] text-gray-400 truncate">{{ b.address }}</div>
-                  </div>
-                  <span v-if="branchStore.selectedBranchId === b.branch_id" class="text-[#DE1B54] font-bold text-sm">✓</span>
-                </button>
-              </div>
-            </div>
           </div>
 
-          <span class="text-[#4A3D36]">|</span>
+          <span class="text-[#4A3D36] hidden xs:inline">|</span>
 
-          <a href="tel:+251911123456" class="flex items-center space-x-1 hover:text-white transition">
+          <a href="tel:+251911123456" class="hidden xs:flex items-center space-x-1 hover:text-white transition">
             <span>📞</span>
             <span>+251 911 123 456</span>
           </a>
 
-          <span class="text-[#4A3D36]">|</span>
+          <span class="text-[#4A3D36] hidden sm:inline">|</span>
 
-          <a href="mailto:hello@sweetbakes.com" class="flex items-center space-x-1 hover:text-white transition">
+          <a href="mailto:hello@sweetbakes.com" class="hidden sm:flex items-center space-x-1 hover:text-white transition">
             <span>✉️</span>
             <span>hello@sweetbakes.com</span>
           </a>
         </div>
 
         <!-- Right: Follow Us Social Icons -->
-        <div class="flex items-center space-x-3 text-xs text-[#D8CDC5]">
-          <span class="text-[#B3A49C] text-[11px]">Follow Us:</span>
+        <div class="hidden md:flex items-center space-x-3 text-xs text-[#D8CDC5]">
+          <span class="text-[#B3A49C] text-[11px]">{{ localeStore.t('follow_us') }}</span>
           <!-- Facebook -->
           <a href="#" class="w-5 h-5 rounded-full flex items-center justify-center hover:text-white transition" title="Facebook">
             <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -89,33 +65,33 @@
     </div>
 
     <!-- Main Navigation Bar: Pure White -->
-    <header class="sticky top-0 z-40 bg-white border-b border-[#F0EAE3] shadow-xs">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+    <header class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs">
+      <div class="sweetbakes-container h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
         <!-- SweetBakes Logo -->
-        <router-link to="/" class="flex items-center space-x-3 shrink-0 group">
+        <router-link to="/" class="flex items-center space-x-2 sm:space-x-3 shrink-0 group">
           <!-- Cupcake Icon -->
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-            <span class="text-2xl">🧁</span>
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 dark:bg-[#331A24] border border-rose-100 dark:border-[#58263A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+            <span class="text-xl sm:text-2xl">🧁</span>
           </div>
           <div>
-            <div class="text-2xl sm:text-[26px] font-serif font-black tracking-tight text-[#2A1810] leading-none">
+            <div class="text-xl sm:text-2xl lg:text-[26px] font-serif font-black tracking-tight text-[#2A1810] dark:text-[#FBF4ED] leading-none">
               Sweet<span class="text-[#DE1B54]">Bakes</span>
             </div>
-            <div class="text-[9px] sm:text-[10px] tracking-wider text-[#8C7E77] font-medium uppercase mt-0.5">
+            <div class="hidden sm:block text-[8px] sm:text-[10px] tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5">
               Cakes &middot; Bread &middot; Happiness
             </div>
           </div>
         </router-link>
 
-        <!-- Center Nav Links -->
-        <nav class="hidden lg:flex items-center space-x-8 text-sm font-semibold text-[#2A1810]">
+        <!-- Center Nav Links (Balanced spacing from 1024px to 2560px) -->
+        <nav class="hidden lg:flex items-center space-x-4 xl:space-x-7 2xl:space-x-8 text-xs xl:text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9]">
           <!-- Home -->
           <router-link
             to="/"
             class="relative py-2 transition-colors hover:text-[#DE1B54]"
             :class="($route.path === '/' || $route.path === '/home') && !$route.hash ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
           >
-            Home
+            {{ localeStore.t('home') }}
           </router-link>
 
           <!-- Shop Dropdown -->
@@ -126,78 +102,72 @@
               :class="$route.path.startsWith('/shop') ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
               @click="shopDropdownOpen = false"
             >
-              <span>Shop</span>
+              <span>{{ localeStore.t('shop') }}</span>
               <span class="text-xs opacity-75">▾</span>
             </router-link>
 
-            <!-- Dropdown Menu: Exact Match to Mockup Popup -->
+            <!-- Dropdown Menu -->
             <div
-              class="absolute left-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100/90 p-2 hidden group-hover:block z-50 animate-in fade-in zoom-in-95 duration-150"
+              class="absolute left-0 mt-2 w-64 bg-white dark:bg-[#221610] rounded-2xl shadow-2xl border border-gray-100/90 dark:border-[#3D261B] p-2 hidden group-hover:block z-50 animate-in fade-in zoom-in-95 duration-150"
             >
-              <!-- 1. All Products -->
               <router-link
                 to="/shop"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] text-[#DE1B54] font-bold' : 'text-[#2A1810] hover:bg-[#FFF5F8] hover:text-[#DE1B54]'"
+                :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">✨</span>
-                <span>All Products</span>
+                <span>{{ localeStore.t('all_products') }}</span>
               </router-link>
 
-              <!-- 2. Cakes -->
               <router-link
                 to="/shop?category=Cakes"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] text-[#DE1B54] font-bold' : 'text-[#2A1810] hover:bg-[#FFF5F8] hover:text-[#DE1B54]'"
+                :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🎂</span>
-                <span>Cakes</span>
+                <span>{{ localeStore.t('cakes') }}</span>
               </router-link>
 
-              <!-- 3. Fresh Bread -->
               <router-link
                 to="/shop?category=Bread"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] text-[#DE1B54] font-bold' : 'text-[#2A1810] hover:bg-[#FFF5F8] hover:text-[#DE1B54]'"
+                :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🥖</span>
-                <span>Fresh Bread</span>
+                <span>{{ localeStore.t('bread') }}</span>
               </router-link>
 
-              <!-- 4. Cupcakes & Croissants -->
               <router-link
                 to="/shop?category=Pastries"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] text-[#DE1B54] font-bold' : 'text-[#2A1810] hover:bg-[#FFF5F8] hover:text-[#DE1B54]'"
+                :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🥐</span>
-                <span>Cupcakes &amp; Croissants</span>
+                <span>{{ localeStore.t('cupcakes_croissants') }}</span>
               </router-link>
 
-              <!-- 5. Ye'Tsom (Fasting / ጾም) -->
               <router-link
                 to="/shop?yetsom=1"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition"
-                :class="$route.query.yetsom === '1' || $route.query.fasting === '1' ? 'bg-emerald-100/70 text-[#075e43] font-black' : 'text-[#0b6b4e] hover:bg-emerald-50 hover:text-[#06503b]'"
+                :class="$route.query.yetsom === '1' || $route.query.fasting === '1' ? 'bg-emerald-100/70 dark:bg-emerald-950/60 text-[#075e43] dark:text-emerald-300 font-black' : 'text-[#0b6b4e] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#06503b]'"
               >
                 <span class="text-base">🌿</span>
-                <span>Ye'Tsom (Fasting / ጾም)</span>
+                <span>{{ localeStore.t('yetsom') }}</span>
               </router-link>
 
-              <!-- 6. Custom Cake Studio -->
               <router-link
                 to="/custom-cake"
                 @click="shopDropdownOpen = false"
                 class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition"
-                :class="$route.path === '/custom-cake' ? 'bg-[#FFF0F4] text-[#DE1B54] font-black' : 'text-[#DE1B54] hover:bg-[#FFF5F8] hover:text-[#C51345]'"
+                :class="$route.path === '/custom-cake' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#DE1B54] hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#C51345]'"
               >
                 <span class="text-base">✍️</span>
-                <span>Custom Cake Studio</span>
+                <span>{{ localeStore.t('custom_cake') }}</span>
               </router-link>
             </div>
           </div>
@@ -209,7 +179,7 @@
             class="relative py-2 transition-colors hover:text-[#DE1B54]"
             :class="$route.hash === '#about' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
           >
-            About
+            {{ localeStore.t('about') }}
           </a>
 
           <!-- Reviews Anchor -->
@@ -219,49 +189,84 @@
             class="relative py-2 transition-colors hover:text-[#DE1B54]"
             :class="$route.hash === '#reviews' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
           >
-            Reviews
+            {{ localeStore.t('reviews') }}
           </a>
 
           <!-- Contact -->
-          <router-link
-            to="/contact"
-            class="relative py-2 transition-colors hover:text-[#DE1B54]"
-            :class="$route.path === '/contact' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
+          <a
+            href="/#contact"
+            @click.prevent="goToSection('contact')"
+            class="relative py-2 transition-colors hover:text-[#DE1B54] cursor-pointer"
+            :class="$route.hash === '#contact' || $route.path === '/contact' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
           >
-            Contact
-          </router-link>
+            {{ localeStore.t('contact') }}
+          </a>
         </nav>
 
-        <!-- Right Side: Search, Account & Cart -->
-        <div class="flex items-center space-x-3 sm:space-x-4">
-          <!-- Search Input Pill -->
-          <div class="relative hidden sm:block w-48 lg:w-60">
+        <!-- Right Side: Search, Language, Theme, Account & Cart -->
+        <div class="flex items-center space-x-1.5 sm:space-x-2.5 lg:space-x-3 shrink-0">
+          <!-- Choose Your Branch Sticky Control (Desktop / Tablet) -->
+          <button
+            @click="branchStore.openPicker()"
+            class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] bg-[#FAF7F5] dark:bg-[#1E120B] text-xs font-semibold text-[#2A1810] dark:text-[#FAF3EE] transition shadow-2xs cursor-pointer group shrink-0"
+            :title="localeStore.t('select_branch') || 'Choose Your Branch'"
+          >
+            <span class="text-[#DE1B54] group-hover:scale-110 transition-transform">📍</span>
+            <span class="font-bold">{{ activeBranchLabelShort }}</span>
+            <span class="text-[10px] text-gray-400 group-hover:text-[#DE1B54]">▾</span>
+          </button>
+
+          <!-- Search Input Pill (Tablet & Desktop) -->
+          <div class="relative hidden md:block w-32 lg:w-40 xl:w-52 2xl:w-60">
             <input
               v-model="searchKeyword"
               @keyup.enter="handleSearch"
               type="text"
-              placeholder="Search products..."
-              class="w-full bg-[#FAF7F5] border border-gray-200 focus:border-[#DE1B54] focus:bg-white rounded-full py-2 pl-4 pr-9 text-xs text-gray-800 placeholder:text-gray-400 focus:outline-none transition shadow-2xs"
+              :placeholder="localeStore.t('search_placeholder')"
+              class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#3D261B] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#25150E] rounded-full py-1.5 sm:py-2 pl-3 sm:pl-4 pr-8 sm:pr-9 text-xs text-gray-800 dark:text-[#F7EFE9] placeholder:text-gray-400 dark:placeholder:text-[#8C786B] focus:outline-none transition shadow-2xs"
             />
             <button
               @click="handleSearch"
-              class="absolute right-3 top-2.5 text-gray-400 hover:text-[#DE1B54] transition cursor-pointer"
+              class="absolute right-2.5 sm:right-3 top-2 sm:top-2.5 text-gray-400 hover:text-[#DE1B54] transition cursor-pointer"
               title="Search"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           </div>
 
-          <!-- User Menu Dropdown -->
-          <div class="relative">
+          <!-- Bilingual Language Toggle Button: EN | አማ -->
+          <button
+            @click="localeStore.toggleLocale()"
+            class="flex items-center px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-h-[32px] sm:min-h-[36px]"
+            :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
+            aria-label="Language Switcher"
+          >
+            <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
+            <span class="mx-0.5 sm:mx-1 text-gray-300 dark:text-gray-600">|</span>
+            <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
+          </button>
+
+          <!-- Theme Toggle Button: Sun & Moon -->
+          <button
+            @click="themeStore.toggleTheme()"
+            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] flex items-center justify-center text-xs sm:text-sm transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-w-[32px] min-h-[32px]"
+            :title="themeStore.isDark ? (localeStore.isAmharic ? 'ወደ ብሩህ ገጽታ ቀይር (Light Mode)' : 'Switch to Light Mode') : (localeStore.isAmharic ? 'ወደ ጨለማ ገጽታ ቀይር (Dark Mode)' : 'Switch to Dark Mode')"
+            aria-label="Theme Toggle"
+          >
+            <span v-if="themeStore.isDark" class="text-amber-300 text-sm sm:text-base">☀️</span>
+            <span v-else class="text-gray-600 dark:text-gray-300 text-sm sm:text-base">🌙</span>
+          </button>
+
+          <!-- User Menu Dropdown (Desktop / Tablet) -->
+          <div class="relative hidden sm:block">
             <button
               @click="accountMenuOpen = !accountMenuOpen"
-              class="flex items-center space-x-1 p-2 sm:px-3 sm:py-2 rounded-full border border-gray-200 hover:border-[#DE1B54] text-xs font-semibold text-gray-700 transition shadow-2xs cursor-pointer"
-              title="User Account"
+              class="flex items-center space-x-1 p-2 sm:px-3 sm:py-2 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-xs font-semibold text-gray-700 dark:text-[#E8DED8] transition shadow-2xs cursor-pointer bg-white dark:bg-[#1E120B] min-h-[36px]"
+              :title="localeStore.t('account')"
             >
-              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span class="hidden md:inline">{{ authStore.user ? authStore.user.full_name.split(' ')[0] : '' }}</span>
@@ -271,10 +276,10 @@
             <!-- Dropdown Menu -->
             <div
               v-if="accountMenuOpen"
-              class="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in"
+              class="absolute right-0 mt-2 w-52 bg-white dark:bg-[#221610] rounded-2xl shadow-xl border border-gray-100 dark:border-[#3D261B] py-2 z-50 animate-in fade-in"
             >
-              <div v-if="authStore.user" class="px-4 py-2 border-b border-gray-100">
-                <div class="font-bold text-xs text-gray-800 truncate">{{ authStore.user.full_name }}</div>
+              <div v-if="authStore.user" class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B]">
+                <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
                 <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
               </div>
 
@@ -283,70 +288,115 @@
                   v-if="authStore.user"
                   to="/account"
                   @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-rose-50 hover:text-[#DE1B54]"
+                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
                 >
-                  <span>👤 My Orders & Account</span>
+                  <span>👤 {{ localeStore.t('my_orders') }}</span>
+                </router-link>
+
+                <router-link
+                  :to="authStore.user ? '/account?tab=wishlist' : '/shop'"
+                  @click="accountMenuOpen = false"
+                  class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                >
+                  <div class="flex items-center space-x-2">
+                    <span>❤️</span>
+                    <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
+                  </div>
+                  <span v-if="wishlistStore.count > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54]">
+                    {{ wishlistStore.count }}
+                  </span>
                 </router-link>
 
                 <router-link
                   v-if="!authStore.user"
                   to="/login"
                   @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-rose-50 hover:text-[#DE1B54]"
+                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
                 >
-                  <span>🔑 Sign In</span>
+                  <span>🔑 {{ localeStore.t('sign_in') }}</span>
                 </router-link>
 
                 <router-link
                   v-if="!authStore.user"
                   to="/register"
                   @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 hover:bg-rose-50 hover:text-[#DE1B54]"
+                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
                 >
-                  <span>✨ Create Account</span>
+                  <span>✨ {{ localeStore.t('create_account') }}</span>
                 </router-link>
 
                 <router-link
                   to="/admin/overview"
                   @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 font-bold hover:bg-rose-50 border-t border-gray-100 mt-1 pt-2"
+                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-bold hover:bg-rose-50 dark:hover:bg-[#331A24] border-t border-gray-100 dark:border-[#3D261B] mt-1 pt-2"
                 >
-                  <span>⚙️ Staff Portal</span>
+                  <span>⚙️ {{ localeStore.t('staff_portal') }}</span>
                 </router-link>
 
                 <button
                   v-if="authStore.user"
                   @click="handleLogout"
-                  class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50 border-t border-gray-100 mt-1 cursor-pointer"
+                  class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border-t border-gray-100 dark:border-[#3D261B] mt-1 cursor-pointer"
                 >
-                  <span>🚪 Log Out</span>
+                  <span>🚪 {{ localeStore.t('logout') }}</span>
                 </button>
               </div>
             </div>
           </div>
 
+          <!-- Mobile Branch Quick Switcher -->
+          <button
+            @click="branchStore.openPicker()"
+            class="md:hidden flex items-center space-x-1 px-2.5 py-1 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] text-[11px] font-bold text-[#DE1B54] transition cursor-pointer shrink-0"
+            :title="localeStore.t('select_branch') || 'Choose Your Branch'"
+          >
+            <span>📍</span>
+            <span class="truncate max-w-[70px] xs:max-w-[95px]">{{ activeBranchLabelShort }}</span>
+            <span class="text-[9px] opacity-70">▾</span>
+          </button>
+
+          <!-- Quick Wishlist Heart Button -->
+          <router-link
+            :to="authStore.user ? '/account?tab=wishlist' : '/shop'"
+            class="relative flex items-center justify-center p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 min-w-[36px] min-h-[36px]"
+            :title="localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Favorites'"
+            aria-label="Wishlist & Favorites"
+          >
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span
+              v-if="wishlistStore.count > 0"
+              class="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#DE1B54] text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center shadow-xs"
+            >
+              {{ wishlistStore.count }}
+            </span>
+          </router-link>
+
           <!-- Quick Cart Drawer Trigger Button -->
           <button
             @click="cartStore.toggleDrawer()"
-            class="relative flex items-center p-2 rounded-full hover:bg-rose-50 transition cursor-pointer text-gray-700"
+            class="relative flex items-center justify-center p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 min-w-[36px] min-h-[36px]"
             title="Shopping Cart"
+            aria-label="Shopping Cart"
           >
-            <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <!-- Red/Pink Badge with Cart Count -->
             <span
-              class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#DE1B54] text-white text-[11px] font-bold flex items-center justify-center shadow-xs"
+              v-if="cartStore.totalItems > 0"
+              class="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#DE1B54] text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center shadow-xs"
             >
-              {{ cartStore.totalItems || 2 }}
+              {{ cartStore.totalItems }}
             </span>
           </button>
 
-          <!-- Mobile Hamburger Trigger Button -->
+          <!-- Mobile Hamburger Trigger Button (visible < 1024px) -->
           <button
             @click="mobileNavOpen = !mobileNavOpen"
-            class="lg:hidden p-2 rounded-xl text-gray-700 hover:text-[#DE1B54] hover:bg-rose-50 transition cursor-pointer"
+            class="lg:hidden p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:text-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
             title="Menu"
+            aria-label="Open Navigation Menu"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path v-if="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -359,89 +409,200 @@
       <!-- Mobile Navigation Drawer -->
       <div
         v-if="mobileNavOpen"
-        class="lg:hidden bg-white border-t border-gray-100 px-5 py-4 space-y-3 shadow-lg animate-in slide-in-from-top duration-200"
+        class="lg:hidden bg-white dark:bg-[#1C110C] border-t border-gray-100 dark:border-[#3D261B] px-4 sm:px-6 py-4 space-y-3 shadow-xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-top duration-200"
       >
+        <!-- Mobile Drawer Active Branch Banner -->
+        <div class="p-3 bg-rose-50/60 dark:bg-[#25150E] rounded-2xl border border-rose-100 dark:border-[#3D261B] flex items-center justify-between gap-2 shadow-2xs">
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <span class="text-lg text-[#DE1B54]">📍</span>
+            <div class="truncate">
+              <div class="text-[10px] uppercase font-bold text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.t('select_branch') || 'Selected Branch' }}</div>
+              <div class="text-xs font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] truncate">{{ activeBranchLabelShort }} Branch</div>
+            </div>
+          </div>
+          <button
+            @click="branchStore.openPicker(); mobileNavOpen = false"
+            class="px-3 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-[11px] font-bold rounded-xl shadow-xs cursor-pointer active:scale-95 shrink-0"
+          >
+            Change
+          </button>
+        </div>
+
+        <!-- Mobile Search Bar (Only on phones < 768px) -->
+        <div class="md:hidden pb-2">
+          <div class="relative w-full">
+            <input
+              v-model="searchKeyword"
+              @keyup.enter="handleSearch(); mobileNavOpen = false"
+              type="text"
+              :placeholder="localeStore.t('search_placeholder')"
+              class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#3D261B] rounded-full py-2 pl-4 pr-10 text-xs text-gray-800 dark:text-[#F7EFE9] placeholder:text-gray-400 focus:outline-none"
+            />
+            <button
+              @click="handleSearch(); mobileNavOpen = false"
+              class="absolute right-3 top-2.5 text-gray-400 hover:text-[#DE1B54] cursor-pointer"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Language & Theme Switcher Row -->
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-[#3D261B]">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">🌐</span>
+            <button
+              @click="localeStore.toggleLocale()"
+              class="flex items-center px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] text-xs font-bold transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
+            >
+              <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
+              <span class="mx-1 text-gray-300 dark:text-gray-600">|</span>
+              <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ themeStore.isDark ? 'Dark Mode' : 'Light Mode' }}</span>
+            <button
+              @click="themeStore.toggleTheme()"
+              class="w-9 h-9 rounded-full border border-gray-200 dark:border-[#3D261B] flex items-center justify-center text-sm transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
+            >
+              <span v-if="themeStore.isDark">☀️</span>
+              <span v-else>🌙</span>
+            </button>
+          </div>
+        </div>
+
         <router-link
           to="/"
           @click="mobileNavOpen = false"
-          class="block py-2 text-sm font-bold text-[#2A1810] hover:text-[#DE1B54]"
+          class="block py-2 text-sm font-bold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
         >
-          Home
+          {{ localeStore.t('home') }}
         </router-link>
 
-        <div class="space-y-1.5 pl-3 border-l-2 border-rose-200">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-gray-400 py-1">Shop Categories</div>
+        <div class="space-y-1.5 pl-3 border-l-2 border-rose-200 dark:border-[#DE1B54]/40">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-gray-400 py-1">{{ localeStore.t('categories_label', 'Categories') }}</div>
           <router-link
             to="/shop"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-semibold text-gray-800 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
           >
             <span>✨</span>
-            <span>All Products</span>
+            <span>{{ localeStore.t('all_products') }}</span>
           </router-link>
           <router-link
             to="/shop?category=Cakes"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-semibold text-gray-800 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
           >
             <span>🎂</span>
-            <span>Cakes</span>
+            <span>{{ localeStore.t('cakes') }}</span>
           </router-link>
           <router-link
             to="/shop?category=Bread"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-semibold text-gray-800 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
           >
             <span>🥖</span>
-            <span>Fresh Bread</span>
+            <span>{{ localeStore.t('bread') }}</span>
           </router-link>
           <router-link
             to="/shop?category=Pastries"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-semibold text-gray-800 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
           >
             <span>🥐</span>
-            <span>Cupcakes &amp; Croissants</span>
+            <span>{{ localeStore.t('cupcakes_croissants') }}</span>
           </router-link>
           <router-link
             to="/shop?yetsom=1"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950"
+            class="flex items-center space-x-2 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-400 hover:text-emerald-950"
           >
             <span>🌿</span>
-            <span>Ye'Tsom (Fasting / ጾም)</span>
+            <span>{{ localeStore.t('yetsom') }}</span>
           </router-link>
           <router-link
             to="/custom-cake"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-1.5 text-xs font-bold text-[#DE1B54] hover:text-[#C51345]"
+            class="flex items-center space-x-2 py-2 text-xs font-bold text-[#DE1B54] hover:text-[#C51345]"
           >
             <span>✍️</span>
-            <span>Custom Cake Studio</span>
+            <span>{{ localeStore.t('custom_cake') }}</span>
           </router-link>
         </div>
 
         <a
           href="/#about"
           @click="goToSection('about'); mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] hover:text-[#DE1B54]"
+          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
         >
-          About
+          {{ localeStore.t('about') }}
         </a>
         <a
           href="/#reviews"
           @click="goToSection('reviews'); mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] hover:text-[#DE1B54]"
+          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
         >
-          Reviews
+          {{ localeStore.t('reviews') }}
         </a>
-        <router-link
-          to="/contact"
-          @click="mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] hover:text-[#DE1B54]"
+        <a
+          href="/#contact"
+          @click="goToSection('contact'); mobileNavOpen = false"
+          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54] cursor-pointer"
         >
-          Contact
-        </router-link>
+          {{ localeStore.t('contact') }}
+        </a>
+
+        <!-- Mobile User Account & Portal Links -->
+        <div class="pt-3 border-t border-gray-100 dark:border-[#3D261B] space-y-1.5 text-xs font-semibold">
+          <router-link
+            v-if="authStore.user"
+            to="/account"
+            @click="mobileNavOpen = false"
+            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+          >
+            <span>👤</span>
+            <span>{{ localeStore.t('my_orders') }} ({{ authStore.user.full_name }})</span>
+          </router-link>
+          <router-link
+            v-if="!authStore.user"
+            to="/login"
+            @click="mobileNavOpen = false"
+            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+          >
+            <span>🔑</span>
+            <span>{{ localeStore.t('sign_in') }}</span>
+          </router-link>
+          <router-link
+            v-if="!authStore.user"
+            to="/register"
+            @click="mobileNavOpen = false"
+            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+          >
+            <span>✨</span>
+            <span>{{ localeStore.t('create_account') }}</span>
+          </router-link>
+          <router-link
+            to="/admin/overview"
+            @click="mobileNavOpen = false"
+            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+          >
+            <span>⚙️</span>
+            <span>{{ localeStore.t('staff_portal') }}</span>
+          </router-link>
+          <button
+            v-if="authStore.user"
+            @click="handleLogout(); mobileNavOpen = false"
+            class="w-full text-left flex items-center space-x-2 py-2 text-red-600 hover:text-red-700 cursor-pointer"
+          >
+            <span>🚪</span>
+            <span>{{ localeStore.t('logout') }}</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -450,11 +611,14 @@
       <router-view />
     </main>
 
+    <!-- SweetBakes Real GPS Contact Us Section (Above Footer) -->
+    <ContactSection id="contact" v-if="shouldShowContactAboveFooter" />
+
     <!-- Footer: Deep Chocolate Brown #27160E -->
-    <footer class="bg-[#27160E] text-[#E8DED8] pt-14 pb-8 border-t border-[#382015] relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
-        <!-- Col 1: SweetBakes Brand & Slogan (4 cols) -->
-        <div class="lg:col-span-4 space-y-4">
+    <footer class="bg-[#27160E] text-[#E8DED8] pt-12 sm:pt-14 pb-8 border-t border-[#382015] relative">
+      <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
+        <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 3 cols tablet) -->
+        <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-4">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-2xl">
               🧁
@@ -470,21 +634,21 @@
           </div>
 
           <p class="text-xs text-[#C7BBB3] leading-relaxed max-w-sm">
-            Making life sweeter, one cake and bread at a time.
+            {{ localeStore.t('footer_mission') }}
           </p>
 
-          <!-- Social Media Icons (Facebook, Instagram, YouTube, TikTok) -->
+          <!-- Social Media Icons (Facebook, Instagram, Telegram, TikTok) from Database -->
           <div class="flex items-center space-x-3 pt-2 text-[#D8CDC5]">
-            <a href="#" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
+            <a :href="businessInfo?.social?.facebook || 'https://facebook.com'" target="_blank" rel="noopener" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" /></svg>
             </a>
-            <a href="#" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
+            <a :href="businessInfo?.social?.instagram || 'https://instagram.com'" target="_blank" rel="noopener" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
             </a>
-            <a href="#" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
-              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" /></svg>
+            <a :href="businessInfo?.social?.telegram || 'https://t.me'" target="_blank" rel="noopener" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
             </a>
-            <a href="#" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
+            <a :href="businessInfo?.social?.tiktok || 'https://tiktok.com'" target="_blank" rel="noopener" class="w-8 h-8 rounded-full border border-white/20 hover:border-white hover:text-white flex items-center justify-center transition">
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.97-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" /></svg>
             </a>
           </div>
@@ -492,73 +656,73 @@
 
         <!-- Col 2: Quick Links (2 cols) -->
         <div class="lg:col-span-2 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Quick Links</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('quick_links') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li>
               <router-link to="/" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Home</span>
+                <span>{{ localeStore.t('home') }}</span>
               </router-link>
             </li>
             <li>
               <router-link to="/shop" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Shop</span>
+                <span>{{ localeStore.t('shop') }}</span>
               </router-link>
             </li>
             <li>
               <a href="/#about" @click.prevent="goToSection('about')" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1 cursor-pointer">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>About Us</span>
+                <span>{{ localeStore.t('about') }}</span>
               </a>
             </li>
             <li>
               <a href="/#reviews" @click.prevent="goToSection('reviews')" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1 cursor-pointer">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Reviews</span>
+                <span>{{ localeStore.t('reviews') }}</span>
               </a>
             </li>
             <li>
-              <router-link to="/contact" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
+              <a href="/#contact" @click.prevent="goToSection('contact')" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1 cursor-pointer">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Contact</span>
-              </router-link>
+                <span>{{ localeStore.t('contact') }}</span>
+              </a>
             </li>
           </ul>
         </div>
 
         <!-- Col 3: Our Services (2 cols) -->
         <div class="lg:col-span-2 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Our Services</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('our_services') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li>
               <router-link to="/shop?category=Cakes" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Cake Orders</span>
+                <span>{{ localeStore.t('cake_orders') }}</span>
               </router-link>
             </li>
             <li>
               <router-link to="/shop?category=Bread" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Bread &amp; Pastries</span>
+                <span>{{ localeStore.t('bread_pastries') }}</span>
               </router-link>
             </li>
             <li>
               <router-link to="/shop" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Delivery</span>
+                <span>{{ localeStore.t('delivery_service') }}</span>
               </router-link>
             </li>
             <li>
               <router-link to="/shop" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Pickup</span>
+                <span>{{ localeStore.t('pickup_service') }}</span>
               </router-link>
             </li>
             <li>
               <router-link to="/branches" class="hover:text-white transition-all flex items-center space-x-1.5 hover:translate-x-1">
                 <span class="text-[#DE1B54] font-bold">&gt;</span>
-                <span>Branch Locations</span>
+                <span>{{ localeStore.t('branch_locations') }}</span>
               </router-link>
             </li>
           </ul>
@@ -566,60 +730,60 @@
 
         <!-- Col 4: Our Branches (2 cols) -->
         <div class="lg:col-span-2 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Our Branches</h4>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('our_branches') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li class="flex items-center space-x-1.5 hover:text-white transition cursor-pointer">
               <span class="text-[#DE1B54]">📍</span>
-              <span>Main Branch - Addis Ababa</span>
+              <span>{{ localeStore.isAmharic ? 'ዋና ቅርንጫፍ - አዲስ አበባ' : 'Main Branch - Addis Ababa' }}</span>
             </li>
             <li class="flex items-center space-x-1.5 hover:text-white transition cursor-pointer">
               <span class="text-[#DE1B54]">📍</span>
-              <span>Bole Branch</span>
+              <span>{{ localeStore.isAmharic ? 'ቦሌ ቅርንጫፍ' : 'Bole Branch' }}</span>
             </li>
             <li class="flex items-center space-x-1.5 hover:text-white transition cursor-pointer">
               <span class="text-[#DE1B54]">📍</span>
-              <span>Megenagna Branch</span>
+              <span>{{ localeStore.isAmharic ? 'መገናኛ ቅርንጫፍ' : 'Megenagna Branch' }}</span>
             </li>
             <li class="flex items-center space-x-1.5 hover:text-white transition cursor-pointer">
               <span class="text-[#DE1B54]">📍</span>
-              <span>Piassa Branch</span>
+              <span>{{ localeStore.isAmharic ? 'ፒያሳ ቅርንጫፍ' : 'Piassa Branch' }}</span>
             </li>
           </ul>
         </div>
 
-        <!-- Col 5: Newsletter (2 cols) -->
-        <div class="lg:col-span-2 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">Newsletter</h4>
+        <!-- Col 5: Newsletter (2 cols desktop, 3 cols tablet) -->
+        <div class="sm:col-span-2 md:col-span-3 lg:col-span-2 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('newsletter') }}</h4>
           <p class="text-[11px] text-[#C7BBB3] leading-relaxed">
-            Subscribe to our newsletter for special offers!
+            {{ localeStore.t('newsletter_sub') }}
           </p>
-          <div class="space-y-2">
+          <div class="space-y-2 max-w-sm">
             <input
               v-model="newsletterEmail"
               type="email"
-              placeholder="Your email address"
-              class="w-full bg-white text-gray-800 rounded-xl px-3.5 py-2.5 text-xs placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DE1B54]"
+              :placeholder="localeStore.t('enter_email')"
+              class="w-full bg-white dark:bg-[#1E120B] text-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs placeholder:text-gray-400 dark:placeholder:text-[#8C786B] border border-transparent dark:border-[#3D261B] focus:outline-none focus:ring-2 focus:ring-[#DE1B54]"
             />
             <button
               @click="handleSubscribe"
-              class="w-full py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
+              class="w-full py-2.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
             >
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
                 <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
               </svg>
-              <span>Subscribe</span>
+              <span>{{ localeStore.t('subscribe_btn') }}</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Footer Bottom Copyright & FAQ Bar -->
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-6 border-t border-[#382015] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#AFA39B] gap-2">
-        <p>&copy; 2025 SweetBakes. All rights reserved.</p>
+      <div class="sweetbakes-container mt-12 pt-6 border-t border-[#382015] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#AFA39B] gap-2">
+        <p>{{ localeStore.t('copyright') }}</p>
         <div class="flex items-center space-x-3">
-          <router-link to="/faq" class="hover:text-white transition">Privacy Policy</router-link>
+          <router-link to="/faq" class="hover:text-white transition">{{ localeStore.t('privacy_policy') }}</router-link>
           <span>|</span>
-          <router-link to="/faq" class="hover:text-white transition">Terms of Service</router-link>
+          <router-link to="/faq" class="hover:text-white transition">{{ localeStore.t('terms_service') }}</router-link>
         </div>
       </div>
 
@@ -636,6 +800,9 @@
     <!-- Slide-Out Quick Cart Drawer (Mini-Cart) -->
     <CartDrawer />
 
+    <!-- Branch Picker Modal (Searchable, All Addis Branches) -->
+    <BranchPickerModal />
+
     <!-- Toast Notification Container -->
     <ToastNotification />
   </div>
@@ -643,19 +810,29 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useBranchStore } from '../stores/branch';
 import { useCartStore } from '../stores/cart';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
+import { useThemeStore } from '../stores/theme';
+import { useLocaleStore } from '../stores/locale';
+import { useWishlistStore } from '../stores/wishlist';
 import ToastNotification from '../components/ToastNotification.vue';
 import CartDrawer from '../components/CartDrawer.vue';
+import ContactSection from '../components/ContactSection.vue';
+import BranchPickerModal from '../components/BranchPickerModal.vue';
+import api from '../api';
 
 const router = useRouter();
+const route = useRoute();
 const branchStore = useBranchStore();
 const cartStore = useCartStore();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
+const themeStore = useThemeStore();
+const localeStore = useLocaleStore();
+const wishlistStore = useWishlistStore();
 
 const searchKeyword = ref('');
 const newsletterEmail = ref('');
@@ -663,11 +840,43 @@ const accountMenuOpen = ref(false);
 const branchMenuOpen = ref(false);
 const mobileNavOpen = ref(false);
 const shopDropdownOpen = ref(false);
+const businessInfo = ref(null);
+
+const shouldShowContactAboveFooter = computed(() => {
+  return !['/contact', '/checkout'].includes(route.path);
+});
 
 const activeBranchLabel = computed(() => {
   const b = branchStore.selectedBranch;
-  if (!b) return 'Main Branch - Addis Ababa';
+  if (!b) {
+    return localeStore.isAmharic ? 'ዋና ቅርንጫፍ - አዲስ አበባ' : 'Main Branch - Addis Ababa';
+  }
+  if (localeStore.isAmharic) {
+    const amNames = {
+      'Bole': 'ቦሌ',
+      'Megenagna': 'መገናኛ',
+      'Piassa': 'ፒያሳ',
+      'Main Branch': 'ዋና ቅርንጫፍ'
+    };
+    const am = amNames[b.branch_name] || b.branch_name;
+    return `${am} ቅርንጫፍ - አዲስ አበባ`;
+  }
   return `${b.branch_name} - Addis Ababa`;
+});
+
+const activeBranchLabelShort = computed(() => {
+  const b = branchStore.selectedBranch;
+  if (!b) return 'Bole';
+  if (localeStore.isAmharic) {
+    const amNames = {
+      'Bole': 'ቦሌ',
+      'Megenagna': 'መገናኛ',
+      'Piassa': 'ፒያሳ',
+      'Main Branch': 'ዋና'
+    };
+    return amNames[b.branch_name] || b.branch_name;
+  }
+  return b.branch_name;
 });
 
 function selectHeaderBranch(b) {
@@ -676,8 +885,25 @@ function selectHeaderBranch(b) {
   toastStore.info(`Branch switched to ${b.branch_name}`);
 }
 
+async function fetchBusinessInfo() {
+  try {
+    const res = await api.get('/business-info');
+    if (res.data) {
+      businessInfo.value = res.data;
+    }
+  } catch (err) {}
+}
+
 onMounted(() => {
   branchStore.fetchBranches();
+  fetchBusinessInfo();
+  wishlistStore.init();
+  if (window.location.hash) {
+    setTimeout(() => {
+      const el = document.querySelector(window.location.hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+  }
 });
 
 function handleSearch() {
@@ -686,18 +912,28 @@ function handleSearch() {
   }
 }
 
-function handleSubscribe() {
+async function handleSubscribe() {
   if (!newsletterEmail.value || !newsletterEmail.value.includes('@')) {
     toastStore.error('Please enter a valid email address.');
     return;
   }
-  toastStore.success('Thank you for subscribing to SweetBakes!');
-  newsletterEmail.value = '';
+  try {
+    await api.post('/newsletter/subscribe', { email: newsletterEmail.value.trim() });
+    toastStore.success('Thank you for subscribing to SweetBakes news & special offers!');
+    newsletterEmail.value = '';
+  } catch (err) {
+    toastStore.error(err.response?.data?.message || 'Subscription failed. Please try again.');
+  }
 }
 
 function goToSection(sectionId) {
-  if (window.location.pathname !== '/') {
-    router.push({ path: '/', hash: `#${sectionId}` });
+  if (route.path !== '/' && route.path !== '/home') {
+    router.push({ path: '/', hash: `#${sectionId}` }).then(() => {
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    });
   } else {
     const el = document.getElementById(sectionId);
     if (el) {

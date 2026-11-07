@@ -10,9 +10,17 @@ use App\Models\BranchInventory;
 use App\Models\InventoryTransaction;
 use App\Models\AuditLog;
 use App\Models\Notification;
+use App\Services\InventoryService;
+use App\Http\Requests\AdjustInventoryRequest;
 
 class InventoryController extends Controller
 {
+    protected InventoryService $inventoryService;
+
+    public function __construct(InventoryService $inventoryService)
+    {
+        $this->inventoryService = $inventoryService;
+    }
     public function index(Request $request)
     {
         OrderController::releaseExpiredReservations();
@@ -77,22 +85,10 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function adjust(Request $request)
+    public function adjust(AdjustInventoryRequest $request)
     {
         $user = $request->user();
-
-        // Permission check: Branch staff cannot adjust stock
-        if ($user && $user->role === 'Branch Staff') {
-            return response()->json(['message' => 'Branch staff are not permitted to adjust stock.'], 403);
-        }
-
-        $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,branch_id',
-            'product_id' => 'required|exists:products,product_id',
-            'type' => 'required|in:production,transfer_dispatch,transfer_receive,damaged,expired,manual_adjustment',
-            'quantity' => 'required|integer', // signed: -2, +50, etc.
-            'reason' => 'required|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $branch = Branch::findOrFail($validated['branch_id']);
 
@@ -101,98 +97,24 @@ class InventoryController extends Controller
             return response()->json(['message' => 'You can only adjust stock for your assigned branch.'], 403);
         }
 
-        // Production can only be received at the Main branch
-        if ($validated['type'] === 'production') {
-            if ($branch->branch_type !== 'Main') {
-                return response()->json(['message' => 'Production received can only be recorded at the Main Branch.'], 422);
-            }
-            if ($validated['quantity'] <= 0) {
-                return response()->json(['message' => 'Production received quantity must be greater than zero.'], 422);
-            }
-        }
+        try {
+            $result = $this->inventoryService->adjustStock(
+                (int) $validated['branch_id'],
+                (int) $validated['product_id'],
+                $validated['type'],
+                (int) $validated['quantity'],
+                $validated['reason'],
+                $user
+            );
 
-        // For damaged or expired write-offs, the delta must reduce on-hand
-        $qtyDelta = $validated['quantity'];
-        if (in_array($validated['type'], ['damaged', 'expired'])) {
-            $qtyDelta = -abs($validated['quantity']);
-        }
-
-        $result = DB::transaction(function () use ($validated, $user, $qtyDelta) {
-            $inventory = BranchInventory::where('branch_id', $validated['branch_id'])
-                ->where('product_id', $validated['product_id'])
-                ->lockForUpdate()
-                ->first();
-
-            if (!$inventory) {
-                $inventory = BranchInventory::create([
-                    'branch_id' => $validated['branch_id'],
-                    'product_id' => $validated['product_id'],
-                    'quantity_on_hand' => 0,
-                    'reserved_quantity' => 0,
-                    'reorder_level' => 10,
-                ]);
-            }
-
-            $oldOnHand = $inventory->quantity_on_hand;
-            $newOnHand = $oldOnHand + $qtyDelta;
-
-            // Strict Constraint: Manual adjustments cannot make on hand lower than reserved
-            if ($newOnHand < $inventory->reserved_quantity) {
-                abort(422, "Manual adjustments cannot make on hand ({$newOnHand}) lower than reserved ({$inventory->reserved_quantity}).");
-            }
-
-            if ($newOnHand < 0) {
-                abort(422, "On hand quantity cannot be negative.");
-            }
-
-            $inventory->quantity_on_hand = $newOnHand;
-            $inventory->save();
-
-            // Record transaction
-            $tx = InventoryTransaction::create([
-                'branch_id' => $validated['branch_id'],
-                'product_id' => $validated['product_id'],
-                'transaction_type' => $validated['type'],
-                'quantity' => $qtyDelta,
-                'reference_type' => 'manual',
-                'reason' => $validated['reason'],
-                'created_by' => $user?->user_id,
+            return response()->json([
+                'message' => 'Stock adjusted successfully',
+                'inventory' => $result['inventory'],
             ]);
-
-            // Low stock alert check
-            if ($inventory->available_quantity <= $inventory->reorder_level) {
-                Notification::create([
-                    'user_id' => null,
-                    'category' => 'Stock',
-                    'title' => 'Low stock',
-                    'message' => "{$inventory->branch->branch_name} has {$inventory->available_quantity} {$inventory->product->product_name} left (reorder level {$inventory->reorder_level}).",
-                    'link' => '/admin/inventory',
-                ]);
-            }
-
-            // Audit Log
-            $branch = Branch::find($validated['branch_id']);
-            $product = Product::find($validated['product_id']);
-
-            AuditLog::create([
-                'user_id' => $user?->user_id,
-                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Admin',
-                'action' => 'Stock adjustment',
-                'record' => "{$branch->branch_name} · {$product->product_name}",
-                'entity_type' => 'BranchInventory',
-                'entity_id' => (string) $inventory->inventory_id,
-                'old_value' => (string) $oldOnHand,
-                'new_value' => "{$newOnHand} ({$validated['type']}, signed: {$qtyDelta})",
-                'created_at' => now(),
-            ]);
-
-            return $inventory;
-        });
-
-        return response()->json([
-            'message' => 'Stock adjusted successfully',
-            'inventory' => $result,
-        ]);
+        } catch (\Exception $e) {
+            $status = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;
+            return response()->json(['message' => $e->getMessage()], $status);
+        }
     }
 
     public function transactions(Request $request)

@@ -11,6 +11,7 @@ use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\Branch;
 use App\Models\Product;
+use App\Models\User;
 use App\Models\BranchInventory;
 use App\Models\InventoryTransaction;
 use App\Models\AuditLog;
@@ -18,9 +19,20 @@ use App\Models\Notification;
 use App\Models\DeliveryZone;
 use App\Models\AppSetting;
 use Carbon\Carbon;
+use App\Services\OrderService;
+use App\Services\InventoryService;
+use App\Http\Requests\StoreOrderRequest;
 
 class OrderController extends Controller
 {
+    protected OrderService $orderService;
+    protected InventoryService $inventoryService;
+
+    public function __construct(OrderService $orderService, InventoryService $inventoryService)
+    {
+        $this->orderService = $orderService;
+        $this->inventoryService = $inventoryService;
+    }
     /**
      * List orders scoped by role, branch, and status
      */
@@ -29,18 +41,31 @@ class OrderController extends Controller
         self::releaseExpiredReservations();
 
         $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'orders' => [],
+                'pending_count' => 0,
+            ]);
+        }
+
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
         // Scoping rule: branch admin / staff see only their branch. Super Admin and Main Manager see all.
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+            $query->where('branch_id', $userBranchId);
         } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
 
         // Customer scoping: see own account orders
         if ($user && $user->role === 'Customer') {
-            $query->where('user_id', $user->user_id);
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->user_id);
+                if (!empty($user->phone)) {
+                    $q->orWhere('customer_phone', $user->phone);
+                }
+            });
         }
 
         // Status filter
@@ -58,6 +83,8 @@ class OrderController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%")
                   ->orWhereHas('user', function ($uq) use ($search) {
                       $uq->where('phone', 'like', "%{$search}%")
                          ->orWhere('full_name', 'like', "%{$search}%");
@@ -74,8 +101,8 @@ class OrderController extends Controller
 
         // Calculate pending count respecting branch scoping
         $countQuery = Order::query();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $countQuery->where('branch_id', $user->branch_id);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+            $countQuery->where('branch_id', $userBranchId);
         }
         $pendingCount = (clone $countQuery)->where('order_status', 'Pending')->count();
 
@@ -96,8 +123,13 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $user = request()->user();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $order->branch_id != $user->branch_id) {
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId && $order->branch_id != $userBranchId) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
+        }
+
+        if ($user && $user->role === 'Customer' && $order->user_id && $order->user_id != $user->user_id) {
+            return response()->json(['message' => 'Access denied: You can only view your own orders.'], 403);
         }
 
         return response()->json($order);
@@ -112,261 +144,21 @@ class OrderController extends Controller
      * - Snapshot product name and unit price at time of purchase.
      * - Online payment orders start as Pending awaiting signed webhook.
      */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request)
     {
-        self::releaseExpiredReservations();
-
         $user = $request->user();
-
-        // Idempotency guard: Prevent duplicate order submissions
         $idempotencyKey = $request->header('Idempotency-Key') ?? $request->input('idempotency_key');
-        if ($idempotencyKey) {
-            $cachedOrderId = Cache::get("order_idempotency:{$idempotencyKey}");
-            if ($cachedOrderId) {
-                $existingOrder = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory'])->find($cachedOrderId);
-                if ($existingOrder) {
-                    return response()->json($existingOrder, 200, [
-                        'X-Idempotent-Replay' => 'true',
-                    ]);
-                }
-            }
+
+        try {
+            $result = $this->orderService->createOrder($request->validated(), $user, $idempotencyKey);
+            $status = $result['is_replay'] ? 200 : 201;
+            $headers = $result['is_replay'] ? ['X-Idempotent-Replay' => 'true'] : [];
+
+            return response()->json($result['order'], $status, $headers);
+        } catch (\Exception $e) {
+            $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;
+            return response()->json(['message' => $e->getMessage()], $code);
         }
-
-        // Harmonize field aliases from storefront
-        if (!$request->has('fulfillment_method') && $request->has('order_type')) {
-            $request->merge(['fulfillment_method' => $request->order_type]);
-        }
-        if ($request->has('payment_method') || $request->has('payment_type')) {
-            $rawPayment = $request->input('payment_method') ?? $request->input('payment_type');
-            $mappedPayment = match ($rawPayment) {
-                'Online', 'online', 'Chapa', 'chapa' => 'Chapa',
-                'Telebirr', 'telebirr' => 'Telebirr',
-                'Pickup', 'Pay on pickup', 'pay_on_pickup' => 'Pay on pickup',
-                'Cash on Delivery', 'COD', 'cod', 'Pay on delivery', 'pay_on_delivery' => 'Pay on delivery',
-                default => 'Pay on delivery',
-            };
-            $request->merge(['payment_method' => $mappedPayment]);
-        }
-
-        $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,branch_id',
-            'fulfillment_method' => 'required|in:Delivery,Pickup',
-            'address_id' => 'nullable|exists:addresses,address_id',
-            'delivery_address' => 'nullable|string',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,product_id',
-            'items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:Chapa,Telebirr,Pay on pickup,Pay on delivery',
-            'promo_code' => 'nullable|string|max:50',
-            'promotion_code' => 'nullable|string|max:50',
-        ]);
-
-        $branch = Branch::findOrFail($validated['branch_id']);
-        if ($branch->status !== 'Active') {
-            return response()->json(['message' => 'Selected branch is currently inactive.'], 422);
-        }
-
-        // Auto-create or resolve address if delivery
-        if ($validated['fulfillment_method'] === 'Delivery' && empty($validated['address_id'])) {
-            $address = \App\Models\Address::create([
-                'user_id' => $user?->user_id ?? 8,
-                'city' => $request->city ?? 'Addis Ababa',
-                'region' => $branch->branch_name,
-                'street' => $request->delivery_address ?? 'Bole Road, Addis Ababa',
-                'notes' => $request->order_notes ?? 'Deliver to doorstep',
-                'is_default' => true,
-            ]);
-            $validated['address_id'] = $address->address_id;
-        }
-
-        $deliveryFee = 0.00;
-        if ($validated['fulfillment_method'] === 'Delivery') {
-            if ($request->filled('zone_id') || $request->filled('delivery_zone_id')) {
-                $zoneId = $request->input('zone_id') ?? $request->input('delivery_zone_id');
-                $zone = DeliveryZone::where('branch_id', $branch->branch_id)
-                    ->where('zone_id', $zoneId)
-                    ->where('status', 'Active')
-                    ->first();
-                if (!$zone) {
-                    return response()->json(['message' => 'The selected delivery zone is not an active delivery zone for this branch.'], 422);
-                }
-                $deliveryFee = (float) $zone->delivery_fee;
-            } else {
-                $activeZone = DeliveryZone::where('branch_id', $branch->branch_id)->where('status', 'Active')->first();
-                if (!$activeZone) {
-                    return response()->json(['message' => "{$branch->branch_name} does not have active delivery zones. Please select Shop Pickup or another branch."], 422);
-                }
-                $deliveryFee = (float) $activeZone->delivery_fee;
-            }
-        }
-
-        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $user, $request) {
-            // 1. Generate Order Number
-            $rand = mt_rand(1000, 9999);
-            $orderNumber = "ORD-{$rand}";
-            while (Order::where('order_number', $orderNumber)->exists()) {
-                $orderNumber = "ORD-" . mt_rand(1000, 9999);
-            }
-
-            // 2. Validate Stock Availability with Row Locks
-            $subtotal = 0;
-            $itemsData = [];
-
-            foreach ($validated['items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $qty = (int) $item['quantity'];
-
-                $inv = BranchInventory::where('branch_id', $branch->branch_id)
-                    ->where('product_id', $product->product_id)
-                    ->lockForUpdate()
-                    ->first();
-
-                $available = $inv ? max(0, $inv->quantity_on_hand - $inv->reserved_quantity) : 0;
-
-                if ($available < $qty) {
-                    abort(422, "Insufficient stock for {$product->product_name} at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.");
-                }
-
-                // Reserve stock
-                $inv->reserved_quantity += $qty;
-                $inv->save();
-
-                // Low stock alert check: notify branch admin and Main Manager if stock reaches reorder level
-                if ($inv->available_quantity <= $inv->reorder_level) {
-                    Notification::create([
-                        'user_id' => null,
-                        'category' => 'Stock',
-                        'title' => 'Low stock',
-                        'message' => "{$branch->branch_name} has {$inv->available_quantity} {$product->product_name} left (at or below reorder level {$inv->reorder_level}).",
-                        'link' => '/admin/inventory',
-                    ]);
-                }
-
-                // Snapshot price (branch override if exists, else base price)
-                $unitPrice = $product->getPriceForBranch($branch->branch_id);
-                $lineTotal = $unitPrice * $qty;
-                $subtotal += $lineTotal;
-
-                $itemsData[] = [
-                    'product_id' => $product->product_id,
-                    'product_name' => $product->product_name,
-                    'quantity' => $qty,
-                    'unit_price' => $unitPrice,
-                    'subtotal' => $lineTotal,
-                ];
-
-                InventoryTransaction::create([
-                    'branch_id' => $branch->branch_id,
-                    'product_id' => $product->product_id,
-                    'transaction_type' => 'order_placed',
-                    'quantity' => $qty,
-                    'reference_type' => 'Order',
-                    'reason' => "Stock reserved for order {$orderNumber}",
-                    'created_by' => $user?->user_id,
-                ]);
-            }
-
-            // Dynamic promotion code discount validation from MySQL promotions table
-            $discountAmount = 0.00;
-            $rawPromoCode = strtoupper(trim($request->input('promo_code') ?? $request->input('promotion_code') ?? ''));
-            if (!empty($rawPromoCode)) {
-                $promo = \App\Models\Promotion::whereRaw('UPPER(promotion_name) = ?', [$rawPromoCode])
-                    ->where('status', 'Active')
-                    ->first();
-                if ($promo) {
-                    $today = \Carbon\Carbon::today();
-                    $isDateValid = (!$promo->start_date || \Carbon\Carbon::parse($promo->start_date)->startOfDay()->lte($today)) &&
-                                   (!$promo->end_date || \Carbon\Carbon::parse($promo->end_date)->endOfDay()->gte($today));
-                    if ($isDateValid) {
-                        if ($promo->discount_type === 'percentage') {
-                            $discountAmount = round(($subtotal * (float) $promo->discount_value) / 100, 2);
-                        } else {
-                            $discountAmount = min($subtotal, (float) $promo->discount_value);
-                        }
-                    }
-                }
-            }
-
-            $totalAmount = max(0, ($subtotal - $discountAmount) + $deliveryFee);
-
-            // Online payments start as Pending. Pay on pickup/delivery start as Confirmed.
-            $isOnline = in_array($validated['payment_method'], ['Chapa', 'Telebirr']);
-            $initialStatus = $isOnline ? 'Pending' : 'Confirmed';
-
-            $order = Order::create([
-                'order_number' => $orderNumber,
-                'user_id' => $user?->user_id ?? 1,
-                'branch_id' => $branch->branch_id,
-                'address_id' => $validated['address_id'] ?? null,
-                'fulfillment_method' => $validated['fulfillment_method'],
-                'order_status' => $initialStatus,
-                'delivery_fee' => $deliveryFee,
-                'discount_amount' => $discountAmount,
-                'total_amount' => $totalAmount,
-                'placed_at' => now(),
-            ]);
-
-            foreach ($itemsData as $item) {
-                OrderItem::create([
-                    'order_id' => $order->order_id,
-                    'product_id' => $item['product_id'],
-                    'product_name' => $item['product_name'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'subtotal' => $item['subtotal'],
-                ]);
-            }
-
-            // Order status history
-            OrderStatusHistory::create([
-                'order_id' => $order->order_id,
-                'old_status' => null,
-                'new_status' => $initialStatus,
-                'changed_by' => $user?->user_id,
-                'note' => $isOnline ? 'Order placed, awaiting payment confirmation' : 'Order placed, accepted for pay-on-pickup/delivery',
-                'changed_at' => now(),
-            ]);
-
-            // Payment record: Online payments start as Pending with gateway transaction reference
-            $txPrefix = $validated['payment_method'] === 'Chapa' ? 'CH-' : ($validated['payment_method'] === 'Telebirr' ? 'TB-' : 'PAY-');
-            $txRef = $isOnline ? ($txPrefix . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6))) : null;
-
-            Payment::create([
-                'order_id' => $order->order_id,
-                'payment_method' => $validated['payment_method'],
-                'amount' => $totalAmount,
-                'payment_status' => 'Pending',
-                'transaction_reference' => $txRef,
-            ]);
-
-            AuditLog::create([
-                'user_id' => $user?->user_id,
-                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
-                'action' => 'Order created',
-                'record' => $orderNumber,
-                'entity_type' => 'Order',
-                'entity_id' => (string) $order->order_id,
-                'old_value' => '—',
-                'new_value' => $initialStatus . ' (ETB ' . number_format($totalAmount, 0) . ')',
-                'created_at' => now(),
-            ]);
-
-            Notification::create([
-                'user_id' => null,
-                'category' => 'Orders',
-                'title' => "New Order {$orderNumber}",
-                'message' => "Order {$orderNumber} placed for {$branch->branch_name} (ETB " . number_format($totalAmount, 0) . ")",
-                'link' => '/admin/orders',
-            ]);
-
-            return $order;
-        });
-
-        if ($idempotencyKey) {
-            Cache::put("order_idempotency:{$idempotencyKey}", $order->order_id, now()->addMinutes(15));
-        }
-
-        return response()->json($order->load(['branch', 'items.product', 'payment']), 201);
     }
 
     /**
@@ -781,6 +573,111 @@ class OrderController extends Controller
         return response()->json([
             'message' => "Successfully released reservations for {$count} expired orders.",
             'released_count' => $count,
+        ]);
+    }
+
+    /**
+     * Delete/archive a finished order from history (Customer or Admin)
+     */
+    public function destroy(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $tokenString = $request->bearerToken();
+            if ($tokenString) {
+                $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                $user = $token?->tokenable;
+            }
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $order = Order::where('order_id', $id)
+            ->orWhere('order_number', $id)
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        // Customer scoping: Customers can only delete their own orders
+        if ($user->role === 'Customer') {
+            $isOwner = ($order->user_id && $order->user_id == $user->user_id) ||
+                       (!empty($user->phone) && $order->customer_phone === $user->phone);
+            if (!$isOwner) {
+                return response()->json(['message' => 'Access denied: You can only remove your own orders from history.'], 403);
+            }
+        } elseif (in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $order->branch_id != $user->branch_id) {
+            return response()->json(['message' => 'Access denied: You can only manage orders for your assigned branch.'], 403);
+        }
+
+        // Rule: Only finished orders (Completed, Delivered, Cancelled) can be removed from history
+        $finishedStatuses = ['Completed', 'Delivered', 'Cancelled'];
+        if (!in_array($order->order_status, $finishedStatuses) && $user->role !== 'Super Admin') {
+            return response()->json([
+                'message' => "Active order #{$order->order_number} is currently '{$order->order_status}' and cannot be deleted until it is Completed or Cancelled."
+            ], 422);
+        }
+
+        $orderNumber = $order->order_number;
+        $order->delete(); // Soft deletes the order record
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (' . $user->role . ')',
+            'action' => 'Order history deleted',
+            'record' => $orderNumber,
+            'entity_type' => 'Order',
+            'entity_id' => (string) $order->order_id,
+            'old_value' => $order->order_status,
+            'new_value' => 'Deleted from customer view (Archived)',
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Order #{$orderNumber} successfully removed from your order history.",
+            'order_id' => $order->order_id,
+            'order_number' => $orderNumber,
+        ], 200);
+    }
+
+    /**
+     * Clear all finished (Completed/Cancelled) orders for the customer
+     */
+    public function clearFinishedHistory(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $tokenString = $request->bearerToken();
+            if ($tokenString) {
+                $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                $user = $token?->tokenable;
+            }
+        }
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $query = Order::whereIn('order_status', ['Completed', 'Delivered', 'Cancelled']);
+
+        if ($user->role === 'Customer') {
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->user_id);
+                if (!empty($user->phone)) {
+                    $q->orWhere('customer_phone', $user->phone);
+                }
+            });
+        }
+
+        $count = $query->count();
+        $query->delete(); // Soft-deletes matching finished orders
+
+        return response()->json([
+            'message' => "Cleared {$count} finished orders from your order history.",
+            'cleared_count' => $count,
         ]);
     }
 }

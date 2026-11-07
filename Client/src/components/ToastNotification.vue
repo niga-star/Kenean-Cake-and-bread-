@@ -11,11 +11,11 @@
       <div
         v-for="toast in toastStore.toasts"
         :key="toast.id"
-        class="pointer-events-auto bg-white rounded-2xl shadow-xl border border-[#E6DED3] p-4 flex items-start space-x-3 transition-all"
+        class="pointer-events-auto bg-white dark:bg-[#1E120B] rounded-2xl shadow-xl border border-gray-200 dark:border-[#382318] p-4 flex items-start space-x-3 transition-all"
         :class="{
           'border-l-4 border-l-[#387A54]': toast.type === 'success',
           'border-l-4 border-l-[#B84B42]': toast.type === 'error',
-          'border-l-4 border-l-[#A87552]': toast.type === 'info',
+          'border-l-4 border-l-[#DE1B54]': toast.type === 'info',
         }"
       >
         <span class="text-lg shrink-0">
@@ -23,12 +23,12 @@
           <span v-else-if="toast.type === 'error'">⚠️</span>
           <span v-else>💡</span>
         </span>
-        <div class="flex-1 text-xs font-medium text-[#29231F] pt-0.5 leading-relaxed">
+        <div class="flex-1 text-xs font-medium text-[#29231F] dark:text-[#FAF3EE] pt-0.5 leading-relaxed">
           {{ toast.message }}
         </div>
         <button
           @click="toastStore.remove(toast.id)"
-          class="text-[#786B60] hover:text-[#29231F] text-sm leading-none shrink-0 cursor-pointer p-0.5"
+          class="text-[#786B60] dark:text-[#C5B7AF] hover:text-[#DE1B54] text-sm leading-none shrink-0 cursor-pointer p-0.5"
         >
           ✕
         </button>

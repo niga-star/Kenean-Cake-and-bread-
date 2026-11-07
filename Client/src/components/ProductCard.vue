@@ -1,22 +1,35 @@
 <template>
-  <div class="group bg-white rounded-2xl border border-[#E6DED3] overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full hover:border-[#A87552]/50">
-    <!-- Image Container with Hover Zoom -->
-    <div class="relative aspect-4/3 overflow-hidden bg-[#E8D8C4]/40">
+  <div class="group bg-white dark:bg-[#1C120C] rounded-2xl border border-[#E6DED3] dark:border-[#3D2619] overflow-hidden hover:shadow-xl hover:shadow-rose-500/5 transition-all duration-300 flex flex-col h-full hover:border-[#DE1B54]/50">
+    <!-- Image Container with Hover Zoom & Shimmer Placeholder -->
+    <div class="relative aspect-4/3 overflow-hidden bg-[#F0E8DF] dark:bg-[#25150E]" :class="{ 'shimmer-wave': !imageLoaded }">
       <img
         :src="productImage"
         :alt="product.product_name"
-        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+        :class="imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'"
         loading="lazy"
+        @load="imageLoaded = true"
         @error="onImageError"
       />
       <!-- Category Badge -->
-      <span class="absolute top-3 left-3 bg-[#F8F3EA]/90 backdrop-blur-xs text-[#553B2D] text-[11px] font-bold px-2.5 py-1 rounded-full border border-[#E6DED3] shadow-xs">
+      <span class="absolute top-3 left-3 bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs text-[#2A1810] dark:text-[#E8DED8] text-[11px] font-bold px-2.5 py-1 rounded-full border border-gray-200 dark:border-[#3D2619] shadow-xs">
         {{ product.category?.category_name || product.category_name || 'Artisan' }}
       </span>
 
-      <!-- Availability Badge -->
+      <!-- Heart Wishlist Button (Top Right) -->
+      <button
+        type="button"
+        @click.stop="handleToggleWishlist"
+        class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs flex items-center justify-center text-xs shadow-xs hover:scale-110 transition cursor-pointer z-10 border border-gray-200 dark:border-[#3D2619]"
+        :class="isWishlisted ? 'text-[#DE1B54]' : 'text-gray-400 hover:text-[#DE1B54]'"
+        title="Add to Wishlist"
+      >
+        <span>{{ isWishlisted ? '♥' : '♡' }}</span>
+      </button>
+
+      <!-- Availability Badge (Bottom Right) -->
       <span
-        class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs"
+        class="absolute bottom-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs backdrop-blur-xs"
         :class="stockStatusClasses"
       >
         {{ stockStatusText }}
@@ -34,38 +47,40 @@
     </div>
 
     <!-- Content -->
-    <div class="p-4 flex flex-col flex-1 justify-between space-y-3">
+    <div class="p-3.5 sm:p-4 flex flex-col flex-1 justify-between space-y-3">
       <div>
         <div class="flex items-baseline justify-between gap-2 mb-1">
-          <router-link :to="`/product/${product.product_id}`" class="text-sm font-serif font-bold text-[#29231F] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
+          <router-link :to="`/product/${product.product_id}`" class="text-sm font-serif font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
             {{ product.product_name }}
           </router-link>
         </div>
 
-        <!-- Star rating row -->
+        <!-- Star rating row from real database reviews -->
         <div class="flex items-center space-x-1.5 text-xs mb-2">
-          <span class="text-amber-400 tracking-tighter">★★★★★</span>
-          <span class="text-gray-700 text-[11px] font-bold">4.8</span>
-          <span class="text-gray-400 text-[10px]">(90+ reviews)</span>
+          <span class="text-amber-400 tracking-tighter">
+            <span v-for="s in 5" :key="s" :class="s <= Math.round(ratingNumber) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
+          </span>
+          <span class="text-gray-700 dark:text-gray-300 text-[11px] font-bold">{{ ratingNumber > 0 ? ratingNumber.toFixed(1) : '—' }}</span>
+          <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ reviewCountNumber }} {{ reviewCountNumber === 1 ? 'review' : 'reviews' }})</span>
         </div>
 
-        <p class="text-xs text-[#786B60] line-clamp-2 leading-relaxed">
+        <p class="text-xs text-[#786B60] dark:text-[#B3A69C] line-clamp-2 leading-relaxed">
           {{ product.description || 'Handcrafted daily with premium unbleached flour, natural sourdough yeast, and finest ingredients.' }}
         </p>
       </div>
 
-      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-3">
+      <div class="pt-3 border-t border-gray-100 dark:border-[#331E14] flex items-center justify-between gap-2 sm:gap-3">
         <div>
-          <div class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">Price</div>
-          <div class="text-base font-black text-[#DE1B54]">
+          <div class="text-[9px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold">Price</div>
+          <div class="text-sm sm:text-base font-black text-[#DE1B54]">
             ETB {{ displayPrice.toLocaleString() }}
           </div>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-1.5 sm:space-x-2">
           <router-link
             :to="`/product/${product.product_id}`"
-            class="p-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-rose-50 hover:text-[#DE1B54] hover:border-[#DE1B54] transition cursor-pointer"
+            class="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-[#3D2619] text-gray-700 dark:text-[#E8DED8] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] hover:border-[#DE1B54] transition cursor-pointer"
             title="View Details"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,9 +92,9 @@
           <button
             @click="handleAddToCart"
             :disabled="isOutOfStock || isAdding"
-            class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+            class="min-h-[40px] flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
             :class="isOutOfStock 
-              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+              ? 'bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed' 
               : 'bg-[#DE1B54] hover:bg-[#C51345] text-white active:scale-95'"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,7 +111,9 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useCartStore } from '../stores/cart';
+import { useBranchStore } from '../stores/branch';
 import { useToastStore } from '../stores/toast';
+import { useWishlistStore } from '../stores/wishlist';
 
 const props = defineProps({
   product: {
@@ -110,20 +127,48 @@ const props = defineProps({
 });
 
 const cartStore = useCartStore();
+const branchStore = useBranchStore();
 const toastStore = useToastStore();
+const wishlistStore = useWishlistStore();
 const isAdding = ref(false);
+const imageLoaded = ref(false);
+
+const isWishlisted = computed(() => {
+  return wishlistStore.isWishlisted(props.product.product_id);
+});
+
+async function handleToggleWishlist() {
+  const res = await wishlistStore.toggleWishlist(props.product);
+  if (res.wishlisted) {
+    toastStore.success(`Added "${props.product.product_name}" to your favorites!`);
+  } else {
+    toastStore.info(`Removed "${props.product.product_name}" from favorites.`);
+  }
+}
 
 const displayPrice = computed(() => {
   return Number(props.product.resolved_price ?? props.product.price ?? props.product.base_price ?? 0);
 });
 
+const ratingNumber = computed(() => {
+  return Number(props.product.rating ?? 0);
+});
+
+const reviewCountNumber = computed(() => {
+  return Number(props.product.reviews_count ?? props.product.reviews ?? 0);
+});
+
 const stockNumber = computed(() => {
-  if (props.availableStock !== null) return props.availableStock;
-  return Number(props.product.available_stock ?? props.product.quantity_available ?? 25);
+  if (props.availableStock !== null && props.availableStock !== undefined) return Number(props.availableStock);
+  if (props.product.available !== undefined && props.product.available !== null) return Number(props.product.available);
+  if (props.product.available_stock !== undefined && props.product.available_stock !== null) return Number(props.product.available_stock);
+  if (props.product.quantity_available !== undefined && props.product.quantity_available !== null) return Number(props.product.quantity_available);
+  if (props.product.on_hand !== undefined && props.product.on_hand !== null) return Math.max(0, Number(props.product.on_hand) - Number(props.product.reserved || 0));
+  return 0;
 });
 
 const isOutOfStock = computed(() => {
-  return stockNumber.value <= 0;
+  return stockNumber.value <= 0 || props.product.stock_status === 'Sold out' || props.product.isSoldOut === true;
 });
 
 const stockStatusClasses = computed(() => {
@@ -161,15 +206,19 @@ function handleAddToCart() {
   if (isOutOfStock.value) return;
 
   isAdding.value = true;
-  const res = cartStore.addItem({
-    product_id: props.product.product_id,
-    product_name: props.product.product_name,
-    price: displayPrice.value,
-    image_url: productImage.value,
-    quantity: 1,
-    available: stockNumber.value,
-    available_stock: stockNumber.value,
-  });
+  const res = cartStore.addItem(
+    {
+      product_id: props.product.product_id,
+      product_name: props.product.product_name,
+      price: displayPrice.value,
+      image_url: productImage.value,
+      quantity: 1,
+      available: stockNumber.value,
+      available_stock: stockNumber.value,
+      isSoldOut: isOutOfStock.value,
+    },
+    branchStore.selectedBranchId
+  );
 
   if (res && res.reason === 'capped') {
     toastStore.warning(res.message);
