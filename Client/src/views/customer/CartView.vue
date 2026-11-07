@@ -121,21 +121,14 @@
     </div>
 
     <!-- Empty State -->
-    <div v-if="cartStore.items.length === 0" class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-8 sm:p-16 text-center space-y-4 shadow-2xs">
-      <div class="text-5xl">🥐</div>
-      <h2 class="text-2xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.t('empty_bag_checkout') }}</h2>
-      <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF] max-w-sm mx-auto leading-relaxed">
-        {{ localeStore.t('empty_bag_drawer_desc') }}
-      </p>
-      <div class="pt-2">
-        <router-link
-          to="/shop"
-          class="inline-block px-8 py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-md transition active:scale-95"
-        >
-          {{ localeStore.t('explore_all') }} →
-        </router-link>
-      </div>
-    </div>
+    <EmptyState
+      v-if="cartStore.items.length === 0"
+      icon="🥐"
+      :title="localeStore.t('empty_bag_checkout')"
+      :description="localeStore.t('empty_bag_drawer_desc')"
+      :actionLabel="localeStore.t('explore_all')"
+      actionLink="/shop"
+    />
 
     <!-- Cart Layout Grid: Items Table & Summary -->
     <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -165,10 +158,12 @@
                     <img
                       :src="item.image_url || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=160'"
                       :alt="item.product_name"
+                      loading="lazy"
+                      decoding="async"
                       class="w-16 h-16 rounded-2xl object-cover shrink-0 border border-[#E6DED3] dark:border-[#382318] bg-[#E8D8C4]/30"
                     />
                     <div>
-                      <h3 class="font-serif font-bold text-sm text-[#29231F] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</h3>
+                      <h3 class="font-product font-bold text-sm text-[#29231F] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</h3>
                       <div class="text-xs font-bold text-[#A87552] dark:text-rose-400 mt-0.5">
                         {{ localeStore.formatPrice(item.price) }}
                       </div>
@@ -229,11 +224,13 @@
                   <img
                     :src="item.image_url || 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=160'"
                     :alt="item.product_name"
+                    loading="lazy"
+                    decoding="async"
                     class="w-16 h-16 rounded-2xl object-cover shrink-0 border border-gray-200 dark:border-[#382318] bg-[#E8D8C4]/30"
                     :class="(item.available_stock ?? item.available ?? 1) <= 0 ? 'grayscale-50' : ''"
                   />
                   <div>
-                    <h3 class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</h3>
+                    <h3 class="font-product font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</h3>
                     <div v-if="(item.available_stock ?? item.available ?? 1) > 0" class="text-[11px] text-[#387A54] dark:text-emerald-400 font-medium mt-0.5">
                       ✓ {{ localeStore.isAmharic ? `${item.available_stock ?? item.available} በክምችት አለ` : `Available (${item.available_stock ?? item.available} in stock)` }}
                     </div>
@@ -428,25 +425,22 @@
           <router-link
             v-else
             to="/checkout"
-            class="block w-full py-4 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98"
+            class="block w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98"
           >
-            {{ localeStore.t('checkout_btn') }} →
+            {{ localeStore.isAmharic ? 'ትዕዛዝ ያጠናቁ' : 'PROCEED TO CHECKOUT' }} →
           </router-link>
 
           <router-link
             to="/shop"
-            class="block w-full py-2.5 min-h-[40px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-2xl text-center shadow-2xs transition"
+            class="block w-full py-3.5 min-h-[46px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] text-xs sm:text-sm font-bold rounded-2xl text-center shadow-xs transition"
           >
             {{ localeStore.t('add_more_items') }}
           </router-link>
         </div>
 
-        <div class="pt-2 text-[11px] text-[#786B60] dark:text-[#C5B7AF] text-center space-y-1">
-          <div class="flex items-center justify-center space-x-1 text-[#387A54] dark:text-emerald-400 font-semibold">
-            <span>🛡️</span>
-            <span>{{ localeStore.t('safe_encrypted_checkout') }}</span>
-          </div>
-          <div>{{ localeStore.t('payment_methods_sub') }}</div>
+        <div class="pt-2 text-[11px] text-[#786B60] dark:text-[#C5B7AF] text-center flex items-center justify-center space-x-1.5">
+          <span>🔒</span>
+          <span>{{ localeStore.isAmharic ? 'በቴሌብር፣ በቻፓ እና በጥሬ ገንዘብ የተጠበቀ ክፍያ' : 'Encrypted telebirr, Chapa & cash checkout' }}</span>
         </div>
       </div>
     </div>
@@ -455,6 +449,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import EmptyState from '../../components/EmptyState.vue';
 import api from '../../api';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
