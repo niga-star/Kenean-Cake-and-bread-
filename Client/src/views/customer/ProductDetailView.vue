@@ -10,7 +10,7 @@
           </svg>
         </router-link>
         <span class="text-gray-300 dark:text-gray-600">&gt;</span>
-        <router-link to="/shop" class="hover:text-[#DE1B54] transition">Shop</router-link>
+        <router-link to="/shop" class="hover:text-[#DE1B54] transition">{{ localeStore.t('shop') }}</router-link>
         <span class="text-gray-300 dark:text-gray-600">&gt;</span>
         <router-link :to="`/shop?category=${encodeURIComponent(categoryName)}`" class="hover:text-[#DE1B54] transition">
           {{ categoryName }}
@@ -42,15 +42,15 @@
       <!-- Empty / Not Found State when product doesn't exist -->
       <div v-else-if="!product" class="text-center py-20 px-4 rounded-3xl bg-rose-50/30 dark:bg-[#1E120B] border border-rose-100 dark:border-[#382318] max-w-lg mx-auto space-y-4 my-8">
         <span class="text-5xl block">🎂</span>
-        <h2 class="font-serif font-black text-2xl text-[#2A1810] dark:text-[#FAF3EE]">Product Unavailable</h2>
+        <h2 class="font-serif font-black text-2xl text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምርቱ አልተገኘም' : 'Product Unavailable' }}</h2>
         <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
-          This bakery item could not be found or is not currently active at this branch.
+          {{ localeStore.isAmharic ? 'ይህ ምርት በዚህ ቅርንጫፍ አልተገኘም ወይም ለጊዜው አቁሟል::' : 'This bakery item could not be found or is not currently active at this branch.' }}
         </p>
         <router-link
           to="/shop"
           class="inline-flex items-center space-x-2 px-6 py-3 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-full shadow-md transition active:scale-95 cursor-pointer"
         >
-          <span>Return to Bakery Shop</span>
+          <span>{{ localeStore.isAmharic ? 'ወደ ዳቦ ቤት ሱቅ ይመለሱ' : 'Return to Bakery Shop' }}</span>
           <span>&rarr;</span>
         </router-link>
       </div>
@@ -83,7 +83,7 @@
           <div class="relative w-full aspect-4/3 sm:aspect-5/4 rounded-2xl overflow-hidden bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200/80 dark:border-[#382318] shadow-xs group" :class="{ 'shimmer-wave': !mainImgLoaded }">
             <!-- Top-Left: "Best Seller" Badge -->
             <span class="absolute top-3 left-3 z-10 bg-[#DE1B54] text-white text-[11px] font-bold px-3 py-1 rounded-md shadow-2xs tracking-wide">
-              Best Seller
+              {{ localeStore.isAmharic ? 'ተወዳጅ ምርት' : 'Best Seller' }}
             </span>
 
             <!-- Top-Right: Wishlist Heart Button -->
@@ -103,7 +103,7 @@
               class="absolute bottom-3 left-3 z-10 bg-emerald-800/90 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xs flex items-center space-x-1"
             >
               <span>🌿</span>
-              <span>Ye'Tsom (ጾም)</span>
+              <span>{{ localeStore.isAmharic ? 'የጾም' : "Ye'Tsom (ጾም)" }}</span>
             </span>
 
             <!-- Main Cake Image with Smooth Fade-in -->
@@ -125,7 +125,7 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
               </svg>
-              <span>View Larger</span>
+              <span>{{ localeStore.isAmharic ? 'በትልቁ ይመልከቱ' : 'View Larger' }}</span>
             </button>
           </div>
         </div>
@@ -145,7 +145,7 @@
                 <span v-for="s in 5" :key="s" :class="s <= Math.round(Number(averageScore) || 0) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
               </span>
               <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-xs">{{ Number(averageScore || 0).toFixed(1) }}</span>
-              <span class="text-gray-400 dark:text-gray-500 font-normal">({{ reviewCount }} {{ reviewCount === 1 ? 'Review' : 'Reviews' }})</span>
+              <span class="text-gray-400 dark:text-gray-500 font-normal">({{ reviewCount }} {{ localeStore.isAmharic ? 'አስተያየት' : (reviewCount === 1 ? 'Review' : 'Reviews') }})</span>
             </div>
 
             <span class="text-gray-300 dark:text-gray-600">|</span>
@@ -155,24 +155,24 @@
               v-if="(product?.available ?? 0) > 0"
               class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EAF7EE] text-[#2E7D32] border border-[#C6EBD0]"
             >
-              <span>In Stock</span>
+              <span>{{ localeStore.isAmharic ? 'በክምችት አለ' : 'In Stock' }}</span>
               <span>✔</span>
             </span>
             <span
               v-else
               class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-[#DE1B54] border border-rose-200"
             >
-              <span>Sold Out</span>
+              <span>{{ localeStore.isAmharic ? 'አልቋል' : 'Sold Out' }}</span>
             </span>
           </div>
 
           <!-- Price Row with Crossed Out & Discount Tag -->
           <div class="flex items-center space-x-3 pt-1">
             <span class="text-xl sm:text-3xl font-black text-[#DE1B54]">
-              ETB {{ currentPrice.toLocaleString() }}
+              {{ localeStore.formatPrice(currentPrice) }}
             </span>
             <span v-if="originalPrice" class="text-xs sm:text-base text-gray-400 dark:text-gray-500 line-through">
-              ETB {{ originalPrice.toLocaleString() }}
+              {{ localeStore.formatPrice(originalPrice) }}
             </span>
             <span v-if="discountBadge" class="bg-[#DE1B54] text-white text-xs font-bold px-2 py-0.5 rounded-md">
               {{ discountBadge }}
@@ -188,15 +188,15 @@
           <div v-if="product?.is_fasting" class="bg-emerald-50 rounded-xl border border-emerald-200 p-3 flex items-start space-x-2.5 text-emerald-950 text-xs">
             <span class="text-base shrink-0 mt-0.5">🌿</span>
             <div class="space-y-0.5">
-              <div class="font-bold text-emerald-900">100% Ethiopian Fasting Friendly (የጾም)</div>
-              <p class="text-emerald-800 text-[11px]">Handcrafted strictly vegan and dairy-free without butter, eggs, or milk.</p>
+              <div class="font-bold text-emerald-900">{{ localeStore.isAmharic ? '100% የኢትዮጵያ የጾም ምርጫ (የጾም)' : '100% Ethiopian Fasting Friendly (የጾም)' }}</div>
+              <p class="text-emerald-800 text-[11px]">{{ localeStore.isAmharic ? 'ያለ ቅቤ፣ እንቁላል እና ወተት ሙሉ በሙሉ በእጽዋት ግብአቶች የተዘጋጀ።' : 'Handcrafted strictly vegan and dairy-free without butter, eggs, or milk.' }}</p>
             </div>
           </div>
 
           <!-- Size Selector (6 Inch, 8 Inch, 10 Inch, 12 Inch) -->
           <div class="space-y-2 pt-2">
             <div class="flex items-center space-x-2">
-              <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">Size:</span>
+              <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'መጠን:' : 'Size:' }}</span>
             </div>
             <div class="flex flex-wrap items-center gap-2.5">
               <button
@@ -216,7 +216,7 @@
 
           <!-- Quantity Stepper -->
           <div class="flex items-center space-x-3 pt-1">
-            <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">Quantity:</span>
+            <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ብዛት:' : 'Quantity:' }}</span>
             <div class="flex items-center border border-gray-200 dark:border-[#382318] rounded-xl bg-white dark:bg-[#1E120B] shadow-2xs">
               <button
                 type="button"
@@ -247,7 +247,7 @@
               @click="showCustomMessage = !showCustomMessage"
               class="text-xs text-[#DE1B54] font-bold hover:underline flex items-center space-x-1 cursor-pointer"
             >
-              <span>✍️ Add complimentary custom piped writing on cake</span>
+              <span>✍️ {{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ መልእክት ያክሉ (ነጻ)' : 'Add complimentary custom piped writing on cake' }}</span>
               <span>{{ showCustomMessage ? '▲' : '▼' }}</span>
             </button>
             <div v-show="showCustomMessage" class="mt-2 space-y-2 bg-rose-50/40 dark:bg-[#341822]/40 p-3 rounded-xl border border-rose-100 dark:border-[#DE1B54]/30">
@@ -255,7 +255,7 @@
                 v-model="cakeMessage"
                 type="text"
                 maxlength="40"
-                placeholder="e.g. Happy 30th Birthday Bethlehem! 🎉"
+                :placeholder="localeStore.isAmharic ? 'ለምሳሌ: መልካም 30ኛ ዓመት ልደት ለቤተልሔም! 🎉' : 'e.g. Happy 30th Birthday Bethlehem! 🎉'"
                 class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-lg px-3 py-1.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none"
               />
             </div>
@@ -341,7 +341,7 @@
                   class="pb-1 transition cursor-pointer"
                   :class="activeTab === 'desc' ? 'text-[#DE1B54] border-b-2 border-[#DE1B54]' : 'text-gray-500 dark:text-gray-400 hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
                 >
-                  Description
+                  {{ localeStore.isAmharic ? 'መግለጫ' : 'Description' }}
                 </button>
                 <button
                   type="button"
@@ -349,7 +349,7 @@
                   class="pb-1 transition cursor-pointer"
                   :class="activeTab === 'ingr' ? 'text-[#DE1B54] border-b-2 border-[#DE1B54]' : 'text-gray-500 dark:text-gray-400 hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
                 >
-                  Ingredients
+                  {{ localeStore.isAmharic ? 'ግብአቶች' : 'Ingredients' }}
                 </button>
                 <button
                   type="button"
@@ -357,7 +357,7 @@
                   class="pb-1 transition cursor-pointer"
                   :class="activeTab === 'reviews' ? 'text-[#DE1B54] border-b-2 border-[#DE1B54]' : 'text-gray-500 dark:text-gray-400 hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
                 >
-                  Reviews ({{ reviewCount }})
+                  {{ localeStore.isAmharic ? `አስተያየቶች (${reviewCount})` : `Reviews (${reviewCount})` }}
                 </button>
               </div>
               <span class="text-gray-300 dark:text-gray-600 text-xs">✕</span>
@@ -365,7 +365,9 @@
 
             <!-- Tab Body: Description -->
             <div v-if="activeTab === 'desc'" class="pt-4 space-y-3">
-              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">About This Cake</h3>
+              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'ስለዚህ ኬክ' : 'About This Cake' }}
+              </h3>
               <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
                 {{ aboutCakeText }}
               </p>
@@ -374,35 +376,39 @@
               <div class="space-y-2 pt-2">
                 <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-medium">
                   <span class="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-[10px] font-bold">✔</span>
-                  <span>Premium quality ingredients</span>
+                  <span>{{ localeStore.isAmharic ? 'ከፍተኛ ጥራት ያላቸው ግብአቶች' : 'Premium quality ingredients' }}</span>
                 </div>
                 <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-medium">
                   <span class="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-[10px] font-bold">✔</span>
-                  <span>Moist and delicious taste</span>
+                  <span>{{ localeStore.isAmharic ? 'እጅግ የሚጣፍጥ እና ለስላሳ ጣዕም' : 'Moist and delicious taste' }}</span>
                 </div>
                 <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-medium">
                   <span class="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-[10px] font-bold">✔</span>
-                  <span>Perfect for all occasions</span>
+                  <span>{{ localeStore.isAmharic ? 'ለሁሉም ዝግጅቶች እና በዓላት ተስማሚ' : 'Perfect for all occasions' }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Tab Body: Ingredients -->
             <div v-else-if="activeTab === 'ingr'" class="pt-4 space-y-3">
-              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">Finest Natural Ingredients</h3>
+              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'የተመረጡ ተፈጥሯዊ ግብአቶች' : 'Finest Natural Ingredients' }}
+              </h3>
               <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
-                Dutch-processed Belgian cocoa powder, unbleached pastry flour, Madagascar Bourbon vanilla, cultured dairy butter, and Belgian chocolate ganache.
+                {{ localeStore.isAmharic ? 'የቤልጂየም ኮኮዋ ዱቄት፣ የተጣራ የፓስትሪ ዱቄት፣ የማዳጋስካር ቫኒላ፣ የተመረጠ ቅቤ እና የቸኮሌት ጋናሽ።' : 'Dutch-processed Belgian cocoa powder, unbleached pastry flour, Madagascar Bourbon vanilla, cultured dairy butter, and Belgian chocolate ganache.' }}
               </p>
               <div class="p-2.5 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 text-[11px]">
-                <strong>Allergen Notice:</strong> Contains wheat and dairy. Fasting items are prepared strictly dairy/egg-free.
+                <strong>{{ localeStore.isAmharic ? 'የአለርጂ ማስታወሻ:' : 'Allergen Notice:' }}</strong> {{ localeStore.isAmharic ? 'ስንዴ እና የወተት ተዋጽኦዎችን ሊይዝ ይችላል። የጾም ምርቶች ከእንቁላል እና ከወተት ነፃ ሆነው ይዘጋጃሉ።' : 'Contains wheat and dairy. Fasting items are prepared strictly dairy/egg-free.' }}
               </div>
             </div>
 
             <!-- Tab Body: Reviews List -->
             <div v-else class="pt-4 space-y-3">
-              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">Recent Customer Feedback</h3>
+              <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'የቅርብ ጊዜ ደንበኞች አስተያየት' : 'Recent Customer Feedback' }}
+              </h3>
               <div v-if="customerReviews.length === 0" class="text-xs text-gray-500 py-4 italic">
-                No customer reviews yet. Be the first to share your thoughts on this bake!
+                {{ localeStore.isAmharic ? 'እስካሁን ምንም አስተያየት አልተሰጠም። የመጀመሪያው አስተያየት ሰጪ ይሁኑ!' : 'No customer reviews yet. Be the first to share your thoughts on this bake!' }}
               </div>
               <div v-else class="space-y-2.5 max-h-48 overflow-y-auto pr-1 text-xs">
                 <div v-for="(rev, idx) in customerReviews" :key="idx" class="p-2.5 rounded-xl bg-gray-50 dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318] space-y-1">
@@ -422,7 +428,9 @@
         <!-- CARD 2 (3-4 cols): Customer Reviews Score & Breakdown -->
         <div class="lg:col-span-3 bg-white dark:bg-[#1E120B] rounded-2xl border border-gray-200/80 dark:border-[#382318] p-5 sm:p-6 shadow-xs flex flex-col justify-between">
           <div class="space-y-4">
-            <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">Customer Reviews</h3>
+            <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE]">
+              {{ localeStore.isAmharic ? 'የደንበኞች አስተያየት' : 'Customer Reviews' }}
+            </h3>
 
             <!-- Big Score & Gold Stars -->
             <div>
@@ -430,7 +438,9 @@
               <div class="flex items-center space-x-1 text-amber-400 text-sm mt-0.5">
                 <span v-for="s in 5" :key="s" :class="s <= Math.round(Number(averageScore) || 0) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
               </div>
-              <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">Based on {{ reviewCount }} {{ reviewCount === 1 ? 'review' : 'reviews' }}</div>
+              <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">
+                {{ localeStore.isAmharic ? `ከ ${reviewCount} ደንበኞች አስተያየት` : `Based on ${reviewCount} ${reviewCount === 1 ? 'review' : 'reviews'}` }}
+              </div>
             </div>
 
             <!-- 5-Star Breakdown Bars -->
@@ -460,7 +470,7 @@
               @click="showReviewModal = true"
               class="w-full min-h-[40px] py-2.5 border border-[#DE1B54] text-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#341822] text-xs font-bold rounded-xl transition shadow-2xs flex items-center justify-center cursor-pointer active:scale-95"
             >
-              Write a Review
+              {{ localeStore.isAmharic ? 'አስተያየት ይጻፉ' : 'Write a Review' }}
             </button>
           </div>
         </div>
@@ -470,12 +480,12 @@
           <!-- Top Text with Script Font -->
           <div class="space-y-2 z-10 max-w-[210px] sm:max-w-[240px]">
             <div class="font-script text-2xl sm:text-3xl text-[#2A1810] dark:text-[#FAF3EE] leading-none">
-              <span>Make Every Moment</span>
+              <span>{{ localeStore.isAmharic ? 'እያንዳንዱን ጊዜ' : 'Make Every Moment' }}</span>
               <br />
-              <span class="text-[#DE1B54]">Sweeter! ♡</span>
+              <span class="text-[#DE1B54]">{{ localeStore.isAmharic ? 'እናጣፍጥ! ♡' : 'Sweeter! ♡' }}</span>
             </div>
             <p class="text-[11px] sm:text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-snug">
-              Order your favorite cake today and spread the happiness!
+              {{ localeStore.isAmharic ? 'የሚወዱትን ኬክ ዛሬውኑ ይዘዙና ደስታን ያካፍሉ!' : 'Order your favorite cake today and spread the happiness!' }}
             </p>
           </div>
 
@@ -485,7 +495,7 @@
               to="/shop"
               class="inline-flex items-center space-x-1.5 px-4 py-2 min-h-[38px] bg-[#27160E] dark:bg-[#DE1B54] hover:bg-[#3B2317] dark:hover:bg-[#C51345] text-white text-xs font-bold rounded-full transition shadow-xs cursor-pointer active:scale-95"
             >
-              <span>Shop More</span>
+              <span>{{ localeStore.isAmharic ? 'ተጨማሪ ኬኮች' : 'Shop More' }}</span>
               <span>&rarr;</span>
             </router-link>
           </div>
@@ -538,7 +548,9 @@
         @click.stop
       >
         <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-[#382318]">
-          <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">Write a Review</h3>
+          <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">
+            {{ localeStore.isAmharic ? 'አስተያየት ይጻፉ' : 'Write a Review' }}
+          </h3>
           <button
             type="button"
             @click="showReviewModal = false"
@@ -550,7 +562,9 @@
 
         <div class="space-y-3 text-xs">
           <div>
-            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Your Rating:</label>
+            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'የእርስዎ ደረጃ:' : 'Your Rating:' }}
+            </label>
             <div class="flex items-center space-x-1.5 text-xl cursor-pointer">
               <span
                 v-for="s in 5"
@@ -564,21 +578,25 @@
           </div>
 
           <div>
-            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Your Name:</label>
+            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'ስምዎ:' : 'Your Name:' }}
+            </label>
             <input
               v-model="newReview.name"
               type="text"
-              placeholder="Your full name"
+              :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Your full name'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none"
             />
           </div>
 
           <div>
-            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Review Comments:</label>
+            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'የእርስዎ አስተያየት:' : 'Review Comments:' }}
+            </label>
             <textarea
               v-model="newReview.comment"
               rows="3"
-              placeholder="Tell others what you loved about this cake..."
+              :placeholder="localeStore.isAmharic ? 'ስለዚህ ኬክ የወደዱትን ለሌሎች ያካፍሉ...' : 'Tell others what you loved about this cake...'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none"
             ></textarea>
           </div>
@@ -590,14 +608,14 @@
             @click="showReviewModal = false"
             class="px-4 py-2 min-h-[38px] border border-gray-200 dark:border-[#382318] rounded-xl text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#2A1810] cursor-pointer"
           >
-            Cancel
+            {{ localeStore.isAmharic ? 'ይቅር' : 'Cancel' }}
           </button>
           <button
             type="button"
             @click="submitReview"
             class="px-5 py-2 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
           >
-            Submit Review
+            {{ localeStore.isAmharic ? 'አስተያየቱን ላክ' : 'Submit Review' }}
           </button>
         </div>
       </div>

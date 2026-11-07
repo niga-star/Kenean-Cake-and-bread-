@@ -71,11 +71,11 @@
             @change="onFilterChange"
             class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-2 text-xs font-semibold text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[42px] cursor-pointer"
           >
-            <option value="popular">Popular</option>
-            <option value="price_low">Price: Low</option>
-            <option value="price_high">Price: High</option>
-            <option value="rating">Top Rated</option>
-            <option value="name">Name A–Z</option>
+            <option value="popular">{{ localeStore.isAmharic ? 'ተወዳጅ' : 'Popular' }}</option>
+            <option value="price_low">{{ localeStore.isAmharic ? 'ዋጋ: ከዝቅተኛ' : 'Price: Low' }}</option>
+            <option value="price_high">{{ localeStore.isAmharic ? 'ዋጋ: ከከፍተኛ' : 'Price: High' }}</option>
+            <option value="rating">{{ localeStore.isAmharic ? 'ከፍተኛ ደረጃ' : 'Top Rated' }}</option>
+            <option value="name">{{ localeStore.isAmharic ? 'ስም ሀ–ፐ' : 'Name A–Z' }}</option>
           </select>
         </div>
       </div>
@@ -100,7 +100,7 @@
             <div class="p-4 bg-[#24150D] text-white flex items-center justify-between shrink-0">
               <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider">
                 <span>⚙️</span>
-                <span>Filters &amp; Refinements</span>
+                <span>{{ localeStore.isAmharic ? 'ማጣሪያዎች እና ፍለጋ' : 'Filters & Refinements' }}</span>
               </div>
               <button
                 type="button"
@@ -129,7 +129,7 @@
               <label class="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] cursor-pointer">
                 <div class="flex items-center space-x-2 text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                   <span>📦</span>
-                  <span>In-Stock Items Only</span>
+                  <span>{{ localeStore.isAmharic ? 'በክምችት ያሉ ብቻ' : 'In-Stock Items Only' }}</span>
                 </div>
                 <input
                   type="checkbox"
@@ -142,7 +142,7 @@
               <!-- Categories -->
               <div class="space-y-3">
                 <div class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                  Categories
+                  {{ localeStore.t('categories_label') }}
                 </div>
                 <div class="space-y-2 text-xs">
                   <label class="flex items-center justify-between cursor-pointer">
@@ -154,7 +154,7 @@
                         class="rounded text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
                       />
                       <span :class="selectedCategories.length === 0 && !fastingOnly ? 'font-bold text-[#DE1B54]' : ''">
-                        All Categories
+                        {{ localeStore.t('all_categories') }}
                       </span>
                     </div>
                     <span class="text-gray-400 text-[11px]">({{ allProducts.length }})</span>
@@ -189,7 +189,7 @@
                         class="rounded text-emerald-700 focus:ring-emerald-600 w-3.5 h-3.5"
                       />
                       <span :class="fastingOnly ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-emerald-800 dark:text-emerald-300'">
-                        🌿 Ye'Tsom (ጾም)
+                        🌿 {{ localeStore.isAmharic ? 'የጾም' : "Ye'Tsom (ጾም)" }}
                       </span>
                     </div>
                     <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.2 rounded">Vegan</span>
@@ -200,8 +200,8 @@
               <!-- Price Range Slider -->
               <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-[#331E14]">
                 <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                  <span>Price Range</span>
-                  <span class="text-[#DE1B54] font-black">Up to ETB {{ maxPrice.toLocaleString() }}</span>
+                  <span>{{ localeStore.t('price_range') }}</span>
+                  <span class="text-[#DE1B54] font-black">{{ localeStore.isAmharic ? 'እስከ' : 'Up to' }} {{ localeStore.formatPrice(maxPrice) }}</span>
                 </div>
                 <input
                   type="range"
@@ -217,7 +217,7 @@
               <!-- Rating Filter -->
               <div class="space-y-2 pt-3 border-t border-gray-100 dark:border-[#331E14]">
                 <div class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                  Customer Rating
+                  {{ localeStore.t('rating_filter') }}
                 </div>
                 <div class="space-y-1.5 text-xs">
                   <label v-for="r in [5, 4, 3]" :key="r" class="flex items-center space-x-2 cursor-pointer">
@@ -231,7 +231,7 @@
                     />
                     <div class="flex items-center space-x-1 text-amber-400">
                       <span>{{ '★'.repeat(r) }}{{ '☆'.repeat(5 - r) }}</span>
-                      <span class="text-gray-500 text-[11px]">&amp; Up</span>
+                      <span class="text-gray-500 text-[11px]">{{ localeStore.isAmharic ? 'እና ከዚያ በላይ' : '& Up' }}</span>
                     </div>
                   </label>
                   <label class="flex items-center space-x-2 cursor-pointer text-gray-500 text-xs">
@@ -243,7 +243,7 @@
                       @change="onFilterChange"
                       class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
                     />
-                    <span>All Ratings</span>
+                    <span>{{ localeStore.isAmharic ? 'ሁሉም ደረጃዎች' : 'All Ratings' }}</span>
                   </label>
                 </div>
               </div>
@@ -256,14 +256,14 @@
                 @click="resetFilters"
                 class="px-4 py-2.5 min-h-[42px] bg-gray-200 dark:bg-[#2A1810] text-[#2A1810] dark:text-[#FAF3EE] rounded-xl text-xs font-bold transition hover:bg-gray-300 cursor-pointer"
               >
-                Reset
+                {{ localeStore.isAmharic ? 'መልስ' : 'Reset' }}
               </button>
               <button
                 type="button"
                 @click="mobileFiltersOpen = false"
                 class="flex-1 py-2.5 min-h-[42px] bg-[#DE1B54] hover:bg-[#C51345] text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
               >
-                <span>View {{ filteredProducts.length }} Products</span>
+                <span>{{ localeStore.isAmharic ? `${filteredProducts.length} ምርቶችን አሳይ` : `View ${filteredProducts.length} Products` }}</span>
               </button>
             </div>
           </div>
@@ -306,7 +306,7 @@
               <label class="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] cursor-pointer hover:border-rose-200 transition">
                 <div class="flex items-center space-x-2 text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                   <span>📦</span>
-                  <span>In-Stock Only</span>
+                  <span>{{ localeStore.isAmharic ? 'በክምችት ያሉ ብቻ' : 'In-Stock Only' }}</span>
                 </div>
                 <input
                   type="checkbox"
@@ -373,7 +373,7 @@
                         class="rounded text-emerald-700 focus:ring-emerald-600 w-3.5 h-3.5"
                       />
                       <span :class="fastingOnly ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-emerald-800 dark:text-emerald-300'">
-                        🌿 Ye'Tsom (ጾም)
+                        🌿 {{ localeStore.isAmharic ? 'የጾም' : "Ye'Tsom (ጾም)" }}
                       </span>
                     </div>
                     <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.2 rounded">Vegan</span>
@@ -385,7 +385,7 @@
               <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-[#331E14]">
                 <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
                   <span>{{ localeStore.t('price_range') }}</span>
-                  <span class="text-[#DE1B54] font-black">Up to {{ localeStore.t('currency') }} {{ maxPrice.toLocaleString() }}</span>
+                  <span class="text-[#DE1B54] font-black">{{ localeStore.isAmharic ? 'እስከ' : 'Up to' }} {{ localeStore.formatPrice(maxPrice) }}</span>
                 </div>
 
                 <div class="space-y-2">
@@ -399,8 +399,8 @@
                     class="w-full accent-[#DE1B54] cursor-pointer"
                   />
                   <div class="flex justify-between text-[11px] text-gray-400 dark:text-gray-500 font-medium">
-                    <span>{{ localeStore.t('currency') }} 50</span>
-                    <span>{{ localeStore.t('currency') }} 1,500</span>
+                    <span>{{ localeStore.formatPrice(50) }}</span>
+                    <span>{{ localeStore.formatPrice(1500) }}</span>
                   </div>
                 </div>
               </div>
@@ -426,7 +426,7 @@
                     />
                     <div class="flex items-center space-x-1 text-amber-400 text-xs">
                       <span>{{ '★'.repeat(r) }}{{ '☆'.repeat(5 - r) }}</span>
-                      <span class="text-gray-600 dark:text-gray-300 text-[11px] font-medium ml-1">&amp; Up</span>
+                      <span class="text-gray-600 dark:text-gray-300 text-[11px] font-medium ml-1">{{ localeStore.isAmharic ? 'እና ከዚያ በላይ' : '& Up' }}</span>
                     </div>
                   </label>
                   <label class="flex items-center space-x-2 cursor-pointer group select-none text-[11px] text-gray-500 dark:text-gray-400">
@@ -438,7 +438,7 @@
                       @change="onFilterChange"
                       class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
                     />
-                    <span>All Ratings</span>
+                    <span>{{ localeStore.isAmharic ? 'ሁሉም ደረጃዎች' : 'All Ratings' }}</span>
                   </label>
                 </div>
               </div>
@@ -451,7 +451,7 @@
                   class="w-full py-2.5 min-h-[42px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
                 >
                   <span>🔄</span>
-                  <span>Reset All Filters</span>
+                  <span>{{ localeStore.isAmharic ? 'ሁሉንም ማጣሪያዎች መልስ' : 'Reset All Filters' }}</span>
                 </button>
               </div>
             </div>
@@ -464,7 +464,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-gray-100 dark:border-[#382318]">
             <!-- Results Count -->
             <div class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
-              Showing <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ paginatedProducts.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}–{{ Math.min(currentPage * pageSize, filteredProducts.length) }}</strong> of <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ filteredProducts.length }}</strong> products
+              {{ localeStore.isAmharic ? 'የሚታዩት' : 'Showing' }} <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ paginatedProducts.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}–{{ Math.min(currentPage * pageSize, filteredProducts.length) }}</strong> {{ localeStore.isAmharic ? 'ከ' : 'of' }} <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ filteredProducts.length }}</strong> {{ localeStore.isAmharic ? 'ምርቶች' : 'products' }}
             </div>
 
             <!-- Controls: Sort & View Toggle -->
@@ -476,11 +476,11 @@
                   @change="onFilterChange"
                   class="bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54] shadow-2xs cursor-pointer min-h-[38px]"
                 >
-                  <option value="popular">Sort by: Most Popular</option>
-                  <option value="price_low">Price: Low to High</option>
-                  <option value="price_high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="name">Product Name (A-Z)</option>
+                  <option value="popular">{{ localeStore.t('sort_popular') }}</option>
+                  <option value="price_low">{{ localeStore.t('sort_price_low') }}</option>
+                  <option value="price_high">{{ localeStore.t('sort_price_high') }}</option>
+                  <option value="rating">{{ localeStore.t('sort_rating') }}</option>
+                  <option value="name">{{ localeStore.isAmharic ? 'የምርት ስም (ሀ-ፐ / A-Z)' : 'Product Name (A-Z)' }}</option>
                 </select>
               </div>
 
@@ -516,7 +516,7 @@
 
           <!-- Active Filter Tags Row -->
           <div v-if="activeFilterCount > 0" class="flex flex-wrap items-center gap-2 pb-1">
-            <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold">Active:</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold">{{ localeStore.isAmharic ? 'የተመረጡት:' : 'Active:' }}</span>
 
             <span
               v-for="cat in selectedCategories"
@@ -531,7 +531,7 @@
               v-if="fastingOnly"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/50 rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>🌿 Ye'Tsom (ጾም)</span>
+              <span>🌿 {{ localeStore.isAmharic ? 'የጾም' : "Ye'Tsom (ጾም)" }}</span>
               <button type="button" @click="fastingOnly = false; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
@@ -539,7 +539,7 @@
               v-if="inStockOnly"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>📦 In-Stock Only</span>
+              <span>📦 {{ localeStore.isAmharic ? 'በክምችት ያሉ ብቻ' : 'In-Stock Only' }}</span>
               <button type="button" @click="inStockOnly = false; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
@@ -547,7 +547,7 @@
               v-if="searchQuery"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2A1810] text-gray-800 dark:text-[#FAF3EE] border border-gray-200 dark:border-[#382318] rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>Search: "{{ searchQuery }}"</span>
+              <span>{{ localeStore.isAmharic ? 'ፍለጋ:' : 'Search:' }} "{{ searchQuery }}"</span>
               <button type="button" @click="clearSearch" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
@@ -555,7 +555,7 @@
               v-if="maxPrice < 1500"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2A1810] text-gray-800 dark:text-[#FAF3EE] border border-gray-200 dark:border-[#382318] rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>≤ ETB {{ maxPrice.toLocaleString() }}</span>
+              <span>≤ {{ localeStore.formatPrice(maxPrice) }}</span>
               <button type="button" @click="maxPrice = 1500; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
@@ -563,7 +563,7 @@
               v-if="selectedRating"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>★ {{ selectedRating }}+ Stars</span>
+              <span>★ {{ selectedRating }}+ {{ localeStore.isAmharic ? 'ኮከቦች' : 'Stars' }}</span>
               <button type="button" @click="selectedRating = null; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
@@ -572,7 +572,7 @@
               @click="resetFilters"
               class="text-xs text-gray-500 dark:text-gray-400 hover:text-[#DE1B54] font-semibold underline cursor-pointer ml-1"
             >
-              Clear All
+              {{ localeStore.isAmharic ? 'ሁሉንም አጽዳ' : 'Clear All' }}
             </button>
           </div>
 
@@ -587,16 +587,16 @@
           <!-- Empty State -->
           <div v-else-if="paginatedProducts.length === 0" class="py-16 text-center bg-gray-50 dark:bg-[#1E120B] rounded-2xl border border-gray-200 dark:border-[#382318] p-8 space-y-4">
             <div class="text-4xl">🔍</div>
-            <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">No bakery items match your criteria</h3>
+            <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምንም አይነት ምርት አልተገኘም' : 'No bakery items match your criteria' }}</h3>
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-md mx-auto">
-              Try adjusting your price range, clearing selected filters, or searching for another sweet delight.
+              {{ localeStore.isAmharic ? 'እባክዎ የዋጋ ክልልዎን ያስተካክሉ ወይም ሌላ ቃል ይፈልጉ።' : 'Try adjusting your price range, clearing selected filters, or searching for another sweet delight.' }}
             </p>
             <button
               type="button"
               @click="resetFilters"
               class="px-5 py-2.5 min-h-[42px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
             >
-              Reset All Filters
+              {{ localeStore.isAmharic ? 'ሁሉንም ማጣሪያዎች አጽዳ' : 'Reset All Filters' }}
             </button>
           </div>
 
@@ -677,10 +677,10 @@
                 <!-- Price Row -->
                 <div class="flex items-baseline space-x-1.5 pt-1">
                   <span class="text-xs xs:text-sm font-black text-[#DE1B54]">
-                    {{ localeStore.t('currency') }} {{ Number(p.resolved_price || p.base_price).toLocaleString() }}
+                    {{ localeStore.formatPrice(p.resolved_price || p.base_price) }}
                   </span>
                   <span v-if="getOriginalPrice(p)" class="text-[10px] xs:text-[11px] text-gray-400 dark:text-gray-500 line-through">
-                    {{ localeStore.t('currency') }} {{ getOriginalPrice(p).toLocaleString() }}
+                    {{ localeStore.formatPrice(getOriginalPrice(p)) }}
                   </span>
                 </div>
 
@@ -698,7 +698,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   <span v-else class="text-xs">✓</span>
-                  <span>{{ p.isAdding ? 'Added to Bag!' : ((p.available ?? 0) <= 0 ? 'Sold Out' : localeStore.t('add_to_cart')) }}</span>
+                  <span>{{ p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : localeStore.t('add_to_cart')) }}</span>
                 </button>
               </div>
             </div>
@@ -722,14 +722,14 @@
                 />
                 <div>
                   <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition block">
-                    {{ p.product_name }}
+                    {{ localeStore.tProduct(p.product_name) }}
                   </h3>
                   <div class="flex items-center space-x-1.5 text-xs text-amber-400 mt-0.5">
                     <span>★★★★★</span>
-                    <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ getReviewCount(p) }} reviews)</span>
+                    <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ getReviewCount(p) }} {{ localeStore.t('reviews_count') }})</span>
                   </div>
                   <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] line-clamp-1 mt-1 max-w-md">
-                    {{ p.description || 'Deliciously handcrafted with finest ingredients.' }}
+                    {{ p.description || (localeStore.isAmharic ? 'በጥራት እና በፍቅር በእጅ የተዘጋጀ።' : 'Deliciously handcrafted with finest ingredients.') }}
                   </p>
                 </div>
               </div>
@@ -737,10 +737,10 @@
               <div class="flex items-center space-x-4 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
                 <div class="text-right">
                   <div class="text-base font-black text-[#DE1B54]">
-                    ETB {{ Number(p.resolved_price || p.base_price).toLocaleString() }}
+                    {{ localeStore.formatPrice(p.resolved_price || p.base_price) }}
                   </div>
                   <div v-if="getOriginalPrice(p)" class="text-[10px] text-gray-400 dark:text-gray-500 line-through">
-                    ETB {{ getOriginalPrice(p).toLocaleString() }}
+                    {{ localeStore.formatPrice(getOriginalPrice(p)) }}
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -760,7 +760,7 @@
                     class="min-h-[40px] px-5 py-2.5 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center space-x-1.5 cursor-pointer active:scale-95"
                     :class="p.isAdding ? 'bg-[#387A54]' : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
                   >
-                    <span>{{ p.isAdding ? 'Added!' : ((p.available ?? 0) <= 0 ? 'Sold Out' : 'Add to Bag') }}</span>
+                    <span>{{ p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : (localeStore.isAmharic ? 'ወደ ቅርጫት ጨምር' : 'Add to Bag')) }}</span>
                   </button>
                 </div>
               </div>
@@ -777,7 +777,7 @@
               class="px-3 h-9 min-h-[38px] rounded-xl text-xs font-bold bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] transition flex items-center space-x-1 cursor-pointer"
             >
               <span>&larr;</span>
-              <span>Prev</span>
+              <span>{{ localeStore.isAmharic ? 'ቀዳሚ' : 'Prev' }}</span>
             </button>
 
             <button
@@ -798,7 +798,7 @@
               @click="setPage(currentPage + 1)"
               class="px-4 h-9 min-h-[38px] rounded-xl text-xs font-bold bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] transition flex items-center space-x-1 cursor-pointer"
             >
-              <span>Next</span>
+              <span>{{ localeStore.isAmharic ? 'ቀጣይ' : 'Next' }}</span>
               <span>&rarr;</span>
             </button>
           </div>
@@ -815,7 +815,7 @@
         </div>
 
         <div class="font-script text-lg sm:text-xl text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
-          <span class="italic">Because life is sweeter with cake!</span>
+          <span class="italic">{{ localeStore.isAmharic ? 'ምክንያቱም ህይወት በኬክ የበለጠ ይጣፍጣል!' : 'Because life is sweeter with cake!' }}</span>
           <span class="text-[#DE1B54] not-italic">♡</span>
         </div>
       </div>

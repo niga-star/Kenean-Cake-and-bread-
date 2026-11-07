@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAE1D5] pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#EAE1D5] pb-4">
       <div>
         <div class="flex items-center space-x-2">
           <span class="text-2xl">📊</span>
-          <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1D15]">
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-serif font-black text-[#2A1D15]">
             Reports &amp; Analytics
           </h1>
         </div>
@@ -14,20 +14,20 @@
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
         <button
           @click="sendDailySummary"
           :disabled="sendingSummary"
-          class="px-3.5 py-2 text-xs font-bold bg-[#FAF7F5] border border-[#D8CDC0] hover:bg-[#FFF1F2] text-[#881337] rounded-xl transition flex items-center space-x-1.5 shadow-2xs"
+          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-[#FAF7F5] border border-[#D8CDC0] hover:bg-[#FFF1F2] text-[#881337] rounded-xl transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer"
           title="Send daily sales and low-stock email summary to owner"
         >
           <span>✉️</span>
-          <span>{{ sendingSummary ? 'Dispatching...' : 'Email Summary to Owner' }}</span>
+          <span>{{ sendingSummary ? 'Dispatching...' : 'Email Summary' }}</span>
         </button>
 
         <button
           @click="exportCSV"
-          class="px-3.5 py-2 text-xs font-bold bg-white border border-[#D8CDC0] hover:bg-[#FAF7F5] text-[#4A3B32] rounded-xl transition flex items-center space-x-1.5 shadow-2xs"
+          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-white border border-[#D8CDC0] hover:bg-[#FAF7F5] text-[#4A3B32] rounded-xl transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer"
         >
           <span>📥</span>
           <span>Export CSV</span>
@@ -35,7 +35,7 @@
 
         <button
           @click="exportPDF"
-          class="px-3.5 py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition flex items-center space-x-1.5 shadow-xs"
+          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
         >
           <span>🖨️</span>
           <span>Print / PDF</span>
@@ -170,17 +170,17 @@
     </div>
 
     <!-- Contextual Explanation Banner -->
-    <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex items-start justify-between text-xs text-[#881337]">
+    <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 text-xs text-[#881337]">
       <div>
         <div class="font-bold flex items-center space-x-1.5">
           <span>💡</span>
           <span>{{ currentTabMeta?.label }} Report</span>
         </div>
-        <p class="text-[#7A3644] mt-0.5">
+        <p class="text-[#7A3644] mt-0.5 leading-relaxed">
           <strong>Questions it answers:</strong> {{ currentTabMeta?.description }}
         </p>
       </div>
-      <span class="text-[11px] font-semibold text-[#9F1239] shrink-0 bg-white px-2.5 py-1 rounded-lg border border-[#FBCFE8]">
+      <span class="text-[11px] font-semibold text-[#9F1239] self-start sm:self-auto shrink-0 bg-white px-2.5 py-1 rounded-lg border border-[#FBCFE8]">
         {{ reportRows.length }} record(s) loaded
       </span>
     </div>
@@ -200,9 +200,9 @@
         <div>Try expanding the date range or selecting another branch.</div>
       </div>
 
-      <!-- Dynamic Data Table -->
+      <!-- Dynamic Data Table with Safe Horizontal Scroll on Mobile -->
       <div v-else class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
+        <table class="w-full text-left text-xs min-w-[620px]">
           <thead class="bg-[#FAF7F5] text-[11px] font-bold text-[#7A6B60] tracking-wider uppercase border-b border-[#F2D7DC]">
             <tr>
               <th

@@ -32,7 +32,7 @@
                 {{ localeStore.t('choose_branch_title') || 'Choose Your Addis Ababa Branch' }}
               </h2>
               <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                Every order, oven batch, and delivery fee strictly belongs to your chosen location.
+                {{ localeStore.isAmharic ? 'እያንዳንዱ ትዕዛዝ እና የማድረሻ ክፍያ በቀጥታ ከተመረጠው ቅርንጫፍ ጋር የተገናኘ ነው::' : 'Every order, oven batch, and delivery fee strictly belongs to your chosen location.' }}
               </p>
             </div>
           </div>
@@ -53,7 +53,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search branch by name, city, or address (e.g. Megenagna, Bole, Piassa)..."
+              :placeholder="localeStore.isAmharic ? 'ቅርንጫፍ በስም ወይም አድራሻ ይፈልጉ (ለምሳሌ: መገናኛ፣ ቦሌ፣ ፒያሳ)...' : 'Search branch by name, city, or address (e.g. Megenagna, Bole, Piassa)...'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-2xl py-2.5 pl-10 pr-4 text-xs text-[#2A1810] dark:text-[#FAF3EE] placeholder:text-[#A8988E] focus:outline-none transition min-h-[42px]"
             />
             <button
@@ -61,19 +61,19 @@
               @click="searchQuery = ''"
               class="absolute right-3.5 top-2.5 text-xs text-gray-400 hover:text-[#DE1B54] cursor-pointer"
             >
-              Clear
+              {{ localeStore.isAmharic ? 'አጽዳ' : 'Clear' }}
             </button>
           </div>
 
           <!-- Active branch pill badge -->
           <div class="flex items-center justify-between text-xs px-1">
             <div class="flex items-center space-x-1.5 text-[#786B60] dark:text-[#C5B7AF]">
-              <span>Currently Shopping:</span>
-              <strong class="text-[#DE1B54] dark:text-rose-400">{{ activeBranchName }} Branch</strong>
+              <span>{{ localeStore.isAmharic ? 'የተመረጠ ቅርንጫፍ:' : 'Currently Shopping:' }}</span>
+              <strong class="text-[#DE1B54] dark:text-rose-400">{{ localeStore.tBranch(activeBranchName) }}</strong>
             </div>
             <span class="text-[11px] text-[#387A54] dark:text-emerald-400 font-bold flex items-center space-x-1">
               <span class="w-2 h-2 rounded-full bg-[#387A54] animate-pulse"></span>
-              <span>Live Kitchen Stock</span>
+              <span>{{ localeStore.isAmharic ? 'ትኩስ የምድጃ ክምችት' : 'Live Kitchen Stock' }}</span>
             </span>
           </div>
         </div>
@@ -82,9 +82,9 @@
         <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
           <div v-if="filteredBranches.length === 0" class="py-12 text-center space-y-2">
             <div class="text-3xl">🔍</div>
-            <div class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">No branches found</div>
+            <div class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምንም ቅርንጫፍ አልተገኘም' : 'No branches found' }}</div>
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF]">
-              No location matched "{{ searchQuery }}". Try searching for "Megenagna", "Bole", or "Piassa".
+              {{ localeStore.isAmharic ? `ከ"${searchQuery}" ጋር የሚዛመድ ቅርንጫፍ የለም። "መገናኛ"፣ "ቦሌ" ወይም "ፒያሳ" ብለው ይሞክሩ::` : `No location matched "${searchQuery}". Try searching for "Megenagna", "Bole", or "Piassa".` }}
             </p>
           </div>
 
@@ -100,7 +100,7 @@
             <div class="space-y-1.5 flex-1 min-w-0">
               <div class="flex items-center space-x-2 flex-wrap">
                 <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE] truncate">
-                  {{ branch.branch_name }} Branch
+                  {{ localeStore.tBranch(branch.branch_name) }}
                 </h3>
                 <span
                   class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -108,24 +108,24 @@
                     ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
                     : 'bg-rose-100 text-[#DE1B54] dark:bg-rose-950/60 dark:text-rose-300'"
                 >
-                  {{ branch.branch_type === 'Main' ? 'Central HQ' : (branch.branch_code || 'Bakehouse') }}
+                  {{ branch.branch_type === 'Main' ? (localeStore.isAmharic ? 'ዋና ማዕከል' : 'Central HQ') : (branch.branch_code || 'Bakehouse') }}
                 </span>
                 <span v-if="branchStore.selectedBranchId === branch.branch_id" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#387A54] text-white">
-                  ✓ Active
+                  {{ localeStore.isAmharic ? '✓ ንቁ ቅርንጫፍ' : '✓ Active' }}
                 </span>
               </div>
 
               <!-- Address & City -->
               <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1.5">
                 <span class="text-rose-500 shrink-0">📍</span>
-                <span class="truncate">{{ branch.address || branch.city || 'Addis Ababa' }}</span>
+                <span class="truncate">{{ branch.address || branch.city || (localeStore.isAmharic ? 'አዲስ አበባ' : 'Addis Ababa') }}</span>
               </div>
 
               <!-- Phone & Opening Hours -->
               <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#786B60] dark:text-[#C5B7AF] pt-0.5">
                 <div class="flex items-center space-x-1">
                   <span>🕒</span>
-                  <span>{{ branch.opening_hours || 'Mon – Sun: 07:00 – 21:00' }}</span>
+                  <span>{{ branch.opening_hours || (localeStore.isAmharic ? 'ሰኞ – እሁድ: 1:00 – 3:00' : 'Mon – Sun: 07:00 – 21:00') }}</span>
                 </div>
                 <div class="flex items-center space-x-1">
                   <span>📞</span>
@@ -138,13 +138,13 @@
               <!-- Fast fulfillment tags -->
               <div class="flex flex-wrap gap-1.5 pt-1">
                 <span class="px-2 py-0.5 rounded-md bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-[10px] text-[#786B60] dark:text-[#C5B7AF]">
-                  🚚 Home Delivery
+                  🚚 {{ localeStore.isAmharic ? 'ማድረስ' : 'Home Delivery' }}
                 </span>
                 <span class="px-2 py-0.5 rounded-md bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-[10px] text-[#786B60] dark:text-[#C5B7AF]">
-                  🏪 Free Shop Pickup
+                  🏪 {{ localeStore.isAmharic ? 'በነፃ መውሰድ' : 'Free Shop Pickup' }}
                 </span>
                 <span class="px-2 py-0.5 rounded-md bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-[10px] text-[#786B60] dark:text-[#C5B7AF]">
-                  🎂 Custom Cakes
+                  🎂 {{ localeStore.isAmharic ? 'ብጁ ኬክ' : 'Custom Cakes' }}
                 </span>
               </div>
             </div>
@@ -157,14 +157,14 @@
                 class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#387A54] text-white text-xs font-bold shadow-xs cursor-default flex items-center justify-center space-x-1.5"
               >
                 <span>✓</span>
-                <span>Active Branch</span>
+                <span>{{ localeStore.isAmharic ? 'ንቁ ቅርንጫፍ' : 'Active Branch' }}</span>
               </button>
               <button
                 v-else
                 @click="chooseBranch(branch)"
                 class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95 flex items-center justify-center space-x-1.5"
               >
-                <span>Select Branch</span>
+                <span>{{ localeStore.isAmharic ? 'ቅርንጫፉን ምረጥ' : 'Select Branch' }}</span>
                 <span>→</span>
               </button>
             </div>
@@ -175,14 +175,14 @@
         <div class="px-5 sm:px-7 py-3 bg-[#FAF7F5] dark:bg-[#2A1810] border-t border-gray-100 dark:border-[#382318] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#786B60] dark:text-[#C5B7AF] gap-2">
           <div class="flex items-center space-x-1.5">
             <span>💡</span>
-            <span>Switching branches automatically revalidates all prices and live kitchen stock.</span>
+            <span>{{ localeStore.isAmharic ? 'ቅርንጫፍ መቀየር የምርቶችን ዋጋ እና ክምችት በራስ-ሰር ያድሳል::' : 'Switching branches automatically revalidates all prices and live kitchen stock.' }}</span>
           </div>
           <router-link
             to="/branches"
             @click="close"
             class="font-bold text-[#DE1B54] hover:underline"
           >
-            View Interactive City Map →
+            {{ localeStore.isAmharic ? 'የከተማውን ካርታ ይመልከቱ →' : 'View Interactive City Map →' }}
           </router-link>
         </div>
       </div>

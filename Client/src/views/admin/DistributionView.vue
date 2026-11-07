@@ -1,18 +1,18 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Branch Distribution and Stock Transfer Management</h2>
-      <div class="flex items-center space-x-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Distribution and Stock Transfer Management</h2>
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <button
           @click="scrollToRequests"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
         >
           Stock requests ({{ data.stock_requests ? data.stock_requests.length : 0 }})
         </button>
         <router-link
           to="/admin/transfers/new"
-          class="px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm cursor-pointer"
         >
           New transfer
         </router-link>
@@ -95,7 +95,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
+        <table class="w-full min-w-[640px] text-left text-sm">
           <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
             <tr>
               <th class="py-3 px-5">Branch</th>
@@ -222,7 +222,7 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full min-w-[560px] text-left text-sm">
             <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
               <tr>
                 <th class="py-3 px-5">Branch</th>
@@ -271,8 +271,8 @@
     </div>
 
     <!-- Receive Modal -->
-    <div v-if="activeReceiveTransfer" class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+    <div v-if="activeReceiveTransfer" class="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <div>
             <h3 class="text-lg font-serif font-bold text-[#2A1D15]">
@@ -376,8 +376,8 @@
     </div>
 
     <!-- Dispute Resolution Modal -->
-    <div v-if="activeDispute" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+    <div v-if="activeDispute" class="fixed inset-0 bg-black/40 flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-md w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-serif font-bold text-[#2A1D15]">
           Resolve Dispute: {{ activeDispute.transfer }}
         </h3>
@@ -427,8 +427,8 @@
     </div>
 
     <!-- View Transfer Modal -->
-    <div v-if="activeViewTransfer" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
+    <div v-if="activeViewTransfer" class="fixed inset-0 bg-black/40 flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-lg w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-2">
           <h3 class="text-base font-serif font-bold text-[#2A1D15]">
             Transfer Details: {{ activeViewTransfer.transfer }}

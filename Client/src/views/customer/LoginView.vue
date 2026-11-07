@@ -8,10 +8,10 @@
             🧁
           </div>
           <h2 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
-            Welcome Back
+            {{ localeStore.t('welcome_back') }}
           </h2>
           <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
-            Sign in to your SweetBakes account to track orders, manage deliveries, and save favorite creations.
+            {{ localeStore.t('login_header_desc') }}
           </p>
         </div>
 
@@ -30,7 +30,7 @@
         <form @submit.prevent="handleLogin" class="space-y-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
-              Email Address
+              {{ localeStore.t('email_label') }}
             </label>
             <input
               v-model="email"
@@ -44,14 +44,14 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Password
+                {{ localeStore.t('password_label') }}
               </label>
               <button
                 type="button"
                 @click="showForgotModal = true"
                 class="text-[11px] text-[#DE1B54] hover:underline font-semibold cursor-pointer"
               >
-                Forgot password?
+                {{ localeStore.t('forgot_password_link') }}
               </button>
             </div>
             <div class="relative">
@@ -67,7 +67,7 @@
                 @click="showPassword = !showPassword"
                 class="absolute right-3 top-2.5 text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] text-xs cursor-pointer"
               >
-                {{ showPassword ? 'Hide' : 'Show' }}
+                {{ showPassword ? (localeStore.isAmharic ? 'ደብቅ' : 'Hide') : (localeStore.isAmharic ? 'አሳይ' : 'Show') }}
               </button>
             </div>
           </div>
@@ -79,7 +79,7 @@
                 v-model="rememberMe"
                 class="rounded text-[#DE1B54] focus:ring-[#DE1B54]"
               />
-              <span class="ml-2">Remember me</span>
+              <span class="ml-2">{{ localeStore.t('remember_me') }}</span>
             </label>
           </div>
 
@@ -88,15 +88,15 @@
             :disabled="loading"
             class="w-full py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
           >
-            {{ loading ? 'Signing in...' : 'Sign In to SweetBakes →' }}
+            {{ loading ? localeStore.t('signing_in_btn') : localeStore.t('sign_in_sweetbakes') }}
           </button>
         </form>
 
         <!-- Register Link -->
         <div class="text-center text-xs text-[#786B60] dark:text-[#C5B7AF] pt-2 border-t border-gray-100 dark:border-[#382318]">
-          Don't have an account yet?
+          {{ localeStore.t('dont_have_account') }}
           <router-link to="/register" class="font-bold text-[#DE1B54] hover:underline ml-1">
-            Create an Account
+            {{ localeStore.t('create_account') }}
           </router-link>
         </div>
       </div>
@@ -109,17 +109,17 @@
     >
       <div class="bg-white dark:bg-[#1E120B] rounded-3xl max-w-sm w-full p-6 space-y-4 border border-gray-200 dark:border-[#382318] shadow-2xl">
         <div class="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-[#382318]">
-          <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">Password Recovery</h3>
+          <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.t('pwd_recovery_title') }}</h3>
           <button @click="showForgotModal = false" class="text-sm text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] cursor-pointer">✕</button>
         </div>
 
         <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
-          Enter your registered email address. We will generate and dispatch a secure 30-minute password reset token.
+          {{ localeStore.t('pwd_recovery_desc') }}
         </p>
 
         <form @submit.prevent="handleForgotPassword" class="space-y-3">
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">Email</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.t('email_label') }}</label>
             <input
               v-model="forgotEmail"
               type="email"
@@ -138,7 +138,7 @@
             :disabled="forgotLoading"
             class="w-full py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
           >
-            {{ forgotLoading ? 'Dispatching...' : 'Send Recovery Token' }}
+            {{ forgotLoading ? (localeStore.isAmharic ? 'በመላክ ላይ...' : 'Dispatching...') : localeStore.t('send_reset_token') }}
           </button>
         </form>
       </div>
@@ -152,6 +152,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useWishlistStore } from '../../stores/wishlist';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
@@ -159,6 +160,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
+const localeStore = useLocaleStore();
 
 const email = ref('');
 const password = ref('');

@@ -17,16 +17,16 @@
         <div class="max-w-xl space-y-2 text-center lg:text-left">
           <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
-            <span>Help Center</span>
+            <span>{{ localeStore.t('help_center_sub') }}</span>
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
-            Frequently Asked Questions
+            {{ localeStore.t('faq_title') }}
           </h1>
 
           <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
-            <span>Everything you need to know about our bakery!</span>
+            <span>{{ localeStore.t('faq_hero_desc') }}</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
         </div>
@@ -89,10 +89,10 @@
         </div>
         <div class="space-y-1">
           <h3 class="font-serif font-black text-xl text-[#2A1810] dark:text-[#FAF3EE]">
-            Still Have Questions?
+            {{ localeStore.t('still_have_questions') }}
           </h3>
           <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] max-w-md mx-auto leading-relaxed">
-            Our bakery support team and branch master bakers are ready to assist you anytime.
+            {{ localeStore.t('support_team_ready') }}
           </p>
         </div>
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
@@ -100,7 +100,7 @@
             to="/contact"
             class="w-full sm:w-auto px-6 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center space-x-1.5 active:scale-95"
           >
-            <span>Contact Us Directly</span>
+            <span>{{ localeStore.t('contact_us_btn') }}</span>
             <span>&rarr;</span>
           </router-link>
           <a
@@ -131,7 +131,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
+
+const localeStore = useLocaleStore();
 
 const activeCategory = ref('all');
 const openIdx = ref(0);
@@ -146,76 +149,150 @@ onMounted(async () => {
   } catch (e) {}
 });
 
-const categories = [
-  { key: 'all', label: 'All Questions' },
-  { key: 'branches', label: 'Branch & Orders' },
-  { key: 'delivery', label: 'Delivery & Pickup' },
-  { key: 'custom_cakes', label: 'Custom Cakes' },
-  { key: 'freshness', label: 'Freshness & Storage' },
-  { key: 'payments', label: 'Payment Options' },
-];
+const categories = computed(() => {
+  if (localeStore.isAmharic) {
+    return [
+      { key: 'all', label: 'ሁሉም ጥያቄዎች' },
+      { key: 'branches', label: 'ቅርንጫፍ እና ትዕዛዞች' },
+      { key: 'delivery', label: 'ማድረስ እና መውሰድ' },
+      { key: 'custom_cakes', label: 'ልዩ ኬኮች' },
+      { key: 'freshness', label: 'ትኩስነት እና አያያዝ' },
+      { key: 'payments', label: 'የክፍያ አማራጮች' },
+    ];
+  }
+  return [
+    { key: 'all', label: 'All Questions' },
+    { key: 'branches', label: 'Branch & Orders' },
+    { key: 'delivery', label: 'Delivery & Pickup' },
+    { key: 'custom_cakes', label: 'Custom Cakes' },
+    { key: 'freshness', label: 'Freshness & Storage' },
+    { key: 'payments', label: 'Payment Options' },
+  ];
+});
 
-const faqs = [
-  {
-    category: 'branches',
-    q: 'Why do I have to select a bakery branch before shopping?',
-    a: 'Every SweetBakes branch bakes its bread and pastries fresh on-site twice daily and manages its own localized inventory. Selecting your branch first guarantees that the stock, prices, and delivery options you see accurately represent what can be delivered immediately or collected warm from the oven.',
-  },
-  {
-    category: 'branches',
-    q: 'What happens if I change my branch with items already in my cart?',
-    a: 'When you switch branches, the cart automatically revalidates availability and prices against the new kitchen. If an item is out of stock at the new branch, you will see a clear warning prompting you to adjust quantities or keep your original branch.',
-  },
-  {
-    category: 'branches',
-    q: 'Does the system ever transfer an order to another branch automatically?',
-    a: 'Never. In accordance with our strict operational policy, every order belongs exclusively to the branch you selected. We never move an order without your explicit approval.',
-  },
-  {
-    category: 'delivery',
-    q: 'Which areas of Addis Ababa do you deliver to?',
-    a: 'Our 5 branches cover all primary sub-cities in Addis Ababa: Bole, Kirkos, Yeka, Arada, and CMC/Gurd Shola. Each branch delivers within a 7–12 km radius. You can view precise delivery zones and fees on the Our Branches page.',
-  },
-  {
-    category: 'delivery',
-    q: 'How fast will my bakery order arrive?',
-    a: 'Standard orders placed for immediate dispatch are packaged within 20 minutes and delivered within 35–50 minutes, depending on your distance from the preparing branch.',
-  },
-  {
-    category: 'custom_cakes',
-    q: 'How much notice is needed for a custom celebration cake?',
-    a: 'Because all custom sponge cakes, fillings, and edible fondant decorations are made completely from scratch by our head decorator, we require at least 48 hours notice. For multi-tier wedding centerpieces, we recommend 5–7 days.',
-  },
-  {
-    category: 'custom_cakes',
-    q: 'How does the custom cake price quote and 50% deposit work?',
-    a: 'Once you submit your design brief and reference photos in the Custom Cake Studio, the head decorator at your chosen branch reviews it and posts an official quotation to your Account. Once you accept and pay the 50% deposit, your order status changes to Confirmed and the kitchen schedule is locked in.',
-  },
-  {
-    category: 'custom_cakes',
-    q: 'Can I cancel my custom cake if my event plans change?',
-    a: 'You can cancel anytime while the order is Quoted or Submitted for a 100% refund. If cancelled more than 48 hours before the event date, your deposit is fully refunded. Once artisan decorating has commenced inside the 48-hour window, the deposit covers perishable ingredients.',
-  },
-  {
-    category: 'freshness',
-    q: 'How fresh is your artisanal sourdough bread and morning pastries?',
-    a: 'All breads are crafted using traditional slow fermentation and pulled from the stone hearths at 6:30 AM and 2:30 PM every single day. We never sell day-old baked goods online.',
-  },
-  {
-    category: 'freshness',
-    q: 'How should I store my cake after delivery?',
-    a: 'Fresh cream, fruit compote, and mascarpone cakes should be refrigerated between 2°C and 4°C and brought to room temperature 30 minutes before serving. Sourdough breads should be kept at room temperature in a paper bag or bread box; never refrigerate bread.',
-  },
-  {
-    category: 'payments',
-    q: 'Which payment options are supported?',
-    a: 'We accept digital payments through Chapa, Telebirr, and CBE Birr. In addition, customers collecting in person can choose Pay-on-Pickup at any branch counter.',
-  },
-];
+const faqs = computed(() => {
+  if (localeStore.isAmharic) {
+    return [
+      {
+        category: 'branches',
+        q: 'ከመግዛቴ በፊት የዳቦ ቤት ቅርንጫፍ መምረጥ ለምን አስፈለገ?',
+        a: 'እያንዳንዱ የስዊትቤክስ ቅርንጫፍ በቀን ሁለት ጊዜ ትኩስ ዳቦና ኬክ በራሱ ይጋግራል እንዲሁም የራሱ የምርት ክምችት አለው። ቅርንጫፍዎን መምረጥዎ ትክክለኛውን የምርት ክምችት፣ ዋጋ እና የማድረሻ አማራጮችን ለማግኘት ዋስትና ይሰጣል።',
+      },
+      {
+        category: 'branches',
+        q: 'ቅርጫት ውስጥ ዕቃዎች እያሉ ቅርንጫፍ ብቀይር ምን ይሆናል?',
+        a: 'ቅርንጫፍ ሲቀይሩ፣ ቅርጫትዎ አዲሱ ቅርንጫፍ ባለው ክምችትና ዋጋ መሰረት ወዲያውኑ ይፈተሻል። በዚያ ቅርንጫፍ ያላለቀ ወይም ያለቀ ምርት ካለ ማስታወቂያ ይሰጥዎታል፤ ብዛቱን ማስተካከል ወይም ቅርንጫፉን እንዳለ ማቆየት ይችላሉ።',
+      },
+      {
+        category: 'branches',
+        q: 'ስርዓቱ ትዕዛዝን ወደ ሌላ ቅርንጫፍ በራሱ ያስተላልፋል?',
+        a: 'ፈጽሞ አያስተላልፍም። በእኛ የስራ ደንብ መሰረት እያንዳንዱ ትዕዛዝ እርስዎ በመረጡት ቅርንጫፍ ብቻ ይዘጋጃል። ያለ እርስዎ ፈቃድ ትዕዛዝ ወደ ሌላ አይዘዋወርም።',
+      },
+      {
+        category: 'delivery',
+        q: 'በአዲስ አበባ ውስጥ የትኞቹን አካባቢዎች ታደርሳላችሁ?',
+        a: 'አምስቱ ቅርንጫፎቻችን ቦሌ፣ ኪርቆስ፣ የካ፣ አራዳ እና ሲኤምሲ/ጉርድ ሾላን ጨምሮ ዋና ዋና የአዲስ አበባ ክፍለ ከተሞችን ይሸፍናሉ። በየቅርንጫፉ ከ 7 እስከ 12 ኪ.ሜ ርቀት ድረስ ይደርሳል። ዝርዝር የማድረሻ ዞኖችን በእኛ ቅርንጫፎች ገጽ ማየት ይችላሉ።',
+      },
+      {
+        category: 'delivery',
+        q: 'የትዕዛዝ ማድረሻ ጊዜው ምን ያህል ይፈጃል?',
+        a: 'መደበኛ ትዕዛዞች በ 20 ደቂቃ ውስጥ ታሽገው እንደ ርቀቱ ሁኔታ ከ 35 እስከ 50 ደቂቃ ባለው ጊዜ ውስጥ ደጃፍዎ ይደርሳሉ።',
+      },
+      {
+        category: 'custom_cakes',
+        q: 'ለልዩ ኬኮች ምን ያህል ጊዜ ቀድሞ ማዘዝ ያስፈልጋል?',
+        a: 'ልዩ የክብረ በዓል ኬኮች በዋና ኬክ አዘጋጆቻችን ከባዶ ስለሚዘጋጁ ቢያንስ የ 48 ሰዓታት ቅድመ ማስታወቂያ ያስፈልጋል። ለሰርግ ኬኮች ከ 5 እስከ 7 ቀናት ቀደም ብሎ ማዘዝ ይመረጣል።',
+      },
+      {
+        category: 'custom_cakes',
+        q: 'የልዩ ኬክ ዋጋ እና የ 50% ቅድመ ክፍያ እንዴት ይሰራል?',
+        a: 'የኬክ ዲዛይን እና ሃሳብዎን በልዩ ኬክ ስቱዲዮ ውስጥ ካስገቡ በኋላ፣ የመረጡት ቅርንጫፍ ዋና አዘጋጅ ተመልክቶ ይፋዊ ዋጋ በመለያዎ ውስጥ ይልካል። ዋጋውን ተቀብለው 50% ቅድመ ክፍያ ሲፈጽሙ ትዕዛዝዎ ተረጋግጦ ስራ ይጀመራል።',
+      },
+      {
+        category: 'custom_cakes',
+        q: 'የዝግጅቴ እቅድ ከተቀየረ ያዘዝኩትን ልዩ ኬክ መሰረዝ እችላለሁ?',
+        a: 'ትዕዛዙ በሂደት ላይ ወይም ገና ዋጋ በተሰጠበት ወቅት በማንኛውም ጊዜ ሙሉ በሙሉ በመሰረዝ 100% ገንዘብዎን መመለስ ይችላሉ። ከ 48 ሰዓታት በፊት ከተሰረዘ ቅድመ ክፍያው ሙሉ በሙሉ ይመለሳል።',
+      },
+      {
+        category: 'freshness',
+        q: 'ትኩስ የተፈጥሮ ዳቦዎች እና የጠዋት ፓስትሪዎች ምን ያህል ትኩስ ናቸው?',
+        a: 'ሁሉም ዳቦዎቻችን በባህላዊ የተፈጥሮ እርሾ ተዘጋጅተው በየቀኑ ከጠዋቱ 12:30 እና ከሰዓት 8:30 ከእቶን ይወጣሉ። ያደረ ምርት ፈጽሞ አንሸጥም።',
+      },
+      {
+        category: 'freshness',
+        q: 'ኬክ ከደረሰኝ በኋላ እንዴት ማስቀመጥ አለብኝ?',
+        a: 'ትኩስ ክሬም እና ፍራፍሬ ያላቸው ኬኮች ከ 2°C እስከ 4°C ባለው ማቀዝቀዣ ውስጥ መቀመጥ አለባቸው። ተፈጥሯዊ ዳቦዎች ደግሞ በክፍል ሙቀት በወረቀት ከረጢት ውስጥ መቀመጥ አለባቸው፤ ዳቦ በማቀዝቀዣ ውስጥ መግባት የለበትም።',
+      },
+      {
+        category: 'payments',
+        q: 'የትኞቹን የክፍያ አማራጮች ትቀበላላችሁ?',
+        a: 'በቴሌብር (Telebirr)፣ በሲቢኢ ብር (CBE Birr) እና በቻፓ (Chapa) እንዲሁም በቅርንጫፍ ሲረከቡ ወይም ሲደርስዎት በጥሬ ገንዘብ መክፈል ይችላሉ።',
+      },
+    ];
+  }
+
+  return [
+    {
+      category: 'branches',
+      q: 'Why do I have to select a bakery branch before shopping?',
+      a: 'Every SweetBakes branch bakes its bread and pastries fresh on-site twice daily and manages its own localized inventory. Selecting your branch first guarantees that the stock, prices, and delivery options you see accurately represent what can be delivered immediately or collected warm from the oven.',
+    },
+    {
+      category: 'branches',
+      q: 'What happens if I change my branch with items already in my cart?',
+      a: 'When you switch branches, the cart automatically revalidates availability and prices against the new kitchen. If an item is out of stock at the new branch, you will see a clear warning prompting you to adjust quantities or keep your original branch.',
+    },
+    {
+      category: 'branches',
+      q: 'Does the system ever transfer an order to another branch automatically?',
+      a: 'Never. In accordance with our strict operational policy, every order belongs exclusively to the branch you selected. We never move an order without your explicit approval.',
+    },
+    {
+      category: 'delivery',
+      q: 'Which areas of Addis Ababa do you deliver to?',
+      a: 'Our 5 branches cover all primary sub-cities in Addis Ababa: Bole, Kirkos, Yeka, Arada, and CMC/Gurd Shola. Each branch delivers within a 7–12 km radius. You can view precise delivery zones and fees on the Our Branches page.',
+    },
+    {
+      category: 'delivery',
+      q: 'How fast will my bakery order arrive?',
+      a: 'Standard orders placed for immediate dispatch are packaged within 20 minutes and delivered within 35–50 minutes, depending on your distance from the preparing branch.',
+    },
+    {
+      category: 'custom_cakes',
+      q: 'How much notice is needed for a custom celebration cake?',
+      a: 'Because all custom sponge cakes, fillings, and edible fondant decorations are made completely from scratch by our head decorator, we require at least 48 hours notice. For multi-tier wedding centerpieces, we recommend 5–7 days.',
+    },
+    {
+      category: 'custom_cakes',
+      q: 'How does the custom cake price quote and 50% deposit work?',
+      a: 'Once you submit your design brief and reference photos in the Custom Cake Studio, the head decorator at your chosen branch reviews it and posts an official quotation to your Account. Once you accept and pay the 50% deposit, your order status changes to Confirmed and the kitchen schedule is locked in.',
+    },
+    {
+      category: 'custom_cakes',
+      q: 'Can I cancel my custom cake if my event plans change?',
+      a: 'You can cancel anytime while the order is Quoted or Submitted for a 100% refund. If cancelled more than 48 hours before the event date, your deposit is fully refunded. Once artisan decorating has commenced inside the 48-hour window, the deposit covers perishable ingredients.',
+    },
+    {
+      category: 'freshness',
+      q: 'How fresh is your artisanal sourdough bread and morning pastries?',
+      a: 'All breads are crafted using traditional slow fermentation and pulled from the stone hearths at 6:30 AM and 2:30 PM every single day. We never sell day-old baked goods online.',
+    },
+    {
+      category: 'freshness',
+      q: 'How should I store my cake after delivery?',
+      a: 'Fresh cream, fruit compote, and mascarpone cakes should be refrigerated between 2°C and 4°C and brought to room temperature 30 minutes before serving. Sourdough breads should be kept at room temperature in a paper bag or bread box; never refrigerate bread.',
+    },
+    {
+      category: 'payments',
+      q: 'Which payment options are supported?',
+      a: 'We accept digital payments through Chapa, Telebirr, and CBE Birr. In addition, customers collecting in person can choose Pay-on-Pickup at any branch counter.',
+    },
+  ];
+});
 
 const filteredFaqs = computed(() => {
-  if (activeCategory.value === 'all') return faqs;
-  return faqs.filter((f) => f.category === activeCategory.value);
+  if (activeCategory.value === 'all') return faqs.value;
+  return faqs.value.filter((f) => f.category === activeCategory.value);
 });
 
 function toggleItem(idx) {

@@ -36,14 +36,14 @@
               <span class="text-2xl">🛍️</span>
               <div>
                 <div class="font-serif font-black text-base text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-2">
-                  <span>Your Bakery Bag</span>
+                  <span>{{ localeStore.t('your_bakery_bag') }}</span>
                   <span class="text-xs font-sans font-bold bg-rose-100 dark:bg-[#341822] text-[#DE1B54] dark:text-rose-300 px-2 py-0.5 rounded-full">
                     {{ cartStore.totalItems }}
                   </span>
                 </div>
                 <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1 mt-0.5">
                   <span>📍</span>
-                  <span>Fulfilling at <strong>{{ currentBranchName }} Branch</strong></span>
+                  <span>{{ localeStore.t('fulfilling_at') }} <strong>{{ localeStore.tBranch(currentBranchName) }}</strong></span>
                 </div>
               </div>
             </div>
@@ -51,7 +51,7 @@
             <button
               @click="cartStore.closeDrawer()"
               class="w-8 h-8 rounded-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#786B60] dark:text-gray-300 hover:text-[#DE1B54] flex items-center justify-center transition text-sm cursor-pointer"
-              title="Close Bag"
+              :title="localeStore.t('close_bag')"
             >
               ✕
             </button>
@@ -62,10 +62,15 @@
             <div class="flex justify-between items-center text-xs">
               <span v-if="subtotal >= 1000" class="font-bold text-[#387A54] dark:text-emerald-400 flex items-center space-x-1">
                 <span>🎉</span>
-                <span>Free Delivery Unlocked!</span>
+                <span>{{ localeStore.t('free_delivery_unlocked') }}</span>
               </span>
               <span v-else class="text-[#786B60] dark:text-[#C5B7AF] text-[11px]">
-                Add <strong class="text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ (1000 - subtotal).toLocaleString() }}</strong> for <strong>Free Delivery</strong>
+                <template v-if="localeStore.isAmharic">
+                  ነፃ ለማድረስ <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ (1000 - subtotal).toLocaleString() }} ብር</strong> ይጨምሩ
+                </template>
+                <template v-else>
+                  Add <strong class="text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ (1000 - subtotal).toLocaleString() }}</strong> for <strong>Free Delivery</strong>
+                </template>
               </span>
               <span class="font-bold text-[11px] text-[#2A1810] dark:text-[#FAF3EE]">{{ Math.min(100, Math.round((subtotal / 1000) * 100)) }}%</span>
             </div>
@@ -82,15 +87,15 @@
             <!-- Empty Bag State -->
             <div v-if="cartStore.items.length === 0" class="py-16 text-center space-y-4">
               <div class="text-5xl">🥐</div>
-              <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">Your bag is empty</h3>
+              <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.t('empty_bag_drawer_title') }}</h3>
               <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-xs mx-auto">
-                Explore our fresh sourdough loaves, celebratory multi-tier cakes, and Parisian pastries.
+                {{ localeStore.t('empty_bag_drawer_desc') }}
               </p>
               <button
                 @click="goToShop"
                 class="px-6 py-3 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-md transition cursor-pointer active:scale-95"
               >
-                Browse Bakery Shop →
+                {{ localeStore.t('browse_shop_btn') }}
               </button>
             </div>
 
@@ -111,19 +116,19 @@
               <div class="flex-1 min-w-0 space-y-1">
                 <div class="flex items-start justify-between gap-1">
                   <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1810] dark:text-[#FAF3EE] truncate pr-1">
-                    {{ item.product_name }}
+                    {{ localeStore.tProduct(item.product_name) }}
                   </h4>
                   <button
                     @click="cartStore.removeItem(item.product_id)"
                     class="text-[#786B60] dark:text-gray-400 hover:text-[#B84B42] text-xs p-1 cursor-pointer"
-                    title="Remove item"
+                    :title="localeStore.t('remove_item')"
                   >
                     ✕
                   </button>
                 </div>
 
                 <div class="text-xs font-bold text-[#DE1B54]">
-                  ETB {{ Number(item.price).toLocaleString() }}
+                  {{ localeStore.formatPrice(item.price) }}
                 </div>
 
                 <!-- Quantity Stepper -->
@@ -148,7 +153,7 @@
                   </div>
 
                   <span class="font-black text-xs text-[#DE1B54]">
-                    ETB {{ (item.price * item.quantity).toLocaleString() }}
+                    {{ localeStore.formatPrice(item.price * item.quantity) }}
                   </span>
                 </div>
               </div>
@@ -159,27 +164,27 @@
           <div v-if="cartStore.items.length > 0" class="p-5 sm:p-6 bg-[#FAF7F5] dark:bg-[#2A1810] border-t border-gray-200 dark:border-[#382318] space-y-4">
             <div class="space-y-2 text-xs">
               <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
-                <span>Items Subtotal</span>
-                <span class="font-bold text-[#29231F] dark:text-[#FAF3EE]">ETB {{ subtotal.toLocaleString() }}</span>
+                <span>{{ localeStore.t('items_subtotal') }}</span>
+                <span class="font-bold text-[#29231F] dark:text-[#FAF3EE]">{{ localeStore.formatPrice(subtotal) }}</span>
               </div>
               <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
-                <span>Estimated Delivery</span>
+                <span>{{ localeStore.t('estimated_delivery') }}</span>
                 <span class="font-bold" :class="estimatedDelivery === 0 ? 'text-[#387A54] dark:text-emerald-400' : 'text-[#29231F] dark:text-[#FAF3EE]'">
-                  {{ estimatedDelivery === 0 ? 'FREE' : `ETB ${estimatedDelivery}` }}
+                  {{ estimatedDelivery === 0 ? localeStore.t('free_label') : localeStore.formatPrice(estimatedDelivery) }}
                 </span>
               </div>
               <div v-if="cartStore.discountAmount > 0" class="flex justify-between items-center text-[#387A54] dark:text-emerald-400">
                 <span class="flex items-center space-x-1">
-                  <span>Promo Savings</span>
+                  <span>{{ localeStore.t('promo_savings') }}</span>
                   <span v-if="cartStore.appliedPromo" class="font-mono text-[9px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">
                     {{ cartStore.appliedPromo.promotion_name }}
                   </span>
                 </span>
-                <span class="font-bold">- ETB {{ cartStore.discountAmount.toLocaleString() }}</span>
+                <span class="font-bold">- {{ localeStore.formatPrice(cartStore.discountAmount) }}</span>
               </div>
               <div class="pt-2 border-t border-gray-200 dark:border-[#382318] flex justify-between items-center text-sm font-black text-[#2A1810] dark:text-[#FAF3EE]">
-                <span>Estimated Total</span>
-                <span class="text-base font-serif font-black text-[#DE1B54]">ETB {{ Math.max(0, subtotal - cartStore.discountAmount + estimatedDelivery).toLocaleString() }}</span>
+                <span>{{ localeStore.t('estimated_total') }}</span>
+                <span class="text-base font-serif font-black text-[#DE1B54]">{{ localeStore.formatPrice(Math.max(0, subtotal - cartStore.discountAmount + estimatedDelivery)) }}</span>
               </div>
             </div>
 
@@ -189,7 +194,7 @@
                 @click="goToCheckout"
                 class="w-full py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
               >
-                <span>Proceed to Checkout</span>
+                <span>{{ localeStore.t('checkout_btn') }}</span>
                 <span>→</span>
               </button>
 
@@ -197,13 +202,13 @@
                 @click="goToCart"
                 class="w-full py-2.5 min-h-[40px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-2xl shadow-2xs transition cursor-pointer text-center"
               >
-                View Complete Bag Details
+                {{ localeStore.t('view_bag_details') }}
               </button>
             </div>
 
             <div class="text-[10px] text-[#786B60] dark:text-[#C5B7AF] text-center flex items-center justify-center space-x-1">
               <span>🔒</span>
-              <span>Encrypted telebirr, Chapa &amp; cash checkout</span>
+              <span>{{ localeStore.t('secure_checkout_notice') }}</span>
             </div>
           </div>
         </div>
@@ -218,11 +223,13 @@ import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
 import { useBranchStore } from '../stores/branch';
 import { useToastStore } from '../stores/toast';
+import { useLocaleStore } from '../stores/locale';
 
 const router = useRouter();
 const cartStore = useCartStore();
 const branchStore = useBranchStore();
 const toastStore = useToastStore();
+const localeStore = useLocaleStore();
 
 const currentBranchName = computed(() => {
   return branchStore.selectedBranch?.branch_name || 'Bole';

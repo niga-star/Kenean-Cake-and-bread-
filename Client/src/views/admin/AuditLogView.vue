@@ -1,23 +1,27 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Audit log</h2>
-      <div class="flex items-center space-x-3">
-        <span class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
-          Read only
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Audit Log</h2>
+        <p class="text-xs text-[#8A7B71] mt-0.5">Immutable record of critical system actions, inventory changes, and role assignments</p>
+      </div>
+      <div class="flex items-center space-x-2.5 self-start sm:self-auto">
+        <span class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
+          🔒 Read only
         </span>
         <button
           @click="exportCSV"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+          class="px-3.5 py-1.5 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer flex items-center space-x-1.5"
         >
-          Export CSV
+          <span>📥</span>
+          <span>Export CSV</span>
         </button>
       </div>
     </div>
 
     <!-- Filters Row -->
-    <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-white p-3.5 border border-[#E9E0D4] rounded-xl shadow-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-white p-3.5 border border-[#E9E0D4] rounded-xl shadow-xs">
       <div>
         <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">User</label>
         <select
@@ -82,7 +86,7 @@
     <!-- Audit Logs Table -->
     <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
+        <table class="w-full text-left text-sm min-w-[640px]">
           <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
             <tr>
               <th class="py-3 px-5">Time</th>

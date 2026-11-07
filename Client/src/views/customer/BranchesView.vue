@@ -20,18 +20,18 @@
           <!-- Script Subtitle with Dash Flourishes -->
           <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-xl sm:text-3xl text-[#DE1B54]">
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
-            <span>Our Bakehouses</span>
+            <span>{{ localeStore.t('our_bakehouses_sub') }}</span>
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
           <!-- Large Bold Serif Title -->
           <h1 class="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
-            Find &amp; Switch Branches
+            {{ localeStore.t('find_switch_branches') }}
           </h1>
 
           <!-- Tagline with Pink Heart -->
           <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
-            <span>Freshly baked at your local Addis Ababa branch!</span>
+            <span>{{ localeStore.t('freshly_baked_local') }}</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
         </div>
@@ -50,7 +50,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search branch by name, area, or street in Addis Ababa..."
+            :placeholder="localeStore.t('search_branch_placeholder')"
             class="w-full pl-10 pr-8 py-2 min-h-[40px] bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
           />
           <button
@@ -68,7 +68,7 @@
             v-model="cityFilter"
             class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
           >
-            <option value="all">All Sub-Cities</option>
+            <option value="all">{{ localeStore.t('all_subcities') }}</option>
             <option value="Bole">Bole</option>
             <option value="Kirkos">Kirkos / Mexico</option>
             <option value="Yeka">Yeka / Megenagna</option>
@@ -79,15 +79,15 @@
             v-model="fulfillmentFilter"
             class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
           >
-            <option value="all">Delivery &amp; Pickup</option>
-            <option value="delivery">Delivery Fleet Only</option>
-            <option value="pickup">Walk-in Counter</option>
+            <option value="all">{{ localeStore.t('all_fulfillment') }}</option>
+            <option value="delivery">{{ localeStore.t('delivery_fleet_only') }}</option>
+            <option value="pickup">{{ localeStore.t('walkin_counter_only') }}</option>
           </select>
 
           <!-- Current Active Branch Badge -->
           <div class="px-3 py-1.5 min-h-[40px] rounded-xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] text-xs font-bold text-[#DE1B54] flex items-center space-x-1.5">
             <span class="w-2 h-2 rounded-full bg-[#DE1B54] animate-ping"></span>
-            <span>Active: {{ activeBranchName }}</span>
+            <span>{{ localeStore.t('active_branch_tag') }} {{ localeStore.tBranch(activeBranchName) }}</span>
           </div>
         </div>
 
@@ -127,7 +127,7 @@
               <div class="space-y-1">
                 <div class="flex items-center space-x-2.5">
                   <h3 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ branch.branch_name }}
+                    {{ localeStore.tBranch(branch.branch_name) }}
                   </h3>
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
@@ -135,13 +135,13 @@
                       ? 'bg-[#24150D] text-white' 
                       : 'bg-rose-50 dark:bg-[#341822] text-[#DE1B54] border border-rose-200 dark:border-[#58263A]'"
                   >
-                    {{ branch.branch_type === 'Main' || branch.is_main ? 'Central Kitchen HQ' : `Branch ${String(branch.branch_id).padStart(2, '0')}` }}
+                    {{ branch.branch_type === 'Main' || branch.is_main ? (localeStore.isAmharic ? 'ዋና መጋገሪያ ማዕከል' : 'Central Kitchen HQ') : (localeStore.isAmharic ? `ቅርንጫፍ ${String(branch.branch_id).padStart(2, '0')}` : `Branch ${String(branch.branch_id).padStart(2, '0')}`) }}
                   </span>
                 </div>
 
                 <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-1.5">
                   <span class="text-gray-400">📍</span>
-                  <span>{{ branch.address || branch.address_line1 || branch.city }}, Addis Ababa</span>
+                  <span>{{ branch.address || branch.address_line1 || branch.city }}, {{ localeStore.isAmharic ? 'አዲስ አበባ' : 'Addis Ababa' }}</span>
                 </p>
 
                 <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-2 pt-0.5">
@@ -152,7 +152,7 @@
                   <span>&middot;</span>
                   <span class="flex items-center space-x-1">
                     <span>⏰</span>
-                    <span>{{ branch.opening_hours || '06:30 – 21:30 Daily' }}</span>
+                    <span>{{ branch.opening_hours || (localeStore.isAmharic ? 'በየቀኑ ከጠዋቱ 12:30 – ማታ 3:30' : '06:30 – 21:30 Daily') }}</span>
                   </span>
                 </p>
               </div>
@@ -160,28 +160,28 @@
               <!-- Open Status Badge -->
               <span class="inline-flex items-center space-x-1.5 text-xs font-bold text-[#2E7D32] bg-[#EAF7EE] border border-[#C6EBD0] px-3 py-1 rounded-full shrink-0">
                 <span class="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse"></span>
-                <span>Baking Now</span>
+                <span>{{ localeStore.isAmharic ? 'በመጋገር ላይ' : 'Baking Now' }}</span>
               </span>
             </div>
 
             <!-- Capability Tags -->
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] border border-gray-200 text-[11px] font-medium text-[#2A1810]">
-                🛵 Fast Delivery
+              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[11px] font-medium text-[#2A1810] dark:text-[#FAF3EE]">
+                🛵 {{ localeStore.isAmharic ? 'ፈጣን ማድረስ' : 'Fast Delivery' }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] border border-gray-200 text-[11px] font-medium text-[#2A1810]">
-                🛍️ In-Store Pickup
+              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[11px] font-medium text-[#2A1810] dark:text-[#FAF3EE]">
+                🛍️ {{ localeStore.isAmharic ? 'ከቅርንጫፍ መውሰድ' : 'In-Store Pickup' }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] border border-gray-200 text-[11px] font-medium text-[#2A1810]">
-                🎂 Custom Cake Studio
+              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[11px] font-medium text-[#2A1810] dark:text-[#FAF3EE]">
+                🎂 {{ localeStore.isAmharic ? 'ልዩ የኬክ ስቱዲዮ' : 'Custom Cake Studio' }}
               </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] border border-gray-200 text-[11px] font-medium text-[#2A1810]">
-                ☕ Espresso Cafe
+              <span class="px-2.5 py-0.5 rounded-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[11px] font-medium text-[#2A1810] dark:text-[#FAF3EE]">
+                ☕ {{ localeStore.isAmharic ? 'ካፌ' : 'Espresso Cafe' }}
               </span>
             </div>
 
             <!-- Bottom Action Row -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-[#382318]">
               <div class="flex items-center space-x-2.5">
                 <!-- If currently selected -->
                 <button
@@ -191,7 +191,7 @@
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Active Branch (Shopping Here)</span>
+                  <span>{{ localeStore.isAmharic ? 'ዋና ቅርንጫፍ (የተመረጠ)' : 'Active Branch (Shopping Here)' }}</span>
                 </button>
 
                 <!-- If not active: click to switch -->
@@ -200,16 +200,16 @@
                   @click="selectBranch(branch)"
                   class="px-5 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center space-x-1.5"
                 >
-                  <span>Select &amp; Shop This Branch</span>
+                  <span>{{ localeStore.isAmharic ? 'ይህንን ቅርንጫፍ ምረጥ' : 'Select & Shop This Branch' }}</span>
                   <span>&rarr;</span>
                 </button>
 
                 <!-- Delivery Areas Button -->
                 <button
                   @click="showZonesFor(branch)"
-                  class="px-4 py-2.5 bg-white border border-[#DE1B54] hover:bg-rose-50 text-[#DE1B54] text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer"
+                  class="px-4 py-2.5 bg-white dark:bg-[#1E120B] border border-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer"
                 >
-                  🚚 Delivery Areas
+                  🚚 {{ localeStore.isAmharic ? 'የማድረሻ ዞኖች' : 'Delivery Areas' }}
                 </button>
               </div>
 
@@ -217,7 +217,7 @@
                 :href="`tel:${branch.phone || '+251911123456'}`"
                 class="text-xs font-bold text-[#DE1B54] hover:underline flex items-center space-x-1"
               >
-                <span>Call Counter</span>
+                <span>{{ localeStore.isAmharic ? 'ለቅርንጫፉ ደውል' : 'Call Counter' }}</span>
                 <span>&rarr;</span>
               </a>
             </div>
@@ -438,11 +438,13 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useToastStore } from '../../stores/toast';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
 const branchStore = useBranchStore();
 const toast = useToastStore();
+const localeStore = useLocaleStore();
 
 const searchQuery = ref('');
 const cityFilter = ref('all');

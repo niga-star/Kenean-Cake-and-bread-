@@ -1,22 +1,25 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Notifications</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Notifications</h2>
+        <p class="text-xs text-[#7A6B60] mt-0.5">Automated stock warnings, distribution updates, and pending action alerts</p>
+      </div>
       <button
         @click="markAllAsRead"
-        class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+        class="self-start sm:self-auto px-4 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer"
       >
         Mark all as read
       </button>
     </div>
 
     <!-- Category Tabs -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-1">
+    <div class="flex items-center space-x-2 overflow-x-auto pb-1 -mx-1 px-1">
       <button
         @click="setCategory('All')"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition"
-        :class="activeCategory === 'All' ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="px-4 py-1.5 text-xs font-semibold rounded-full transition whitespace-nowrap cursor-pointer shrink-0"
+        :class="activeCategory === 'All' ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
       >
         All ({{ unreadCount }})
       </button>
@@ -24,8 +27,8 @@
         v-for="cat in ['Stock', 'Transfers', 'Discrepancies', 'Orders', 'System']"
         :key="cat"
         @click="setCategory(cat)"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition"
-        :class="activeCategory === cat ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="px-4 py-1.5 text-xs font-semibold rounded-full transition whitespace-nowrap cursor-pointer shrink-0"
+        :class="activeCategory === cat ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
       >
         {{ cat }}
       </button>
@@ -38,10 +41,10 @@
         <div
           v-for="n in notifications"
           :key="n.notification_id"
-          class="bg-white border border-[#E9E0D4] rounded-xl p-4 shadow-sm flex items-center justify-between transition hover:border-[#D0C2B0]"
+          class="bg-white border border-[#E9E0D4] rounded-xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition hover:border-[#D0C2B0]"
           :class="!n.is_read ? 'border-l-4 border-l-[#BA5420]' : ''"
         >
-          <div class="flex items-start space-x-3.5">
+          <div class="flex items-start space-x-3.5 flex-1 min-w-0">
             <span
               class="px-2 py-0.5 text-[11px] font-semibold rounded-md shrink-0 uppercase tracking-wide mt-0.5"
               :class="{
@@ -55,13 +58,13 @@
               {{ n.category === 'Discrepancies' ? 'Discrepancy' : n.category === 'Transfers' ? 'Transfer' : n.category === 'Orders' ? 'Order' : n.category }}
             </span>
 
-            <div class="space-y-1">
+            <div class="space-y-1 min-w-0">
               <div class="text-sm font-semibold text-[#2A1D15]">{{ n.title }}</div>
               <div class="text-xs text-[#6A5A50] leading-relaxed">{{ n.message }}</div>
             </div>
           </div>
 
-          <div class="flex items-center space-x-3 shrink-0 ml-4">
+          <div class="flex items-center justify-between sm:justify-end space-x-3 shrink-0 pt-2 sm:pt-0 border-t border-[#F5EFEA] sm:border-t-0 sm:ml-4">
             <span class="text-xs text-[#8A7B71]">{{ n.time_ago }}</span>
             <router-link
               v-if="n.link"

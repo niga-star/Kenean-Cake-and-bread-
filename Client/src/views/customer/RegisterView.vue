@@ -8,10 +8,10 @@
           ✨
         </div>
         <h2 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
-          Join SweetBakes Bakery
+          {{ localeStore.t('join_sweetbakes_title') }}
         </h2>
         <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
-          Create your account for faster checkout, bespoke cake quotation tracking, and seasonal member offers.
+          {{ localeStore.t('join_sweetbakes_desc') }}
         </p>
       </div>
 
@@ -25,12 +25,12 @@
       <form @submit.prevent="handleRegister" class="space-y-4">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">
-            Full Name
+            {{ localeStore.t('full_name') }}
           </label>
           <input
             v-model="form.full_name"
             type="text"
-            placeholder="Enter your full name"
+            :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Enter your full name'"
             class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
             required
           />
@@ -38,7 +38,7 @@
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">
-            Email Address
+            {{ localeStore.t('email_label') }}
           </label>
           <input
             v-model="form.email"
@@ -51,7 +51,7 @@
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">
-            Phone Number (Ethiopian format)
+            {{ localeStore.t('phone_req') }}
           </label>
           <input
             v-model="form.phone"
@@ -60,12 +60,12 @@
             class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
             required
           />
-          <span class="text-[10px] text-[#786B60] dark:text-[#C5B7AF]">Required for courier delivery updates</span>
+          <span class="text-[10px] text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.t('phone_courier_notice') }}</span>
         </div>
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">
-            Password (min 6 characters)
+            {{ localeStore.t('password_min_6') }}
           </label>
           <input
             v-model="form.password"
@@ -79,7 +79,7 @@
 
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1">
-            Confirm Password
+            {{ localeStore.t('confirm_password_label') }}
           </label>
           <input
             v-model="confirmPassword"
@@ -98,7 +98,12 @@
             class="mt-0.5 rounded text-[#DE1B54] focus:ring-[#DE1B54]"
           />
           <label for="terms" class="ml-2 text-xs text-[#786B60] dark:text-[#C5B7AF] leading-relaxed">
-            I agree to SweetBakes <router-link to="/about" class="text-[#DE1B54] underline">Terms of Service</router-link> and <router-link to="/about" class="text-[#DE1B54] underline">Freshness Guarantee</router-link>.
+            <template v-if="localeStore.isAmharic">
+              በስዊትቤክስ <router-link to="/about" class="text-[#DE1B54] underline">የአገልግሎት ውሎች</router-link> እና <router-link to="/about" class="text-[#DE1B54] underline">የትኩስነት ዋስትና</router-link> እስማማለሁ።
+            </template>
+            <template v-else>
+              I agree to SweetBakes <router-link to="/about" class="text-[#DE1B54] underline">Terms of Service</router-link> and <router-link to="/about" class="text-[#DE1B54] underline">Freshness Guarantee</router-link>.
+            </template>
           </label>
         </div>
 
@@ -107,15 +112,15 @@
           :disabled="loading"
           class="w-full py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
         >
-          {{ loading ? 'Creating Account...' : 'Create Account →' }}
+          {{ loading ? localeStore.t('creating_account_btn') : localeStore.t('create_account_btn') }}
         </button>
       </form>
 
       <!-- Login Link -->
       <div class="text-center text-xs text-[#786B60] dark:text-[#C5B7AF] pt-2 border-t border-gray-100 dark:border-[#382318]">
-        Already have an account?
+        {{ localeStore.t('already_have_account') }}
         <router-link to="/login" class="font-bold text-[#DE1B54] hover:underline ml-1">
-          Sign In
+          {{ localeStore.t('sign_in') }}
         </router-link>
       </div>
     </div>
@@ -129,12 +134,14 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useWishlistStore } from '../../stores/wishlist';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
+const localeStore = useLocaleStore();
 
 const form = ref({
   full_name: '',

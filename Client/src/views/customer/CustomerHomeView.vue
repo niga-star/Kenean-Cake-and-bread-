@@ -13,8 +13,8 @@
           @load="heroImageLoaded = true"
         />
 
-        <!-- Soft Translucent Scrim: Keeps full image visible while making text pin-sharp and readable -->
-        <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/70 via-45% to-[#FAF7F5]/15 dark:from-[#170E0A]/95 dark:via-[#170E0A]/70 dark:via-45% dark:to-[#170E0A]/20"></div>
+        <!-- Half-transparency gradient on left (for text readability), leaving right half 100% original image -->
+        <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/75 via-45% to-transparent dark:from-[#170E0A]/95 dark:via-[#170E0A]/75 dark:via-45% dark:to-transparent pointer-events-none"></div>
 
         <!-- Soft Bottom Fade to Canvas -->
         <div class="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-[#FAF7F5] to-transparent dark:from-[#170E0A] pointer-events-none"></div>
@@ -33,42 +33,42 @@
 
       <!-- Hero Text Content (Positioned over full cover image) -->
       <div class="sweetbakes-container py-12 sm:py-16 lg:py-24 relative z-10">
-        <div class="max-w-xl xl:max-w-2xl space-y-3.5 sm:space-y-4 text-center lg:text-left">
+        <div class="max-w-xl xl:max-w-2xl space-y-4 sm:space-y-5 text-center lg:text-left">
           <!-- Compact Artisan Pill Badge -->
-          <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-rose-50/90 dark:bg-[#331A24]/90 border border-rose-200/80 dark:border-[#58263A] text-[#DE1B54] text-xs font-bold tracking-wide shadow-2xs">
+          <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-200/90 dark:border-[#58263A] text-[#DE1B54] text-xs sm:text-sm font-black tracking-wide shadow-xs">
             <span>✨</span>
-            <span class="font-script text-base sm:text-lg leading-none -mb-0.5">{{ heroSubtitle }}</span>
+            <span class="font-script text-lg sm:text-xl leading-none -mb-0.5">{{ heroSubtitle }}</span>
             <span>♡</span>
           </div>
 
           <!-- Large Bold Serif Title (Fluid Typography for flawless rendering on all screens 320px - 2560px) -->
-          <h1 class="text-fluid-hero font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-[1.14]">
+          <h1 class="text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.12] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
             <span>{{ heroTitle1 }}</span>
-            <span v-if="heroTitle2 && heroTitle2 !== heroTitle1" class="block text-fluid-hero-sub font-serif font-bold text-[#DE1B54] dark:text-rose-400 mt-1">
+            <span v-if="heroTitle2 && heroTitle2 !== heroTitle1" class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
               {{ heroTitle2 }}
             </span>
           </h1>
 
-          <!-- Body Description: Clean, Concise & Impactful -->
-          <p class="text-xs sm:text-sm md:text-base text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed max-w-md lg:max-w-lg mx-auto lg:mx-0">
+          <!-- Body Description: Bold, Crisp, Clean & Impactful -->
+          <p class="text-base sm:text-lg md:text-xl text-[#1C0F0A] dark:text-[#F3EDE6] font-bold leading-relaxed max-w-lg lg:max-w-xl mx-auto lg:mx-0 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
             {{ heroDesc }}
           </p>
 
           <!-- CTA Buttons: Responsive Wrap & Min Touch Target (>= 44px) -->
-          <div class="flex flex-col xs:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3.5 pt-2 w-full xs:w-auto">
+          <div class="flex flex-col xs:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 w-full xs:w-auto">
             <!-- Shop Now: Vivid Pink Pill Button -->
             <router-link
               :to="currentBanner?.link_url || '/shop'"
-              class="w-full xs:w-auto px-8 py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-bold text-xs sm:text-sm rounded-full shadow-md hover:shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
+              class="w-full xs:w-auto px-9 py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base tracking-wide rounded-full shadow-lg hover:shadow-xl transition-transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>{{ heroButtonText }}</span>
-              <span class="text-base">&rarr;</span>
+              <span class="text-lg font-black">&rarr;</span>
             </router-link>
 
             <!-- Custom Studio Button -->
             <router-link
               to="/custom-cake"
-              class="w-full xs:w-auto px-7 py-3.5 min-h-[44px] bg-white/85 hover:bg-white dark:bg-[#1E120B]/80 dark:hover:bg-[#1E120B] text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] border border-[#2A1810]/20 hover:border-[#DE1B54] font-bold text-xs sm:text-sm rounded-full shadow-2xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
+              class="w-full xs:w-auto px-8 py-4 min-h-[48px] bg-white hover:bg-rose-50 dark:bg-[#1E120B] dark:hover:bg-[#2A1710] text-[#1C0F0A] dark:text-[#FAF3EE] hover:text-[#DE1B54] border-2 border-[#1C0F0A]/15 hover:border-[#DE1B54] font-black text-sm sm:text-base rounded-full shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
               <span>🎨</span>
               <span>{{ localeStore.isAmharic ? 'ልዩ ኬክ ስቱዲዮ' : 'Custom Studio' }}</span>
@@ -76,19 +76,19 @@
           </div>
 
           <!-- Micro Trust Chips -->
-          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5 text-[11px] sm:text-xs text-[#786B60] dark:text-[#C5B7AF]">
-            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-[#1C0F0A] dark:text-[#FAF3EE]">
+            <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span>🚚</span>
-              <span class="font-medium">{{ localeStore.isAmharic ? 'ፈጣን ማድረሻ' : 'Fast Delivery' }}</span>
+              <span class="font-bold text-[#1C0F0A] dark:text-[#F0E6DE]">{{ localeStore.isAmharic ? 'ፈጣን ማድረሻ' : 'Fast Delivery' }}</span>
             </span>
-            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+            <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span class="text-amber-500 font-black">★</span>
-              <span class="font-bold text-[#2A1810] dark:text-white">4.9</span>
-              <span>(1.2k+ reviews)</span>
+              <span class="font-black text-[#1C0F0A] dark:text-white">4.9</span>
+              <span class="text-[#3A2218] dark:text-[#C5B7AF] font-bold">(1.2k+ reviews)</span>
             </span>
-            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+            <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span>🌿</span>
-              <span class="font-medium">{{ localeStore.isAmharic ? 'የጾም አማራጮች' : "Ye'Tsom Vegan" }}</span>
+              <span class="font-bold text-[#1C0F0A] dark:text-[#F0E6DE]">{{ localeStore.isAmharic ? 'የጾም አማራጮች' : "Ye'Tsom Vegan" }}</span>
             </span>
           </div>
         </div>
@@ -125,7 +125,121 @@
       </div>
     </section>
 
-    <!-- 2. "OUR POPULAR PRODUCTS" SECTION: With Interactive Category Filter Pills -->
+    <!-- 2. "ABOUT SWEETBAKES - A BAKERY YOU CAN TRUST" SECTION -->
+    <section id="about" class="sweetbakes-container">
+      <div class="rounded-3xl bg-gradient-to-br from-[#FAF7F4] via-white to-[#FDF4F0] dark:from-[#20130C] dark:via-[#1A0E08] dark:to-[#22150E] border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-8 md:p-10 lg:p-12 shadow-sm relative overflow-hidden group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-stretch">
+          <!-- Left Column: Baker Chef Photo (Expanded Frame with Upward Shifted Crop) -->
+          <div class="md:col-span-6 flex justify-center order-2 md:order-1">
+            <div class="relative w-full h-full flex flex-col">
+              <div
+                class="relative w-full h-full min-h-[360px] sm:min-h-[420px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[520px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-white/90 dark:border-[#382318] bg-[#F0E8DF] dark:bg-[#25150E]"
+                :class="{ 'shimmer-wave': !aboutImageLoaded }"
+              >
+                <img
+                  src="/mockup/baker_hires.jpg"
+                  alt="SweetBakes Baker Chef"
+                  class="w-full h-full object-cover object-[center_18%] group-hover:scale-104 transition-all duration-700"
+                  :class="aboutImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-98'"
+                  loading="lazy"
+                  @load="aboutImageLoaded = true"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: About Details, Checklist, Stats & Scalloped Stamp -->
+          <div class="md:col-span-6 space-y-4 sm:space-y-5 relative order-1 md:order-2 flex flex-col justify-between">
+            <!-- Header Row with Stamp in Top Right -->
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="flex items-center space-x-2 text-[#DE1B54] font-script text-xl sm:text-2xl lg:text-3xl mb-1">
+                  <span>🧁</span>
+                  <span>{{ localeStore.t('about_tag') }}</span>
+                </div>
+
+                <!-- Headline -->
+                <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
+                  {{ localeStore.t('about_title') }}
+                </h3>
+              </div>
+
+              <!-- Scalloped Stamp / Seal: "SINCE 2015 ♡" -->
+              <div class="shrink-0">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-rose-50/95 dark:bg-[#341822]/95 border-2 border-dashed border-[#DE1B54] flex flex-col items-center justify-center text-center p-1 sm:p-1.5 shadow-xs text-[#DE1B54] rotate-6 hover:rotate-12 transition-transform duration-300 cursor-pointer select-none">
+                  <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif">{{ localeStore.isAmharic ? 'ከ' : 'SINCE' }}</span>
+                  <span class="text-sm sm:text-base lg:text-lg font-black font-serif leading-none">2015</span>
+                  <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif" v-if="localeStore.isAmharic">ጀምሮ</span>
+                  <span class="text-[10px] sm:text-xs" v-else>♡</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Body Paragraph -->
+            <p class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#EAE1DA] leading-relaxed max-w-lg">
+              {{ (localeStore.isAmharic ? businessInfo?.about_story_am : businessInfo?.about_story_en) || localeStore.t('about_desc') }}
+            </p>
+
+            <!-- 4 Bullets with Dark Circular Checkmarks -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm sm:text-base font-bold text-[#1C0F0A] dark:text-[#FAF3EE]">
+              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+                <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
+                <span>{{ localeStore.t('premium_quality') }}</span>
+              </div>
+              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+                <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
+                <span>{{ localeStore.t('fresh_ingredients') }}</span>
+              </div>
+              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+                <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
+                <span>{{ localeStore.t('custom_orders') }}</span>
+              </div>
+              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+                <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
+                <span>{{ localeStore.t('multibranch_service') }}</span>
+              </div>
+            </div>
+
+            <!-- Action & Experience Stats Row -->
+            <div class="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#F0E6DD] dark:border-[#382318]">
+              <!-- Discover More Button -->
+              <router-link
+                to="/branches"
+                class="w-full sm:w-auto justify-center px-9 py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-sm sm:text-base font-bold rounded-full shadow-md hover:shadow-lg transition-transform hover:scale-105 active:scale-95 inline-flex items-center space-x-2 cursor-pointer group"
+              >
+                <span>{{ localeStore.t('discover_more') }}</span>
+                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+              </router-link>
+
+              <!-- Stats: Dynamic Experience & Branches count from Database -->
+              <div class="flex items-center justify-around sm:justify-start space-x-4 sm:space-x-6 text-sm text-[#554035] dark:text-[#C5B7AF] pt-1 sm:pt-0">
+                <div class="flex items-center space-x-2.5">
+                  <span class="text-2xl">👩‍🍳</span>
+                  <div>
+                    <div class="font-black text-base sm:text-lg text-[#1A0C06] dark:text-white leading-none">
+                      {{ businessInfo?.stats?.find(s => s.id === 'experience')?.value || '12+' }}
+                    </div>
+                    <div class="text-xs sm:text-[13px] font-bold text-[#6E5D53] dark:text-[#A8988E]">{{ localeStore.t('years_exp') }}</div>
+                  </div>
+                </div>
+
+                <div class="h-8 w-px bg-rose-200 dark:bg-[#58263A]"></div>
+
+                <div class="flex items-center space-x-2.5">
+                  <span class="text-2xl">🏪</span>
+                  <div>
+                    <div class="font-black text-base sm:text-lg text-[#1A0C06] dark:text-white leading-none">{{ branchStore.branches?.length || 4 }}</div>
+                    <div class="text-xs sm:text-[13px] font-bold text-[#6E5D53] dark:text-[#A8988E]">{{ localeStore.t('branches_stat') }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. "OUR POPULAR PRODUCTS" SECTION: With Interactive Category Filter Pills -->
     <section id="popular-products" class="sweetbakes-container">
       <!-- Section Header with Cake Icon & Dashes -->
       <div class="text-center space-y-1.5 mb-6 sm:mb-8">
@@ -137,7 +251,7 @@
           </h2>
           <span class="hidden xs:block h-px w-8 sm:w-16 bg-[#D8CDC5] dark:bg-[#3D261B]"></span>
         </div>
-        <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
+        <p class="text-sm sm:text-base font-bold text-[#553C2E] dark:text-[#D4C5BB]">
           {{ localeStore.t('popular_sub') }}
         </p>
       </div>
@@ -149,10 +263,10 @@
           :key="cat.key"
           type="button"
           @click="selectedCategory = cat.key"
-          class="px-4 sm:px-5 py-2 min-h-[40px] rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer"
+          class="px-5 sm:px-6 py-2.5 min-h-[42px] rounded-full text-sm sm:text-base font-bold transition-all duration-200 cursor-pointer"
           :class="selectedCategory === cat.key
-            ? 'bg-[#DE1B54] text-white shadow-xs font-bold scale-105'
-            : 'bg-white dark:bg-[#1E120B] hover:bg-rose-50 dark:hover:bg-[#341822] border border-[#E5DAD1] dark:border-[#382318] text-[#554035] dark:text-[#E8DED8] hover:text-[#DE1B54] hover:border-[#DE1B54]/40'"
+            ? 'bg-[#DE1B54] text-white shadow-sm font-black scale-105'
+            : 'bg-white dark:bg-[#1E120B] hover:bg-rose-50 dark:hover:bg-[#341822] border border-[#E5DAD1] dark:border-[#382318] text-[#332014] dark:text-[#E8DED8] hover:text-[#DE1B54] hover:border-[#DE1B54]/40'"
         >
           {{ localeStore.t(cat.transKey) }}
         </button>
@@ -229,7 +343,7 @@
               <router-link
                 :to="`/product/${product.productId}`"
                 @click.stop
-                class="font-serif font-bold text-xs xs:text-sm text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors block truncate"
+                class="font-serif font-bold text-sm xs:text-base text-[#1A0C06] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors block truncate"
               >
                 {{ localeStore.tProduct(product.name) }}
               </router-link>
@@ -237,14 +351,14 @@
               <!-- Star Rating & Review Count -->
               <div class="flex items-center space-x-1.5 text-xs pt-0.5">
                 <span class="text-amber-400 tracking-tighter">★★★★★</span>
-                <span class="text-gray-700 dark:text-gray-300 text-[11px] font-bold">{{ product.rating }}</span>
-                <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ product.reviews }} {{ localeStore.t('reviews_count') }})</span>
+                <span class="text-gray-800 dark:text-gray-200 text-xs font-bold">{{ product.rating }}</span>
+                <span class="text-gray-500 dark:text-gray-400 text-xs">({{ product.reviews }} {{ localeStore.t('reviews_count') }})</span>
               </div>
             </div>
 
             <!-- Price in Bold Vivid Pink -->
             <div class="pt-1">
-              <span class="text-xs xs:text-sm font-black text-[#DE1B54]">
+              <span class="text-sm xs:text-base font-black text-[#DE1B54]">
                 {{ localeStore.t('currency') }} {{ product.price.toLocaleString() }}
               </span>
             </div>
@@ -254,7 +368,7 @@
               type="button"
               @click.stop="handleAddToCart(product)"
               :disabled="product.isAdding || product.isSoldOut"
-              class="w-full py-2.5 min-h-[44px] text-[11px] xs:text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5"
+              class="w-full py-2.5 min-h-[44px] text-xs xs:text-sm font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5"
               :class="product.isSoldOut
                 ? 'bg-gray-200 dark:bg-[#382318] text-gray-400 dark:text-gray-500 cursor-not-allowed'
                 : 'bg-[#DE1B54] hover:bg-[#C51345] text-white cursor-pointer active:scale-95'"
@@ -277,117 +391,6 @@
           <span>{{ localeStore.t('explore_all') }}</span>
           <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
         </router-link>
-      </div>
-    </section>
-
-    <!-- 3. "ABOUT SWEETBAKES - A BAKERY YOU CAN TRUST" SECTION -->
-    <section id="about" class="sweetbakes-container">
-      <div class="rounded-3xl bg-gradient-to-br from-[#FAF7F4] via-white to-[#FDF4F0] dark:from-[#20130C] dark:via-[#1A0E08] dark:to-[#22150E] border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-8 md:p-10 lg:p-12 shadow-sm relative overflow-hidden group">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
-          <!-- Left Column: Baker Chef Photo -->
-          <div class="md:col-span-5 lg:col-span-6 flex justify-center order-2 md:order-1">
-            <div class="relative w-full max-w-md lg:max-w-none">
-              <div class="rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg aspect-4/3 sm:aspect-16/10 bg-[#F0E8DF] dark:bg-[#25150E]" :class="{ 'shimmer-wave': !aboutImageLoaded }">
-                <img
-                  src="/mockup/baker_hires.jpg"
-                  alt="SweetBakes Baker Chef"
-                  class="w-full h-full object-cover object-center group-hover:scale-104 transition-all duration-700"
-                  :class="aboutImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-98'"
-                  loading="lazy"
-                  @load="aboutImageLoaded = true"
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: About Details, Checklist, Stats & Scalloped Stamp -->
-          <div class="md:col-span-7 lg:col-span-6 space-y-4 sm:space-y-5 relative order-1 md:order-2">
-            <!-- Header Row with Stamp in Top Right -->
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <div class="flex items-center space-x-2 text-[#DE1B54] font-script text-xl sm:text-2xl lg:text-3xl mb-1">
-                  <span>🧁</span>
-                  <span>{{ localeStore.t('about_tag') }}</span>
-                </div>
-
-                <!-- Headline -->
-                <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
-                  {{ localeStore.t('about_title') }}
-                </h3>
-              </div>
-
-              <!-- Scalloped Stamp / Seal: "SINCE 2015 ♡" -->
-              <div class="shrink-0">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-rose-50/95 dark:bg-[#341822]/95 border-2 border-dashed border-[#DE1B54] flex flex-col items-center justify-center text-center p-1 sm:p-1.5 shadow-xs text-[#DE1B54] rotate-6 hover:rotate-12 transition-transform duration-300 cursor-pointer select-none">
-                  <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif">{{ localeStore.isAmharic ? 'ከ' : 'SINCE' }}</span>
-                  <span class="text-sm sm:text-base lg:text-lg font-black font-serif leading-none">2015</span>
-                  <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif" v-if="localeStore.isAmharic">ጀምሮ</span>
-                  <span class="text-[10px] sm:text-xs" v-else>♡</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Body Paragraph -->
-            <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed max-w-lg">
-              {{ (localeStore.isAmharic ? businessInfo?.about_story_am : businessInfo?.about_story_en) || localeStore.t('about_desc') }}
-            </p>
-
-            <!-- 4 Bullets with Dark Circular Checkmarks -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm font-semibold text-[#2A1810] dark:text-[#FAF3EE]">
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
-                <span class="w-5 h-5 rounded-full bg-[#2A1810] dark:bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                <span>{{ localeStore.t('premium_quality') }}</span>
-              </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
-                <span class="w-5 h-5 rounded-full bg-[#2A1810] dark:bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                <span>{{ localeStore.t('fresh_ingredients') }}</span>
-              </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
-                <span class="w-5 h-5 rounded-full bg-[#2A1810] dark:bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                <span>{{ localeStore.t('custom_orders') }}</span>
-              </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
-                <span class="w-5 h-5 rounded-full bg-[#2A1810] dark:bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-                <span>{{ localeStore.t('multibranch_service') }}</span>
-              </div>
-            </div>
-
-            <!-- Action & Experience Stats Row -->
-            <div class="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#F0E6DD] dark:border-[#382318]">
-              <!-- Discover More Button -->
-              <router-link
-                to="/branches"
-                class="w-full sm:w-auto justify-center px-8 py-3.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-transform hover:scale-105 active:scale-95 inline-flex items-center space-x-2 cursor-pointer group"
-              >
-                <span>{{ localeStore.t('discover_more') }}</span>
-                <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
-              </router-link>
-
-              <!-- Stats: Dynamic Experience & Branches count from Database -->
-              <div class="flex items-center justify-around sm:justify-start space-x-4 sm:space-x-6 text-xs text-[#554035] dark:text-[#C5B7AF] pt-1 sm:pt-0">
-                <div class="flex items-center space-x-2">
-                  <span class="text-xl">👩‍🍳</span>
-                  <div>
-                    <div class="font-bold text-sm text-[#2A1810] dark:text-white leading-none">
-                      {{ businessInfo?.stats?.find(s => s.id === 'experience')?.value || '12+' }}
-                    </div>
-                    <div class="text-[10px] text-[#786B60] dark:text-[#A8988E]">{{ localeStore.t('years_exp') }}</div>
-                  </div>
-                </div>
-
-                <div class="h-7 w-px bg-rose-200 dark:bg-[#58263A]"></div>
-
-                <div class="flex items-center space-x-2">
-                  <span class="text-xl">🏪</span>
-                  <div>
-                    <div class="font-bold text-sm text-[#2A1810] dark:text-white leading-none">{{ branchStore.branches?.length || 4 }}</div>
-                    <div class="text-[10px] text-[#786B60] dark:text-[#A8988E]">{{ localeStore.t('branches_stat') }}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -478,7 +481,7 @@
             </div>
 
             <!-- Quote Text -->
-            <p class="text-xs sm:text-sm text-[#554035] dark:text-[#C5B7AF] leading-relaxed italic pt-1 flex-1">
+            <p class="text-sm sm:text-base font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed italic pt-1 flex-1">
               &ldquo;{{ localeStore.tQuote(rev.quote) }}&rdquo;
             </p>
           </div>
@@ -520,14 +523,14 @@
     <section class="sweetbakes-container">
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FFF0F4] via-[#FDE4EE] to-[#FCE4EC] dark:from-[#341822] dark:via-[#29121B] dark:to-[#381A25] border border-[#F6C5D6] dark:border-[#552438] p-5 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-sm group">
         <!-- Left Column: Special Offer Text & Call to Action -->
-        <div class="space-y-2.5 sm:space-y-3 text-center md:text-left z-10 max-w-xl w-full">
-          <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#DE1B54] text-white shadow-2xs">
+        <div class="space-y-3 sm:space-y-4 text-center md:text-left z-10 max-w-xl w-full">
+          <span class="inline-block px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#DE1B54] text-white shadow-2xs">
             {{ localeStore.t('special_offer') }}
           </span>
           <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
             {{ localeStore.t('offer_title_1') }} <span class="text-[#DE1B54] font-script italic">{{ localeStore.t('offer_title_2') }}</span>
           </h3>
-          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
+          <p class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed">
             {{ localeStore.t('offer_desc') }}
           </p>
         </div>
@@ -535,14 +538,14 @@
         <!-- Right Column: Dynamic Discount Badge, Action Button, and Featured Celebration Cake -->
         <div class="flex items-center justify-center md:justify-end gap-3 sm:gap-4 z-10 w-full md:w-auto">
           <!-- Discount Badge (from Database) -->
-          <div class="px-4 xs:px-5 py-2.5 rounded-full bg-[#DE1B54] text-white font-black text-xs xs:text-sm sm:text-base tracking-wide shadow-md whitespace-nowrap animate-pulse">
+          <div class="px-5 py-3 rounded-full bg-[#DE1B54] text-white font-black text-sm sm:text-base tracking-wide shadow-md whitespace-nowrap animate-pulse">
             {{ activePromotion ? `${activePromotion.discount_value}% OFF` : localeStore.t('discount_label') }}
           </div>
 
           <!-- Shop the Offer Button -->
           <router-link
             to="/shop"
-            class="px-5 xs:px-6 py-2.5 min-h-[44px] rounded-full bg-white dark:bg-[#221610] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] font-bold text-xs sm:text-sm border border-[#DE1B54]/30 shadow-xs hover:shadow-md transition-all inline-flex items-center space-x-1.5 whitespace-nowrap cursor-pointer hover:scale-103"
+            class="px-6 py-3 min-h-[46px] rounded-full bg-white dark:bg-[#221610] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] font-black text-sm sm:text-base border border-[#DE1B54]/30 shadow-xs hover:shadow-md transition-all inline-flex items-center space-x-2 whitespace-nowrap cursor-pointer hover:scale-103"
           >
             <span>{{ localeStore.t('shop_offer') }}</span>
             <span>&rarr;</span>

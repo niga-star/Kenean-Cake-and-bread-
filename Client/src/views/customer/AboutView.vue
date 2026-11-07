@@ -68,8 +68,12 @@
           />
         </div>
         <div class="absolute -bottom-6 -left-6 bg-white dark:bg-[#1E120B] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#382318] shadow-lg hidden sm:block max-w-xs">
-          <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">“Making life sweeter, one cake and bread at a time.”</div>
-          <div class="text-[10px] text-[#DE1B54] font-semibold">— SweetBakes Master Pastry Chef</div>
+          <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+            {{ localeStore.isAmharic ? '“እያንዳንዱን ኬክ እና ዳቦ በፍቅር እና በጥንቃቄ እያዘጋጀን ህይወትዎን እናጣፍጣለን::”' : '“Making life sweeter, one cake and bread at a time.”' }}
+          </div>
+          <div class="text-[10px] text-[#DE1B54] font-semibold">
+            {{ localeStore.isAmharic ? '— የስዊትቤክስ ዋና ኬክ ሼፍ' : '— SweetBakes Master Pastry Chef' }}
+          </div>
         </div>
       </div>
     </div>

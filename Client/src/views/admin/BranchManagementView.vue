@@ -1,11 +1,11 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Branch management</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch management</h2>
       <button
         @click="openAddBranchModal"
-        class="px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center space-x-1.5"
+        class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
       >
         <span>+ Add branch</span>
       </button>
@@ -24,7 +24,7 @@
     <!-- Branches List Table -->
     <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
+        <table class="w-full min-w-[580px] text-left text-sm">
           <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
             <tr>
               <th class="py-3 px-5">Code</th>
@@ -274,8 +274,8 @@
     </div>
 
     <!-- MODAL 1: Add New Branch Modal -->
-    <div v-if="isAddBranchModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-lg w-full p-6 space-y-5 animate-in fade-in duration-200">
+    <div v-if="isAddBranchModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4">
+      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-lg w-full p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in duration-200 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <div>
             <h3 class="text-lg font-serif font-bold text-[#2A1D15]">Register New Bakery Branch</h3>

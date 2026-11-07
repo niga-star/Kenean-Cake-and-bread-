@@ -3,15 +3,15 @@
     <!-- Breadcrumb & Page Title -->
     <div class="space-y-1">
       <div class="flex items-center space-x-2 text-xs text-[#786B60] dark:text-[#C5B7AF]">
-        <router-link to="/" class="hover:text-[#DE1B54] transition">Home</router-link>
+        <router-link to="/" class="hover:text-[#DE1B54] transition">{{ localeStore.t('home') }}</router-link>
         <span>/</span>
-        <span class="text-[#2A1810] dark:text-[#FAF3EE] font-semibold">My Account</span>
+        <span class="text-[#2A1810] dark:text-[#FAF3EE] font-semibold">{{ localeStore.t('my_account_breadcrumb') }}</span>
       </div>
       <h1 class="text-2xl sm:text-4xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
-        Customer Account &amp; Orders
+        {{ localeStore.t('account_orders_title') }}
       </h1>
       <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
-        Manage your bakery orders, custom cake quote requests, delivery addresses, and personal profile.
+        {{ localeStore.t('account_sub') }}
       </p>
     </div>
 
@@ -34,7 +34,7 @@
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-0.5">{{ userEmail }}</p>
             <div class="flex items-center justify-center gap-2 mt-2">
               <span class="inline-block px-3 py-0.5 bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#2A1810] dark:text-[#FAF3EE] text-[11px] font-bold rounded-full">
-                {{ authStore.user?.role || 'Customer' }}
+                {{ authStore.user?.role || (localeStore.isAmharic ? 'ደንበኛ' : 'Customer') }}
               </span>
               <span class="inline-block px-2.5 py-0.5 bg-[#387A54]/10 text-[#387A54] dark:text-emerald-400 text-[11px] font-bold rounded-full">
                 Artisan Club
@@ -52,7 +52,7 @@
           >
             <div class="flex items-center space-x-3">
               <span class="text-base">📦</span>
-              <span>Order History</span>
+              <span>{{ localeStore.t('order_history_tab') }}</span>
             </div>
             <span
               v-if="orders.length > 0"
@@ -70,7 +70,7 @@
           >
             <div class="flex items-center space-x-3">
               <span class="text-base">🎂</span>
-              <span>Custom Cakes &amp; Quotes</span>
+              <span>{{ localeStore.t('custom_cakes_tab') }}</span>
             </div>
             <span
               v-if="pendingQuotesCount > 0"
@@ -87,7 +87,7 @@
           >
             <div class="flex items-center space-x-3">
               <span class="text-base">❤️</span>
-              <span>My Wishlist &amp; Favorites</span>
+              <span>{{ localeStore.t('wishlist_tab') }}</span>
             </div>
             <span
               v-if="wishlistStore.count > 0"
@@ -104,7 +104,7 @@
             :class="activeTab === 'addresses' ? 'bg-[#DE1B54] text-white shadow-xs' : 'text-[#2A1810] dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822]'"
           >
             <span class="text-base">📍</span>
-            <span>Delivery Addresses</span>
+            <span>{{ localeStore.t('saved_addresses_tab') }}</span>
           </button>
 
           <button
@@ -113,7 +113,7 @@
             :class="activeTab === 'settings' ? 'bg-[#DE1B54] text-white shadow-xs' : 'text-[#2A1810] dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822]'"
           >
             <span class="text-base">⚙️</span>
-            <span>Profile &amp; Security</span>
+            <span>{{ localeStore.t('profile_settings_tab') }}</span>
           </button>
 
           <button
@@ -121,22 +121,22 @@
             class="w-full text-left px-4 py-3 min-h-[44px] rounded-2xl text-[#B84B42] hover:bg-[#B84B42]/10 transition flex items-center space-x-3 pt-3 mt-2 border-t border-gray-100 dark:border-[#382318] cursor-pointer"
           >
             <span class="text-base">🚪</span>
-            <span>Sign Out</span>
+            <span>{{ localeStore.t('logout') }}</span>
           </button>
         </nav>
 
         <!-- Current Branch Affinity Widget -->
         <div class="p-4 rounded-2xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] space-y-2 text-xs">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] uppercase tracking-wider font-bold text-[#786B60] dark:text-[#C5B7AF]">Selected Branch</span>
-            <router-link to="/branches" class="text-[11px] text-[#DE1B54] font-bold hover:underline">Change</router-link>
+            <span class="text-[11px] uppercase tracking-wider font-bold text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.t('active_branch_tag') }}</span>
+            <router-link to="/branches" class="text-[11px] text-[#DE1B54] font-bold hover:underline">{{ localeStore.t('change_branch') }}</router-link>
           </div>
           <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-2">
             <span>🏛️</span>
-            <span>{{ currentBranchName }}</span>
+            <span>{{ localeStore.tBranch(currentBranchName) }}</span>
           </div>
           <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
-            Orders are fulfilled directly by this branch's master bakers and delivery fleet.
+            {{ localeStore.isAmharic ? 'ትዕዛዞች በቀጥታ የሚዘጋጁት እና የሚደርሱት በዚህ ቅርንጫፍ ነው::' : "Orders are fulfilled directly by this branch's master bakers and delivery fleet." }}
           </p>
         </div>
       </aside>
@@ -148,13 +148,13 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-[#382318] pb-4">
             <div>
               <div class="flex items-center space-x-2">
-                <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">My Order History</h2>
+                <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የትዕዛዝ ታሪኬ' : 'My Order History' }}</h2>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 dark:bg-[#341822] text-[#DE1B54]">
-                  {{ orders.length }} {{ orders.length === 1 ? 'Order' : 'Orders' }}
+                  {{ orders.length }} {{ orders.length === 1 ? (localeStore.isAmharic ? 'ትዕዛዝ' : 'Order') : (localeStore.isAmharic ? 'ትዕዛዞች' : 'Orders') }}
                 </span>
               </div>
               <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                Track live kitchen preparation, delivery progress, and view itemized receipts
+                {{ localeStore.isAmharic ? 'የቀጥታ የማብሰል ሂደት፣ የማድረሻ ሁኔታ እና ዝርዝር ደረሰኞችን ይከታተሉ' : 'Track live kitchen preparation, delivery progress, and view itemized receipts' }}
               </p>
             </div>
             <div class="flex items-center space-x-2">
@@ -162,16 +162,16 @@
                 @click="loadData"
                 :disabled="isLoadingOrders"
                 class="inline-flex items-center space-x-1.5 px-3 py-2 min-h-[38px] bg-gray-100 dark:bg-[#2A1810] hover:bg-gray-200 dark:hover:bg-[#382318] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50 shadow-2xs"
-                title="Sync orders with bakery"
+                :title="localeStore.isAmharic ? 'ትዕዛዞችን ከዳቦ ቤቱ ጋር አመሳስል' : 'Sync orders with bakery'"
               >
                 <span :class="{'animate-spin': isLoadingOrders}">🔄</span>
-                <span>{{ isLoadingOrders ? 'Syncing...' : 'Refresh' }}</span>
+                <span>{{ isLoadingOrders ? (localeStore.isAmharic ? 'በማመሳሰል ላይ...' : 'Syncing...') : (localeStore.isAmharic ? 'አድስ' : 'Refresh') }}</span>
               </button>
               <router-link
                 to="/shop"
                 class="inline-flex items-center space-x-1.5 px-4 py-2 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs active:scale-95"
               >
-                <span>+ Explore Bakery</span>
+                <span>{{ localeStore.isAmharic ? '+ ዳቦ ቤቱን ጎብኝ' : '+ Explore Bakery' }}</span>
                 <span>→</span>
               </router-link>
             </div>
@@ -184,7 +184,7 @@
               class="px-3.5 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap"
               :class="orderFilter === 'all' ? 'bg-[#DE1B54] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
             >
-              All Orders ({{ orders.length }})
+              {{ localeStore.isAmharic ? `ሁሉም ትዕዛዞች (${orders.length})` : `All Orders (${orders.length})` }}
             </button>
             <button
               @click="orderFilter = 'active'"
@@ -192,21 +192,21 @@
               :class="orderFilter === 'active' ? 'bg-[#DE1B54] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
             >
               <span v-if="activeOrdersCount > 0" class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block"></span>
-              <span>Active Progress ({{ activeOrdersCount }})</span>
+              <span>{{ localeStore.isAmharic ? `በሂደት ላይ (${activeOrdersCount})` : `Active Progress (${activeOrdersCount})` }}</span>
             </button>
             <button
               @click="orderFilter = 'completed'"
               class="px-3.5 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap"
               :class="orderFilter === 'completed' ? 'bg-[#DE1B54] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
             >
-              Completed ({{ completedOrdersCount }})
+              {{ localeStore.isAmharic ? `የተጠናቀቁ (${completedOrdersCount})` : `Completed (${completedOrdersCount})` }}
             </button>
             <button
               @click="orderFilter = 'cancelled'"
               class="px-3.5 py-1.5 rounded-full transition cursor-pointer whitespace-nowrap"
               :class="orderFilter === 'cancelled' ? 'bg-[#DE1B54] text-white shadow-xs' : 'bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] hover:text-[#2A1810] dark:hover:text-[#FAF3EE]'"
             >
-              Cancelled ({{ cancelledOrdersCount }})
+              {{ localeStore.isAmharic ? `የተሰረዙ (${cancelledOrdersCount})` : `Cancelled (${cancelledOrdersCount})` }}
             </button>
 
             <!-- Clear All Finished History Button -->
@@ -214,10 +214,10 @@
               v-if="(completedOrdersCount + cancelledOrdersCount) > 0"
               @click="handleClearFinishedOrders"
               class="ml-auto px-3 py-1.5 rounded-full text-xs font-bold text-[#B84B42] hover:bg-[#B84B42]/10 border border-[#B84B42]/30 transition cursor-pointer flex items-center space-x-1 whitespace-nowrap shrink-0"
-              title="Clear all completed and cancelled orders from your history"
+              :title="localeStore.isAmharic ? 'የተጠናቀቁ እና የተሰረዙ ትዕዛዞችን ከታሪክ አጽዳ' : 'Clear all completed and cancelled orders from your history'"
             >
               <span>🗑️</span>
-              <span>Clear Finished ({{ completedOrdersCount + cancelledOrdersCount }})</span>
+              <span>{{ localeStore.isAmharic ? `ያለቁትን አጽዳ (${completedOrdersCount + cancelledOrdersCount})` : `Clear Finished (${completedOrdersCount + cancelledOrdersCount})` }}</span>
             </button>
           </div>
 
@@ -234,16 +234,20 @@
           <div v-else-if="displayOrders.length === 0" class="text-center py-16 space-y-3">
             <div class="text-5xl">🥐</div>
             <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">
-              {{ orderFilter === 'all' ? 'No Orders Placed Yet' : `No ${orderFilter} orders found` }}
+              {{ orderFilter === 'all' 
+                ? (localeStore.isAmharic ? 'እስካሁን ምንም ትዕዛዝ አልተሰጠም' : 'No Orders Placed Yet') 
+                : (localeStore.isAmharic ? `ምንም ${orderFilter === 'active' ? 'በሂደት ላይ ያለ' : (orderFilter === 'completed' ? 'የተጠናቀቀ' : 'የተሰረዘ')} ትዕዛዝ የለም` : `No ${orderFilter} orders found`) }}
             </h3>
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-sm mx-auto">
-              {{ orderFilter === 'all' ? "You haven't placed an order yet. Select your neighborhood branch and browse our fresh oven batches!" : `You currently have no ${orderFilter} orders in your bakery account.` }}
+              {{ orderFilter === 'all' 
+                ? (localeStore.isAmharic ? "እስካሁን ምንም ትዕዛዝ አልሰጡም። በአቅራቢያዎ የሚገኘውን ቅርንጫፍ ይምረጡና ትኩስ ምርቶቻችንን ይዘዙ!" : "You haven't placed an order yet. Select your neighborhood branch and browse our fresh oven batches!") 
+                : (localeStore.isAmharic ? 'በአሁኑ ጊዜ በመለያዎ ውስጥ ምንም ትዕዛዝ የለም።' : `You currently have no ${orderFilter} orders in your bakery account.`) }}
             </p>
             <router-link
               to="/shop"
               class="inline-block px-5 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95"
             >
-              Browse Today's Bakes
+              {{ localeStore.isAmharic ? "የዛሬ ትኩስ ምርቶችን እይ" : "Browse Today's Bakes" }}
             </router-link>
           </div>
 
@@ -265,7 +269,7 @@
                       <span class="font-mono font-black text-sm text-[#2A1810] dark:text-[#FAF3EE]">#{{ order.order_number }}</span>
                       <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold"
                         :class="order.fulfillment_method === 'Delivery' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'">
-                        {{ order.fulfillment_method }}
+                        {{ order.fulfillment_method === 'Delivery' ? (localeStore.isAmharic ? 'ማድረሻ' : 'Delivery') : (localeStore.isAmharic ? 'መውሰጃ' : 'Pickup') }}
                       </span>
                     </div>
                     <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] flex flex-wrap items-center gap-2 mt-1">
@@ -273,7 +277,7 @@
                       <span>&middot;</span>
                       <span class="text-[#DE1B54] font-semibold flex items-center space-x-1">
                         <span>📍</span>
-                        <span>{{ order.branch_name }} ({{ order.branch_city }})</span>
+                        <span>{{ localeStore.tBranch(order.branch_name) }} ({{ order.branch_city }})</span>
                       </span>
                     </div>
                   </div>
@@ -285,7 +289,7 @@
                     :class="statusBadgeClass(order.order_status)"
                   >
                     <span v-if="['Pending', 'Confirmed', 'Preparing'].includes(order.order_status)" class="w-1.5 h-1.5 rounded-full bg-current animate-ping"></span>
-                    <span>{{ order.order_status }}</span>
+                    <span>{{ tOrderStatus(order.order_status) }}</span>
                   </span>
 
                   <!-- Delete History Button for Finished Orders -->
@@ -293,18 +297,18 @@
                     v-if="['Completed', 'Delivered', 'Cancelled'].includes(order.order_status)"
                     @click.stop="handleDeleteOrder(order)"
                     class="px-3 py-1.5 min-h-[36px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#B84B42] hover:bg-[#B84B42]/10 text-xs font-bold text-[#786B60] dark:text-[#C5B7AF] hover:text-[#B84B42] rounded-xl transition shadow-2xs flex items-center space-x-1 cursor-pointer"
-                    title="Remove this finished order from your account history"
+                    :title="localeStore.isAmharic ? 'ይህንን የተጠናቀቀ ትዕዛዝ ከመለያ ታሪክ ያስወግዱ' : 'Remove this finished order from your account history'"
                   >
                     <span>🗑️</span>
-                    <span class="hidden sm:inline">Delete History</span>
+                    <span class="hidden sm:inline">{{ localeStore.isAmharic ? 'ታሪክ አጥፋ' : 'Delete History' }}</span>
                   </button>
 
                   <router-link
                     :to="`/orders/${order.order_number}`"
                     class="px-3.5 py-1.5 min-h-[36px] bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] rounded-xl transition shadow-2xs flex items-center space-x-1"
-                    title="Open dedicated tracking page"
+                    :title="localeStore.isAmharic ? 'የቀጥታ መከታተያ ገጽ ክፈት' : 'Open dedicated tracking page'"
                   >
-                    <span>Live Tracker</span>
+                    <span>{{ localeStore.isAmharic ? 'የቀጥታ መከታተያ' : 'Live Tracker' }}</span>
                     <span>→</span>
                   </router-link>
                 </div>
@@ -314,10 +318,10 @@
               <div v-if="order.order_status !== 'Cancelled'" class="bg-white dark:bg-[#1E120B] p-4 sm:p-5 rounded-2xl border border-gray-200 dark:border-[#382318] shadow-2xs space-y-3">
                 <div class="flex items-center justify-between text-xs font-bold">
                   <span class="text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1.5">
-                    <span>⚡ Order Progress:</span>
+                    <span>{{ localeStore.isAmharic ? '⚡ የትዕዛዝ ሂደት:' : '⚡ Order Progress:' }}</span>
                     <span class="text-[#2A1810] dark:text-[#FAF3EE]">{{ getOrderProgressMessage(order.order_status, order.fulfillment_method) }}</span>
                   </span>
-                  <span class="text-[11px] font-mono text-[#DE1B54]">Step {{ Math.max(1, order.current_step) }} of 5</span>
+                  <span class="text-[11px] font-mono text-[#DE1B54]">{{ localeStore.isAmharic ? `ደረጃ ${Math.max(1, order.current_step)} ከ 5` : `Step ${Math.max(1, order.current_step)} of 5` }}</span>
                 </div>
 
                 <!-- 5-Step Stepper -->
@@ -372,9 +376,9 @@
               <div v-else class="p-4 rounded-2xl bg-[#B84B42]/10 border border-[#B84B42]/30 flex items-start space-x-3 text-xs">
                 <span class="text-xl">⚠️</span>
                 <div class="space-y-0.5">
-                  <div class="font-bold text-[#B84B42]">This order has been cancelled</div>
+                  <div class="font-bold text-[#B84B42]">{{ localeStore.isAmharic ? 'ይህ ትዕዛዝ ተሰርዟል' : 'This order has been cancelled' }}</div>
                   <p class="text-[#786B60] dark:text-[#C5B7AF]">
-                    Stock reservations have been released. If payment was completed, your refund is processed to your original payment method.
+                    {{ localeStore.isAmharic ? 'የተያዘው የክምችት መጠን ተለቋል። ክፍያ ከተፈጸመ፣ ተመላሹ ወደ መጀመሪያው የክፍያ መንገድዎ ይመለሳል።' : 'Stock reservations have been released. If payment was completed, your refund is processed to your original payment method.' }}
                   </p>
                 </div>
               </div>
@@ -382,18 +386,18 @@
               <!-- Quick Summary Row + Toggle Button -->
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-1">
                 <div class="text-[#786B60] dark:text-[#C5B7AF] truncate max-w-md">
-                  <strong class="text-[#2A1810] dark:text-[#FAF3EE]">Items:</strong> {{ order.items_summary }}
+                  <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምርቶች:' : 'Items:' }}</strong> {{ order.items_summary }}
                 </div>
                 <div class="flex items-center space-x-4 shrink-0">
                   <div class="text-right">
-                    <span class="text-[#786B60] dark:text-[#C5B7AF] text-[11px]">Total: </span>
-                    <span class="font-black text-sm sm:text-base text-[#DE1B54]">ETB {{ order.total_amount_formatted }}</span>
+                    <span class="text-[#786B60] dark:text-[#C5B7AF] text-[11px]">{{ localeStore.isAmharic ? 'ጠቅላላ:' : 'Total:' }} </span>
+                    <span class="font-black text-sm sm:text-base text-[#DE1B54]">{{ localeStore.formatPrice(order.total_amount) }}</span>
                   </div>
                   <button
                     @click="toggleOrderExpansion(order.order_id)"
                     class="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] bg-white dark:bg-[#1E120B] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] transition cursor-pointer flex items-center space-x-1 shadow-2xs"
                   >
-                    <span>{{ expandedOrders[order.order_id] ? 'Hide Details' : 'View Details & Receipt' }}</span>
+                    <span>{{ expandedOrders[order.order_id] ? (localeStore.isAmharic ? 'ዝርዝር ደብቅ' : 'Hide Details') : (localeStore.isAmharic ? 'ዝርዝር እና ደረሰኝ እይ' : 'View Details & Receipt') }}</span>
                     <span>{{ expandedOrders[order.order_id] ? '▲' : '▼' }}</span>
                   </button>
                 </div>
@@ -406,7 +410,7 @@
               >
                 <!-- Items Table / Grid -->
                 <div class="space-y-2">
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-[#786B60] dark:text-[#C5B7AF]">Items Ordered</h4>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የታዘዙ ምርቶች' : 'Items Ordered' }}</h4>
                   <div class="divide-y divide-gray-100 dark:divide-[#382318] bg-white dark:bg-[#1E120B] rounded-2xl border border-gray-200 dark:border-[#382318] overflow-hidden">
                     <div
                       v-for="item in order.items"
@@ -418,14 +422,14 @@
                           🧁
                         </div>
                         <div>
-                          <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ item.product_name }}</div>
+                          <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</div>
                           <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
-                            Qty: <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ item.quantity }}</strong> &times; ETB {{ Number(item.unit_price).toLocaleString() }}
+                            {{ localeStore.isAmharic ? 'ብዛት:' : 'Qty:' }} <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ item.quantity }}</strong> &times; {{ localeStore.formatPrice(item.unit_price) }}
                           </div>
                         </div>
                       </div>
                       <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-right">
-                        ETB {{ Number(item.subtotal).toLocaleString() }}
+                        {{ localeStore.formatPrice(item.subtotal) }}
                       </div>
                     </div>
                   </div>
@@ -436,23 +440,23 @@
                   <!-- Payment Details Card -->
                   <div class="p-3.5 rounded-2xl bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] space-y-1.5">
                     <div class="font-bold text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1.5">
-                      <span>💳 Payment Information</span>
+                      <span>{{ localeStore.isAmharic ? '💳 የክፍያ መረጃ' : '💳 Payment Information' }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[#786B60] dark:text-[#C5B7AF]">Method:</span>
-                      <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ order.payment?.payment_method || 'Pay on delivery' }}</span>
+                      <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'ዘዴ:' : 'Method:' }}</span>
+                      <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ tPaymentMethod(order.payment?.payment_method) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[#786B60] dark:text-[#C5B7AF]">Payment Status:</span>
+                      <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የክፍያ ሁኔታ:' : 'Payment Status:' }}</span>
                       <span
                         class="px-2 py-0.5 rounded-full text-[11px] font-bold"
                         :class="order.payment?.payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'"
                       >
-                        {{ order.payment?.payment_status || 'Pending' }}
+                        {{ tPaymentStatus(order.payment?.payment_status) }}
                       </span>
                     </div>
                     <div v-if="order.payment?.transaction_reference" class="flex items-center justify-between">
-                      <span class="text-[#786B60] dark:text-[#C5B7AF]">Tx Reference:</span>
+                      <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የግብይት መለያ:' : 'Tx Reference:' }}</span>
                       <span class="font-mono font-bold text-[#DE1B54] text-[11px]">{{ order.payment.transaction_reference }}</span>
                     </div>
                   </div>
@@ -460,24 +464,24 @@
                   <!-- Fulfillment & Location Card -->
                   <div class="p-3.5 rounded-2xl bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] space-y-1.5">
                     <div class="font-bold text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1.5">
-                      <span>{{ order.fulfillment_method === 'Delivery' ? '🚚 Delivery Details' : '🏬 Pickup Details' }}</span>
+                      <span>{{ order.fulfillment_method === 'Delivery' ? (localeStore.isAmharic ? '🚚 የማድረሻ ዝርዝር' : '🚚 Delivery Details') : (localeStore.isAmharic ? '🏬 የመውሰጃ ዝርዝር' : '🏬 Pickup Details') }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-[#786B60] dark:text-[#C5B7AF]">Branch:</span>
-                      <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ order.branch_name }}</span>
+                      <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'ቅርንጫፍ:' : 'Branch:' }}</span>
+                      <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tBranch(order.branch_name) }}</span>
                     </div>
                     <div v-if="order.branch_address" class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
-                      Address: {{ order.branch_address }}
+                      {{ localeStore.isAmharic ? 'አድራሻ:' : 'Address:' }} {{ order.branch_address }}
                     </div>
                     <div v-if="order.branch_phone" class="text-[11px] text-[#DE1B54] font-semibold">
-                      Support: <a :href="'tel:' + order.branch_phone" class="hover:underline">{{ order.branch_phone }}</a>
+                      {{ localeStore.isAmharic ? 'የደንበኞች ድጋፍ:' : 'Support:' }} <a :href="'tel:' + order.branch_phone" class="hover:underline">{{ order.branch_phone }}</a>
                     </div>
                   </div>
                 </div>
 
                 <!-- Status Progression History Milestones -->
                 <div v-if="order.status_history_items && order.status_history_items.length > 0" class="space-y-2">
-                  <h4 class="text-xs font-bold uppercase tracking-wider text-[#786B60] dark:text-[#C5B7AF]">Milestone Timeline</h4>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የሂደት ታሪክ' : 'Milestone Timeline' }}</h4>
                   <div class="p-3.5 rounded-2xl bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] space-y-2 text-xs">
                     <div
                       v-for="(hist, hIdx) in order.status_history_items"
@@ -487,7 +491,7 @@
                       <span class="text-emerald-600 dark:text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
                       <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-1.5">
-                          <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ hist.new_status }}</span>
+                          <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ tOrderStatus(hist.new_status) }}</span>
                           <span class="text-[10px] text-[#786B60] dark:text-[#C5B7AF]">({{ formatDate(hist.changed_at) }})</span>
                         </div>
                         <div v-if="hist.note" class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5 italic">
@@ -506,29 +510,29 @@
         <div v-else-if="activeTab === 'custom_cakes'" class="space-y-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6DED3] pb-4">
             <div>
-              <h2 class="text-xl font-serif font-bold text-[#29231F]">Custom Cake Requests &amp; Quotes</h2>
-              <p class="text-xs text-[#786B60] mt-0.5">Review baker quotes, confirm with 50% deposit, and track progress</p>
+              <h2 class="text-xl font-serif font-bold text-[#29231F] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የልዩ ትዕዛዝ ኬኮች እና የዋጋ ግምቶች' : 'Custom Cake Requests & Quotes' }}</h2>
+              <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-0.5">{{ localeStore.isAmharic ? 'የዳቦ ጋጋሪውን የዋጋ ግምት ይገምግሙ፣ በ50% ቅድመ ክፍያ ያረጋግጡ እና ሂደቱን ይከታተሉ' : 'Review baker quotes, confirm with 50% deposit, and track progress' }}</p>
             </div>
             <router-link
               to="/custom-cake"
               class="inline-flex items-center space-x-1.5 px-4 py-2 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs active:scale-95"
             >
-              <span>+ Design New Cake</span>
+              <span>{{ localeStore.isAmharic ? '+ አዲስ ኬክ ይንደፉ' : '+ Design New Cake' }}</span>
               <span>→</span>
             </router-link>
           </div>
 
           <div v-if="customCakes.length === 0" class="p-8 sm:p-10 text-center bg-[#FAF7F5] dark:bg-[#2A1810] rounded-3xl border border-gray-200 dark:border-[#382318] space-y-3">
             <div class="text-5xl">🎂</div>
-            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">No Custom Cake Requests Found</h3>
+            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ምንም የልዩ ትዕዛዝ ኬክ ጥያቄ አልተገኘም' : 'No Custom Cake Requests Found' }}</h3>
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-sm mx-auto leading-relaxed">
-              Planning a wedding, birthday, or corporate celebration? Design your bespoke centerpiece with our master bakers.
+              {{ localeStore.isAmharic ? 'ሰርግ፣ ልደት ወይም የድርጅት በዓል እያዘጋጁ ነው? የእርስዎን ልዩ ኬክ ከዋና ዋና ዳቦ ጋጋሪዎቻችን ጋር ይንደፉ።' : 'Planning a wedding, birthday, or corporate celebration? Design your bespoke centerpiece with our master bakers.' }}
             </p>
             <router-link
               to="/custom-cake"
               class="inline-block px-5 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-bold text-xs rounded-xl shadow-xs transition active:scale-95"
             >
-              Launch Cake Studio →
+              {{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ ክፈት →' : 'Launch Cake Studio →' }}
             </router-link>
           </div>
 
@@ -542,10 +546,10 @@
                 <div class="space-y-0.5">
                   <div class="flex items-center space-x-2">
                     <span class="font-mono font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">#{{ cake.request_number }}</span>
-                    <span class="text-xs text-[#786B60] dark:text-[#C5B7AF]">({{ cake.branch?.branch_name || 'Bole' }} Branch)</span>
+                    <span class="text-xs text-[#786B60] dark:text-[#C5B7AF]">({{ localeStore.tBranch(cake.branch?.branch_name || 'Bole') }} {{ localeStore.isAmharic ? 'ቅርንጫፍ' : 'Branch' }})</span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
-                    Needed by: <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ cake.needed_by }}</strong> &middot; Submitted {{ formatDate(cake.created_at) }}
+                    {{ localeStore.isAmharic ? 'የሚያስፈልግበት ቀን:' : 'Needed by:' }} <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ cake.needed_by }}</strong> &middot; {{ localeStore.isAmharic ? 'የቀረበበት:' : 'Submitted' }} {{ formatDate(cake.created_at) }}
                   </div>
                 </div>
 
@@ -554,7 +558,7 @@
                     class="px-3 py-1 rounded-full text-xs font-bold capitalize"
                     :class="customCakeStatusBadge(cake.status)"
                   >
-                    {{ cake.status }}
+                    {{ tOrderStatus(cake.status) }}
                   </span>
                 </div>
               </div>
@@ -562,22 +566,22 @@
               <!-- Details Grid -->
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-[#2A1810] dark:text-[#FAF3EE] bg-white dark:bg-[#1E120B] p-4 rounded-xl border border-gray-200 dark:border-[#382318]">
                 <div>
-                  <span class="text-[#786B60] dark:text-[#C5B7AF]">Size &amp; Flavor:</span>
+                  <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'መጠን እና ጣዕም:' : 'Size & Flavor:' }}</span>
                   <div class="font-semibold">{{ cake.cake_size }} &middot; {{ cake.flavor }}</div>
                 </div>
                 <div>
-                  <span class="text-[#786B60] dark:text-[#C5B7AF]">Message on Cake:</span>
-                  <div class="font-semibold italic">{{ cake.message || 'None' }}</div>
+                  <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ መልዕክት:' : 'Message on Cake:' }}</span>
+                  <div class="font-semibold italic">{{ cake.message || (localeStore.isAmharic ? 'የለም' : 'None') }}</div>
                 </div>
                 <div class="sm:col-span-2" v-if="cake.design">
-                  <span class="text-[#786B60] dark:text-[#C5B7AF]">Design Brief:</span>
+                  <span class="text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የንድፍ ዝርዝር:' : 'Design Brief:' }}</span>
                   <div class="font-medium text-[#2A1810] dark:text-[#FAF3EE] mt-0.5">{{ cake.design }}</div>
                 </div>
               </div>
 
               <!-- Attached Reference Photos Gallery -->
               <div v-if="cake.images && cake.images.length > 0" class="space-y-1.5">
-                <span class="text-[10px] uppercase font-bold text-[#786B60] dark:text-[#C5B7AF] block">Your Reference Photos ({{ cake.images.length }}):</span>
+                <span class="text-[10px] uppercase font-bold text-[#786B60] dark:text-[#C5B7AF] block">{{ localeStore.isAmharic ? `የእርስዎ ማጣቀሻ ፎቶዎች (${cake.images.length}):` : `Your Reference Photos (${cake.images.length}):` }}</span>
                 <div class="flex space-x-2 overflow-x-auto pb-1">
                   <img
                     v-for="(img, idx) in cake.images"
@@ -586,7 +590,7 @@
                     alt="Reference photo"
                     @click="zoomImage = img.image_url"
                     class="w-14 h-14 object-cover rounded-xl border border-gray-200 dark:border-[#382318] shadow-2xs shrink-0 cursor-pointer hover:opacity-90 hover:scale-105 transition-transform"
-                    title="Click to zoom photo"
+                    :title="localeStore.isAmharic ? 'ፎቶውን ለማጉላት ይጫኑ' : 'Click to zoom photo'"
                   />
                 </div>
               </div>
@@ -594,24 +598,24 @@
               <!-- Visual Lifecycle Progress Stepper -->
               <div class="p-3 bg-white dark:bg-[#1E120B] rounded-xl border border-gray-200 dark:border-[#382318] space-y-2">
                 <div class="flex items-center justify-between text-[11px] font-bold text-[#786B60] dark:text-[#C5B7AF]">
-                  <span>Progress Lifecycle</span>
-                  <span class="text-[#DE1B54]">{{ cake.status }}</span>
+                  <span>{{ localeStore.isAmharic ? 'የሂደት ቅደም ተከተል' : 'Progress Lifecycle' }}</span>
+                  <span class="text-[#DE1B54]">{{ tOrderStatus(cake.status) }}</span>
                 </div>
                 <div class="grid grid-cols-5 gap-1.5 text-center text-[10px]">
                   <div class="p-1 rounded-lg" :class="isCakeStepActive(cake.status, 1) ? 'bg-[#387A54] text-white font-bold' : 'bg-gray-100 dark:bg-[#25150E] text-gray-500'">
-                    1. Brief
+                    {{ localeStore.isAmharic ? '1. ማጠቃለያ' : '1. Brief' }}
                   </div>
                   <div class="p-1 rounded-lg" :class="isCakeStepActive(cake.status, 2) ? 'bg-[#387A54] text-white font-bold' : (cake.status === 'Submitted' ? 'bg-amber-100 text-amber-800 font-bold' : 'bg-gray-100 dark:bg-[#25150E] text-gray-500')">
-                    2. Quote
+                    {{ localeStore.isAmharic ? '2. የዋጋ ግምት' : '2. Quote' }}
                   </div>
                   <div class="p-1 rounded-lg" :class="isCakeStepActive(cake.status, 3) ? 'bg-[#387A54] text-white font-bold' : 'bg-gray-100 dark:bg-[#25150E] text-gray-500'">
-                    3. Confirmed
+                    {{ localeStore.isAmharic ? '3. ተረጋግጧል' : '3. Confirmed' }}
                   </div>
                   <div class="p-1 rounded-lg" :class="isCakeStepActive(cake.status, 4) ? (isCakeStepActive(cake.status, 5) ? 'bg-[#387A54] text-white' : 'bg-[#DE1B54] text-white font-bold') : 'bg-gray-100 dark:bg-[#25150E] text-gray-500'">
-                    4. Baking
+                    {{ localeStore.isAmharic ? '4. መጋገር' : '4. Baking' }}
                   </div>
                   <div class="p-1 rounded-lg" :class="isCakeStepActive(cake.status, 5) ? 'bg-[#387A54] text-white font-bold' : 'bg-gray-100 dark:bg-[#25150E] text-gray-500'">
-                    5. Ready
+                    {{ localeStore.isAmharic ? '5. ዝግጁ' : '5. Ready' }}
                   </div>
                 </div>
               </div>
@@ -620,7 +624,7 @@
               <div v-if="cake.status === 'Rejected'" class="p-3 bg-[#B84B42]/10 border border-[#B84B42]/30 rounded-xl text-xs text-[#B84B42] flex items-center space-x-2">
                 <span>⚠️</span>
                 <div>
-                  <strong>Declined by Baker:</strong> {{ cake.rejection_reason || 'Baker capacity exceeded for the selected date.' }}
+                  <strong>{{ localeStore.isAmharic ? 'በዳቦ ጋጋሪው አልተፈቀደም:' : 'Declined by Baker:' }}</strong> {{ cake.rejection_reason || (localeStore.isAmharic ? 'ለተመረጠው ቀን የዳቦ መጋገሪያው አቅም ሞልቷል።' : 'Baker capacity exceeded for the selected date.') }}
                 </div>
               </div>
 
@@ -628,12 +632,12 @@
               <div v-else-if="cake.status === 'Quoted'" class="p-4 bg-white dark:bg-[#1E120B] rounded-2xl border-2 border-[#DE1B54]/40 space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">Head Baker's Quotation:</div>
+                    <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">{{ localeStore.isAmharic ? 'የዋና ዳቦ ጋጋሪው የዋጋ ግምት:' : "Head Baker's Quotation:" }}</div>
                     <div class="text-xl font-black text-[#DE1B54]">
-                      ETB {{ Number(cake.quoted_price).toLocaleString() }}
+                      {{ localeStore.formatPrice(cake.quoted_price) }}
                     </div>
                     <div class="text-[11px] text-[#387A54] font-bold mt-0.5">
-                      ✓ {{ cake.deposit_required_percentage || 50 }}% Deposit to Confirm: ETB {{ ((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100).toLocaleString() }}
+                      {{ localeStore.isAmharic ? `✓ ለማረጋገጥ ${cake.deposit_required_percentage || 50}% ቅድመ ክፍያ፡ ${localeStore.formatPrice((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100)}` : `✓ ${cake.deposit_required_percentage || 50}% Deposit to Confirm: ETB ${((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100).toLocaleString()}` }}
                     </div>
                   </div>
 
@@ -642,19 +646,19 @@
                       @click="acceptQuote(cake, 'deposit')"
                       class="px-4 py-2.5 min-h-[40px] bg-rose-50 dark:bg-[#341822] border border-[#DE1B54] text-[#DE1B54] hover:bg-rose-100 text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
                     >
-                      Pay Deposit (ETB {{ ((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100).toLocaleString() }})
+                      {{ localeStore.isAmharic ? `ቅድመ ክፍያ ይክፈሉ (${localeStore.formatPrice((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100)})` : `Pay Deposit (ETB ${((Number(cake.quoted_price) * (Number(cake.deposit_required_percentage) || 50)) / 100).toLocaleString()})` }}
                     </button>
                     <button
                       @click="acceptQuote(cake, 'full')"
                       class="px-4 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
                     >
-                      Pay Full (ETB {{ Number(cake.quoted_price).toLocaleString() }})
+                      {{ localeStore.isAmharic ? `ሙሉውን ይክፈሉ (${localeStore.formatPrice(cake.quoted_price)})` : `Pay Full (ETB ${Number(cake.quoted_price).toLocaleString()})` }}
                     </button>
                     <button
                       @click="cancelCake(cake)"
                       class="px-3 py-2 min-h-[40px] bg-gray-100 dark:bg-[#25150E] hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl cursor-pointer"
                     >
-                      Decline
+                      {{ localeStore.isAmharic ? 'አልፈልግም' : 'Decline' }}
                     </button>
                   </div>
                 </div>
@@ -664,10 +668,10 @@
               <div v-else-if="cake.status === 'Preparing'" class="p-3.5 bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] rounded-xl text-xs space-y-1">
                 <div class="font-bold text-[#DE1B54] flex items-center space-x-1.5">
                   <span>🍳</span>
-                  <span>Artisan Baking &amp; Decorating in Progress!</span>
+                  <span>{{ localeStore.isAmharic ? 'ኬኩን የመጋገር እና የማስዋብ ስራ በሂደት ላይ ነው!' : 'Artisan Baking & Decorating in Progress!' }}</span>
                 </div>
                 <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
-                  Our master pastry chef at {{ cake.branch?.branch_name || 'Bole' }} is currently crafting and decorating your custom centerpiece according to your brief.
+                  {{ localeStore.isAmharic ? `በ${localeStore.tBranch(cake.branch?.branch_name || 'Bole')} የሚገኘው ባለሙያችን የእርስዎን ልዩ ኬክ በሰጡት መመሪያ መሰረት በማዘጋጀት ላይ ነው።` : `Our master pastry chef at ${cake.branch?.branch_name || 'Bole'} is currently crafting and decorating your custom centerpiece according to your brief.` }}
                 </p>
               </div>
 
@@ -675,34 +679,34 @@
               <div v-else-if="cake.status === 'Ready'" class="p-3.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-xl text-xs space-y-1">
                 <div class="font-bold text-purple-900 dark:text-purple-300 flex items-center space-x-1.5">
                   <span>🎂</span>
-                  <span>Your Custom Cake is Ready!</span>
+                  <span>{{ localeStore.isAmharic ? 'የእርስዎ ልዩ ኬክ ተዘጋጅቶ አልቋል!' : 'Your Custom Cake is Ready!' }}</span>
                 </div>
                 <p class="text-[11px] text-purple-800 dark:text-purple-200">
-                  Your cake is boxed in chilled storage at {{ cake.branch?.branch_name || 'Bole' }}. Available for collection or dispatch.
+                  {{ localeStore.isAmharic ? `ኬክዎ በ${localeStore.tBranch(cake.branch?.branch_name || 'Bole')} ቅርንጫፍ ተዘጋጅቶ በቅዝቃዜ ተቀምጧል። ለመውሰድ ወይም ለማድረስ ዝግጁ ነው።` : `Your cake is boxed in chilled storage at ${cake.branch?.branch_name || 'Bole'}. Available for collection or dispatch.` }}
                 </p>
               </div>
 
               <!-- Delivered / Completed Banner -->
               <div v-else-if="cake.status === 'Delivered' || cake.status === 'Picked up'" class="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 font-bold flex items-center space-x-2">
                 <span>✓</span>
-                <span>Celebration Cake Handed Over &amp; Order Complete! We hope it made your event unforgettable.</span>
+                <span>{{ localeStore.isAmharic ? '✓ የበዓሉ ኬክ ተረክቧል፣ ትዕዛዙም ተጠናቋል! ዝግጅትዎ አስደሳች እንደነበር ተስፋ እናደርጋለን።' : 'Celebration Cake Handed Over & Order Complete! We hope it made your event unforgettable.' }}</span>
               </div>
 
               <!-- Confirmed status or Under Review -->
               <div v-else class="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <span class="text-[#387A54] font-bold flex items-center space-x-1" v-if="cake.status === 'Confirmed'">
                   <span>✓</span>
-                  <span>Deposit confirmed! Head baker has locked in kitchen preparation for {{ cake.needed_by }}.</span>
+                  <span>{{ localeStore.isAmharic ? `✓ ቅድመ ክፍያ ተረጋግጧል! ዋና ዳቦ ጋጋሪው ለ${cake.needed_by} ማዘጋጀቱን አረጋግጧል።` : `✓ Deposit confirmed! Head baker has locked in kitchen preparation for ${cake.needed_by}.` }}</span>
                 </span>
                 <span class="text-[#B98235] font-medium flex items-center space-x-1" v-else>
                   <span>⏳</span>
-                  <span>Under review by branch master decorator. Official quote expected within 2-4 hours.</span>
+                  <span>{{ localeStore.isAmharic ? '⏳ በቅርንጫፉ ዋና ባለሙያ በመገምገም ላይ። ይፋዊ የዋጋ ግምት በ2-4 ሰዓታት ውስጥ ይሰጣል።' : 'Under review by branch master decorator. Official quote expected within 2-4 hours.' }}</span>
                 </span>
                 <button
                   @click="cancelCake(cake)"
                   class="text-[11px] text-[#B84B42] hover:underline font-semibold cursor-pointer text-left sm:text-right"
                 >
-                  Cancel Request
+                  {{ localeStore.isAmharic ? 'ጥያቄውን ሰርዝ' : 'Cancel Request' }}
                 </button>
               </div>
             </div>
@@ -714,12 +718,12 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 dark:border-[#382318] pb-4">
             <div>
               <div class="flex items-center space-x-2">
-                <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">My Wishlist &amp; Favorites</h2>
+                <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የምኞት ዝርዝሬ እና ተወዳጆች' : 'My Wishlist & Favorites' }}</h2>
                 <span v-if="wishlistStore.count > 0" class="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54] text-xs font-bold">
-                  {{ wishlistStore.count }} items
+                  {{ wishlistStore.count }} {{ localeStore.isAmharic ? 'እቃዎች' : 'items' }}
                 </span>
               </div>
-              <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">Your handpicked artisan cakes, breads, and treats saved across SweetBakes</p>
+              <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">{{ localeStore.isAmharic ? 'በSweetBakes የመረጧቸው እና ያስቀመጧቸው ልዩ ኬኮች፣ ዳቦዎች እና ጣፋጮች' : 'Your handpicked artisan cakes, breads, and treats saved across SweetBakes' }}</p>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -728,13 +732,13 @@
                 @click="clearAllWishlist"
                 class="px-3 py-1.5 min-h-[38px] text-xs font-semibold text-[#B84B42] hover:bg-rose-50 dark:hover:bg-[#341822] rounded-xl border border-rose-200 dark:border-[#B84B42]/30 transition cursor-pointer"
               >
-                Clear All
+                {{ localeStore.isAmharic ? 'ሁሉንም አጽዳ' : 'Clear All' }}
               </button>
               <router-link
                 to="/shop"
                 class="px-3.5 py-1.5 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer"
               >
-                <span>Explore Shop &rarr;</span>
+                <span>{{ localeStore.isAmharic ? 'ሱቁን ጎብኝ →' : 'Explore Shop →' }}</span>
               </router-link>
             </div>
           </div>
@@ -742,15 +746,15 @@
           <!-- Empty Wishlist State -->
           <div v-if="wishlistProducts.length === 0" class="py-16 text-center bg-[#FAF7F5] dark:bg-[#20120B] rounded-2xl border border-gray-100 dark:border-[#382318] p-8 space-y-4">
             <div class="text-4xl">❤️</div>
-            <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">Your Wishlist is Empty</h3>
+            <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የምኞት ዝርዝርዎ ባዶ ነው' : 'Your Wishlist is Empty' }}</h3>
             <p class="text-xs text-[#786B60] dark:text-[#A8988E] max-w-md mx-auto leading-relaxed">
-              Whenever you see a cake or pastry you love in our shop or homepage, click the heart icon to save it here for fast ordering.
+              {{ localeStore.isAmharic ? 'በሱቃችን ወይም በመነሻ ገጻችን ላይ የሚወዱትን ኬክ ወይም ኬክ ሲያዩ፣ ለቀጣይ ፈጣን ትዕዛዝ ለማስቀመጥ የልብ ቅርጽ ምልክቱን ይጫኑ።' : 'Whenever you see a cake or pastry you love in our shop or homepage, click the heart icon to save it here for fast ordering.' }}
             </p>
             <router-link
               to="/shop"
               class="inline-block px-5 py-2.5 min-h-[42px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition"
             >
-              Browse Bakery Delights
+              {{ localeStore.isAmharic ? 'ጣፋጮችን ይመልከቱ' : 'Browse Bakery Delights' }}
             </router-link>
           </div>
 
@@ -775,7 +779,7 @@
                     type="button"
                     @click.stop="removeWishlistItem(item.product_id)"
                     class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/95 dark:bg-black/80 text-rose-500 hover:text-rose-700 flex items-center justify-center text-xs shadow-xs hover:scale-110 transition cursor-pointer"
-                    title="Remove from wishlist"
+                    :title="localeStore.isAmharic ? 'ከምኞት ዝርዝር አስወግድ' : 'Remove from wishlist'"
                   >
                     ✕
                   </button>
@@ -786,19 +790,19 @@
                     :to="`/product/${item.product_id}`"
                     class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] transition line-clamp-1 block"
                   >
-                    {{ item.product_name }}
+                    {{ localeStore.tProduct(item.product_name) }}
                   </router-link>
                   <p class="text-[11px] text-[#786B60] dark:text-[#A8988E] line-clamp-2 mt-1">
-                    {{ item.description || 'Deliciously fresh artisan bakery item.' }}
+                    {{ item.description || (localeStore.isAmharic ? 'በጣፋጭ ሁኔታ የተዘጋጀ ትኩስ የዳቦ ቤት ምርት።' : 'Deliciously fresh artisan bakery item.') }}
                   </p>
                 </div>
               </div>
 
               <div class="pt-3 border-t border-gray-100 dark:border-[#382318] mt-3 flex items-center justify-between gap-2">
                 <div>
-                  <div class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">Price</div>
+                  <div class="text-[9px] uppercase tracking-wider text-gray-400 font-semibold">{{ localeStore.isAmharic ? 'ዋጋ' : 'Price' }}</div>
                   <div class="text-sm font-black text-[#DE1B54]">
-                    ETB {{ Number(item.resolved_price || item.base_price || 0).toLocaleString() }}
+                    {{ localeStore.formatPrice(item.resolved_price || item.base_price || 0) }}
                   </div>
                 </div>
 
@@ -810,7 +814,7 @@
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span>Add to Bag</span>
+                  <span>{{ localeStore.isAmharic ? 'ወደ ቅርጫት ጨምር' : 'Add to Bag' }}</span>
                 </button>
               </div>
             </div>
@@ -821,29 +825,29 @@
         <div v-else-if="activeTab === 'addresses'" class="space-y-6">
           <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-4">
             <div>
-              <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">Saved Delivery Addresses</h2>
-              <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">Addresses used for dispatch across Addis Ababa</p>
+              <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የተቀመጡ የማድረሻ አድራሻዎች' : 'Saved Delivery Addresses' }}</h2>
+              <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">{{ localeStore.isAmharic ? 'በአዲስ አበባ ዙሪያ ለማድረስ የሚያገለግሉ አድራሻዎች' : 'Addresses used for dispatch across Addis Ababa' }}</p>
             </div>
             <button
               @click="showAddressModal = true"
               class="px-3.5 py-2 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
             >
-              + Add Address
+              {{ localeStore.isAmharic ? '+ አድራሻ ጨምር' : '+ Add Address' }}
             </button>
           </div>
 
           <!-- Delivery Addresses Grid / Empty State -->
           <div v-if="addresses.length === 0" class="py-12 text-center bg-[#FAF7F5] dark:bg-[#20120B] rounded-2xl border border-gray-100 dark:border-[#382318] p-6 space-y-3">
             <div class="text-3xl">📍</div>
-            <div class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">No Saved Delivery Addresses Yet</div>
+            <div class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'እስካሁን ምንም የተቀመጠ የማድረሻ አድራሻ የለም' : 'No Saved Delivery Addresses Yet' }}</div>
             <p class="text-xs text-[#786B60] dark:text-[#A8988E] max-w-sm mx-auto">
-              Add your home, office, or celebration venue address for faster one-click checkout.
+              {{ localeStore.isAmharic ? 'ለፈጣን ክፍያ የቤት፣ የቢሮ ወይም የበዓል ቦታ አድራሻዎን ያስቀምጡ።' : 'Add your home, office, or celebration venue address for faster one-click checkout.' }}
             </p>
             <button
               @click="showAddressModal = true"
               class="px-4 py-2 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
             >
-              + Add First Address
+              {{ localeStore.isAmharic ? '+ የመጀመሪያ አድራሻ ጨምር' : '+ Add First Address' }}
             </button>
           </div>
 
@@ -859,20 +863,20 @@
               <div class="flex items-center justify-between">
                 <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                   <span>{{ addr.is_default ? '🏠' : '📍' }}</span>
-                  <span>{{ addr.region || 'Addis Ababa' }} Address</span>
+                  <span>{{ addr.region || 'Addis Ababa' }} {{ localeStore.isAmharic ? 'አድራሻ' : 'Address' }}</span>
                 </span>
                 <span
                   v-if="addr.is_default"
                   class="text-[10px] bg-[#387A54]/15 text-[#387A54] font-bold px-2 py-0.5 rounded-full"
                 >
-                  Default
+                  {{ localeStore.isAmharic ? 'ነባሪ' : 'Default' }}
                 </span>
                 <button
                   v-else
                   @click="makeDefaultAddress(addr.address_id)"
                   class="text-[10px] text-[#786B60] hover:text-[#DE1B54] font-semibold cursor-pointer"
                 >
-                  Set as Default
+                  {{ localeStore.isAmharic ? 'ነባሪ አድርግ' : 'Set as Default' }}
                 </button>
               </div>
 
@@ -887,7 +891,7 @@
                   @click="deleteAddress(addr.address_id)"
                   class="text-[11px] text-[#B84B42] font-semibold cursor-pointer hover:underline"
                 >
-                  Remove
+                  {{ localeStore.isAmharic ? 'አስወግድ' : 'Remove' }}
                 </button>
               </div>
             </div>
@@ -897,14 +901,14 @@
         <!-- 4. Profile & Security Tab -->
         <div v-else-if="activeTab === 'settings'" class="space-y-6">
           <div class="border-b border-gray-100 dark:border-[#382318] pb-4">
-            <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">Profile &amp; Security Settings</h2>
-            <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">Manage your personal credentials and phone verification</p>
+            <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የመገለጫ እና የደህንነት ቅንብሮች' : 'Profile & Security Settings' }}</h2>
+            <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">{{ localeStore.isAmharic ? 'የግል መረጃዎን እና የስልክ ማረጋገጫዎን ያስተዳድሩ' : 'Manage your personal credentials and phone verification' }}</p>
           </div>
 
           <form @submit.prevent="saveProfile" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Full Name</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ሙሉ ስም' : 'Full Name' }}</label>
                 <input
                   v-model="editName"
                   type="text"
@@ -914,29 +918,30 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Email Address</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address' }}</label>
                 <input
                   :value="userEmail"
                   disabled
                   class="w-full bg-gray-100 dark:bg-[#25150E] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2.5 text-xs text-gray-500 cursor-not-allowed"
                 />
-                <span class="text-[10px] text-[#786B60] dark:text-[#A8988E]">Email cannot be changed directly for account security.</span>
+                <span class="text-[10px] text-[#786B60] dark:text-[#A8988E]">{{ localeStore.isAmharic ? 'ለመለያ ደህንነት ሲባል ኢሜይልን በቀጥታ መቀየር አይቻልም።' : 'Email cannot be changed directly for account security.' }}</span>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Ethiopian Phone Number</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'የኢትዮጵያ ስልክ ቁጥር' : 'Ethiopian Phone Number' }}</label>
                 <input
                   v-model="editPhone"
                   type="text"
                   placeholder="+251 9XX XXX XXX"
                   class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:ring-1 focus:ring-[#DE1B54]"
                 />
-                <span class="text-[10px] text-[#786B60] dark:text-[#A8988E]">Used by bakery dispatchers for order delivery coordination.</span>
+                <span class="text-[10px] text-[#786B60] dark:text-[#A8988E]">{{ localeStore.isAmharic ? 'ትዕዛዝዎን ለማድረስ ከማስተባበሪያ ቡድናችን ጋር ለመገናኘት ያገለግላል።' : 'Used by bakery dispatchers for order delivery coordination.' }}</span>
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Preferred Language</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ተመራጭ ቋንቋ' : 'Preferred Language' }}</label>
                 <select
+                  v-model="localeStore.currentLocale"
                   class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:ring-1 focus:ring-[#DE1B54]"
                 >
                   <option value="en">English (US)</option>
@@ -951,41 +956,41 @@
                 :disabled="savingProfile"
                 class="px-6 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
               >
-                {{ savingProfile ? 'Saving Changes...' : 'Save Profile Changes' }}
+                {{ savingProfile ? (localeStore.isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving Changes...') : (localeStore.isAmharic ? 'ለውጦችን አስቀምጥ' : 'Save Profile Changes') }}
               </button>
             </div>
           </form>
 
           <!-- Password Reset Box -->
           <div class="pt-6 border-t border-gray-100 dark:border-[#382318] space-y-3">
-            <h3 class="text-sm font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">Security &amp; Password</h3>
-            <p class="text-xs text-[#786B60] dark:text-[#A8988E]">Change password to protect your account and saved order history.</p>
+            <h3 class="text-sm font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ደህንነት እና የይለፍ ቃል' : 'Security & Password' }}</h3>
+            <p class="text-xs text-[#786B60] dark:text-[#A8988E]">{{ localeStore.isAmharic ? 'መለያዎን እና የትዕዛዝ ታሪክዎን ለመጠበቅ የይለፍ ቃልዎን ይቀይሩ።' : 'Change password to protect your account and saved order history.' }}</p>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Current Password</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'የአሁኑ የይለፍ ቃል' : 'Current Password' }}</label>
                 <input
                   v-model="currentPassword"
                   type="password"
-                  placeholder="Current password"
-                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs"
+                  :placeholder="localeStore.isAmharic ? 'የአሁኑ የይለፍ ቃል' : 'Current password'"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE]"
                 />
               </div>
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">New Password</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'አዲስ የይለፍ ቃል' : 'New Password' }}</label>
                 <input
                   v-model="newPassword"
                   type="password"
-                  placeholder="Min 8 characters"
-                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs"
+                  :placeholder="localeStore.isAmharic ? 'ቢያንስ 8 ፊደላት' : 'Min 8 characters'"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE]"
                 />
               </div>
               <div>
-                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Confirm New Password</label>
+                <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'አዲሱን የይለፍ ቃል ያረጋግጡ' : 'Confirm New Password' }}</label>
                 <input
                   v-model="confirmPassword"
                   type="password"
-                  placeholder="Re-type new password"
-                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs"
+                  :placeholder="localeStore.isAmharic ? 'አዲሱን የይለፍ ቃል በድጋሚ ያስገቡ' : 'Re-type new password'"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-4 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE]"
                 />
               </div>
             </div>
@@ -994,7 +999,7 @@
               :disabled="updatingPassword"
               class="px-5 py-2 min-h-[40px] bg-white dark:bg-[#20120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] text-xs font-bold rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
             >
-              {{ updatingPassword ? 'Updating...' : 'Update Password' }}
+              {{ updatingPassword ? (localeStore.isAmharic ? 'በማዘመን ላይ...' : 'Updating...') : (localeStore.isAmharic ? 'የይለፍ ቃል አዘምን' : 'Update Password') }}
             </button>
           </div>
         </div>
@@ -1010,18 +1015,18 @@
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
           <div class="flex items-center space-x-2">
             <span class="text-xl">📍</span>
-            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">Add Delivery Address</h3>
+            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የማድረሻ አድራሻ ጨምር' : 'Add Delivery Address' }}</h3>
           </div>
           <button @click="showAddressModal = false" class="text-gray-400 hover:text-black dark:hover:text-white text-sm cursor-pointer">✕</button>
         </div>
 
         <form @submit.prevent="handleSaveAddress" class="space-y-3.5 text-xs">
           <div>
-            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Street / Building / House # *</label>
+            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'መንገድ / ህንፃ / የቤት ቁጥር *' : 'Street / Building / House # *' }}</label>
             <input
               v-model="addressForm.street"
               type="text"
-              placeholder="e.g. Cameroon St, Near Edna Mall, House 204"
+              :placeholder="localeStore.isAmharic ? 'ምሳሌ፡ ካሜሩን ጎዳና፣ ኤድና ሞል አጠገብ፣ የቤት ቁጥር 204' : 'e.g. Cameroon St, Near Edna Mall, House 204'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl px-3.5 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
               required
             />
@@ -1029,7 +1034,7 @@
 
           <div class="grid grid-cols-2 gap-3">
             <div>
-              <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Sub-City / Region</label>
+              <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ክፍለ ከተማ / አካባቢ' : 'Sub-City / Region' }}</label>
               <select
                 v-model="addressForm.region"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
@@ -1043,7 +1048,7 @@
             </div>
 
             <div>
-              <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">City</label>
+              <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ከተማ' : 'City' }}</label>
               <input
                 v-model="addressForm.city"
                 type="text"
@@ -1053,11 +1058,11 @@
           </div>
 
           <div>
-            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Delivery Notes (Optional)</label>
+            <label class="block font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ተጨማሪ ማስታወሻ (አስገዳጅ ያልሆነ)' : 'Delivery Notes (Optional)' }}</label>
             <input
               v-model="addressForm.notes"
               type="text"
-              placeholder="e.g. Ring buzzer 4, leave with security"
+              :placeholder="localeStore.isAmharic ? 'ምሳሌ፡ ደወል ቁጥር 4 ይደውሉ ወይም ጥበቃ ጋር ያስቀምጡ' : 'e.g. Ring buzzer 4, leave with security'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl px-3.5 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
             />
           </div>
@@ -1069,7 +1074,7 @@
               id="set_default_addr"
               class="rounded border-gray-300 text-[#DE1B54] focus:ring-[#DE1B54]"
             />
-            <label for="set_default_addr" class="text-xs text-[#786B60] dark:text-[#C5B7AF] cursor-pointer">Set as default delivery address</label>
+            <label for="set_default_addr" class="text-xs text-[#786B60] dark:text-[#C5B7AF] cursor-pointer">{{ localeStore.isAmharic ? 'እንደ ነባሪ የማድረሻ አድራሻ አድርግ' : 'Set as default delivery address' }}</label>
           </div>
 
           <div class="pt-3 flex justify-end space-x-2">
@@ -1078,14 +1083,14 @@
               @click="showAddressModal = false"
               class="px-4 py-2 border border-gray-200 dark:border-[#382318] text-[#2A1810] dark:text-[#FAF3EE] rounded-xl font-bold cursor-pointer hover:bg-gray-50"
             >
-              Cancel
+              {{ localeStore.isAmharic ? 'ሰርዝ' : 'Cancel' }}
             </button>
             <button
               type="submit"
               :disabled="savingAddress"
               class="px-5 py-2 bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white rounded-xl font-bold cursor-pointer"
             >
-              {{ savingAddress ? 'Saving...' : 'Save Address' }}
+              {{ savingAddress ? (localeStore.isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...') : (localeStore.isAmharic ? 'አድራሻ አስቀምጥ' : 'Save Address') }}
             </button>
           </div>
         </form>
@@ -1120,6 +1125,7 @@ import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
 import { useToastStore } from '../../stores/toast';
 import { useWishlistStore } from '../../stores/wishlist';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
@@ -1129,6 +1135,7 @@ const branchStore = useBranchStore();
 const cartStore = useCartStore();
 const toast = useToastStore();
 const wishlistStore = useWishlistStore();
+const localeStore = useLocaleStore();
 
 const activeTab = ref(
   route.query.tab === 'custom-cakes' ? 'custom_cakes' :
@@ -1214,13 +1221,51 @@ function isOrderStepCurrent(currentStatus, stepIndex) {
   return getOrderStepNumber(currentStatus) === stepIndex;
 }
 
+function tOrderStatus(status) {
+  if (!localeStore.isAmharic) return status;
+  switch (status) {
+    case 'Pending': return 'በመጠባበቅ ላይ';
+    case 'Confirmed': return 'ተረጋግጧል';
+    case 'Preparing': return 'በዝግጅት ላይ';
+    case 'Ready': return 'ዝግጁ ነው';
+    case 'Out for delivery': return 'በማድረስ ላይ';
+    case 'Delivered': return 'ደርሷል';
+    case 'Completed': return 'ተጠናቋል';
+    case 'Cancelled': return 'ተሰርዟል';
+    case 'Quoted': return 'ዋጋ ተሰጥቷል';
+    case 'Submitted': return 'ተልኳል';
+    case 'Rejected': return 'ተቀባይነት አላገኘም';
+    case 'Picked up': return 'ተወስዷል';
+    default: return status;
+  }
+}
+
+function tPaymentMethod(pm) {
+  if (!localeStore.isAmharic) return pm || 'Pay on delivery';
+  if (!pm || pm === 'Pay on delivery') return 'ሲደርስ የሚከፈል';
+  if (pm === 'Pay on pickup') return 'ሲወሰድ የሚከፈል';
+  return pm;
+}
+
+function tPaymentStatus(ps) {
+  if (!localeStore.isAmharic) return ps || 'Pending';
+  if (ps === 'Paid') return 'ተከፍሏል';
+  if (ps === 'Pending') return 'ያልተከፈለ';
+  if (ps === 'Refunded') return 'ተመልሷል';
+  return ps;
+}
+
 function getOrderStepName(stepIndex, fulfillmentMethod) {
   switch (stepIndex) {
-    case 1: return 'Placed';
-    case 2: return 'Confirmed';
-    case 3: return 'Preparing';
-    case 4: return fulfillmentMethod === 'Delivery' ? 'Out for Delivery' : 'Ready for Pickup';
-    case 5: return fulfillmentMethod === 'Delivery' ? 'Delivered' : 'Completed';
+    case 1: return localeStore.isAmharic ? 'ተልኳል' : 'Placed';
+    case 2: return localeStore.isAmharic ? 'ተረጋግጧል' : 'Confirmed';
+    case 3: return localeStore.isAmharic ? 'በዝግጅት ላይ' : 'Preparing';
+    case 4: return fulfillmentMethod === 'Delivery' 
+      ? (localeStore.isAmharic ? 'በማድረስ ላይ' : 'Out for Delivery') 
+      : (localeStore.isAmharic ? 'ለመውሰድ ዝግጁ' : 'Ready for Pickup');
+    case 5: return fulfillmentMethod === 'Delivery' 
+      ? (localeStore.isAmharic ? 'ደርሷል' : 'Delivered') 
+      : (localeStore.isAmharic ? 'ተጠናቋል' : 'Completed');
     default: return '';
   }
 }
@@ -1228,24 +1273,36 @@ function getOrderStepName(stepIndex, fulfillmentMethod) {
 function getOrderProgressMessage(status, fulfillmentMethod) {
   switch (status) {
     case 'Pending':
-      return 'Awaiting online payment verification or branch confirmation';
+      return localeStore.isAmharic 
+        ? 'የክፍያ ማረጋገጫ ወይም የቅርንጫፍ ተቀባይነት በመጠበቅ ላይ' 
+        : 'Awaiting online payment verification or branch confirmation';
     case 'Confirmed':
-      return 'Order verified and queued for master bakery production';
+      return localeStore.isAmharic 
+        ? 'ትዕዛዙ ተረጋግጦ ወደ መጋገሪያ ክፍል ተልኳል' 
+        : 'Order verified and queued for master bakery production';
     case 'Preparing':
-      return 'Bakers are mixing, baking, and hand-crafting your items in the oven';
+      return localeStore.isAmharic 
+        ? 'ዳቦ ጋጋሪዎች ትኩስ ምርቶችዎን በማዘጋጀት እና በመጋገር ላይ ናቸው' 
+        : 'Bakers are mixing, baking, and hand-crafting your items in the oven';
     case 'Ready':
       return fulfillmentMethod === 'Delivery'
-        ? 'Items boxed, waiting for our courier fleet dispatch'
-        : 'Freshly packed and ready for pickup at our branch counter';
+        ? (localeStore.isAmharic ? 'ምርቶቹ ታሽገው ለመላክ ዝግጁ ሆነዋል' : 'Items boxed, waiting for our courier fleet dispatch')
+        : (localeStore.isAmharic ? 'ትኩስ ሆነው ታሽገው በመደብራችን ካውንተር ለመውሰድ ዝግጁ ናቸው' : 'Freshly packed and ready for pickup at our branch counter');
     case 'Out for delivery':
-      return 'Our delivery courier is currently on the road to your doorstep';
+      return localeStore.isAmharic 
+        ? 'አድራሻዎ ድረስ ለማድረስ መልእክተኛው በመንገድ ላይ ነው' 
+        : 'Our delivery courier is currently on the road to your doorstep';
     case 'Completed':
     case 'Delivered':
-      return 'Order fulfilled successfully! Enjoy your fresh treats';
+      return localeStore.isAmharic 
+        ? 'ትዕዛዝዎ በተሳካ ሁኔታ ተጠናቋል! መልካም የምግብ ጊዜ' 
+        : 'Order fulfilled successfully! Enjoy your fresh treats';
     case 'Cancelled':
-      return 'Order was cancelled and inventory reservations released';
+      return localeStore.isAmharic 
+        ? 'ትዕዛዙ ተሰርዟል' 
+        : 'Order was cancelled and inventory reservations released';
     default:
-      return 'Order in progress';
+      return localeStore.isAmharic ? 'ትዕዛዝ በሂደት ላይ' : 'Order in progress';
   }
 }
 

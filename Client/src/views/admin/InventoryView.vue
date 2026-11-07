@@ -3,14 +3,14 @@
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Branch Inventory &amp; Stock Ledger</h2>
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Inventory &amp; Stock Ledger</h2>
         <p class="text-xs text-[#7A6B60] mt-0.5">Every branch maintains its own inventory record. Customers can only buy what is available.</p>
       </div>
 
-      <div class="flex items-center space-x-2.5">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
         <button
           @click="showReconcileModal = true"
-          class="px-3.5 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5"
+          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
         >
           <span>⚖️</span>
           <span>Verify History &amp; Balance</span>
@@ -18,7 +18,7 @@
 
         <button
           @click="activeSubTab = activeSubTab === 'ledger' ? 'stock' : 'ledger'"
-          class="px-3.5 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5"
+          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
         >
           <span>📋</span>
           <span>{{ activeSubTab === 'ledger' ? 'View Stock Grid' : 'Transaction Ledger' }}</span>
@@ -26,14 +26,14 @@
 
         <button
           @click="exportCSV"
-          class="px-3.5 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs"
+          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs cursor-pointer"
         >
           Export CSV
         </button>
 
         <button
           @click="focusAdjustPanel"
-          class="px-4 py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition shadow-xs flex items-center space-x-1"
+          class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition shadow-xs flex items-center space-x-1 cursor-pointer"
         >
           <span>+</span>
           <span>Adjust Stock</span>
@@ -99,7 +99,7 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+          <table class="w-full min-w-[580px] text-left text-xs">
             <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
               <tr>
                 <th class="py-3 px-5">Branch</th>
@@ -283,7 +283,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
+        <table class="w-full min-w-[640px] text-left text-xs">
           <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
             <tr>
               <th class="py-3 px-4">Date &amp; Time</th>
@@ -322,9 +322,9 @@
     <!-- Reconcile Verification Modal -->
     <div
       v-if="showReconcileModal"
-      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
     >
-      <div class="bg-white rounded-3xl border border-[#D8CDC0] max-w-2xl w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+      <div class="bg-white rounded-3xl border border-[#D8CDC0] max-w-2xl w-full p-4 sm:p-6 space-y-4 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
         <div class="flex items-start justify-between border-b border-[#F2EAE0] pb-3">
           <div>
             <span class="text-[11px] font-bold text-[#BA5420] uppercase tracking-wider">Rule 1 &middot; Stock Reconciliation</span>

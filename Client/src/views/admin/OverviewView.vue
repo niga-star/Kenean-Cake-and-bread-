@@ -7,8 +7,8 @@
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div class="flex items-center space-x-2.5">
-            <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
               {{ data.branch?.branch_name }} Branch Dashboard
             </h2>
             <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
@@ -20,7 +20,7 @@
           </p>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex flex-wrap items-center gap-2">
           <router-link
             to="/admin/distribution"
             class="px-3.5 py-2 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
@@ -83,7 +83,7 @@
             </div>
 
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
+              <table class="w-full min-w-[540px] text-left text-xs">
                 <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] uppercase border-b border-[#EFE8DF]">
                   <tr>
                     <th class="py-2.5 px-4">Order</th>
@@ -133,7 +133,7 @@
             </div>
 
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs">
+              <table class="w-full min-w-[540px] text-left text-xs">
                 <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] uppercase border-b border-[#EFE8DF]">
                   <tr>
                     <th class="py-2.5 px-4">Product</th>
@@ -292,8 +292,8 @@
       <!-- Middle Grid: Sales by branch this week (Stacked Bar Chart) + Needs attention -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <!-- Stacked Bar Chart Box -->
-        <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <div class="flex items-center justify-between">
+        <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-4 sm:p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <h3 class="font-semibold text-base text-[#2A1D15]">Sales by branch, this week</h3>
             <div class="flex items-center space-x-4 text-xs">
               <span class="flex items-center space-x-1.5">
@@ -307,26 +307,28 @@
             </div>
           </div>
 
-          <!-- Vertical Stacked Bars -->
-          <div class="h-64 flex items-end justify-between px-6 pt-6 border-b border-[#EFE8DF]">
-            <div
-              v-for="sb in data.sales_by_branch"
-              :key="sb.branch"
-              class="flex flex-col items-center space-y-2 w-16"
-            >
-              <div class="w-12 rounded-t-md overflow-hidden flex flex-col justify-end bg-transparent h-48">
-                <!-- Cakes (top block) -->
-                <div
-                  class="w-full bg-[#BA5420] transition-all duration-500"
-                  :style="{ height: `${Math.min(100, Math.round(((sb.cakes || 1) / 22000) * 100))}%` }"
-                ></div>
-                <!-- Bread (bottom block) -->
-                <div
-                  class="w-full bg-[#E4A373] transition-all duration-500"
-                  :style="{ height: `${Math.min(100, Math.round(((sb.bread || 1) / 22000) * 100))}%` }"
-                ></div>
+          <!-- Vertical Stacked Bars with Horizontal Scroll for Small Screens -->
+          <div class="overflow-x-auto pb-2">
+            <div class="h-64 min-w-[280px] flex items-end justify-between px-2 sm:px-6 pt-6 border-b border-[#EFE8DF]">
+              <div
+                v-for="sb in data.sales_by_branch"
+                :key="sb.branch"
+                class="flex flex-col items-center space-y-2 w-12 sm:w-16 shrink-0"
+              >
+                <div class="w-10 sm:w-12 rounded-t-md overflow-hidden flex flex-col justify-end bg-transparent h-48">
+                  <!-- Cakes (top block) -->
+                  <div
+                    class="w-full bg-[#BA5420] transition-all duration-500"
+                    :style="{ height: `${Math.min(100, Math.round(((sb.cakes || 1) / 22000) * 100))}%` }"
+                  ></div>
+                  <!-- Bread (bottom block) -->
+                  <div
+                    class="w-full bg-[#E4A373] transition-all duration-500"
+                    :style="{ height: `${Math.min(100, Math.round(((sb.bread || 1) / 22000) * 100))}%` }"
+                  ></div>
+                </div>
+                <span class="text-[11px] sm:text-xs font-semibold text-[#5A4A3E] text-center truncate max-w-[60px]">{{ sb.branch }}</span>
               </div>
-              <span class="text-xs font-semibold text-[#5A4A3E]">{{ sb.branch }}</span>
             </div>
           </div>
 
@@ -373,7 +375,7 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full min-w-[560px] text-left text-sm">
             <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
               <tr>
                 <th class="py-3 px-5">Branch</th>

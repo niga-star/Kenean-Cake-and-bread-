@@ -3,12 +3,12 @@
     <!-- Header -->
     <div class="flex items-center justify-between border-b border-gray-200 dark:border-[#382318] pb-4">
       <div>
-        <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">Checkout</h1>
-        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-1">Please enter your fulfillment and payment details to place your bakery order.</p>
+        <h1 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.t('checkout_title') }}</h1>
+        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-1">{{ localeStore.t('checkout_sub') }}</p>
       </div>
 
       <router-link to="/cart" class="text-xs font-bold text-[#DE1B54] hover:text-[#C51345] flex items-center space-x-1 transition">
-        <span>← Back to Bag</span>
+        <span>← {{ localeStore.t('back_to_bag') }}</span>
       </router-link>
     </div>
 
@@ -17,14 +17,14 @@
       <div class="bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#29231F] dark:text-[#FAF3EE] shadow-2xs gap-3">
         <div class="flex items-center space-x-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-[#387A54] animate-pulse shrink-0"></span>
-          <span>Order fulfilled strictly by <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ currentBranchName }} Branch</strong>. Stock and delivery boundaries are locked to this location.</span>
+          <span>{{ localeStore.t('order_fulfilled_by') }} <strong class="text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tBranch(currentBranchName) }}</strong>. {{ localeStore.t('branch_locked_notice') }}</span>
         </div>
         <button
           type="button"
           @click="branchStore.openPicker()"
           class="font-bold text-[#DE1B54] hover:underline text-xs shrink-0 cursor-pointer"
         >
-          Switch branch →
+          {{ localeStore.t('switch_branch') }}
         </button>
       </div>
 
@@ -32,14 +32,14 @@
       <div v-if="hasRestoredDraft" class="bg-rose-50/60 dark:bg-[#2A1810] border border-rose-200 dark:border-[#4A2518] px-4 py-2.5 rounded-xl flex items-center justify-between text-xs text-[#2A1810] dark:text-[#FAF3EE]">
         <div class="flex items-center space-x-2">
           <span>💾</span>
-          <span>We restored your checkout draft from your last session.</span>
+          <span>{{ localeStore.t('restored_draft_notice') }}</span>
         </div>
         <button
           type="button"
           @click="clearSavedDraft"
           class="text-xs font-bold text-[#DE1B54] hover:underline cursor-pointer"
         >
-          Reset form
+          {{ localeStore.t('reset_form') }}
         </button>
       </div>
     </div>
@@ -47,16 +47,16 @@
     <!-- Empty Bag State -->
     <div v-if="cartItems.length === 0" class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-12 text-center space-y-4">
       <div class="text-4xl">🛍️</div>
-      <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">Your shopping bag is empty</h2>
+      <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.t('empty_bag_checkout') }}</h2>
       <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-sm mx-auto">
-        Please explore our artisanal fresh bakery collection and add cakes or pastries before proceeding to checkout.
+        {{ localeStore.t('empty_bag_sub') }}
       </p>
       <div class="pt-2">
         <router-link
           to="/shop"
           class="inline-flex items-center px-6 py-3 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-xs transition cursor-pointer"
         >
-          Browse Bakery Menu →
+          {{ localeStore.t('browse_menu') }}
         </router-link>
       </div>
     </div>
@@ -69,9 +69,9 @@
         <div class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-8 space-y-6 shadow-2xs">
           <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              1. Fulfillment Method
+              {{ localeStore.t('step_1_title') }}
             </h2>
-            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">Step 1 of 3</span>
+            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">{{ localeStore.t('step_1_of_3') }}</span>
           </div>
 
           <!-- Fulfillment Toggle Buttons -->
@@ -85,7 +85,7 @@
                 : 'bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#341822]'"
             >
               <span class="text-base">🚚</span>
-              <span>Citywide Doorstep Delivery</span>
+              <span>{{ localeStore.t('doorstep_delivery') }}</span>
             </button>
 
             <button
@@ -97,14 +97,14 @@
                 : 'bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#341822]'"
             >
               <span class="text-base">🏪</span>
-              <span>Shop Pickup ({{ currentBranchName }})</span>
+              <span>{{ localeStore.t('shop_pickup') }} ({{ localeStore.tBranch(currentBranchName) }})</span>
             </button>
           </div>
 
           <!-- Delivery / Pickup Time Slots -->
           <div class="space-y-2 pt-1">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Preferred {{ fulfillmentMethod === 'Pickup' ? 'Pickup' : 'Delivery' }} Window
+              {{ fulfillmentMethod === 'Pickup' ? localeStore.t('pref_pickup_window') : localeStore.t('pref_delivery_window') }}
             </label>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
@@ -127,19 +127,19 @@
           <div v-if="fulfillmentMethod === 'Pickup'" class="p-4 bg-rose-50/40 dark:bg-[#2A1810] rounded-2xl border border-rose-100 dark:border-[#382318] space-y-2 text-xs">
             <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-2">
               <span class="text-base">📍</span>
-              <span>Pickup Counter: {{ currentBranchName }} Branch</span>
+              <span>{{ localeStore.t('pickup_counter') }}: {{ localeStore.tBranch(currentBranchName) }}</span>
             </div>
             <div class="text-[#786B60] dark:text-[#C5B7AF] pl-6">
               {{ branchDetails?.address || 'Bole Medhanialem Area, Addis Ababa' }}
             </div>
             <div class="text-[#DE1B54] font-semibold pl-6">
-              🕒 Daily Hours: {{ branchDetails?.opening_hours || 'Mon - Sun: 07:00 - 21:00' }}
+              🕒 {{ localeStore.t('daily_hours') }}: {{ branchDetails?.opening_hours || 'Mon - Sun: 07:00 - 21:00' }}
             </div>
             <div class="text-[#786B60] dark:text-[#C5B7AF] pl-6">
-              📞 Branch Phone: {{ branchDetails?.phone || '+251 911 123 456' }}
+              📞 {{ localeStore.t('branch_phone') }}: {{ branchDetails?.phone || '+251 911 123 456' }}
             </div>
             <div class="text-[11px] text-[#387A54] dark:text-emerald-400 font-bold pl-6 pt-1">
-              ✓ Free Shop Pickup (ETB 0 fulfillment fee)
+              {{ localeStore.t('free_pickup_notice') }}
             </div>
           </div>
         </div>
@@ -148,31 +148,31 @@
         <div class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-8 space-y-5 shadow-2xs">
           <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              2. Contact Information
+              {{ localeStore.t('step_2_title') }}
             </h2>
-            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">Step 2 of 3</span>
+            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">{{ localeStore.t('step_2_of_3') }}</span>
           </div>
 
           <!-- Guest Sign-in Hint -->
           <div v-if="!authStore.isAuthenticated" class="p-3 bg-amber-50/60 dark:bg-[#2A1810] border border-amber-200 dark:border-amber-900/40 rounded-xl text-xs text-[#8A5016] dark:text-amber-300 flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <span>💡</span>
-              <span>Have a SweetBakes account?</span>
+              <span>{{ localeStore.t('have_account_hint') }}</span>
             </div>
             <router-link to="/login" class="font-bold underline hover:text-[#DE1B54] ml-2">
-              Sign In for 1-click address autofill →
+              {{ localeStore.t('signin_autofill') }}
             </router-link>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
-                Full Name <span class="text-red-500">*</span>
+                {{ localeStore.t('full_name_req') }} <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="customer.name"
                 type="text"
-                placeholder="e.g. Sara Mengistu"
+                :placeholder="localeStore.isAmharic ? 'ምሳሌ፡ ሳራ መንግስቱ' : 'e.g. Sara Mengistu'"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
                 required
               />
@@ -180,12 +180,12 @@
 
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
-                Phone Number (Ethiopian format) <span class="text-red-500">*</span>
+                {{ localeStore.t('phone_req') }} <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="customer.phone"
                 type="tel"
-                placeholder="+251 9XX XXX XXX or 09XX XXX XXX"
+                :placeholder="localeStore.isAmharic ? '+251 9XX XXX XXX ወይም 09XX XXX XXX' : '+251 9XX XXX XXX or 09XX XXX XXX'"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
                 required
               />
@@ -197,9 +197,9 @@
         <div v-if="fulfillmentMethod === 'Delivery'" class="bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-8 space-y-5 shadow-2xs">
           <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              3. Delivery Address &amp; Zone
+              {{ localeStore.t('step_3_title') }}
             </h2>
-            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">Step 3 of 3</span>
+            <span class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">{{ localeStore.t('step_3_of_3') }}</span>
           </div>
 
           <!-- Saved Address Selector (Authenticated Users) -->
@@ -207,14 +207,14 @@
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                 <span>📍</span>
-                <span>Select from Saved Addresses ({{ savedAddresses.length }})</span>
+                <span>{{ localeStore.t('select_saved_address') }} ({{ savedAddresses.length }})</span>
               </span>
               <button
                 type="button"
                 @click="addressMode = addressMode === 'saved' ? 'custom' : 'saved'"
                 class="text-xs font-bold text-[#DE1B54] hover:underline cursor-pointer"
               >
-                {{ addressMode === 'saved' ? '+ Enter new address instead' : '← Pick from saved addresses' }}
+                {{ addressMode === 'saved' ? localeStore.t('enter_new_address') : localeStore.t('pick_saved_address') }}
               </button>
             </div>
 
@@ -236,7 +236,7 @@
                       <span>{{ addr.region || 'Addis Ababa' }}</span>
                     </span>
                     <span v-if="addr.is_default" class="text-[10px] font-bold bg-[#DE1B54]/10 text-[#DE1B54] px-1.5 py-0.5 rounded-full">
-                      Default
+                      {{ localeStore.t('default_badge') }}
                     </span>
                   </div>
                   <div class="text-[#29231F] dark:text-[#FAF3EE] font-medium line-clamp-2">
@@ -249,7 +249,7 @@
 
                 <div class="pt-2 flex items-center justify-between text-[11px]">
                   <span :class="selectedAddressId === addr.address_id ? 'text-[#DE1B54] font-bold' : 'text-[#786B60] dark:text-[#C5B7AF]'">
-                    {{ selectedAddressId === addr.address_id ? '✓ Selected for Delivery' : 'Click to select' }}
+                    {{ selectedAddressId === addr.address_id ? localeStore.t('selected_delivery') : localeStore.t('click_to_select') }}
                   </span>
                 </div>
               </div>
@@ -259,9 +259,9 @@
           <!-- Zone Selection -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Select Delivery Zone ({{ currentBranchName }} Branch Coverage) <span class="text-red-500">*</span>
+              {{ localeStore.t('select_zone_req') }} ({{ localeStore.tBranch(currentBranchName) }} {{ localeStore.t('branch_coverage') }}) <span class="text-red-500">*</span>
             </label>
-            <div v-if="loadingZones" class="text-xs text-[#786B60] py-2">Loading active delivery zones...</div>
+            <div v-if="loadingZones" class="text-xs text-[#786B60] py-2">{{ localeStore.t('loading_zones') }}</div>
             <select
               v-else
               v-model="selectedZoneId"
@@ -269,15 +269,15 @@
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none font-medium min-h-[42px]"
               required
             >
-              <option value="" disabled>-- Select your delivery zone in Addis Ababa --</option>
+              <option value="" disabled>{{ localeStore.t('select_zone_placeholder') }}</option>
               <option
                 v-for="zone in activeZones"
                 :key="zone.zone_id"
                 :value="zone.zone_id"
               >
-                {{ zone.zone_name }} — ETB {{ subtotal >= 1000 ? '0 (Free over ETB 1,000)' : zone.delivery_fee }}
+                {{ zone.zone_name }} — {{ localeStore.isAmharic ? (subtotal >= 1000 ? '0 ብር (ከ 1,000 ብር በላይ ነፃ)' : `${zone.delivery_fee} ብር`) : (subtotal >= 1000 ? 'ETB 0 (Free over ETB 1,000)' : `ETB ${zone.delivery_fee}`) }}
               </option>
-              <option value="outside">Address is outside these active zones</option>
+              <option value="outside">{{ localeStore.t('outside_zones') }}</option>
             </select>
           </div>
 
@@ -285,10 +285,10 @@
           <div v-if="selectedZoneId === 'outside'" class="p-4 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-2xl text-xs text-[#B84B42] space-y-2">
             <div class="font-bold flex items-center space-x-1.5">
               <span>⚠️</span>
-              <span>Outside {{ currentBranchName }} Delivery Radius</span>
+              <span>{{ localeStore.t('outside_radius_title') }} ({{ localeStore.tBranch(currentBranchName) }})</span>
             </div>
             <p>
-              {{ currentBranchName }} branch does not deliver to addresses outside its active coverage zone. You can switch to Shop Pickup or switch to another branch nearby.
+              {{ localeStore.tBranch(currentBranchName) }} {{ localeStore.t('outside_radius_desc') }}
             </p>
             <div class="pt-1 flex items-center space-x-3">
               <button
@@ -296,14 +296,14 @@
                 @click="setMethod('Pickup')"
                 class="px-3 py-1.5 bg-[#B84B42] text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer"
               >
-                Switch to Free Shop Pickup (ETB 0)
+                {{ localeStore.t('switch_to_pickup') }}
               </button>
               <button
                 type="button"
                 @click="branchStore.openPicker()"
                 class="font-bold text-[#B84B42] underline cursor-pointer"
               >
-                Switch Branch
+                {{ localeStore.t('switch_branch_btn') }}
               </button>
             </div>
           </div>
@@ -311,12 +311,12 @@
           <!-- Specific Address Text Input -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Specific Street Address / Landmark / House No. <span class="text-red-500">*</span>
+              {{ localeStore.t('street_address_req') }} <span class="text-red-500">*</span>
             </label>
             <input
               v-model="customer.address"
               type="text"
-              placeholder="e.g. Bole Medhanialem, Near Edna Mall, Street 3, House 42"
+              :placeholder="localeStore.t('street_placeholder')"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
               required
             />
@@ -330,19 +330,19 @@
                 v-model="saveAddressForLater"
                 class="rounded border-gray-300 text-[#DE1B54] focus:ring-[#DE1B54]"
               />
-              <span>Save this delivery address to my account for one-click future orders</span>
+              <span>{{ localeStore.t('save_address_label') }}</span>
             </label>
           </div>
 
           <!-- Special Delivery Instructions -->
           <div class="space-y-1.5 pt-1">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Gate Code, Landmark, or Delivery Instructions (Optional)
+              {{ localeStore.t('delivery_instructions') }}
             </label>
             <textarea
               v-model="customer.notes"
               rows="2"
-              placeholder="e.g. Ring gate bell #4, call upon arrival at the gate, or custom message on greeting card..."
+              :placeholder="localeStore.t('instructions_placeholder')"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl p-3 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition"
             ></textarea>
           </div>
@@ -355,7 +355,7 @@
           <!-- Header with Live Stock Re-check -->
           <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
             <h2 class="text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              Order Summary
+              {{ localeStore.t('order_summary') }}
             </h2>
             <button
               type="button"
@@ -363,7 +363,7 @@
               :disabled="cartStore.isRevalidating"
               class="text-[11px] font-bold text-[#DE1B54] hover:underline flex items-center space-x-1 cursor-pointer disabled:opacity-50"
             >
-              <span>{{ cartStore.isRevalidating ? 'Checking...' : '⟳ Check Live Stock' }}</span>
+              <span>{{ cartStore.isRevalidating ? localeStore.t('checking_stock') : '⟳ ' + localeStore.t('check_live_stock') }}</span>
             </button>
           </div>
 
@@ -381,9 +381,9 @@
                   class="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810] shrink-0"
                 />
                 <div>
-                  <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ item.product_name }}</div>
+                  <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.tProduct(item.product_name) }}</div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
-                    ETB {{ Number(item.price).toLocaleString() }} &times; {{ item.quantity }}
+                    {{ localeStore.isAmharic ? `${Number(item.price).toLocaleString()} ብር` : `ETB ${Number(item.price).toLocaleString()}` }} &times; {{ item.quantity }}
                   </div>
                   <!-- Live Stock Badge -->
                   <div class="text-[10px] mt-0.5">
@@ -391,26 +391,26 @@
                       v-if="item.isSoldOut || (item.available !== undefined && item.available <= 0)"
                       class="text-red-600 font-bold"
                     >
-                      ✕ Sold Out at {{ currentBranchName }}
+                      {{ localeStore.t('sold_out_at') }} {{ localeStore.tBranch(currentBranchName) }}
                     </span>
                     <span
                       v-else-if="item.available !== undefined && item.available <= 3"
                       class="text-amber-600 dark:text-amber-400 font-bold"
                     >
-                      ⚠️ Only {{ item.available }} left in branch
+                      {{ localeStore.t('only_left').replace('{count}', item.available) }}
                     </span>
                     <span
                       v-else
                       class="text-[#387A54] dark:text-emerald-400 font-medium"
                     >
-                      ✓ In stock at {{ currentBranchName }}
+                      {{ localeStore.t('in_stock_at') }} {{ localeStore.tBranch(currentBranchName) }}
                     </span>
                   </div>
                 </div>
               </div>
 
               <div class="font-black text-[#DE1B54] shrink-0 pl-2">
-                ETB {{ (item.price * item.quantity).toLocaleString() }}
+                {{ localeStore.isAmharic ? `${(item.price * item.quantity).toLocaleString()} ብር` : `ETB ${(item.price * item.quantity).toLocaleString()}` }}
               </div>
             </div>
           </div>
@@ -418,30 +418,30 @@
           <!-- Calculation Breakdown -->
           <div class="space-y-2.5 pt-3 border-t border-gray-100 dark:border-[#382318] text-xs">
             <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
-              <span>Subtotal</span>
-              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">ETB {{ subtotal.toLocaleString() }}</span>
+              <span>{{ localeStore.t('subtotal') }}</span>
+              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? `${subtotal.toLocaleString()} ብር` : `ETB ${subtotal.toLocaleString()}` }}</span>
             </div>
 
             <div class="flex justify-between items-center text-[#786B60] dark:text-[#C5B7AF]">
-              <span>Delivery Fee</span>
+              <span>{{ localeStore.t('delivery_fee') }}</span>
               <span class="font-bold" :class="actualDeliveryFee === 0 ? 'text-[#387A54] dark:text-emerald-400' : 'text-[#2A1810] dark:text-[#FAF3EE]'">
-                {{ fulfillmentMethod === 'Delivery' ? (actualDeliveryFee === 0 ? 'FREE (Over ETB 1,000)' : `ETB ${actualDeliveryFee}`) : 'ETB 0 (Pickup)' }}
+                {{ fulfillmentMethod === 'Delivery' ? (actualDeliveryFee === 0 ? localeStore.t('free_over_1000') : (localeStore.isAmharic ? `${actualDeliveryFee} ብር` : `ETB ${actualDeliveryFee}`)) : (localeStore.isAmharic ? '0 ብር (ከቅርንጫፍ)' : 'ETB 0 (Pickup)') }}
               </span>
             </div>
 
             <div v-if="discount > 0" class="flex justify-between items-center text-[#387A54] dark:text-emerald-400">
               <span class="flex items-center space-x-1.5">
-                <span>Promo Discount</span>
+                <span>{{ localeStore.t('promo_discount') }}</span>
                 <span v-if="appliedPromo" class="font-mono text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded font-bold">
                   {{ appliedPromo.promotion_name }}
                 </span>
               </span>
-              <span class="font-bold">- ETB {{ discount.toLocaleString() }}</span>
+              <span class="font-bold">- {{ localeStore.isAmharic ? `${discount.toLocaleString()} ብር` : `ETB ${discount.toLocaleString()}` }}</span>
             </div>
 
             <div class="pt-3 border-t border-gray-100 dark:border-[#382318] flex justify-between items-center text-base font-black text-[#2A1810] dark:text-[#FAF3EE]">
-              <span>Grand Total</span>
-              <span class="text-xl font-serif text-[#DE1B54]">ETB {{ grandTotal.toLocaleString() }}</span>
+              <span>{{ localeStore.t('grand_total') }}</span>
+              <span class="text-xl font-serif text-[#DE1B54]">{{ localeStore.isAmharic ? `${grandTotal.toLocaleString()} ብር` : `ETB ${grandTotal.toLocaleString()}` }}</span>
             </div>
           </div>
 
@@ -450,10 +450,10 @@
             <div class="flex items-center justify-between text-xs">
               <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1">
                 <span>🎟️</span>
-                <span>Coupon Code</span>
+                <span>{{ localeStore.t('coupon_code') }}</span>
               </span>
               <span v-if="appliedPromo" class="font-mono font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
-                {{ appliedPromo.promotion_name }} Active
+                {{ appliedPromo.promotion_name }} {{ localeStore.isAmharic ? 'ተተግብሯል' : 'Active' }}
               </span>
             </div>
             <div v-if="!appliedPromo" class="flex items-center space-x-2">
@@ -461,7 +461,7 @@
                 v-model="checkoutPromoInput"
                 @keyup.enter="applyCheckoutPromo"
                 type="text"
-                placeholder="Code (e.g. KENEAN10)"
+                :placeholder="localeStore.t('coupon_placeholder')"
                 class="flex-1 bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-1.5 text-xs font-mono uppercase text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
               />
               <button
@@ -470,13 +470,13 @@
                 :disabled="checkoutPromoLoading || !checkoutPromoInput.trim()"
                 class="px-3.5 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
               >
-                {{ checkoutPromoLoading ? '...' : 'Apply' }}
+                {{ checkoutPromoLoading ? '...' : localeStore.t('apply_btn') }}
               </button>
             </div>
             <div v-else class="flex items-center justify-between text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold bg-white dark:bg-[#1E120B] p-2 rounded-xl border border-emerald-200 dark:border-emerald-800/50">
-              <span>Savings: - ETB {{ discount.toLocaleString() }}</span>
+              <span>{{ localeStore.t('savings_label') }}: - {{ localeStore.isAmharic ? `${discount.toLocaleString()} ብር` : `ETB ${discount.toLocaleString()}` }}</span>
               <button type="button" @click="removeCheckoutPromo" class="text-red-600 hover:text-red-800 text-xs font-bold cursor-pointer">
-                Remove
+                {{ localeStore.t('remove_btn') }}
               </button>
             </div>
             <div v-if="checkoutPromoError" class="text-[11px] text-red-600 font-medium">
@@ -488,9 +488,9 @@
           <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-[#382318]">
             <div class="flex items-center justify-between">
               <h3 class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Select Payment Method
+                {{ localeStore.t('select_payment_method') }}
               </h3>
-              <span class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">Addis Ababa Gateway</span>
+              <span class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.t('addis_gateway') }}</span>
             </div>
 
             <div class="space-y-2.5">
@@ -509,14 +509,14 @@
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#0072CE] inline-block"></span>
-                      <span>Telebirr Mobile Money</span>
+                      <span>{{ localeStore.t('telebirr_title') }}</span>
                     </span>
                     <span class="text-[10px] font-bold bg-[#0072CE]/10 text-[#0072CE] px-2 py-0.5 rounded-full">
-                      Ethiopia #1 Mobile
+                      {{ localeStore.t('telebirr_badge') }}
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                    Pay seamlessly with your Ethio Telecom Telebirr account or phone number.
+                    {{ localeStore.t('telebirr_desc') }}
                   </div>
                 </div>
               </label>
@@ -536,14 +536,14 @@
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#7B2CBF] inline-block"></span>
-                      <span>CBE Birr &amp; Mobile Banking</span>
+                      <span>{{ localeStore.t('cbe_birr_title') }}</span>
                     </span>
                     <span class="text-[10px] font-bold bg-[#7B2CBF]/10 text-[#7B2CBF] px-2 py-0.5 rounded-full">
-                      Commercial Bank
+                      {{ localeStore.t('cbe_birr_badge') }}
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                    Direct instant mobile payment via Commercial Bank of Ethiopia (CBE).
+                    {{ localeStore.t('cbe_birr_desc') }}
                   </div>
                 </div>
               </label>
@@ -563,14 +563,14 @@
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#00A389] inline-block"></span>
-                      <span>Debit / Credit Card (Chapa)</span>
+                      <span>{{ localeStore.t('chapa_title') }}</span>
                     </span>
                     <span class="text-[10px] font-bold bg-[#00A389]/10 text-[#00A389] px-2 py-0.5 rounded-full">
-                      Visa · Mastercard
+                      {{ localeStore.t('chapa_badge') }}
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                    Pay securely using local or international Visa, Mastercard, or debit cards.
+                    {{ localeStore.t('chapa_desc') }}
                   </div>
                 </div>
               </label>
@@ -590,14 +590,14 @@
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#DE1B54] inline-block"></span>
-                      <span>{{ fulfillmentMethod === 'Pickup' ? 'Pay on Pickup (Cash / POS)' : 'Cash on Delivery' }}</span>
+                      <span>{{ fulfillmentMethod === 'Pickup' ? localeStore.t('pay_on_pickup') : localeStore.t('cod_title') }}</span>
                     </span>
                     <span class="text-[10px] font-bold bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] px-2 py-0.5 rounded-full">
-                      Zero Upfront Fee
+                      {{ localeStore.t('zero_upfront') }}
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                    {{ fulfillmentMethod === 'Pickup' ? 'Pay with cash or card upon collecting your order at the counter.' : 'Pay cash directly to our delivery courier at your doorstep.' }}
+                    {{ fulfillmentMethod === 'Pickup' ? localeStore.t('pickup_pay_desc') : localeStore.t('cod_desc') }}
                   </div>
                 </div>
               </label>
@@ -618,7 +618,7 @@
           >
             <span v-if="isSubmitting" class="animate-spin inline-block mr-1">⌛</span>
             <span>
-              {{ isSubmitting ? 'Confirming with bakery...' : `Place Order &middot; ETB ${grandTotal.toLocaleString()} →` }}
+              {{ isSubmitting ? localeStore.t('confirming_bakery') : (localeStore.isAmharic ? `${localeStore.t('place_order_btn')} · ${grandTotal.toLocaleString()} ብር →` : `${localeStore.t('place_order_btn')} · ETB ${grandTotal.toLocaleString()} →`) }}
             </span>
           </button>
 
@@ -626,17 +626,17 @@
           <div class="pt-2 border-t border-gray-100 dark:border-[#382318] flex items-center justify-center space-x-4 text-[10px] text-[#786B60] dark:text-[#C5B7AF]">
             <span class="flex items-center space-x-1">
               <span>🔒</span>
-              <span>256-Bit Encrypted</span>
+              <span>{{ localeStore.t('encrypted_badge') }}</span>
             </span>
             <span>&bull;</span>
             <span class="flex items-center space-x-1">
               <span>⏱️</span>
-              <span>Live Order Tracking</span>
+              <span>{{ localeStore.t('live_tracking_badge') }}</span>
             </span>
             <span>&bull;</span>
             <span class="flex items-center space-x-1">
               <span>🍞</span>
-              <span>Fresh Baked Daily</span>
+              <span>{{ localeStore.t('fresh_baked_badge') }}</span>
             </span>
           </div>
         </div>
@@ -652,6 +652,7 @@ import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
@@ -659,6 +660,7 @@ const branchStore = useBranchStore();
 const cartStore = useCartStore();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
+const localeStore = useLocaleStore();
 
 // Form States
 const fulfillmentMethod = ref(cartStore.fulfillmentMethod || 'Delivery');
@@ -678,12 +680,12 @@ const addressMode = ref('saved'); // 'saved' or 'custom'
 const selectedAddressId = ref(null);
 const saveAddressForLater = ref(false);
 
-const timeSlots = [
-  { period: '🌅 Morning', time: '08:00 – 11:00 AM', value: 'Morning (08:00 - 11:00 AM)' },
-  { period: '☀️ Midday', time: '11:00 AM – 02:00 PM', value: 'Midday (11:00 AM - 02:00 PM)' },
-  { period: '🌇 Afternoon', time: '02:00 – 05:00 PM', value: 'Afternoon (02:00 - 05:00 PM)' },
-  { period: '🌙 Evening', time: '05:00 – 08:00 PM', value: 'Evening (05:00 - 08:00 PM)' },
-];
+const timeSlots = computed(() => [
+  { period: localeStore.isAmharic ? '🌅 ጥዋት' : '🌅 Morning', time: '08:00 – 11:00 AM', value: 'Morning (08:00 - 11:00 AM)' },
+  { period: localeStore.isAmharic ? '☀️ ቀትር' : '☀️ Midday', time: '11:00 AM – 02:00 PM', value: 'Midday (11:00 AM - 02:00 PM)' },
+  { period: localeStore.isAmharic ? '🌇 ከሰዓት' : '🌇 Afternoon', time: '02:00 – 05:00 PM', value: 'Afternoon (02:00 - 05:00 PM)' },
+  { period: localeStore.isAmharic ? '🌙 ምሽት' : '🌙 Evening', time: '05:00 – 08:00 PM', value: 'Evening (05:00 - 08:00 PM)' },
+]);
 const selectedTimeSlot = ref('Morning (08:00 - 11:00 AM)');
 
 const customer = ref({
@@ -797,7 +799,7 @@ function clearSavedDraft() {
   customer.value.address = '';
   customer.value.notes = '';
   selectedAddressId.value = null;
-  toastStore.info('Checkout draft cleared.');
+  toastStore.info(localeStore.isAmharic ? 'የትዕዛዝ ቅጹ ጸድቷል።' : 'Checkout draft cleared.');
 }
 
 // Watchers for persistent state
@@ -900,7 +902,7 @@ async function loadBranchAndZones(targetBranchId) {
 
 async function recheckStock() {
   await cartStore.revalidateForBranch(branchId.value);
-  toastStore.info(`Stock status verified for ${currentBranchName.value} Branch.`);
+  toastStore.info(localeStore.isAmharic ? `የክምችት ሁኔታ ለ${localeStore.tBranch(currentBranchName.value)} ተረጋግጧል።` : `Stock status verified for ${currentBranchName.value} Branch.`);
 }
 
 async function applyCheckoutPromo() {
@@ -933,7 +935,7 @@ async function applyCheckoutPromo() {
 
 function removeCheckoutPromo() {
   cartStore.removePromo();
-  toastStore.info('Promotion removed.');
+  toastStore.info(localeStore.isAmharic ? 'የማስተዋወቂያ ቅናሽ ተሰርዟል።' : 'Promotion removed.');
 }
 
 watch(
@@ -975,37 +977,41 @@ async function handlePlaceOrder() {
   orderError.value = null;
 
   if (cartItems.value.length === 0) {
-    orderError.value = 'Your shopping bag is empty. Please add items before checking out.';
+    orderError.value = localeStore.isAmharic ? 'የእርስዎ ቅርጫት ባዶ ነው። እባክዎ ከማዘዝዎ በፊት ምርቶችን ይጨምሩ።' : 'Your shopping bag is empty. Please add items before checking out.';
     return;
   }
 
   if (cartStore.hasSoldOutItems) {
-    orderError.value = `Some items in your bag are sold out at ${currentBranchName.value} Branch. Please review your bag before checkout.`;
+    orderError.value = localeStore.isAmharic 
+      ? `አንዳንድ በቅርጫትዎ ውስጥ ያሉ ምርቶች በ${localeStore.tBranch(currentBranchName.value)} ቅርንጫፍ አልቀዋል። እባክዎ ከማዘዝዎ በፊት ቅርጫትዎን ያረጋግጡ።` 
+      : `Some items in your bag are sold out at ${currentBranchName.value} Branch. Please review your bag before checkout.`;
     return;
   }
 
   if (fulfillmentMethod.value === 'Delivery') {
     if (selectedZoneId.value === 'outside') {
-      orderError.value = `${currentBranchName.value} branch does not deliver to addresses outside its designated coverage zone. Please select an active delivery zone or choose Shop Pickup.`;
+      orderError.value = localeStore.isAmharic 
+        ? `${localeStore.tBranch(currentBranchName.value)} ቅርንጫፍ ከተመደበው የሽፋን ክልል ውጭ አያደርስም። እባክዎ ንቁ የማድረሻ ክልል ይምረጡ ወይም ከመደብር መውሰድን ይምረጡ።` 
+        : `${currentBranchName.value} branch does not deliver to addresses outside its designated coverage zone. Please select an active delivery zone or choose Shop Pickup.`;
       return;
     }
     if (!selectedZoneId.value && activeZones.value.length > 0) {
-      orderError.value = 'Please select a delivery zone.';
+      orderError.value = localeStore.isAmharic ? 'እባክዎ የማድረሻ ክልል ይምረጡ።' : 'Please select a delivery zone.';
       return;
     }
     if (!customer.value.address || !customer.value.address.trim()) {
-      orderError.value = 'Please enter your specific street delivery address.';
+      orderError.value = localeStore.isAmharic ? 'እባክዎ ትክክለኛ የመንገድ ወይም የአካባቢ አድራሻዎን ያስገቡ።' : 'Please enter your specific street delivery address.';
       return;
     }
   }
 
   if (!customer.value.name || !customer.value.name.trim()) {
-    orderError.value = 'Please provide your full contact name.';
+    orderError.value = localeStore.isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ።' : 'Please provide your full contact name.';
     return;
   }
 
   if (!customer.value.phone || !customer.value.phone.trim()) {
-    orderError.value = 'Please provide a valid Ethiopian contact phone number.';
+    orderError.value = localeStore.isAmharic ? 'እባክዎ ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ።' : 'Please provide a valid Ethiopian contact phone number.';
     return;
   }
 
@@ -1071,7 +1077,7 @@ async function handlePlaceOrder() {
     localStorage.removeItem(DRAFT_KEY);
 
     cartStore.clearCart();
-    toastStore.success(`Order ${orderNumber} placed successfully with ${currentBranchName.value} Branch!`);
+    toastStore.success(localeStore.isAmharic ? `ትዕዛዝ ${orderNumber} በ${localeStore.tBranch(currentBranchName.value)} በተሳካ ሁኔታ ተጠናቋል!` : `Order ${orderNumber} placed successfully with ${currentBranchName.value} Branch!`);
     router.push(`/orders/${orderNumber}`);
   } catch (err) {
     orderError.value = err.response?.data?.message || 'Failed to place order. Please review your stock or address.';

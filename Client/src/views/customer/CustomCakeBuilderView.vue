@@ -17,16 +17,16 @@
         <div class="max-w-xl space-y-2 text-center lg:text-left">
           <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
-            <span>Custom Cake Studio</span>
+            <span>{{ localeStore.t('custom_cake') }}</span>
             <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
           </div>
 
           <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
-            Design Your Dream Cake
+            {{ localeStore.isAmharic ? 'የህልምዎን ኬክ ይንደፉ' : 'Design Your Dream Cake' }}
           </h1>
 
           <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
-            <span>Bespoke celebration centerpieces handcrafted with love!</span>
+            <span>{{ localeStore.isAmharic ? 'ለየት ያሉ የክብረ በዓል ኬኮች በፍቅር በእጅ የተዘጋጁ!' : 'Bespoke celebration centerpieces handcrafted with love!' }}</span>
             <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
           </p>
         </div>
@@ -38,14 +38,14 @@
       <div class="bg-rose-50/70 dark:bg-[#2A1810] border border-rose-200 dark:border-[#4A2518] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs text-[#2A1810] dark:text-[#FAF3EE] shadow-2xs">
         <div class="flex items-center space-x-2">
           <span>💾</span>
-          <span>We restored your cake design draft from your last session.</span>
+          <span>{{ localeStore.isAmharic ? 'የቀደመውን የኬክ ንድፍዎን ረቂቅ መልሰነዋል::' : 'We restored your cake design draft from your last session.' }}</span>
         </div>
         <button
           type="button"
           @click="clearSavedDraft"
           class="text-xs font-bold text-[#DE1B54] hover:underline cursor-pointer"
         >
-          Reset form
+          {{ localeStore.isAmharic ? 'ቅጹን አጽዳ' : 'Reset form' }}
         </button>
       </div>
     </div>
@@ -55,7 +55,7 @@
       <div class="bg-gradient-to-r from-rose-50/50 via-white to-rose-50/50 dark:from-[#25150E] dark:via-[#1E120B] dark:to-[#25150E] border border-rose-100 dark:border-[#382318] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-bold">
           <span class="text-rose-500 text-base">✨</span>
-          <span>Quick Inspiration Presets:</span>
+          <span>{{ localeStore.isAmharic ? 'ፈጣን የሃሳብ መነሻዎች:' : 'Quick Inspiration Presets:' }}</span>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-2">
           <button
@@ -66,7 +66,7 @@
             class="px-3.5 py-1.5 bg-white dark:bg-[#1E120B] hover:bg-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] hover:text-white border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] rounded-full text-xs font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center space-x-1.5"
           >
             <span>{{ preset.icon }}</span>
-            <span>{{ preset.name }}</span>
+            <span>{{ localeStore.isAmharic ? (preset.nameAm || preset.name) : preset.name }}</span>
           </button>
         </div>
       </div>
@@ -81,18 +81,18 @@
           <div class="space-y-3 max-w-sm text-center md:text-left">
             <div class="inline-flex items-center space-x-2 px-3 py-1 bg-rose-50 dark:bg-[#341822] text-[#DE1B54] rounded-full text-xs font-bold border border-rose-200 dark:border-rose-900/50">
               <span>🎂</span>
-              <span>Live Visualizer Studio</span>
+              <span>{{ localeStore.isAmharic ? 'የቀጥታ ንድፍ ስቱዲዮ' : 'Live Visualizer Studio' }}</span>
             </div>
             <h2 class="text-xl sm:text-2xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
               {{ cakeSize }}
             </h2>
             <div class="space-y-1 text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
-              <div><strong>Flavor:</strong> {{ flavor }}</div>
-              <div><strong>Frosting:</strong> {{ filling }}</div>
-              <div><strong>Occasion:</strong> {{ occasion }}</div>
+              <div><strong>{{ localeStore.isAmharic ? 'ጣዕም:' : 'Flavor:' }}</strong> {{ flavor }}</div>
+              <div><strong>{{ localeStore.isAmharic ? 'ክሬም:' : 'Frosting:' }}</strong> {{ filling }}</div>
+              <div><strong>{{ localeStore.isAmharic ? 'ዝግጅት:' : 'Occasion:' }}</strong> {{ occasion }}</div>
               <div v-if="isFasting" class="text-emerald-700 dark:text-emerald-400 font-bold flex items-center justify-center md:justify-start space-x-1">
                 <span>🌿</span>
-                <span>100% Ye'Tsom Certified (የጾም)</span>
+                <span>{{ localeStore.isAmharic ? '100% የጾም የተረጋገጠ (የጾም)' : "100% Ye'Tsom Certified (የጾም)" }}</span>
               </div>
             </div>
           </div>
@@ -192,16 +192,16 @@
             <div class="flex items-center space-x-2">
               <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">1</span>
               <h2 class="text-base sm:text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                Cake Architecture &amp; Flavors
+                {{ localeStore.isAmharic ? 'የኬክ መዋቅር እና ጣዕም' : 'Cake Architecture & Flavors' }}
               </h2>
             </div>
-            <span class="text-xs text-[#DE1B54] font-bold">Step 1 of 2</span>
+            <span class="text-xs text-[#DE1B54] font-bold">{{ localeStore.isAmharic ? 'ደረጃ 1 ከ 2' : 'Step 1 of 2' }}</span>
           </div>
 
           <!-- Preparing Branch Selector -->
           <div class="space-y-1.5 pb-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Preparing Branch (Addis Ababa Kitchen)
+              {{ localeStore.isAmharic ? 'አዘጋጅ ቅርንጫፍ (የአዲስ አበባ ማዕድ ቤት)' : 'Preparing Branch (Addis Ababa Kitchen)' }}
             </label>
             <select
               v-model="preparingBranchId"
@@ -212,18 +212,18 @@
                 :key="b.branch_id"
                 :value="b.branch_id"
               >
-                {{ b.branch_name }} — {{ b.address || b.city }}
+                {{ localeStore.tBranch(b.branch_name) }} — {{ b.address || b.city }}
               </option>
             </select>
             <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
-              The master pastry decorator at this branch will personally bake and decorate your centerpiece.
+              {{ localeStore.isAmharic ? 'በዚህ ቅርንጫፍ የሚገኘው ዋና ኬክ ዲኮሬተር ኬክዎን በእጅ ያዘጋጃል እና ያስጌጣል።' : 'The master pastry decorator at this branch will personally bake and decorate your centerpiece.' }}
             </p>
           </div>
 
           <!-- Size & Tier Selection Cards -->
           <div class="space-y-2.5">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Size &amp; Tier Configuration
+              {{ localeStore.isAmharic ? 'የመጠን እና የፎቅ አቀማመጥ' : 'Size & Tier Configuration' }}
             </label>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
@@ -238,10 +238,10 @@
                 <span class="text-2xl shrink-0 mt-0.5 group-hover:scale-110 transition-transform">{{ s.icon }}</span>
                 <div>
                   <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors">
-                    {{ s.name }}
+                    {{ localeStore.isAmharic ? (s.nameAm || s.name) : s.name }}
                   </div>
-                  <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ s.serves }}</div>
-                  <div class="text-[11px] text-[#DE1B54] font-black mt-0.5">Est: {{ s.baseEstimate }}</div>
+                  <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ localeStore.isAmharic ? (s.servesAm || s.serves) : s.serves }}</div>
+                  <div class="text-[11px] text-[#DE1B54] font-black mt-0.5">{{ localeStore.isAmharic ? 'ግምት:' : 'Est:' }} {{ localeStore.isAmharic ? (s.baseEstimateAm || s.baseEstimate) : s.baseEstimate }}</div>
                 </div>
               </div>
             </div>
@@ -274,38 +274,38 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Sponge Flavor
+                {{ localeStore.isAmharic ? 'የስፖንጅ ጣዕም' : 'Sponge Flavor' }}
               </label>
               <select
                 v-model="flavor"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
               >
-                <option value="Belgian Dark Chocolate">Belgian Dark Chocolate 🍫</option>
-                <option value="Madagascar Bourbon Vanilla">Madagascar Bourbon Vanilla 🍦</option>
-                <option value="Classic Red Velvet">Classic Red Velvet 🍰</option>
-                <option value="Ethiopian Mocha Espresso">Ethiopian Mocha Espresso ☕</option>
-                <option value="Fresh Strawberry Chiffon">Fresh Strawberry Chiffon 🍓</option>
-                <option value="Spiced Carrot & Walnut">Spiced Carrot &amp; Walnut 🥕</option>
-                <option v-if="isFasting" value="Ye'Tsom Vegan Chocolate">Ye'Tsom Vegan Chocolate 🌿</option>
-                <option v-if="isFasting" value="Ye'Tsom Vegan Vanilla Citrus">Ye'Tsom Vegan Vanilla Citrus 🌿</option>
+                <option value="Belgian Dark Chocolate">{{ localeStore.isAmharic ? 'የቤልጂየም ዳርክ ቸኮሌት 🍫' : 'Belgian Dark Chocolate 🍫' }}</option>
+                <option value="Madagascar Bourbon Vanilla">{{ localeStore.isAmharic ? 'የማዳጋስካር ቦርቦን ቫኒላ 🍦' : 'Madagascar Bourbon Vanilla 🍦' }}</option>
+                <option value="Classic Red Velvet">{{ localeStore.isAmharic ? 'ክላሲክ ሬድ ቬልቬት 🍰' : 'Classic Red Velvet 🍰' }}</option>
+                <option value="Ethiopian Mocha Espresso">{{ localeStore.isAmharic ? 'የኢትዮጵያ ሞካ ኤስፕሬሶ ☕' : 'Ethiopian Mocha Espresso ☕' }}</option>
+                <option value="Fresh Strawberry Chiffon">{{ localeStore.isAmharic ? 'ትኩስ ስትሮውቤሪ ሺፎን 🍓' : 'Fresh Strawberry Chiffon 🍓' }}</option>
+                <option value="Spiced Carrot & Walnut">{{ localeStore.isAmharic ? 'ካሮት እና ዋልነት ኬክ 🥕' : 'Spiced Carrot & Walnut 🥕' }}</option>
+                <option v-if="isFasting" value="Ye'Tsom Vegan Chocolate">{{ localeStore.isAmharic ? 'የጾም ቪጋን ቸኮሌት 🌿' : 'Ye\'Tsom Vegan Chocolate 🌿' }}</option>
+                <option v-if="isFasting" value="Ye'Tsom Vegan Vanilla Citrus">{{ localeStore.isAmharic ? 'የጾም ቫኒላ ሲትረስ 🌿' : 'Ye\'Tsom Vegan Vanilla Citrus 🌿' }}</option>
               </select>
             </div>
 
             <div class="space-y-1.5">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Filling &amp; Frosting
+                {{ localeStore.isAmharic ? 'ክሬም እና መሙያ' : 'Filling & Frosting' }}
               </label>
               <select
                 v-model="filling"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
               >
-                <option value="Silky Chocolate Ganache">Silky Chocolate Ganache</option>
-                <option value="Whipped Vanilla Buttercream">Whipped Vanilla Buttercream</option>
-                <option value="Wild Berry Compote & Mascarpone">Wild Berry Compote &amp; Mascarpone</option>
-                <option value="Salted Caramel Praline">Salted Caramel Praline</option>
-                <option value="Cream Cheese Frosting">Cream Cheese Frosting</option>
-                <option v-if="isFasting" value="Vegan Dark Choco Whip">Vegan Dark Choco Whip 🌿</option>
-                <option v-if="isFasting" value="Whipped Coconut Cream Frosting">Whipped Coconut Cream Frosting 🌿</option>
+                <option value="Silky Chocolate Ganache">{{ localeStore.isAmharic ? 'የቸኮሌት ጋናሽ' : 'Silky Chocolate Ganache' }}</option>
+                <option value="Whipped Vanilla Buttercream">{{ localeStore.isAmharic ? 'የቫኒላ ቅቤ ክሬም' : 'Whipped Vanilla Buttercream' }}</option>
+                <option value="Wild Berry Compote & Mascarpone">{{ localeStore.isAmharic ? 'የዱር ቤሪ እና ማስካርፖን' : 'Wild Berry Compote & Mascarpone' }}</option>
+                <option value="Salted Caramel Praline">{{ localeStore.isAmharic ? 'ሶልትድ ካራሜል ፕራሊን' : 'Salted Caramel Praline' }}</option>
+                <option value="Cream Cheese Frosting">{{ localeStore.isAmharic ? 'ክሬም ቺዝ ፍሮስቲንግ' : 'Cream Cheese Frosting' }}</option>
+                <option v-if="isFasting" value="Vegan Dark Choco Whip">{{ localeStore.isAmharic ? 'የጾም ዳርክ ቸኮሌት ክሬም 🌿' : 'Vegan Dark Choco Whip 🌿' }}</option>
+                <option v-if="isFasting" value="Whipped Coconut Cream Frosting">{{ localeStore.isAmharic ? 'የኮኮናት ክሬም ፍሮስቲንግ 🌿' : 'Whipped Coconut Cream Frosting 🌿' }}</option>
               </select>
             </div>
           </div>
@@ -314,25 +314,25 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1.5">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Celebration Occasion
+                {{ localeStore.isAmharic ? 'የበዓሉ አይነት' : 'Celebration Occasion' }}
               </label>
               <select
                 v-model="occasion"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
               >
-                <option value="Birthday">Birthday Celebration 🎂</option>
-                <option value="Wedding">Wedding Centerpiece 💍</option>
-                <option value="Anniversary">Anniversary Celebration 🥂</option>
-                <option value="Corporate Event">Corporate / Office Gala 🏢</option>
-                <option value="Graduation">Graduation Ceremony 🎓</option>
-                <option value="Baby Shower">Baby Shower / Gender Reveal 🍼</option>
-                <option value="Other">Special Celebration 🎉</option>
+                <option value="Birthday">{{ localeStore.isAmharic ? 'የልደት በዓል 🎂' : 'Birthday Celebration 🎂' }}</option>
+                <option value="Wedding">{{ localeStore.isAmharic ? 'የሰርግ ኬክ 💍' : 'Wedding Centerpiece 💍' }}</option>
+                <option value="Anniversary">{{ localeStore.isAmharic ? 'የጋብቻ/የፍቅር ዓመት 🥂' : 'Anniversary Celebration 🥂' }}</option>
+                <option value="Corporate Event">{{ localeStore.isAmharic ? 'የድርጅት ዝግጅት 🏢' : 'Corporate / Office Gala 🏢' }}</option>
+                <option value="Graduation">{{ localeStore.isAmharic ? 'የምረቃ በዓል 🎓' : 'Graduation Ceremony 🎓' }}</option>
+                <option value="Baby Shower">{{ localeStore.isAmharic ? 'የህፃን መወለድ (ቤቢ ሻወር) 🍼' : 'Baby Shower / Gender Reveal 🍼' }}</option>
+                <option value="Other">{{ localeStore.isAmharic ? 'ልዩ ክብረ በዓል 🎉' : 'Special Celebration 🎉' }}</option>
               </select>
             </div>
 
             <div class="space-y-1.5">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Event Date Needed
+                {{ localeStore.isAmharic ? 'የሚያስፈልግበት ቀን' : 'Event Date Needed' }}
               </label>
               <input
                 v-model="neededBy"
@@ -341,7 +341,7 @@
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition font-medium min-h-[42px]"
                 required
               />
-              <span class="text-[10px] text-gray-400 dark:text-gray-500">Requires min. 48 hours notice for handcrafted tiers.</span>
+              <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ localeStore.isAmharic ? 'ለእጅ ጥበብ ፎቆች ቢያንስ የ48 ሰዓት ቅድመ ማስታወቂያ ያስፈልጋል።' : 'Requires min. 48 hours notice for handcrafted tiers.' }}</span>
             </div>
           </div>
 
@@ -349,16 +349,16 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                Inscription on Cake (Piped Writing)
+                {{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ መልእክት' : 'Inscription on Cake (Piped Writing)' }}
               </label>
-              <span class="text-[10px] text-[#DE1B54] font-semibold">Complimentary</span>
+              <span class="text-[10px] text-[#DE1B54] font-semibold">{{ localeStore.isAmharic ? 'ነፃ' : 'Complimentary' }}</span>
             </div>
 
             <input
               v-model="message"
               type="text"
               maxlength="45"
-              placeholder="e.g. Happy 30th Birthday Sara! 🎉"
+              :placeholder="localeStore.isAmharic ? 'ለምሳሌ: መልካም ልደት ሳራ! 🎉' : 'e.g. Happy 30th Birthday Sara! 🎉'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
             />
           </div>
@@ -366,12 +366,12 @@
           <!-- Detailed Theme Instructions -->
           <div class="space-y-1.5">
             <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              Theme &amp; Decoration Details
+              {{ localeStore.isAmharic ? 'የዲዛይን እና የማስዋቢያ ዝርዝር' : 'Theme & Decoration Details' }}
             </label>
             <textarea
               v-model="description"
               rows="3"
-              placeholder="Describe color palette (e.g. blush pink & gold leaf), edible floral style, custom fondant toppers, chocolate drip..."
+              :placeholder="localeStore.isAmharic ? 'የቀለም ምርጫዎን፣ የተፈጥሮ ወይም የስኳር አበባ፣ የቸኮሌት ጠብታ ወይም ሌላ የፈለጉትን እዚህ ይግለጹ...' : 'Describe color palette (e.g. blush pink & gold leaf), edible floral style, custom fondant toppers, chocolate drip...'"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl p-3 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
             ></textarea>
           </div>
@@ -383,10 +383,10 @@
             <div class="flex items-center space-x-2">
               <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">2</span>
               <h2 class="text-base sm:text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                Inspiration Photos &amp; Quote
+                {{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎች እና ግምታዊ ዋጋ' : 'Inspiration Photos & Quote' }}
               </h2>
             </div>
-            <span class="text-xs text-[#DE1B54] font-bold">Step 2 of 2</span>
+            <span class="text-xs text-[#DE1B54] font-bold">{{ localeStore.isAmharic ? 'ደረጃ 2 ከ 2' : 'Step 2 of 2' }}</span>
           </div>
 
           <!-- Drag-and-drop Image Upload Dropzone -->
@@ -403,22 +403,22 @@
             <input ref="fileInput" type="file" multiple accept="image/*" class="hidden" @change="onFileChange" />
             <div v-if="isUploadingImage" class="space-y-2 py-2">
               <div class="w-8 h-8 border-3 border-[#DE1B54] border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <div class="text-xs font-bold text-[#DE1B54]">Uploading &amp; validating photo(s)...</div>
+              <div class="text-xs font-bold text-[#DE1B54]">{{ localeStore.isAmharic ? 'ፎቶዎችን በመጫን እና በማረጋገጥ ላይ...' : 'Uploading & validating photo(s)...' }}</div>
             </div>
             <template v-else>
               <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-[#341822] text-[#DE1B54] flex items-center justify-center mx-auto text-xl shadow-2xs group-hover:scale-110 transition-transform">
                 📸
               </div>
-              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">Upload Reference Photos or Drag &amp; Drop</div>
-              <div class="text-[10px] text-gray-500 dark:text-gray-400">PNG, JPG, WebP up to 5MB (Pinterest, Instagram, or sketches)</div>
+              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎችን ይስቀሉ ወይም ጎትተው ያስቀምጡ' : 'Upload Reference Photos or Drag & Drop' }}</div>
+              <div class="text-[10px] text-gray-500 dark:text-gray-400">{{ localeStore.isAmharic ? 'PNG, JPG, WebP እስከ 5MB (ከPinterest፣ Instagram ወይም ንድፍ)' : 'PNG, JPG, WebP up to 5MB (Pinterest, Instagram, or sketches)' }}</div>
             </template>
           </div>
 
           <!-- Attached Photo Gallery -->
           <div class="space-y-2">
             <div class="flex items-center justify-between text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              <span>Inspiration References ({{ referenceSamples.length }}):</span>
-              <span v-if="referenceSamples.length > 0" class="text-[10px] text-gray-400 dark:text-gray-500">Click photo to zoom</span>
+              <span>{{ localeStore.isAmharic ? 'የተያያዙ ምሳሌዎች' : 'Inspiration References' }} ({{ referenceSamples.length }}):</span>
+              <span v-if="referenceSamples.length > 0" class="text-[10px] text-gray-400 dark:text-gray-500">{{ localeStore.isAmharic ? 'በትልቁ ለማየት ይጫኑ' : 'Click photo to zoom' }}</span>
             </div>
             <div v-if="referenceSamples.length > 0" class="grid grid-cols-3 gap-2.5">
               <div
@@ -439,39 +439,39 @@
               </div>
             </div>
             <div v-else class="p-3 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-xl border border-dashed border-gray-200 dark:border-[#382318] text-[11px] text-[#786B60] dark:text-[#C5B7AF] text-center">
-              Optional: Upload inspiration images, or describe your theme in the details field.
+              {{ localeStore.isAmharic ? 'አስገዳጅ አይደለም: የምሳሌ ፎቶዎችን ይስቀሉ ወይም በዝርዝር መግለጫው ውስጥ ይጻፉ።' : 'Optional: Upload inspiration images, or describe your theme in the details field.' }}
             </div>
           </div>
 
           <!-- Real-Time Itemized Price Breakdown & 50% Deposit Estimator -->
           <div class="p-5 bg-gradient-to-br from-rose-50/80 to-[#FAF7F5] dark:from-[#2A1810] dark:to-[#1E120B] rounded-2xl border border-rose-100 dark:border-[#382318] space-y-3 shadow-2xs">
             <div class="flex items-center justify-between border-b border-rose-200/40 dark:border-[#382318] pb-2 text-xs">
-              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">Estimated Price Breakdown:</span>
+              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ግምታዊ የዋጋ ዝርዝር:' : 'Estimated Price Breakdown:' }}</span>
               <span class="font-black text-[#DE1B54] text-base">{{ estimatedPriceRange }}</span>
             </div>
 
             <!-- Itemized breakdown lines -->
             <div class="space-y-1.5 text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
               <div class="flex justify-between items-center">
-                <span>Tier Construction ({{ cakeSize }})</span>
+                <span>{{ localeStore.isAmharic ? 'የፎቆች አሰራር' : 'Tier Construction' }} ({{ cakeSize }})</span>
                 <span class="font-medium text-[#2A1810] dark:text-[#FAF3EE]">{{ baseTierPriceText }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span>Flavor &amp; Filling Handcrafting</span>
+                <span>{{ localeStore.isAmharic ? 'የጣዕም እና ክሬም ዝግጅት' : 'Flavor & Filling Handcrafting' }}</span>
                 <span class="font-medium text-[#2A1810] dark:text-[#FAF3EE]">{{ flavorPriceText }}</span>
               </div>
               <div class="flex justify-between items-center">
-                <span>Custom Piped Inscription</span>
-                <span class="font-bold text-[#387A54] dark:text-emerald-400">Complimentary (ETB 0)</span>
+                <span>{{ localeStore.isAmharic ? 'የኬክ ላይ ጽሁፍ' : 'Custom Piped Inscription' }}</span>
+                <span class="font-bold text-[#387A54] dark:text-emerald-400">{{ localeStore.isAmharic ? 'በነፃ (0 ብር)' : 'Complimentary (ETB 0)' }}</span>
               </div>
               <div class="pt-2 border-t border-rose-200/40 dark:border-[#382318] flex justify-between items-center text-xs">
-                <span>50% Kitchen Booking Deposit (Est.):</span>
+                <span>{{ localeStore.isAmharic ? 'የ 50% ቅድመ ክፍያ (ግምታዊ):' : '50% Kitchen Booking Deposit (Est.):' }}</span>
                 <span class="font-black text-[#DE1B54]">{{ estimatedDepositText }}</span>
               </div>
             </div>
 
             <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF] leading-snug pt-1">
-              Final quotation is tailored by the head pastry decorator at <strong>{{ chosenBranchName }}</strong> within 2–4 hours. 50% deposit locks in your kitchen oven date.
+              {{ localeStore.isAmharic ? `ትክክለኛው ዋጋ በ ${chosenBranchName} ዋና ኬክ ዲኮሬተር በ 2–4 ሰዓታት ውስጥ ይሰላል። የ 50% ቅድመ ክፍያ ቀጠሮዎን ያረጋግጣል።` : `Final quotation is tailored by the head pastry decorator at ${chosenBranchName} within 2–4 hours. 50% deposit locks in your kitchen oven date.` }}
             </p>
           </div>
 
@@ -479,21 +479,21 @@
           <div class="p-4 rounded-2xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318] space-y-3">
             <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-xs flex items-center space-x-1.5">
               <span>👤</span>
-              <span>Contact Information (For Quotation Updates)</span>
+              <span>{{ localeStore.isAmharic ? 'የመገኛ አድራሻ (ለዋጋ መረጃ)' : 'Contact Information (For Quotation Updates)' }}</span>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Your Full Name *</label>
+                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ሙሉ ስምዎ *' : 'Your Full Name *' }}</label>
                 <input
                   v-model="customerName"
                   type="text"
                   required
-                  placeholder="Enter your full name"
+                  :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Enter your full name'"
                   class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[40px]"
                 />
               </div>
               <div>
-                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">Phone Number *</label>
+                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *' }}</label>
                 <input
                   v-model="customerPhone"
                   type="tel"
@@ -511,7 +511,7 @@
             :disabled="isSubmitting"
             class="w-full py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
           >
-            <span>{{ isSubmitting ? 'Transmitting Design Brief...' : 'Submit Design Request →' }}</span>
+            <span>{{ isSubmitting ? (localeStore.isAmharic ? 'ጥያቄውን በመላክ ላይ...' : 'Transmitting Design Brief...') : (localeStore.isAmharic ? 'የኬክ ጥያቄውን ላክ →' : 'Submit Design Request →') }}</span>
           </button>
         </div>
       </form>
@@ -532,27 +532,27 @@
         </div>
         <div class="space-y-1">
           <h3 class="font-serif font-black text-2xl text-[#2A1810] dark:text-[#FAF3EE]">
-            Brief Received!
+            {{ localeStore.isAmharic ? 'ጥያቄዎ ደርሶናል!' : 'Brief Received!' }}
           </h3>
           <p class="text-xs text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed">
-            Your custom cake brief <strong class="text-[#DE1B54]">#{{ requestNumber }}</strong> has been forwarded to the head pastry decorator at <strong>{{ chosenBranchName }}</strong>.
+            {{ localeStore.isAmharic ? `የኬክ ንድፍ ጥያቄዎ ` : 'Your custom cake brief ' }}<strong class="text-[#DE1B54]">#{{ requestNumber }}</strong>{{ localeStore.isAmharic ? ` ለ ${chosenBranchName} ዋና ኬክ አዘጋጅ ተላልፏል።` : ` has been forwarded to the head pastry decorator at ${chosenBranchName}.` }}
           </p>
         </div>
         <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
-          We will review your design brief and post an official quotation to your account within 2–4 hours.
+          {{ localeStore.isAmharic ? 'የዲዛይን ሃሳብዎን ተመልክተን በ 2–4 ሰዓታት ውስጥ ይፋዊ የዋጋ ዝርዝር በመለያዎ ውስጥ እንልካለን።' : 'We will review your design brief and post an official quotation to your account within 2–4 hours.' }}
         </p>
         <div class="pt-3 flex flex-col sm:flex-row items-center justify-center gap-2.5">
           <router-link
             to="/account?tab=custom-cakes"
             class="w-full sm:w-auto px-6 py-3 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
           >
-            Track in My Account &rarr;
+            {{ localeStore.isAmharic ? 'በመለያዬ ውስጥ ተከታተል →' : 'Track in My Account →' }}
           </router-link>
           <router-link
             to="/shop"
             class="w-full sm:w-auto px-6 py-3 bg-gray-50 dark:bg-[#2A1810] hover:bg-gray-100 dark:hover:bg-[#341822] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] text-xs font-bold rounded-xl transition cursor-pointer"
           >
-            Shop Today's Bakes
+            {{ localeStore.isAmharic ? 'የዛሬ ኬኮች' : "Shop Today's Bakes" }}
           </router-link>
         </div>
       </div>
@@ -597,11 +597,13 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useBranchStore } from '../../stores/branch';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const branchStore = useBranchStore();
 const authStore = useAuthStore();
 const toast = useToastStore();
+const localeStore = useLocaleStore();
 
 const fileInput = ref(null);
 const isSubmitting = ref(false);
@@ -678,15 +680,16 @@ const cakeColorStyle = computed(() => {
 });
 
 const sizeOptions = [
-  { name: 'Single Tier 6"', serves: 'Serves 6–8 guests', icon: '🎂', baseEstimate: 'ETB 1,200 – 1,800', basePrice: 1200 },
-  { name: 'Single Tier 8"', serves: 'Serves 12–16 guests', icon: '🎂', baseEstimate: 'ETB 1,800 – 2,600', basePrice: 1800 },
-  { name: 'Two-Tier Celebration (8" + 6")', serves: 'Serves 24–30 guests', icon: '🍰', baseEstimate: 'ETB 3,200 – 4,800', basePrice: 3200 },
-  { name: 'Grand Three-Tier Gala (10" + 8" + 6")', serves: 'Serves 45–60 guests', icon: '👑', baseEstimate: 'ETB 6,000 – 9,500', basePrice: 6000 },
+  { name: 'Single Tier 6"', nameAm: 'ባለ 1 ፎቅ 6 ኢንች', serves: 'Serves 6–8 guests', servesAm: 'ከ 6–8 እንግዶች', icon: '🎂', baseEstimate: 'ETB 1,200 – 1,800', baseEstimateAm: '1,200 – 1,800 ብር', basePrice: 1200 },
+  { name: 'Single Tier 8"', nameAm: 'ባለ 1 ፎቅ 8 ኢንች', serves: 'Serves 12–16 guests', servesAm: 'ከ 12–16 እንግዶች', icon: '🎂', baseEstimate: 'ETB 1,800 – 2,600', baseEstimateAm: '1,800 – 2,600 ብር', basePrice: 1800 },
+  { name: 'Two-Tier Celebration (8" + 6")', nameAm: 'ባለ 2 ፎቅ ክብረ በዓል (8" + 6")', serves: 'Serves 24–30 guests', servesAm: 'ከ 24–30 እንግዶች', icon: '🍰', baseEstimate: 'ETB 3,200 – 4,800', baseEstimateAm: '3,200 – 4,800 ብር', basePrice: 3200 },
+  { name: 'Grand Three-Tier Gala (10" + 8" + 6")', nameAm: 'ባለ 3 ፎቅ ጋላ (10" + 8" + 6")', serves: 'Serves 45–60 guests', servesAm: 'ከ 45–60 እንግዶች', icon: '👑', baseEstimate: 'ETB 6,000 – 9,500', baseEstimateAm: '6,000 – 9,500 ብር', basePrice: 6000 },
 ];
 
 const inspirationPresets = [
   {
     name: 'Blush Floral Birthday',
+    nameAm: 'የአበባ ንድፍ ልደት',
     icon: '🌸',
     occasion: 'Birthday',
     flavor: 'Madagascar Bourbon Vanilla',
@@ -695,6 +698,7 @@ const inspirationPresets = [
   },
   {
     name: 'Luxury Wedding Tier',
+    nameAm: 'የቅንጦት ሰርግ ፎቅ',
     icon: '💍',
     occasion: 'Wedding',
     size: 'Two-Tier Celebration (8" + 6")',
@@ -704,6 +708,7 @@ const inspirationPresets = [
   },
   {
     name: 'Graduation Centerpiece',
+    nameAm: 'የምረቃ ድምቀት ኬክ',
     icon: '🎓',
     occasion: 'Graduation',
     flavor: 'Classic Red Velvet',
@@ -712,6 +717,7 @@ const inspirationPresets = [
   },
   {
     name: 'Choco Decadence Drip',
+    nameAm: 'የቸኮሌት ድሪፕ ኬክ',
     icon: '🍫',
     occasion: 'Birthday',
     flavor: 'Belgian Dark Chocolate',
@@ -722,29 +728,32 @@ const inspirationPresets = [
 
 const estimatedPriceRange = computed(() => {
   const opt = sizeOptions.find((o) => o.name === cakeSize.value);
-  return opt ? opt.baseEstimate : 'ETB 1,800 – 2,600';
+  if (!opt) return localeStore.isAmharic ? '1,800 – 2,600 ብር' : 'ETB 1,800 – 2,600';
+  return localeStore.isAmharic ? opt.baseEstimateAm : opt.baseEstimate;
 });
 
 const baseTierPriceText = computed(() => {
   const opt = sizeOptions.find((o) => o.name === cakeSize.value);
-  return opt ? `ETB ${opt.basePrice.toLocaleString()}` : 'ETB 1,800';
+  const p = opt ? opt.basePrice : 1800;
+  return localeStore.formatPrice(p);
 });
 
 const flavorPriceText = computed(() => {
-  return 'Included in estimate';
+  return localeStore.isAmharic ? 'በግምቱ ውስጥ የተካተተ' : 'Included in estimate';
 });
 
 const estimatedDepositText = computed(() => {
   const opt = sizeOptions.find((o) => o.name === cakeSize.value);
-  if (!opt) return 'ETB 900 – 1,300';
+  if (!opt) return localeStore.isAmharic ? '900 – 1,300 ብር' : 'ETB 900 – 1,300';
   const minDeposit = Math.round(opt.basePrice * 0.5);
   const maxDeposit = Math.round((parseInt(opt.baseEstimate.split('–')[1].replace(/[^0-9]/g, '')) || opt.basePrice * 1.5) * 0.5);
-  return `ETB ${minDeposit.toLocaleString()} – ${maxDeposit.toLocaleString()}`;
+  return `${localeStore.formatPrice(minDeposit)} – ${localeStore.formatPrice(maxDeposit)}`;
 });
 
 const chosenBranchName = computed(() => {
   const b = branchStore.branches.find((br) => br.branch_id === preparingBranchId.value);
-  return b ? b.branch_name : 'Bole Flagship & Espresso';
+  const raw = b ? b.branch_name : 'Bole Flagship & Espresso';
+  return localeStore.tBranch(raw);
 });
 
 // Draft Persistence (Zero Data Loss on Refresh)

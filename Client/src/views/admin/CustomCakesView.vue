@@ -94,7 +94,7 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full min-w-[620px] text-left text-sm">
             <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
               <tr>
                 <th class="py-3 px-4">Request #</th>

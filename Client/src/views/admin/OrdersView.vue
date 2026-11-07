@@ -1,9 +1,9 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
           {{ isBranchScoped ? `${userBranchName} Branch Orders` : 'All Orders' }}
         </h2>
         <span
@@ -15,7 +15,7 @@
       </div>
       <button
         @click="exportCSV"
-        class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+        class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
       >
         Export CSV
       </button>
@@ -125,7 +125,7 @@
       <!-- Orders Table (Col span 2) -->
       <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
+          <table class="w-full min-w-[640px] text-left text-sm">
             <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
               <tr>
                 <th class="py-3 px-4">Order</th>
@@ -333,8 +333,8 @@
     </div>
 
     <!-- Reassign Branch Modal (Super Admin Action) -->
-    <div v-if="reassignModalOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+    <div v-if="reassignModalOpen" class="fixed inset-0 bg-black/40 flex items-center justify-center p-3 sm:p-4 z-50">
+      <div class="bg-white border border-[#E7DFD5] rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
         <h3 class="text-base font-serif font-bold text-[#2A1D15]">
           Reassign Order Branch: {{ selectedOrder?.order_number }}
         </h3>

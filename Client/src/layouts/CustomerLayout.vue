@@ -84,7 +84,7 @@
         </router-link>
 
         <!-- Center Nav Links (Balanced spacing from 1024px to 2560px) -->
-        <nav class="hidden lg:flex items-center space-x-4 xl:space-x-7 2xl:space-x-8 text-xs xl:text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9]">
+        <nav class="hidden lg:flex items-center space-x-5 xl:space-x-8 2xl:space-x-10 text-sm xl:text-[15px] font-bold text-[#2A1810] dark:text-[#F7EFE9]">
           <!-- Home -->
           <router-link
             to="/"
@@ -113,8 +113,8 @@
               <router-link
                 to="/shop"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
+                :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">✨</span>
                 <span>{{ localeStore.t('all_products') }}</span>
@@ -123,8 +123,8 @@
               <router-link
                 to="/shop?category=Cakes"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
+                :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🎂</span>
                 <span>{{ localeStore.t('cakes') }}</span>
@@ -133,8 +133,8 @@
               <router-link
                 to="/shop?category=Bread"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
+                :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🥖</span>
                 <span>{{ localeStore.t('bread') }}</span>
@@ -143,8 +143,8 @@
               <router-link
                 to="/shop?category=Pastries"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition"
-                :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-bold' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
+                :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
               >
                 <span class="text-base">🥐</span>
                 <span>{{ localeStore.t('cupcakes_croissants') }}</span>
@@ -153,7 +153,7 @@
               <router-link
                 to="/shop?yetsom=1"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
                 :class="$route.query.yetsom === '1' || $route.query.fasting === '1' ? 'bg-emerald-100/70 dark:bg-emerald-950/60 text-[#075e43] dark:text-emerald-300 font-black' : 'text-[#0b6b4e] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#06503b]'"
               >
                 <span class="text-base">🌿</span>
@@ -163,7 +163,7 @@
               <router-link
                 to="/custom-cake"
                 @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition"
+                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
                 :class="$route.path === '/custom-cake' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#DE1B54] hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#C51345]'"
               >
                 <span class="text-base">✍️</span>
@@ -216,26 +216,6 @@
             <span class="text-[10px] text-gray-400 group-hover:text-[#DE1B54]">▾</span>
           </button>
 
-          <!-- Search Input Pill (Tablet & Desktop) -->
-          <div class="relative hidden md:block w-32 lg:w-40 xl:w-52 2xl:w-60">
-            <input
-              v-model="searchKeyword"
-              @keyup.enter="handleSearch"
-              type="text"
-              :placeholder="localeStore.t('search_placeholder')"
-              class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#3D261B] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#25150E] rounded-full py-1.5 sm:py-2 pl-3 sm:pl-4 pr-8 sm:pr-9 text-xs text-gray-800 dark:text-[#F7EFE9] placeholder:text-gray-400 dark:placeholder:text-[#8C786B] focus:outline-none transition shadow-2xs"
-            />
-            <button
-              @click="handleSearch"
-              class="absolute right-2.5 sm:right-3 top-2 sm:top-2.5 text-gray-400 hover:text-[#DE1B54] transition cursor-pointer"
-              title="Search"
-            >
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-
           <!-- Bilingual Language Toggle Button: EN | አማ -->
           <button
             @click="localeStore.toggleLocale()"
@@ -259,17 +239,37 @@
             <span v-else class="text-gray-600 dark:text-gray-300 text-sm sm:text-base">🌙</span>
           </button>
 
-          <!-- User Menu Dropdown (Desktop / Tablet) -->
-          <div class="relative hidden sm:block">
+          <!-- Single Dedicated "Sign In" Button for Guests / New Customers (Zero Ambiguity) -->
+          <router-link
+            v-if="!authStore.user"
+            to="/login"
+            class="flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            :title="localeStore.t('sign_in')"
+          >
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span>{{ localeStore.t('sign_in') }}</span>
+          </router-link>
+
+          <!-- Authenticated Customer Menu (Visible when logged in) -->
+          <div v-else class="relative">
+            <!-- Click-away backdrop to easily close dropdown -->
+            <div
+              v-if="accountMenuOpen"
+              class="fixed inset-0 z-40 bg-transparent"
+              @click="accountMenuOpen = false"
+            ></div>
+
             <button
               @click="accountMenuOpen = !accountMenuOpen"
-              class="flex items-center space-x-1 p-2 sm:px-3 sm:py-2 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-xs font-semibold text-gray-700 dark:text-[#E8DED8] transition shadow-2xs cursor-pointer bg-white dark:bg-[#1E120B] min-h-[36px]"
+              class="relative z-50 flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] hover:border-[#DE1B54] text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#E8DED8] transition shadow-2xs cursor-pointer min-h-[34px] sm:min-h-[36px]"
               :title="localeStore.t('account')"
             >
-              <svg class="w-4 h-4 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span class="hidden md:inline">{{ authStore.user ? authStore.user.full_name.split(' ')[0] : '' }}</span>
+              <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0">
+                {{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}
+              </div>
+              <span class="hidden md:inline max-w-[100px] truncate">{{ authStore.user.full_name.split(' ')[0] }}</span>
               <span class="text-[10px] opacity-60">▾</span>
             </button>
 
@@ -278,14 +278,13 @@
               v-if="accountMenuOpen"
               class="absolute right-0 mt-2 w-52 bg-white dark:bg-[#221610] rounded-2xl shadow-xl border border-gray-100 dark:border-[#3D261B] py-2 z-50 animate-in fade-in"
             >
-              <div v-if="authStore.user" class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B]">
+              <div class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B]">
                 <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
                 <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
               </div>
 
               <div class="py-1 text-xs font-medium">
                 <router-link
-                  v-if="authStore.user"
                   to="/account"
                   @click="accountMenuOpen = false"
                   class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
@@ -294,7 +293,7 @@
                 </router-link>
 
                 <router-link
-                  :to="authStore.user ? '/account?tab=wishlist' : '/shop'"
+                  to="/account?tab=wishlist"
                   @click="accountMenuOpen = false"
                   class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
                 >
@@ -308,24 +307,6 @@
                 </router-link>
 
                 <router-link
-                  v-if="!authStore.user"
-                  to="/login"
-                  @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                >
-                  <span>🔑 {{ localeStore.t('sign_in') }}</span>
-                </router-link>
-
-                <router-link
-                  v-if="!authStore.user"
-                  to="/register"
-                  @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                >
-                  <span>✨ {{ localeStore.t('create_account') }}</span>
-                </router-link>
-
-                <router-link
                   to="/admin/overview"
                   @click="accountMenuOpen = false"
                   class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-bold hover:bg-rose-50 dark:hover:bg-[#331A24] border-t border-gray-100 dark:border-[#3D261B] mt-1 pt-2"
@@ -334,7 +315,6 @@
                 </router-link>
 
                 <button
-                  v-if="authStore.user"
                   @click="handleLogout"
                   class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border-t border-gray-100 dark:border-[#3D261B] mt-1 cursor-pointer"
                 >

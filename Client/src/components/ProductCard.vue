@@ -22,7 +22,7 @@
         @click.stop="handleToggleWishlist"
         class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#FAF7F5]/90 dark:bg-[#24150E]/90 backdrop-blur-xs flex items-center justify-center text-xs shadow-xs hover:scale-110 transition cursor-pointer z-10 border border-gray-200 dark:border-[#3D2619]"
         :class="isWishlisted ? 'text-[#DE1B54]' : 'text-gray-400 hover:text-[#DE1B54]'"
-        title="Add to Wishlist"
+        :title="localeStore.isAmharic ? 'ወደ ምኞት ዝርዝር ጨምር' : 'Add to Wishlist'"
       >
         <span>{{ isWishlisted ? '♥' : '♡' }}</span>
       </button>
@@ -39,7 +39,7 @@
       <span
         v-if="product.is_fasting"
         class="absolute bottom-3 left-3 bg-emerald-800/95 backdrop-blur-xs text-white text-[10px] font-semibold tracking-wide px-2.5 py-0.5 rounded-full border border-emerald-600/50 shadow-xs flex items-center space-x-1"
-        title="100% Ethiopian Fasting (Ye'Tsom / ጾም) - Plant-Based & Dairy Free"
+        :title="localeStore.isAmharic ? '100% የጾም ምግብ - ያለ ወተትና እንቁላል የተዘጋጀ' : '100% Ethiopian Fasting (Ye\'Tsom / ጾም) - Plant-Based & Dairy Free'"
       >
         <span class="text-xs">🌿</span>
         <span>Ye'Tsom / ጾም</span>
@@ -51,7 +51,7 @@
       <div>
         <div class="flex items-baseline justify-between gap-2 mb-1">
           <router-link :to="`/product/${product.product_id}`" class="text-sm font-serif font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
-            {{ product.product_name }}
+            {{ localeStore.tProduct(product.product_name) }}
           </router-link>
         </div>
 
@@ -61,7 +61,7 @@
             <span v-for="s in 5" :key="s" :class="s <= Math.round(ratingNumber) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
           </span>
           <span class="text-gray-700 dark:text-gray-300 text-[11px] font-bold">{{ ratingNumber > 0 ? ratingNumber.toFixed(1) : '—' }}</span>
-          <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ reviewCountNumber }} {{ reviewCountNumber === 1 ? 'review' : 'reviews' }})</span>
+          <span class="text-gray-400 dark:text-gray-500 text-[10px]">({{ reviewCountNumber }} {{ localeStore.isAmharic ? 'አስተያየት' : (reviewCountNumber === 1 ? 'review' : 'reviews') }})</span>
         </div>
 
         <p class="text-xs text-[#786B60] dark:text-[#B3A69C] line-clamp-2 leading-relaxed">
@@ -71,9 +71,9 @@
 
       <div class="pt-3 border-t border-gray-100 dark:border-[#331E14] flex items-center justify-between gap-2 sm:gap-3">
         <div>
-          <div class="text-[9px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold">Price</div>
+          <div class="text-[9px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold">{{ localeStore.t('price_label') }}</div>
           <div class="text-sm sm:text-base font-black text-[#DE1B54]">
-            ETB {{ displayPrice.toLocaleString() }}
+            {{ localeStore.formatPrice(displayPrice) }}
           </div>
         </div>
 
@@ -81,7 +81,7 @@
           <router-link
             :to="`/product/${product.product_id}`"
             class="min-h-[40px] min-w-[40px] flex items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-[#3D2619] text-gray-700 dark:text-[#E8DED8] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] hover:border-[#DE1B54] transition cursor-pointer"
-            title="View Details"
+            :title="localeStore.t('view_details')"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -100,7 +100,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span>{{ isAdding ? 'Added' : (isOutOfStock ? 'Sold Out' : 'Add') }}</span>
+            <span>{{ isAdding ? localeStore.t('added_btn') : (isOutOfStock ? localeStore.t('out_of_stock_btn') : localeStore.t('add_btn')) }}</span>
           </button>
         </div>
       </div>
@@ -114,6 +114,7 @@ import { useCartStore } from '../stores/cart';
 import { useBranchStore } from '../stores/branch';
 import { useToastStore } from '../stores/toast';
 import { useWishlistStore } from '../stores/wishlist';
+import { useLocaleStore } from '../stores/locale';
 
 const props = defineProps({
   product: {
@@ -130,6 +131,7 @@ const cartStore = useCartStore();
 const branchStore = useBranchStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
+const localeStore = useLocaleStore();
 const isAdding = ref(false);
 const imageLoaded = ref(false);
 
@@ -178,9 +180,11 @@ const stockStatusClasses = computed(() => {
 });
 
 const stockStatusText = computed(() => {
-  if (isOutOfStock.value) return 'Out of Stock';
-  if (stockNumber.value <= 5) return `Only ${stockNumber.value} left`;
-  return `${stockNumber.value} in stock`;
+  if (isOutOfStock.value) return localeStore.t('out_of_stock_label');
+  if (stockNumber.value <= 5) {
+    return localeStore.isAmharic ? `${stockNumber.value} ብቻ ቀርቷል` : `Only ${stockNumber.value} left`;
+  }
+  return localeStore.isAmharic ? `${stockNumber.value} በክምችት አለ` : `${stockNumber.value} in stock`;
 });
 
 // Image fallback mapping

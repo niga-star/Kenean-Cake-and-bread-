@@ -3,15 +3,15 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Settings & Content Management</h2>
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Settings & Content Management</h2>
         <p class="text-xs text-[#8A7B71]">Configure system rules, business details, homepage banners, and customer feedback</p>
       </div>
 
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
         <button
           v-if="activeTab === 'general' || activeTab === 'business'"
           @click="loadSettings"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+          class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer"
         >
           Cancel
         </button>
@@ -19,7 +19,7 @@
           v-if="activeTab === 'general' || activeTab === 'business'"
           @click="saveSettings"
           :disabled="saving"
-          class="px-5 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm disabled:opacity-50 cursor-pointer"
+          class="flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-xs disabled:opacity-50 cursor-pointer"
         >
           {{ saving ? 'Saving...' : 'Save Settings' }}
         </button>
@@ -90,7 +90,7 @@
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
           <h3 class="font-semibold text-base text-[#2A1D15]">Orders and stock</h3>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Unpaid order reservation (minutes)</label>
               <input
@@ -109,7 +109,7 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Pay on pickup or delivery</label>
               <select
@@ -138,7 +138,7 @@
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
           <h3 class="font-semibold text-base text-[#2A1D15]">Transfers</h3>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Super Admin approval threshold (units)</label>
               <input
@@ -162,7 +162,7 @@
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
           <h3 class="font-semibold text-base text-[#2A1D15]">Custom cakes</h3>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Default deposit</label>
               <select
@@ -307,7 +307,7 @@
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Address (Amharic)</label>
             <input v-model="form.business_address_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Latitude</label>
               <input v-model="form.business_lat" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
@@ -338,7 +338,7 @@
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">About Story (Amharic)</label>
             <textarea v-model="form.about_story_am" rows="3" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"></textarea>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Experience Years Stat</label>
               <input v-model="form.stat_experience_years" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
@@ -402,38 +402,40 @@
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
-            <tr>
-              <th class="py-3 px-4">Author</th>
-              <th class="py-3 px-3">Product</th>
-              <th class="py-3 px-3">Rating</th>
-              <th class="py-3 px-4">Comment</th>
-              <th class="py-3 px-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#F3EDE4]">
-            <tr v-for="rev in reviewsList" :key="rev.review_id" class="hover:bg-[#FCFAF7]">
-              <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ rev.user?.full_name || 'Customer' }}</td>
-              <td class="py-3 px-3 text-[#BA5420] font-semibold">{{ rev.product?.product_name || 'Product #' + rev.product_id }}</td>
-              <td class="py-3 px-3 text-amber-500 font-bold">
-                <span v-for="s in 5" :key="s">{{ s <= rev.rating ? '★' : '☆' }}</span>
-              </td>
-              <td class="py-3 px-4 text-[#6A5A50] max-w-xs truncate">{{ rev.comment }}</td>
-              <td class="py-3 px-3 text-right">
-                <button
-                  @click="deleteReview(rev)"
-                  class="text-red-600 hover:text-red-800 font-semibold text-xs transition cursor-pointer"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-            <tr v-if="reviewsList.length === 0">
-              <td colspan="5" class="py-8 text-center text-[#8A7B71] italic">No customer reviews yet.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[560px]">
+            <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
+              <tr>
+                <th class="py-3 px-4">Author</th>
+                <th class="py-3 px-3">Product</th>
+                <th class="py-3 px-3">Rating</th>
+                <th class="py-3 px-4">Comment</th>
+                <th class="py-3 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-for="rev in reviewsList" :key="rev.review_id" class="hover:bg-[#FCFAF7]">
+                <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ rev.user?.full_name || 'Customer' }}</td>
+                <td class="py-3 px-3 text-[#BA5420] font-semibold">{{ rev.product?.product_name || 'Product #' + rev.product_id }}</td>
+                <td class="py-3 px-3 text-amber-500 font-bold">
+                  <span v-for="s in 5" :key="s">{{ s <= rev.rating ? '★' : '☆' }}</span>
+                </td>
+                <td class="py-3 px-4 text-[#6A5A50] max-w-xs truncate">{{ rev.comment }}</td>
+                <td class="py-3 px-3 text-right">
+                  <button
+                    @click="deleteReview(rev)"
+                    class="text-red-600 hover:text-red-800 font-semibold text-xs transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              <tr v-if="reviewsList.length === 0">
+                <td colspan="5" class="py-8 text-center text-[#8A7B71] italic">No customer reviews yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -445,32 +447,34 @@
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
-            <tr>
-              <th class="py-3 px-4">Name</th>
-              <th class="py-3 px-3">Contact</th>
-              <th class="py-3 px-3">Subject</th>
-              <th class="py-3 px-4">Message</th>
-              <th class="py-3 px-3">Date</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#F3EDE4]">
-            <tr v-for="inq in inquiriesList" :key="inq.inquiry_id" class="hover:bg-[#FCFAF7]">
-              <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ inq.name }}</td>
-              <td class="py-3 px-3 text-[#6A5A50]">
-                <div>{{ inq.email }}</div>
-                <div v-if="inq.phone" class="text-[11px] text-[#8A7B71]">{{ inq.phone }}</div>
-              </td>
-              <td class="py-3 px-3 font-semibold text-[#BA5420]">{{ inq.subject }}</td>
-              <td class="py-3 px-4 text-[#4A3B32] max-w-sm">{{ inq.message }}</td>
-              <td class="py-3 px-3 text-[#8A7B71]">{{ new Date(inq.created_at).toLocaleDateString() }}</td>
-            </tr>
-            <tr v-if="inquiriesList.length === 0">
-              <td colspan="5" class="py-8 text-center text-[#8A7B71] italic">No contact inquiries received yet.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[580px]">
+            <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
+              <tr>
+                <th class="py-3 px-4">Name</th>
+                <th class="py-3 px-3">Contact</th>
+                <th class="py-3 px-3">Subject</th>
+                <th class="py-3 px-4">Message</th>
+                <th class="py-3 px-3">Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-for="inq in inquiriesList" :key="inq.inquiry_id" class="hover:bg-[#FCFAF7]">
+                <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ inq.name }}</td>
+                <td class="py-3 px-3 text-[#6A5A50]">
+                  <div>{{ inq.email }}</div>
+                  <div v-if="inq.phone" class="text-[11px] text-[#8A7B71]">{{ inq.phone }}</div>
+                </td>
+                <td class="py-3 px-3 font-semibold text-[#BA5420]">{{ inq.subject }}</td>
+                <td class="py-3 px-4 text-[#4A3B32] max-w-sm">{{ inq.message }}</td>
+                <td class="py-3 px-3 text-[#8A7B71]">{{ new Date(inq.created_at).toLocaleDateString() }}</td>
+              </tr>
+              <tr v-if="inquiriesList.length === 0">
+                <td colspan="5" class="py-8 text-center text-[#8A7B71] italic">No contact inquiries received yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -482,31 +486,33 @@
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
-            <tr>
-              <th class="py-3 px-4">ID</th>
-              <th class="py-3 px-4">Subscriber Email</th>
-              <th class="py-3 px-3">Status</th>
-              <th class="py-3 px-3">Subscribed On</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#F3EDE4]">
-            <tr v-for="sub in subscribersList" :key="sub.subscription_id" class="hover:bg-[#FCFAF7]">
-              <td class="py-3 px-4 font-mono text-[#8A7B71]">#{{ sub.subscription_id }}</td>
-              <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ sub.email }}</td>
-              <td class="py-3 px-3">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  {{ sub.status }}
-                </span>
-              </td>
-              <td class="py-3 px-3 text-[#8A7B71]">{{ new Date(sub.created_at).toLocaleDateString() }}</td>
-            </tr>
-            <tr v-if="subscribersList.length === 0">
-              <td colspan="4" class="py-8 text-center text-[#8A7B71] italic">No newsletter subscribers yet.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[480px]">
+            <thead class="bg-[#FAF6F0] text-[#7A6B60] uppercase font-semibold border-b border-[#EFE8DF]">
+              <tr>
+                <th class="py-3 px-4">ID</th>
+                <th class="py-3 px-4">Subscriber Email</th>
+                <th class="py-3 px-3">Status</th>
+                <th class="py-3 px-3">Subscribed On</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-for="sub in subscribersList" :key="sub.subscription_id" class="hover:bg-[#FCFAF7]">
+                <td class="py-3 px-4 font-mono text-[#8A7B71]">#{{ sub.subscription_id }}</td>
+                <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ sub.email }}</td>
+                <td class="py-3 px-3">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                    {{ sub.status }}
+                  </span>
+                </td>
+                <td class="py-3 px-3 text-[#8A7B71]">{{ new Date(sub.created_at).toLocaleDateString() }}</td>
+              </tr>
+              <tr v-if="subscribersList.length === 0">
+                <td colspan="4" class="py-8 text-center text-[#8A7B71] italic">No newsletter subscribers yet.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 

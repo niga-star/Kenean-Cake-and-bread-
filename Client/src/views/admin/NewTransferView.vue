@@ -1,25 +1,25 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">New transfer</h2>
+        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">New transfer</h2>
         <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
           Draft
         </span>
       </div>
-      <div class="flex items-center space-x-3">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         <button
           @click="saveTransfer('Draft')"
           :disabled="submitting"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
         >
           Save draft
         </button>
         <button
           @click="saveTransfer('Approved')"
           :disabled="submitting"
-          class="px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm cursor-pointer"
         >
           Submit for approval
         </button>
@@ -40,7 +40,7 @@
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
         <h3 class="font-semibold text-base text-[#2A1D15]">1. Route</h3>
 
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Transfer number</label>
             <input
@@ -88,7 +88,7 @@
         <h3 class="font-semibold text-base text-[#2A1D15]">2. Products to send</h3>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+          <table class="w-full min-w-[480px] text-left text-xs">
             <thead class="text-[#88786B] uppercase border-b border-[#EFE8DF] font-semibold">
               <tr>
                 <th class="pb-2">Product</th>
@@ -167,7 +167,7 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+          <table class="w-full min-w-[480px] text-left text-xs">
             <thead class="text-[#88786B] uppercase border-b border-[#EFE8DF] font-semibold">
               <tr>
                 <th class="pb-2">Product</th>

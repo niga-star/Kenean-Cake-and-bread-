@@ -1,24 +1,24 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Products and prices</h2>
-      <div class="flex items-center space-x-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Products and prices</h2>
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Search products"
-          class="bg-white border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] shadow-sm"
+          class="flex-1 sm:flex-initial bg-white border border-[#D8CDC0] rounded-lg px-3 py-2 sm:py-1.5 text-xs text-[#2D231D] shadow-sm min-w-[130px]"
         />
         <button
           @click="isCategoriesModalOpen = true"
-          class="px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
         >
           Categories
         </button>
         <button
           @click="openAddProductModal"
-          class="px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center space-x-1.5"
+          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center space-x-1.5 cursor-pointer"
         >
           <span>+ Add product</span>
         </button>
@@ -61,7 +61,7 @@
     <!-- Products Table -->
     <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
+        <table class="w-full min-w-[620px] text-left text-sm">
           <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
             <tr>
               <th class="py-3 px-5">Product</th>
@@ -253,8 +253,8 @@
     </div>
 
     <!-- MODAL 1: Categories Management Modal -->
-    <div v-if="isCategoriesModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-xl w-full p-6 space-y-5 animate-in fade-in duration-200">
+    <div v-if="isCategoriesModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-3 sm:p-4">
+      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-xl w-full p-4 sm:p-6 space-y-4 sm:space-y-5 animate-in fade-in duration-200 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <div>
             <h3 class="text-lg font-serif font-bold text-[#2A1D15]">Product Categories</h3>
