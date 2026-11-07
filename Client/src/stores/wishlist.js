@@ -74,9 +74,18 @@ export const useWishlistStore = defineStore('wishlist', {
           // Fetch authenticated wishlist from MySQL
           const res = await api.get('/wishlist');
           if (Array.isArray(res.data?.product_ids)) {
-            this.productIds = res.data.product_ids.map(id => Number(id));
+            const dbIds = res.data.product_ids.map(id => Number(id));
+            // Keep union of local & DB items so favorites never vanish on refresh
+            const merged = Array.from(new Set([...this.productIds, ...dbIds]));
+            this.productIds = merged;
             this.items = res.data.products || [];
             this.saveLocal();
+
+            // If there were local IDs not yet in DB, sync them up
+            const missingInDb = merged.filter(id => !dbIds.includes(id));
+            if (missingInDb.length > 0) {
+              api.post('/wishlist/sync', { product_ids: missingInDb }).catch(() => {});
+            }
           }
         } else {
           // Guest mode: If there are IDs in localStorage, fetch product details

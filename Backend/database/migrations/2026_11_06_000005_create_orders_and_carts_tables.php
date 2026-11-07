@@ -89,7 +89,7 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id('payment_id');
             $table->unsignedBigInteger('order_id');
-            $table->enum('payment_method', ['Chapa', 'Telebirr', 'Pay on pickup', 'Pay on delivery']);
+            $table->enum('payment_method', ['Chapa', 'Telebirr', 'CBE Birr', 'Pay on pickup', 'Pay on delivery']);
             $table->decimal('amount', 10, 2);
             $table->enum('payment_status', ['Pending', 'Paid', 'Failed', 'Refunded'])->default('Pending');
             $table->string('transaction_reference')->unique()->nullable();

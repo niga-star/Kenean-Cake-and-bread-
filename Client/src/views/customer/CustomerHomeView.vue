@@ -1,41 +1,55 @@
 <template>
-  <div class="space-y-12 sm:space-y-16 md:space-y-20 selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-8 sm:pb-12 animate-fade-in-up">
-    <!-- 1. HERO SECTION: Full-Bleed Natural Bakery Background with Delivery Badge -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] flex items-center border-b border-[#F2E5DD]">
-      <!-- Background Bakery Imagery on Right with Shimmer Lazy Load -->
-      <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[60%] overflow-hidden pointer-events-none" :class="{ 'shimmer-wave bg-[#F0E8DF] dark:bg-[#25150E]': !heroImageLoaded }">
+  <div class="space-y-12 sm:space-y-16 md:space-y-20 selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-8 sm:pb-12 animate-fade-in-up w-full">
+    <!-- 1. HERO SECTION: Full-Bleed 100% Cover Bakery Background -->
+    <section class="relative overflow-hidden min-h-[480px] sm:min-h-[540px] lg:min-h-[600px] xl:min-h-[660px] flex items-center w-full">
+      <!-- Full-Bleed 100% Background Image Covering Whole Banner (No Split Screen) -->
+      <div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" :class="{ 'shimmer-wave bg-[#F0E8DF] dark:bg-[#25150E]': !heroImageLoaded }">
         <img
-          :src="currentBanner?.image_url || '/mockup/hero_right_hires.jpg'"
+          :src="currentBanner?.image_url || '/mockup/hero_banner_hq.jpg'"
           :alt="heroTitle1"
-          class="w-full h-full object-cover object-center lg:object-left transition-all duration-700"
-          :class="heroImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-98'"
+          class="w-full h-full object-cover object-[center_35%] lg:object-[center_30%] transition-all duration-700"
+          :class="heroImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-102'"
           loading="eager"
           @load="heroImageLoaded = true"
         />
-        <!-- Soft gradient mask smoothly merging into blush peach on the left -->
-        <div class="absolute inset-y-0 left-0 w-32 sm:w-56 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/85 to-transparent hidden lg:block dark:from-[#170E0A] dark:via-[#170E0A]/85"></div>
-        <div class="absolute inset-0 bg-[#FFF5F2]/85 sm:bg-[#FFF5F2]/75 dark:bg-[#170E0A]/85 lg:hidden"></div>
+
+        <!-- Soft Translucent Scrim: Keeps full image visible while making text pin-sharp and readable -->
+        <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/70 via-45% to-[#FAF7F5]/15 dark:from-[#170E0A]/95 dark:via-[#170E0A]/70 dark:via-45% dark:to-[#170E0A]/20"></div>
+
+        <!-- Soft Bottom Fade to Canvas -->
+        <div class="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-[#FAF7F5] to-transparent dark:from-[#170E0A] pointer-events-none"></div>
+
+        <!-- Floating Luxury Artisan Stamp Badge on Image (Desktop) -->
+        <div class="hidden xl:flex absolute bottom-8 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto">
+          <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-[#331A24] text-[#DE1B54] flex items-center justify-center text-xl shrink-0">
+            🍰
+          </div>
+          <div class="space-y-0.5">
+            <div class="text-xs font-serif font-black text-[#2A1810] dark:text-white leading-tight">Masterpiece Cakes</div>
+            <div class="text-[10px] text-amber-500 font-bold tracking-tight">★ 4.9 &middot; Handcrafted Daily</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Hero Text Content on Left -->
-      <div class="sweetbakes-container py-10 sm:py-16 lg:py-20 relative z-10">
-        <div class="max-w-xl xl:max-w-2xl space-y-3.5 sm:space-y-5 text-center lg:text-left">
-          <!-- Cursive Subtitle with Heart -->
-          <div class="inline-flex items-center space-x-2 font-script text-xl sm:text-3xl lg:text-4xl text-[#DE1B54]">
-            <span>{{ heroSubtitle }}</span>
-            <span class="text-2xl sm:text-3xl font-bold">♡</span>
+      <!-- Hero Text Content (Positioned over full cover image) -->
+      <div class="sweetbakes-container py-12 sm:py-16 lg:py-24 relative z-10">
+        <div class="max-w-xl xl:max-w-2xl space-y-3.5 sm:space-y-4 text-center lg:text-left">
+          <!-- Compact Artisan Pill Badge -->
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-rose-50/90 dark:bg-[#331A24]/90 border border-rose-200/80 dark:border-[#58263A] text-[#DE1B54] text-xs font-bold tracking-wide shadow-2xs">
+            <span>✨</span>
+            <span class="font-script text-base sm:text-lg leading-none -mb-0.5">{{ heroSubtitle }}</span>
+            <span>♡</span>
           </div>
 
           <!-- Large Bold Serif Title (Fluid Typography for flawless rendering on all screens 320px - 2560px) -->
-          <h1 class="text-fluid-hero font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+          <h1 class="text-fluid-hero font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-[1.14]">
             <span>{{ heroTitle1 }}</span>
-            <br />
-            <span class="text-fluid-hero-sub font-serif font-bold text-[#422216] dark:text-[#E8D8C4]">
+            <span v-if="heroTitle2 && heroTitle2 !== heroTitle1" class="block text-fluid-hero-sub font-serif font-bold text-[#DE1B54] dark:text-rose-400 mt-1">
               {{ heroTitle2 }}
             </span>
           </h1>
 
-          <!-- Body Description -->
+          <!-- Body Description: Clean, Concise & Impactful -->
           <p class="text-xs sm:text-sm md:text-base text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed max-w-md lg:max-w-lg mx-auto lg:mx-0">
             {{ heroDesc }}
           </p>
@@ -51,28 +65,40 @@
               <span class="text-base">&rarr;</span>
             </router-link>
 
-            <!-- Learn More: Outlined Rounded Pill Button -->
-            <button
-              @click="scrollToAbout"
-              class="w-full xs:w-auto px-8 py-3.5 min-h-[44px] bg-white/85 hover:bg-white dark:bg-[#1E120B]/80 dark:hover:bg-[#1E120B] text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] border border-[#2A1810]/30 hover:border-[#DE1B54] font-bold text-xs sm:text-sm rounded-full shadow-2xs transition-all cursor-pointer"
+            <!-- Custom Studio Button -->
+            <router-link
+              to="/custom-cake"
+              class="w-full xs:w-auto px-7 py-3.5 min-h-[44px] bg-white/85 hover:bg-white dark:bg-[#1E120B]/80 dark:hover:bg-[#1E120B] text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] border border-[#2A1810]/20 hover:border-[#DE1B54] font-bold text-xs sm:text-sm rounded-full shadow-2xs transition-all flex items-center justify-center space-x-1.5 cursor-pointer"
             >
-              {{ localeStore.t('learn_more') }}
-            </button>
+              <span>🎨</span>
+              <span>{{ localeStore.isAmharic ? 'ልዩ ኬክ ስቱዲዮ' : 'Custom Studio' }}</span>
+            </router-link>
           </div>
 
-          <!-- Fresh Delivery Badge -->
-          <div class="pt-2 flex items-center justify-center lg:justify-start space-x-2 text-xs text-[#786B60] dark:text-[#C5B7AF]">
-            <span class="text-sm">🚚</span>
-            <span class="font-medium">{{ heroBadge }}</span>
+          <!-- Micro Trust Chips -->
+          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-2.5 text-[11px] sm:text-xs text-[#786B60] dark:text-[#C5B7AF]">
+            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+              <span>🚚</span>
+              <span class="font-medium">{{ localeStore.isAmharic ? 'ፈጣን ማድረሻ' : 'Fast Delivery' }}</span>
+            </span>
+            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+              <span class="text-amber-500 font-black">★</span>
+              <span class="font-bold text-[#2A1810] dark:text-white">4.9</span>
+              <span>(1.2k+ reviews)</span>
+            </span>
+            <span class="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-white/70 dark:bg-[#1E120B]/70 border border-[#EFE8E1] dark:border-[#382318] shadow-2xs">
+              <span>🌿</span>
+              <span class="font-medium">{{ localeStore.isAmharic ? 'የጾም አማራጮች' : "Ye'Tsom Vegan" }}</span>
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Carousel Navigation Arrows -->
+      <!-- Carousel Navigation Arrows (Desktop) -->
       <button
         v-if="banners.length > 1"
         @click="prevSlide"
-        class="hidden sm:flex absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-white dark:bg-[#1E120B]/90 text-gray-700 dark:text-gray-200 shadow-md items-center justify-center hover:text-[#DE1B54] transition z-20 cursor-pointer"
+        class="hidden lg:flex absolute left-3 xl:left-6 top-1/2 -translate-y-1/2 w-10 h-10 xl:w-12 xl:h-12 rounded-full bg-white/90 hover:bg-white dark:bg-[#1E120B]/90 text-gray-700 dark:text-gray-200 shadow-md items-center justify-center hover:text-[#DE1B54] transition z-20 cursor-pointer"
         title="Previous"
       >
         <span class="text-base font-black">&lsaquo;</span>
@@ -81,7 +107,7 @@
       <button
         v-if="banners.length > 1"
         @click="nextSlide"
-        class="hidden sm:flex absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/90 hover:bg-white dark:bg-[#1E120B]/90 text-gray-700 dark:text-gray-200 shadow-md items-center justify-center hover:text-[#DE1B54] transition z-20 cursor-pointer"
+        class="hidden lg:flex absolute right-3 xl:right-6 top-1/2 -translate-y-1/2 w-10 h-10 xl:w-12 xl:h-12 rounded-full bg-white/90 hover:bg-white dark:bg-[#1E120B]/90 text-gray-700 dark:text-gray-200 shadow-md items-center justify-center hover:text-[#DE1B54] transition z-20 cursor-pointer"
         title="Next"
       >
         <span class="text-base font-black">&rsaquo;</span>
@@ -367,9 +393,8 @@
 
     <!-- 4. "WHAT OUR CUSTOMERS SAY" (REVIEWS) SECTION: With Flanking Navigation Arrows -->
     <section id="reviews" class="sweetbakes-container relative">
-      <!-- Decorative Ambient Blush Clouds at the Top Corners -->
-      <div class="absolute -top-10 -left-10 w-72 h-72 bg-rose-100/50 dark:bg-rose-950/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
-      <div class="absolute -top-10 -right-10 w-72 h-72 bg-rose-100/50 dark:bg-rose-950/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+      <!-- Symmetrical Centered Ambient Blush Cloud (Locked to Center, Never Distorts on Zoom) -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-72 bg-rose-100/40 dark:bg-rose-950/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
       <!-- Section Header with Cupcake & Delicate Pink Divider Lines -->
       <div class="text-center space-y-1.5 mb-8 sm:mb-10">

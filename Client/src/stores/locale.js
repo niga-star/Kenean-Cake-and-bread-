@@ -34,13 +34,13 @@ export const useLocaleStore = defineStore('locale', () => {
       currency: 'ETB',
 
       // Hero Section
-      hero_sub: 'Freshly Baked with Love',
-      hero_title_1: 'Cakes & Bread',
-      hero_title_2: 'for Every Special Moment',
-      hero_desc: 'Delicious cakes, fresh bread and more... crafted with premium ingredients. Handcrafted daily for Addis Ababa celebrations.',
-      shop_now: 'Shop Now',
-      learn_more: 'Learn More',
-      delivery_badge: 'Freshly baked and delivered to your door.',
+      hero_sub: 'Artisanal Cakes & Breads',
+      hero_title_1: 'Baked Fresh with Love',
+      hero_title_2: "Addis Ababa's Favorite",
+      hero_desc: 'Handcrafted celebration cakes and warm sourdough delivered fresh to your doorstep.',
+      shop_now: 'Order Online',
+      learn_more: 'Custom Studio',
+      delivery_badge: 'Fresh Daily in Addis Ababa',
 
       // Popular Products
       popular_title: 'Our Popular Products',
@@ -178,13 +178,13 @@ export const useLocaleStore = defineStore('locale', () => {
       currency: 'ብር',
 
       // Hero Section
-      hero_sub: 'በፍቅር ትኩስ ሆኖ የተጋገረ',
-      hero_title_1: 'ኬኮች እና ዳቦ',
-      hero_title_2: 'ለእያንዳንዱ ልዩ ወቅት',
-      hero_desc: 'ጣፋጭ ኬኮች፣ ትኩስ ዳቦ እና ሌሎችም... በላቀ ጥራት የተዘጋጁ። ለአዲስ አበባ በዓላት በየቀኑ የሚጋገሩ።',
+      hero_sub: 'ልዩ የክብረ በዓል ኬኮች እና ዳቦ',
+      hero_title_1: 'በፍቅር የተዘጋጀ ትኩስ ጣዕም',
+      hero_title_2: 'የአዲስ አበባ ተመራጭ',
+      hero_desc: 'የልደትና የሰርግ ኬኮች እንዲሁም ትኩስ የተፈጥሮ ዳቦዎች በሁሉም የአዲስ አበባ ክፍሎች ባሉበት ይደርሳሉ።',
       shop_now: 'አሁን ይዘዙ',
-      learn_more: 'ተጨማሪ ይወቁ',
-      delivery_badge: 'ትኩስ ሆኖ የተጋገረ እና እስከ ደጃፍዎ የሚደርስ።',
+      learn_more: 'ልዩ የኬክ ስቱዲዮ',
+      delivery_badge: 'በየቀኑ ትኩስ የተጋገረ',
 
       // Popular Products
       popular_title: 'ተወዳጅ ምርቶቻችን',

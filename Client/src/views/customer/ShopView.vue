@@ -1,6 +1,6 @@
 <template>
-  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
-    <!-- 1. SHOP HERO BANNER: Responsive with fluid typography and dark mode overlay -->
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
+    <!-- 1. SHOP HERO BANNER -->
     <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[170px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
       <!-- Background Bakery Imagery on the Right with Shimmer -->
       <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] overflow-hidden pointer-events-none" :class="{ 'shimmer-wave bg-[#F0E8DF] dark:bg-[#25150E]': !bannerLoaded }">
@@ -42,35 +42,237 @@
       </div>
     </section>
 
-    <!-- 2. MAIN SHOPPING AREA: 2 Columns (Filters Sidebar + Products Grid) -->
+    <!-- 2. MAIN SHOPPING AREA -->
     <div class="sweetbakes-container py-6 sm:py-10">
-      <!-- Mobile Filter Drawer Toggle Button (Visible on screens < 1024px) -->
-      <div class="lg:hidden w-full mb-4">
-        <button
-          @click="mobileFiltersOpen = !mobileFiltersOpen"
-          type="button"
-          class="w-full min-h-[44px] py-2.5 px-4 bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] rounded-2xl text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] shadow-2xs flex items-center justify-between cursor-pointer active:scale-99 transition"
-        >
-          <div class="flex items-center space-x-2">
-            <span class="text-base">⚙️</span>
-            <span>{{ localeStore.t('filter_products') }}</span>
-            <span
-              v-if="selectedCategories.length > 0 || fastingOnly || searchQuery"
-              class="w-5 h-5 rounded-full bg-[#DE1B54] text-white text-[10px] flex items-center justify-center font-bold"
-            >
-              {{ (selectedCategories.length || 0) + (fastingOnly ? 1 : 0) + (searchQuery ? 1 : 0) }}
-            </span>
-          </div>
-          <span class="text-xs text-[#DE1B54] font-bold">{{ mobileFiltersOpen ? '▲ Hide Filters' : '▼ Show Filters & Search' }}</span>
-        </button>
+      <!-- Mobile Filter Trigger Bar (Sticky on mobile < 1024px) -->
+      <div class="lg:hidden w-full mb-5 sticky top-16 z-30">
+        <div class="bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md p-2.5 rounded-2xl border border-[#EFE8E1] dark:border-[#382318] shadow-md flex items-center justify-between gap-3">
+          <button
+            @click="mobileFiltersOpen = true"
+            type="button"
+            class="flex-1 min-h-[42px] py-2 px-4 bg-[#FAF7F5] dark:bg-[#2A1810] hover:bg-rose-50 dark:hover:bg-[#341822] rounded-xl text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center justify-between cursor-pointer transition active:scale-98 border border-gray-200 dark:border-[#382318]"
+          >
+            <div class="flex items-center space-x-2">
+              <span class="text-base">⚙️</span>
+              <span>Filter &amp; Search</span>
+              <span
+                v-if="activeFilterCount > 0"
+                class="w-5 h-5 rounded-full bg-[#DE1B54] text-white text-[10px] flex items-center justify-center font-bold"
+              >
+                {{ activeFilterCount }}
+              </span>
+            </div>
+            <span class="text-xs text-[#DE1B54] font-bold">Adjust →</span>
+          </button>
+
+          <!-- Quick Mobile Sort Selector -->
+          <select
+            v-model="sortBy"
+            @change="onFilterChange"
+            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-2 text-xs font-semibold text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[42px] cursor-pointer"
+          >
+            <option value="popular">Popular</option>
+            <option value="price_low">Price: Low</option>
+            <option value="price_high">Price: High</option>
+            <option value="rating">Top Rated</option>
+            <option value="name">Name A–Z</option>
+          </select>
+        </div>
       </div>
 
-      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-        <!-- ================= LEFT SIDEBAR: "FILTER PRODUCTS" ================= -->
-        <aside
-          class="w-full lg:w-72 xl:w-80 shrink-0 space-y-4"
-          :class="mobileFiltersOpen ? 'block' : 'hidden lg:block'"
+      <!-- Mobile Filter Slide-over Drawer -->
+      <Teleport to="body">
+        <div
+          v-if="mobileFiltersOpen"
+          class="fixed inset-0 z-50 flex lg:hidden"
+          role="dialog"
+          aria-modal="true"
         >
+          <!-- Backdrop -->
+          <div
+            @click="mobileFiltersOpen = false"
+            class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-fade-in"
+          ></div>
+
+          <!-- Drawer Panel -->
+          <div class="relative ml-auto w-full max-w-xs sm:max-w-sm bg-white dark:bg-[#1E120B] text-[#29231F] dark:text-[#FAF3EE] h-full shadow-2xl flex flex-col z-10 animate-slide-in-right overflow-hidden">
+            <!-- Header -->
+            <div class="p-4 bg-[#24150D] text-white flex items-center justify-between shrink-0">
+              <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider">
+                <span>⚙️</span>
+                <span>Filters &amp; Refinements</span>
+              </div>
+              <button
+                type="button"
+                @click="mobileFiltersOpen = false"
+                class="p-1 rounded-lg text-rose-300 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Drawer Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-6">
+              <!-- Search inside drawer -->
+              <div class="relative">
+                <input
+                  v-model="searchQuery"
+                  @input="onSearchInput"
+                  type="text"
+                  :placeholder="localeStore.t('search_placeholder')"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#44281B] focus:border-[#DE1B54] rounded-xl py-2 pl-3 pr-8 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
+                />
+                <span v-if="searchQuery" @click="clearSearch" class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 cursor-pointer">✕</span>
+              </div>
+
+              <!-- In-Stock Only Toggle -->
+              <label class="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] cursor-pointer">
+                <div class="flex items-center space-x-2 text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  <span>📦</span>
+                  <span>In-Stock Items Only</span>
+                </div>
+                <input
+                  type="checkbox"
+                  v-model="inStockOnly"
+                  @change="onFilterChange"
+                  class="rounded text-[#DE1B54] focus:ring-[#DE1B54] w-4 h-4 cursor-pointer"
+                />
+              </label>
+
+              <!-- Categories -->
+              <div class="space-y-3">
+                <div class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
+                  Categories
+                </div>
+                <div class="space-y-2 text-xs">
+                  <label class="flex items-center justify-between cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        :checked="selectedCategories.length === 0 && !fastingOnly"
+                        @change="clearCategorySelection"
+                        class="rounded text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
+                      />
+                      <span :class="selectedCategories.length === 0 && !fastingOnly ? 'font-bold text-[#DE1B54]' : ''">
+                        All Categories
+                      </span>
+                    </div>
+                    <span class="text-gray-400 text-[11px]">({{ allProducts.length }})</span>
+                  </label>
+
+                  <label
+                    v-for="cat in liveCategories"
+                    :key="cat.category_id || cat.category_name"
+                    class="flex items-center justify-between cursor-pointer"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        :checked="isCategoryChecked(cat.category_name)"
+                        @change="toggleCategoryCheckbox(cat.category_name)"
+                        class="rounded text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
+                      />
+                      <span :class="isCategoryChecked(cat.category_name) ? 'font-bold text-[#DE1B54]' : ''">
+                        {{ cat.category_name }}
+                      </span>
+                    </div>
+                    <span class="text-gray-400 text-[11px]">({{ getCatProductCount(cat.category_name) }})</span>
+                  </label>
+
+                  <!-- Fasting -->
+                  <label class="flex items-center justify-between cursor-pointer pt-2 border-t border-gray-100 dark:border-[#331E14]">
+                    <div class="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        v-model="fastingOnly"
+                        @change="onFilterChange"
+                        class="rounded text-emerald-700 focus:ring-emerald-600 w-3.5 h-3.5"
+                      />
+                      <span :class="fastingOnly ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-emerald-800 dark:text-emerald-300'">
+                        🌿 Ye'Tsom (ጾም)
+                      </span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-1.5 py-0.2 rounded">Vegan</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Price Range Slider -->
+              <div class="space-y-3 pt-3 border-t border-gray-100 dark:border-[#331E14]">
+                <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
+                  <span>Price Range</span>
+                  <span class="text-[#DE1B54] font-black">Up to ETB {{ maxPrice.toLocaleString() }}</span>
+                </div>
+                <input
+                  type="range"
+                  min="50"
+                  max="1500"
+                  step="50"
+                  v-model.number="maxPrice"
+                  @change="onFilterChange"
+                  class="w-full accent-[#DE1B54] cursor-pointer"
+                />
+              </div>
+
+              <!-- Rating Filter -->
+              <div class="space-y-2 pt-3 border-t border-gray-100 dark:border-[#331E14]">
+                <div class="text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
+                  Customer Rating
+                </div>
+                <div class="space-y-1.5 text-xs">
+                  <label v-for="r in [5, 4, 3]" :key="r" class="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="mobileRatingFilter"
+                      :value="r"
+                      v-model="selectedRating"
+                      @change="onFilterChange"
+                      class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
+                    />
+                    <div class="flex items-center space-x-1 text-amber-400">
+                      <span>{{ '★'.repeat(r) }}{{ '☆'.repeat(5 - r) }}</span>
+                      <span class="text-gray-500 text-[11px]">&amp; Up</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center space-x-2 cursor-pointer text-gray-500 text-xs">
+                    <input
+                      type="radio"
+                      name="mobileRatingFilter"
+                      :value="null"
+                      v-model="selectedRating"
+                      @change="onFilterChange"
+                      class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
+                    />
+                    <span>All Ratings</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Drawer Bottom Sticky Actions -->
+            <div class="p-4 bg-[#FAF7F5] dark:bg-[#150A05] border-t border-gray-200 dark:border-[#382318] flex items-center gap-3 shrink-0">
+              <button
+                type="button"
+                @click="resetFilters"
+                class="px-4 py-2.5 min-h-[42px] bg-gray-200 dark:bg-[#2A1810] text-[#2A1810] dark:text-[#FAF3EE] rounded-xl text-xs font-bold transition hover:bg-gray-300 cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                @click="mobileFiltersOpen = false"
+                class="flex-1 py-2.5 min-h-[42px] bg-[#DE1B54] hover:bg-[#C51345] text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center space-x-1 cursor-pointer"
+              >
+                <span>View {{ filteredProducts.length }} Products</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
+
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        <!-- ================= LEFT SIDEBAR (Desktop) ================= -->
+        <aside class="hidden lg:block w-72 xl:w-80 shrink-0 space-y-4">
           <!-- Filter Card -->
           <div class="bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] shadow-xs overflow-hidden">
             <!-- Dark Chocolate Header -->
@@ -81,21 +283,38 @@
                 </svg>
                 <span>{{ localeStore.t('filter_products') }}</span>
               </div>
-              <span class="text-xs text-rose-400 font-semibold cursor-pointer hover:underline" @click="resetFilters">{{ localeStore.t('clear_filter') }}</span>
+              <span class="text-xs text-rose-400 font-semibold cursor-pointer hover:underline" @click="resetFilters">
+                {{ localeStore.t('clear_filter') }}
+              </span>
             </div>
 
             <!-- Body -->
             <div class="p-5 space-y-6">
-              <!-- Quick Search -->
+              <!-- Quick Search Input -->
               <div class="relative">
                 <input
                   v-model="searchQuery"
+                  @input="onSearchInput"
                   type="text"
                   :placeholder="localeStore.t('search_placeholder')"
-                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#44281B] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl py-2 pl-3 pr-8 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#44281B] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl py-2 pl-3 pr-8 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[40px]"
                 />
-                <span v-if="searchQuery" @click="searchQuery = ''" class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 cursor-pointer">✕</span>
+                <span v-if="searchQuery" @click="clearSearch" class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 cursor-pointer">✕</span>
               </div>
+
+              <!-- In-Stock Items Only Toggle -->
+              <label class="flex items-center justify-between p-3 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] cursor-pointer hover:border-rose-200 transition">
+                <div class="flex items-center space-x-2 text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  <span>📦</span>
+                  <span>In-Stock Only</span>
+                </div>
+                <input
+                  type="checkbox"
+                  v-model="inStockOnly"
+                  @change="onFilterChange"
+                  class="rounded text-[#DE1B54] focus:ring-[#DE1B54] w-4 h-4 cursor-pointer"
+                />
+              </label>
 
               <!-- Categories Accordion -->
               <div class="space-y-3">
@@ -150,6 +369,7 @@
                       <input
                         type="checkbox"
                         v-model="fastingOnly"
+                        @change="onFilterChange"
                         class="rounded text-emerald-700 focus:ring-emerald-600 w-3.5 h-3.5"
                       />
                       <span :class="fastingOnly ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-emerald-800 dark:text-emerald-300'">
@@ -175,10 +395,11 @@
                     max="1500"
                     step="50"
                     v-model.number="maxPrice"
+                    @change="onFilterChange"
                     class="w-full accent-[#DE1B54] cursor-pointer"
                   />
                   <div class="flex justify-between text-[11px] text-gray-400 dark:text-gray-500 font-medium">
-                    <span>{{ localeStore.t('currency') }} 100</span>
+                    <span>{{ localeStore.t('currency') }} 50</span>
                     <span>{{ localeStore.t('currency') }} 1,500</span>
                   </div>
                 </div>
@@ -200,6 +421,7 @@
                       name="ratingFilter"
                       :value="r"
                       v-model="selectedRating"
+                      @change="onFilterChange"
                       class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
                     />
                     <div class="flex items-center space-x-1 text-amber-400 text-xs">
@@ -213,6 +435,7 @@
                       name="ratingFilter"
                       :value="null"
                       v-model="selectedRating"
+                      @change="onFilterChange"
                       class="text-[#DE1B54] focus:ring-[#DE1B54] w-3.5 h-3.5"
                     />
                     <span>All Ratings</span>
@@ -223,11 +446,12 @@
               <!-- Reset Filters Button -->
               <div class="pt-2">
                 <button
+                  type="button"
                   @click="resetFilters"
-                  class="w-full py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+                  class="w-full py-2.5 min-h-[42px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
                 >
                   <span>🔄</span>
-                  <span>Reset Filters</span>
+                  <span>Reset All Filters</span>
                 </button>
               </div>
             </div>
@@ -249,6 +473,7 @@
               <div class="flex items-center space-x-1.5 text-xs text-[#2A1810] dark:text-[#FAF3EE]">
                 <select
                   v-model="sortBy"
+                  @change="onFilterChange"
                   class="bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54] shadow-2xs cursor-pointer min-h-[38px]"
                 >
                   <option value="popular">Sort by: Most Popular</option>
@@ -263,7 +488,8 @@
               <div class="flex items-center space-x-1 bg-gray-50 dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] rounded-xl p-0.5">
                 <!-- Grid View Button -->
                 <button
-                  @click="viewMode = 'grid'"
+                  type="button"
+                  @click="setViewMode('grid')"
                   class="p-1.5 rounded-lg text-xs transition cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center"
                   :class="viewMode === 'grid' ? 'bg-[#DE1B54] text-white shadow-2xs' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'"
                   title="Grid View"
@@ -274,7 +500,8 @@
                 </button>
                 <!-- List View Button -->
                 <button
-                  @click="viewMode = 'list'"
+                  type="button"
+                  @click="setViewMode('list')"
                   class="p-1.5 rounded-lg text-xs transition cursor-pointer min-w-[32px] min-h-[32px] flex items-center justify-center"
                   :class="viewMode === 'list' ? 'bg-[#DE1B54] text-white shadow-2xs' : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'"
                   title="List View"
@@ -288,24 +515,32 @@
           </div>
 
           <!-- Active Filter Tags Row -->
-          <div v-if="selectedCategories.length > 0 || fastingOnly || searchQuery" class="flex flex-wrap items-center gap-2 pb-1">
-            <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold">Active Filter:</span>
+          <div v-if="activeFilterCount > 0" class="flex flex-wrap items-center gap-2 pb-1">
+            <span class="text-xs text-gray-500 dark:text-gray-400 font-semibold">Active:</span>
 
             <span
               v-for="cat in selectedCategories"
               :key="cat"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-rose-50 dark:bg-[#341822] text-[#DE1B54] border border-rose-200 dark:border-[#DE1B54]/40 rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>{{ cat === 'Cakes' ? '🎂 Cakes' : (cat === 'Bread' ? '🥖 Fresh Bread' : (cat === 'Pastries' ? '🥐 Cupcakes & Croissants' : cat)) }}</span>
-              <button type="button" @click="clearCategorySelection" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+              <span>{{ cat }}</span>
+              <button type="button" @click="toggleCategoryCheckbox(cat)" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
             <span
               v-if="fastingOnly"
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700/50 rounded-full text-xs font-bold shadow-2xs"
             >
-              <span>🌿 Ye'Tsom (Fasting / ጾም)</span>
-              <button type="button" @click="fastingOnly = false; router.push('/shop')" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+              <span>🌿 Ye'Tsom (ጾም)</span>
+              <button type="button" @click="fastingOnly = false; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+            </span>
+
+            <span
+              v-if="inStockOnly"
+              class="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 rounded-full text-xs font-bold shadow-2xs"
+            >
+              <span>📦 In-Stock Only</span>
+              <button type="button" @click="inStockOnly = false; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
             <span
@@ -313,7 +548,23 @@
               class="inline-flex items-center space-x-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2A1810] text-gray-800 dark:text-[#FAF3EE] border border-gray-200 dark:border-[#382318] rounded-full text-xs font-bold shadow-2xs"
             >
               <span>Search: "{{ searchQuery }}"</span>
-              <button type="button" @click="searchQuery = ''" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+              <button type="button" @click="clearSearch" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+            </span>
+
+            <span
+              v-if="maxPrice < 1500"
+              class="inline-flex items-center space-x-1.5 px-3 py-1 bg-gray-100 dark:bg-[#2A1810] text-gray-800 dark:text-[#FAF3EE] border border-gray-200 dark:border-[#382318] rounded-full text-xs font-bold shadow-2xs"
+            >
+              <span>≤ ETB {{ maxPrice.toLocaleString() }}</span>
+              <button type="button" @click="maxPrice = 1500; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
+            </span>
+
+            <span
+              v-if="selectedRating"
+              class="inline-flex items-center space-x-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/50 rounded-full text-xs font-bold shadow-2xs"
+            >
+              <span>★ {{ selectedRating }}+ Stars</span>
+              <button type="button" @click="selectedRating = null; onFilterChange()" class="hover:text-black dark:hover:text-white font-black text-xs cursor-pointer ml-1">✕</button>
             </span>
 
             <button
@@ -325,7 +576,7 @@
             </button>
           </div>
 
-          <!-- Skeleton Loading State Grid -->
+          <!-- Skeleton Loading Grid -->
           <div
             v-if="loading"
             class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-5"
@@ -338,9 +589,10 @@
             <div class="text-4xl">🔍</div>
             <h3 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">No bakery items match your criteria</h3>
             <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] max-w-md mx-auto">
-              Try widening your price range, clearing selected filters, or searching for another sweet delight.
+              Try adjusting your price range, clearing selected filters, or searching for another sweet delight.
             </p>
             <button
+              type="button"
               @click="resetFilters"
               class="px-5 py-2.5 min-h-[42px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
             >
@@ -348,7 +600,7 @@
             </button>
           </div>
 
-          <!-- ================= BALANCED PRODUCT GRID (Responsive across 320px - 2560px) ================= -->
+          <!-- ================= BALANCED PRODUCT GRID ================= -->
           <div
             v-else-if="viewMode === 'grid'"
             class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-5"
@@ -386,14 +638,16 @@
                 <button
                   type="button"
                   @click.stop="toggleWishlist(p)"
-                  class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 dark:bg-[#2A1810]/90 backdrop-blur-xs flex items-center justify-center text-xs shadow-2xs hover:scale-110 transition cursor-pointer z-10"
+                  class="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 dark:bg-[#2A1810]/90 backdrop-blur-xs flex items-center justify-center text-xs shadow-2xs hover:scale-115 active:scale-90 transition cursor-pointer z-10"
                   :class="wishlistStore.isWishlisted(p.product_id) ? 'text-[#DE1B54]' : 'text-gray-400 hover:text-[#DE1B54]'"
-                  title="Add to Wishlist"
+                  title="Save to favorites"
                 >
-                  <span>{{ wishlistStore.isWishlisted(p.product_id) ? '♥' : '♡' }}</span>
+                  <span class="transition-transform duration-200" :class="{ 'scale-125': wishlistStore.isWishlisted(p.product_id) }">
+                    {{ wishlistStore.isWishlisted(p.product_id) ? '♥' : '♡' }}
+                  </span>
                 </button>
 
-                <!-- Ye'Tsom badge if fasting friendly -->
+                <!-- Ethiopian Fasting (Ye'Tsom) Badge -->
                 <span
                   v-if="p.is_fasting"
                   class="absolute bottom-2 left-2 bg-emerald-800/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-2xs flex items-center space-x-1 pointer-events-none"
@@ -420,7 +674,7 @@
                   </div>
                 </div>
 
-                <!-- Price Row (Bold Pink with crossed-out price if discounted) -->
+                <!-- Price Row -->
                 <div class="flex items-baseline space-x-1.5 pt-1">
                   <span class="text-xs xs:text-sm font-black text-[#DE1B54]">
                     {{ localeStore.t('currency') }} {{ Number(p.resolved_price || p.base_price).toLocaleString() }}
@@ -430,22 +684,27 @@
                   </span>
                 </div>
 
-                <!-- Full-width Vivid Pink Add to Cart Button -->
+                <!-- Animated Add to Cart Button -->
                 <button
+                  type="button"
                   @click="handleAddToCart(p)"
                   :disabled="p.isAdding || (p.available ?? 0) <= 0"
-                  class="w-full py-2 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-[11px] xs:text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+                  class="w-full py-2 min-h-[38px] disabled:opacity-50 text-white text-[11px] xs:text-xs font-bold rounded-xl transition-all duration-300 shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+                  :class="p.isAdding 
+                    ? 'bg-[#387A54] scale-98' 
+                    : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
                 >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-if="!p.isAdding" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span>{{ p.isAdding ? localeStore.t('added_cart') : ((p.available ?? 0) <= 0 ? localeStore.t('sold_out') : localeStore.t('add_to_cart')) }}</span>
+                  <span v-else class="text-xs">✓</span>
+                  <span>{{ p.isAdding ? 'Added to Bag!' : ((p.available ?? 0) <= 0 ? 'Sold Out' : localeStore.t('add_to_cart')) }}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- List View Mode -->
+          <!-- ================= LIST VIEW MODE ================= -->
           <div v-else class="space-y-4">
             <div
               v-for="p in paginatedProducts"
@@ -490,27 +749,41 @@
                     @click.stop="toggleWishlist(p)"
                     class="p-2 min-h-[40px] min-w-[40px] rounded-xl border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] flex items-center justify-center text-sm transition cursor-pointer"
                     :class="wishlistStore.isWishlisted(p.product_id) ? 'text-[#DE1B54] bg-rose-50 dark:bg-[#341822]' : 'text-gray-400 hover:text-[#DE1B54] bg-white dark:bg-[#1E120B]'"
-                    title="Add to Wishlist"
+                    title="Save to favorites"
                   >
                     <span>{{ wishlistStore.isWishlisted(p.product_id) ? '♥' : '♡' }}</span>
                   </button>
                   <button
+                    type="button"
                     @click="handleAddToCart(p)"
                     :disabled="p.isAdding || (p.available ?? 0) <= 0"
-                    class="min-h-[40px] px-5 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center space-x-1.5 cursor-pointer active:scale-95"
+                    class="min-h-[40px] px-5 py-2.5 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center space-x-1.5 cursor-pointer active:scale-95"
+                    :class="p.isAdding ? 'bg-[#387A54]' : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
                   >
-                    <span>{{ p.isAdding ? 'Added!' : 'Add to Cart' }}</span>
+                    <span>{{ p.isAdding ? 'Added!' : ((p.available ?? 0) <= 0 ? 'Sold Out' : 'Add to Bag') }}</span>
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- ================= PAGINATION: Exact Match to Mockup ================= -->
+          <!-- ================= PAGINATION ================= -->
           <div v-if="totalPages > 1" class="flex items-center justify-center space-x-2 pt-6">
+            <!-- Prev Button -->
+            <button
+              v-if="currentPage > 1"
+              type="button"
+              @click="setPage(currentPage - 1)"
+              class="px-3 h-9 min-h-[38px] rounded-xl text-xs font-bold bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] transition flex items-center space-x-1 cursor-pointer"
+            >
+              <span>&larr;</span>
+              <span>Prev</span>
+            </button>
+
             <button
               v-for="page in totalPages"
               :key="page"
+              type="button"
               @click="setPage(page)"
               class="w-9 h-9 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer min-h-[38px] min-w-[38px]"
               :class="currentPage === page ? 'bg-[#DE1B54] text-white shadow-xs' : 'bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54]'"
@@ -521,6 +794,7 @@
             <!-- Next Button -->
             <button
               v-if="currentPage < totalPages"
+              type="button"
               @click="setPage(currentPage + 1)"
               class="px-4 h-9 min-h-[38px] rounded-xl text-xs font-bold bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] text-gray-700 dark:text-[#FAF3EE] hover:bg-rose-50 dark:hover:bg-[#341822] hover:text-[#DE1B54] transition flex items-center space-x-1 cursor-pointer"
             >
@@ -532,16 +806,14 @@
       </div>
     </div>
 
-    <!-- 3. DECORATIVE WAVE RIBBON ABOVE FOOTER: Exact Match to Mockup -->
+    <!-- 3. DECORATIVE WAVE RIBBON ABOVE FOOTER -->
     <div class="relative overflow-hidden bg-gradient-to-r from-rose-50 via-rose-100/60 to-rose-50 dark:from-[#25150E] dark:via-[#2F1A12] dark:to-[#25150E] border-t border-rose-200/60 dark:border-[#3D2619] py-4 mt-8">
       <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-        <!-- Left: SweetBakes ♡ -->
         <div class="flex items-center space-x-1.5 font-script text-2xl text-[#DE1B54]">
           <span class="font-bold">SweetBakes</span>
           <span>♡</span>
         </div>
 
-        <!-- Right: Because life is sweeter with cake! ♡ -->
         <div class="font-script text-lg sm:text-xl text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
           <span class="italic">Because life is sweeter with cake!</span>
           <span class="text-[#DE1B54] not-italic">♡</span>
@@ -574,10 +846,13 @@ const products = ref([]);
 const loading = ref(true);
 const bannerLoaded = ref(false);
 const shopLoadedImages = ref({});
-const searchQuery = ref('');
 const mobileFiltersOpen = ref(false);
+
+// Filter & Search states
+const searchQuery = ref('');
 const selectedCategories = ref([]);
 const fastingOnly = ref(false);
+const inStockOnly = ref(false);
 const maxPrice = ref(1500);
 const selectedRating = ref(null);
 const categoriesOpen = ref(true);
@@ -586,13 +861,27 @@ const viewMode = ref(localStorage.getItem('sweetbakes_shop_view_mode') || 'grid'
 const currentPage = ref(1);
 const pageSize = 12;
 
-watch(viewMode, (newMode) => {
-  localStorage.setItem('sweetbakes_shop_view_mode', newMode);
+let searchDebounceTimer = null;
+
+// Dynamic categories loaded from database
+const liveCategories = ref([]);
+
+// Active Filter Count for badges
+const activeFilterCount = computed(() => {
+  let count = 0;
+  if (selectedCategories.value.length > 0) count += selectedCategories.value.length;
+  if (fastingOnly.value) count++;
+  if (inStockOnly.value) count++;
+  if (searchQuery.value.trim()) count++;
+  if (maxPrice.value < 1500) count++;
+  if (selectedRating.value) count++;
+  if (sortBy.value !== 'popular') count++;
+  return count;
 });
 
 // Dynamic page title matching the selected category / fasting mode
 const activePageTitle = computed(() => {
-  if (fastingOnly.value || route.query.yetsom === '1' || route.query.fasting === '1') {
+  if (fastingOnly.value) {
     return 'Ye’Tsom Fasting Delights';
   }
   if (
@@ -617,9 +906,7 @@ const activePageTitle = computed(() => {
   return 'Our Delicious Products';
 });
 
-// Dynamic categories loaded from database
-const liveCategories = ref([]);
-
+// Category helper checks
 function isCategoryChecked(catName) {
   if (catName === 'Birthday Cakes' || catName === 'Wedding Cakes') {
     return selectedCategories.value.includes(catName) || selectedCategories.value.includes('Cakes');
@@ -646,14 +933,131 @@ function toggleCategoryCheckbox(catName) {
   } else {
     selectedCategories.value.push(catName);
   }
-
   currentPage.value = 1;
-  if (selectedCategories.value.length === 1) {
-    router.push({ path: '/shop', query: { category: selectedCategories.value[0] } });
-  } else if (selectedCategories.value.length === 0) {
-    router.push({ path: '/shop' });
+  syncStateToUrl();
+}
+
+function clearCategorySelection() {
+  selectedCategories.value = [];
+  fastingOnly.value = false;
+  currentPage.value = 1;
+  syncStateToUrl();
+}
+
+function clearSearch() {
+  searchQuery.value = '';
+  currentPage.value = 1;
+  syncStateToUrl();
+}
+
+function onSearchInput() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => {
+    currentPage.value = 1;
+    syncStateToUrl();
+  }, 300);
+}
+
+function onFilterChange() {
+  currentPage.value = 1;
+  syncStateToUrl();
+}
+
+function setViewMode(mode) {
+  viewMode.value = mode;
+  localStorage.setItem('sweetbakes_shop_view_mode', mode);
+  syncStateToUrl();
+}
+
+function setPage(page) {
+  currentPage.value = page;
+  syncStateToUrl();
+  window.scrollTo({ top: 220, behavior: 'smooth' });
+}
+
+function resetFilters() {
+  selectedCategories.value = [];
+  fastingOnly.value = false;
+  inStockOnly.value = false;
+  searchQuery.value = '';
+  maxPrice.value = 1500;
+  selectedRating.value = null;
+  sortBy.value = 'popular';
+  currentPage.value = 1;
+  syncStateToUrl();
+  toastStore.info('All filters have been reset.');
+}
+
+// Bidirectional URL Query Synchronization (Zero State Loss on Refresh)
+function syncStateToUrl() {
+  const query = {};
+  if (searchQuery.value.trim()) query.search = searchQuery.value.trim();
+  if (selectedCategories.value.length === 1) query.category = selectedCategories.value[0];
+  else if (selectedCategories.value.length > 1) query.category = selectedCategories.value;
+  if (fastingOnly.value) query.yetsom = '1';
+  if (inStockOnly.value) query.in_stock = '1';
+  if (maxPrice.value < 1500) query.max_price = String(maxPrice.value);
+  if (selectedRating.value) query.rating = String(selectedRating.value);
+  if (sortBy.value !== 'popular') query.sort = sortBy.value;
+  if (currentPage.value > 1) query.page = String(currentPage.value);
+  if (viewMode.value !== 'grid') query.view = viewMode.value;
+
+  router.replace({ path: '/shop', query });
+}
+
+function syncUrlToState(query) {
+  if (query.category) {
+    selectedCategories.value = Array.isArray(query.category) ? query.category : [query.category];
+  } else {
+    selectedCategories.value = [];
+  }
+
+  fastingOnly.value = query.yetsom === '1' || query.fasting === '1';
+  inStockOnly.value = query.in_stock === '1';
+
+  if (query.search !== undefined) {
+    searchQuery.value = query.search || '';
+  } else {
+    searchQuery.value = '';
+  }
+
+  if (query.max_price) {
+    maxPrice.value = Number(query.max_price) || 1500;
+  } else {
+    maxPrice.value = 1500;
+  }
+
+  if (query.rating) {
+    selectedRating.value = Number(query.rating) || null;
+  } else {
+    selectedRating.value = null;
+  }
+
+  if (query.sort) {
+    sortBy.value = query.sort;
+  } else {
+    sortBy.value = 'popular';
+  }
+
+  if (query.page) {
+    currentPage.value = Math.max(1, Number(query.page) || 1);
+  } else {
+    currentPage.value = 1;
+  }
+
+  if (query.view) {
+    viewMode.value = query.view;
   }
 }
+
+// Watch route.query so browser back/forward buttons & initial loads work seamlessly
+watch(
+  () => route.query,
+  (newQuery) => {
+    syncUrlToState(newQuery);
+  },
+  { deep: true, immediate: true }
+);
 
 function getCatProductCount(catName) {
   const cLower = catName.toLowerCase();
@@ -695,12 +1099,10 @@ function getCatProductCount(catName) {
   return found?.products_count || 0;
 }
 
-// Dynamic image from MySQL product_images table
 function getProductImage(p) {
   return p.image_url || p.images?.[0]?.image_url || '/mockup/shop_chocolate_cake.jpg';
 }
 
-// Dynamic rating from MySQL reviews table
 function getProductRating(p) {
   return Number(p.rating || 0);
 }
@@ -709,17 +1111,14 @@ function goToProduct(id) {
   router.push(`/product/${id}`);
 }
 
-// Dynamic discount badge from MySQL promotions table
 function getDiscountBadge(p) {
   return p.discount_badge || null;
 }
 
-// Dynamic original price from MySQL promotions table
 function getOriginalPrice(p) {
   return p.original_price || null;
 }
 
-// Dynamic review count from MySQL reviews table
 function getReviewCount(p) {
   return p.reviews_count ?? p.reviews ?? 0;
 }
@@ -735,10 +1134,10 @@ async function loadCategories() {
   }
 }
 
-async function loadProducts(branchId) {
+async function loadProducts(targetBranchId) {
   loading.value = true;
   try {
-    const res = await api.get(`/catalog/products?branch_id=${branchId}`);
+    const res = await api.get(`/catalog/products?branch_id=${targetBranchId}`);
     if (res.data) {
       products.value = res.data;
     }
@@ -749,34 +1148,13 @@ async function loadProducts(branchId) {
   }
 }
 
-// Deep route.query watcher so dropdown navigation updates shop instantly without page refresh
-watch(
-  () => route.query,
-  (newQuery) => {
-    if (newQuery.category) {
-      selectedCategories.value = [newQuery.category];
-      fastingOnly.value = false;
-    } else if (newQuery.yetsom === '1' || newQuery.fasting === '1') {
-      fastingOnly.value = true;
-      selectedCategories.value = [];
-    } else {
-      selectedCategories.value = [];
-      fastingOnly.value = false;
-    }
-
-    if (newQuery.search !== undefined) {
-      searchQuery.value = newQuery.search || '';
-    } else {
-      searchQuery.value = '';
-    }
-    currentPage.value = 1;
-  },
-  { deep: true, immediate: true }
-);
-
 onMounted(async () => {
   const branchId = branchStore.selectedBranchId || 2;
-  await Promise.all([loadProducts(branchId), loadCategories(), wishlistStore.init()]);
+  await Promise.all([
+    loadProducts(branchId),
+    loadCategories(),
+    wishlistStore.init(),
+  ]);
 });
 
 watch(
@@ -797,6 +1175,11 @@ const filteredProducts = computed(() => {
 
     if (fastingOnly.value && !p.is_fasting) return false;
 
+    if (inStockOnly.value) {
+      const avail = Number(p.available ?? p.available_stock ?? 0);
+      if (avail <= 0 || p.stock_status === 'Sold out' || p.isSoldOut === true) return false;
+    }
+
     if (selectedRating.value !== null && selectedRating.value !== undefined) {
       const rating = getProductRating(p);
       if (rating < selectedRating.value) return false;
@@ -816,13 +1199,11 @@ const filteredProducts = computed(() => {
       const matched = selectedCategories.value.some((c) => {
         const catLower = c.toLowerCase();
 
-        // Cakes: Chocolate Cake, Vanilla Cake, Ye'Tsom Dark Chocolate Cake, Ye'Tsom Cinnamon Apple Loaf (exclude cupcakes)
         if (catLower.includes('cake') && !catLower.includes('cupcake')) {
           if (pName.includes('cupcake')) return false;
           return pCat.includes('cake') || pName.includes('cake');
         }
 
-        // Bread: Fresh Bread, Whole Wheat Bread, Rustic Rye Sourdough Loaf
         if (catLower.includes('bread')) {
           return (
             pCat.includes('bread') ||
@@ -832,7 +1213,6 @@ const filteredProducts = computed(() => {
           );
         }
 
-        // Pastries: Croissant, Blueberry Muffin Box, Cupcakes, Almond Croissant
         if (catLower.includes('pastr') || catLower.includes('cupcake')) {
           return (
             pCat.includes('pastr') ||
@@ -845,12 +1225,10 @@ const filteredProducts = computed(() => {
           );
         }
 
-        // Cookies
         if (catLower.includes('cookie')) {
           return pCat.includes('cookie') || pName.includes('cookie');
         }
 
-        // Direct fallback matching
         return pCat.includes(catLower) || pName.includes(catLower);
       });
 
@@ -885,34 +1263,11 @@ const paginatedProducts = computed(() => {
   return sortedProducts.value.slice(start, start + pageSize);
 });
 
-function clearCategorySelection() {
-  selectedCategories.value = [];
-  fastingOnly.value = false;
-  router.push('/shop');
-}
-
-function resetFilters() {
-  selectedCategories.value = [];
-  fastingOnly.value = false;
-  searchQuery.value = '';
-  maxPrice.value = 1500;
-  selectedRating.value = null;
-  sortBy.value = 'popular';
-  currentPage.value = 1;
-  router.push('/shop');
-  toastStore.info('Filters have been reset.');
-}
-
-function setPage(page) {
-  currentPage.value = page;
-  window.scrollTo({ top: 220, behavior: 'smooth' });
-}
-
 async function toggleWishlist(productOrId) {
   const res = await wishlistStore.toggleWishlist(productOrId);
   const name = typeof productOrId === 'object' && productOrId !== null ? productOrId.product_name : 'Item';
   if (res.wishlisted) {
-    toastStore.success(`Added "${name}" to favorites!`);
+    toastStore.success(`Saved "${name}" to your favorites!`);
   } else {
     toastStore.info(`Removed "${name}" from favorites.`);
   }
@@ -944,14 +1299,14 @@ function handleAddToCart(p) {
 
   setTimeout(() => {
     p.isAdding = false;
-  }, 400);
+  }, 600);
 
   if (result && result.reason === 'capped') {
     toastStore.warning(result.message);
   } else if (result && result.success === false) {
     toastStore.error(result.message || 'Unable to add item.');
   } else {
-    toastStore.success(`Added ${p.product_name} to cart!`);
+    toastStore.success(`Added "${p.product_name}" to your bag.`);
     cartStore.openDrawer();
   }
 }

@@ -222,7 +222,7 @@ class OrderService
             }
 
             $totalAmount = max(0, ($subtotal - $discountAmount) + $deliveryFee);
-            $isOnline = in_array($validated['payment_method'], ['Chapa', 'Telebirr']);
+            $isOnline = in_array($validated['payment_method'], ['Chapa', 'Telebirr', 'CBE Birr']);
             $initialStatus = $isOnline ? 'Pending' : 'Confirmed';
 
             $order = Order::create([
@@ -260,7 +260,11 @@ class OrderService
                 'changed_at' => now(),
             ]);
 
-            $txPrefix = $validated['payment_method'] === 'Chapa' ? 'CH-' : ($validated['payment_method'] === 'Telebirr' ? 'TB-' : 'PAY-');
+            $txPrefix = $validated['payment_method'] === 'Chapa' 
+                ? 'CH-' 
+                : ($validated['payment_method'] === 'Telebirr' 
+                    ? 'TB-' 
+                    : ($validated['payment_method'] === 'CBE Birr' ? 'CBE-' : 'PAY-'));
             $txRef = $isOnline ? ($txPrefix . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6))) : null;
 
             Payment::create([

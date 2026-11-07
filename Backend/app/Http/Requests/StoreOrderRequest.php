@@ -23,6 +23,7 @@ class StoreOrderRequest extends FormRequest
             $mappedPayment = match ($rawPayment) {
                 'Online', 'online', 'Chapa', 'chapa' => 'Chapa',
                 'Telebirr', 'telebirr' => 'Telebirr',
+                'CBE Birr', 'cbe_birr', 'cbe', 'CBE' => 'CBE Birr',
                 'Pickup', 'Pay on pickup', 'pay_on_pickup' => 'Pay on pickup',
                 'Cash on Delivery', 'COD', 'cod', 'Pay on delivery', 'pay_on_delivery' => 'Pay on delivery',
                 default => 'Pay on delivery',
@@ -43,7 +44,7 @@ class StoreOrderRequest extends FormRequest
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,product_id',
             'items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'required|in:Chapa,Telebirr,Pay on pickup,Pay on delivery',
+            'payment_method' => 'required|in:Chapa,Telebirr,CBE Birr,Pay on pickup,Pay on delivery',
             'promo_code' => 'nullable|string|max:50',
             'promotion_code' => 'nullable|string|max:50',
         ];

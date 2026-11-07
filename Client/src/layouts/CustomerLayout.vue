@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-hidden w-full relative">
+  <div class="min-h-screen bg-[#FAF7F5] dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-hidden w-full relative">
     <!-- Top Bar: Dark Charcoal #1A1412 -->
     <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-1.5 sm:py-2 border-b border-[#281E19]">
       <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2">
@@ -607,15 +607,27 @@
     </header>
 
     <!-- Main View Slot -->
-    <main class="flex-1">
+    <main class="flex-1 w-full">
       <router-view />
     </main>
 
     <!-- SweetBakes Real GPS Contact Us Section (Above Footer) -->
     <ContactSection id="contact" v-if="shouldShowContactAboveFooter" />
 
+    <!-- Organic Seamless Wave Transition into Deep Chocolate Footer -->
+    <div class="w-full overflow-hidden leading-none select-none pointer-events-none -mb-px">
+      <svg
+        class="w-full h-8 sm:h-12 lg:h-14 text-[#27160E] fill-current block"
+        viewBox="0 0 1440 64"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M0,32 C240,64 480,16 720,32 C960,48 1200,16 1440,32 L1440,64 L0,64 Z"></path>
+      </svg>
+    </div>
+
     <!-- Footer: Deep Chocolate Brown #27160E -->
-    <footer class="bg-[#27160E] text-[#E8DED8] pt-12 sm:pt-14 pb-8 border-t border-[#382015] relative">
+    <footer class="bg-[#27160E] text-[#E8DED8] pt-8 sm:pt-10 pb-8 relative w-full">
       <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
         <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 3 cols tablet) -->
         <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-4">
@@ -809,7 +821,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useBranchStore } from '../stores/branch';
 import { useCartStore } from '../stores/cart';
@@ -819,10 +831,12 @@ import { useThemeStore } from '../stores/theme';
 import { useLocaleStore } from '../stores/locale';
 import { useWishlistStore } from '../stores/wishlist';
 import ToastNotification from '../components/ToastNotification.vue';
-import CartDrawer from '../components/CartDrawer.vue';
-import ContactSection from '../components/ContactSection.vue';
-import BranchPickerModal from '../components/BranchPickerModal.vue';
 import api from '../api';
+
+// Standard Asynchronous Code-Splitting for Heavy Components
+const CartDrawer = defineAsyncComponent(() => import('../components/CartDrawer.vue'));
+const ContactSection = defineAsyncComponent(() => import('../components/ContactSection.vue'));
+const BranchPickerModal = defineAsyncComponent(() => import('../components/BranchPickerModal.vue'));
 
 const router = useRouter();
 const route = useRoute();

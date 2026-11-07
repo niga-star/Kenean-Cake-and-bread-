@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54]">
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] w-full">
     
-    <!-- Clean Breadcrumbs Navigation Bar -->
-    <div class="bg-[#FAF7F5] dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] py-3">
+    <!-- Clean Breadcrumbs Navigation Bar (Harmonized with Unified Canvas) -->
+    <div class="bg-[#FAF7F5] dark:bg-[#170E0A] border-b border-[#EFE8E1] dark:border-[#382318] py-3.5 w-full">
       <div class="sweetbakes-container flex items-center space-x-2 text-xs text-[#786B60] dark:text-[#AFA39B]">
         <router-link to="/" class="hover:text-[#DE1B54] transition flex items-center space-x-1">
           <span>🏠</span>
@@ -16,12 +16,12 @@
     <!-- Contact Section with Real GPS Map & Message Form -->
     <ContactSection :standalone="true" />
 
-    <!-- Additional SweetBakes Guarantee Badges (Bottom Trust Ribbon) -->
-    <section class="border-t border-rose-100 dark:border-[#331A24] bg-white dark:bg-[#1A100B] py-8 sm:py-10">
+    <!-- Additional SweetBakes Guarantee Badges (Bottom Trust Ribbon - Unified Canvas) -->
+    <section class="bg-[#FAF7F5] dark:bg-[#170E0A] py-8 sm:py-12 border-t border-[#EFE8E1]/80 dark:border-[#382318] w-full">
       <div class="sweetbakes-container">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
           
-          <div class="p-4 rounded-2xl bg-rose-50/50 dark:bg-[#25150E] border border-rose-100/80 dark:border-[#3E2319] space-y-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] shadow-2xs space-y-1 hover:shadow-md transition-shadow">
             <div class="text-2xl sm:text-3xl">🚚</div>
             <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1810] dark:text-white">
               {{ localeStore.isAmharic ? 'ነፃ ማድረሻ' : 'Free Addis Delivery' }}
@@ -31,7 +31,7 @@
             </p>
           </div>
 
-          <div class="p-4 rounded-2xl bg-rose-50/50 dark:bg-[#25150E] border border-rose-100/80 dark:border-[#3E2319] space-y-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] shadow-2xs space-y-1 hover:shadow-md transition-shadow">
             <div class="text-2xl sm:text-3xl">🌿</div>
             <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1810] dark:text-white">
               {{ localeStore.isAmharic ? 'የጾም ኬኮች' : "Ye'Tsom Vegan" }}
@@ -41,7 +41,7 @@
             </p>
           </div>
 
-          <div class="p-4 rounded-2xl bg-rose-50/50 dark:bg-[#25150E] border border-rose-100/80 dark:border-[#3E2319] space-y-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] shadow-2xs space-y-1 hover:shadow-md transition-shadow">
             <div class="text-2xl sm:text-3xl">🎂</div>
             <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1810] dark:text-white">
               {{ localeStore.isAmharic ? 'ብጁ ኬኮች' : 'Custom Cake Studio' }}
@@ -51,7 +51,7 @@
             </p>
           </div>
 
-          <div class="p-4 rounded-2xl bg-rose-50/50 dark:bg-[#25150E] border border-rose-100/80 dark:border-[#3E2319] space-y-1">
+          <div class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] shadow-2xs space-y-1 hover:shadow-md transition-shadow">
             <div class="text-2xl sm:text-3xl">📍</div>
             <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1810] dark:text-white">
               {{ localeStore.isAmharic ? '4 ቅርንጫፎች' : '4 Addis Branches' }}

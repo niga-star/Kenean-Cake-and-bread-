@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-16 animate-fade-in-up">
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-16 animate-fade-in-up">
     <div class="sweetbakes-container py-4 sm:py-6 space-y-6 sm:space-y-8">
       
       <!-- 1. BREADCRUMBS -->

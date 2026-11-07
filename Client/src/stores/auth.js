@@ -39,6 +39,7 @@ export const useAuthStore = defineStore('auth', {
   },
 
   getters: {
+    isAuthenticated: (state) => Boolean(state.user && state.token),
     isSuperAdmin: (state) => state.user?.role === 'Super Admin',
     isMainManager: (state) => state.user?.role === 'Main Branch Manager',
     isBranchAdmin: (state) => state.user?.role === 'Branch Admin',

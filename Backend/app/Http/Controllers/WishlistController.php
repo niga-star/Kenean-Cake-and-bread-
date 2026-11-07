@@ -13,7 +13,7 @@ class WishlistController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        $user = auth('sanctum')->user() ?? $request->user('sanctum') ?? $request->user();
         if (!$user) {
             return response()->json(['product_ids' => [], 'products' => []]);
         }
@@ -41,7 +41,7 @@ class WishlistController extends Controller
             'product_id' => 'required|integer|exists:products,product_id',
         ]);
 
-        $user = $request->user();
+        $user = auth('sanctum')->user() ?? $request->user('sanctum') ?? $request->user();
         $productId = (int) $validated['product_id'];
 
         if (!$user) {
@@ -90,7 +90,7 @@ class WishlistController extends Controller
             'product_ids.*' => 'integer|exists:products,product_id',
         ]);
 
-        $user = $request->user();
+        $user = auth('sanctum')->user() ?? $request->user('sanctum') ?? $request->user();
         if (!$user) {
             return response()->json([
                 'success' => false,

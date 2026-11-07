@@ -1,13 +1,17 @@
 <template>
   <section
     id="contact"
-    class="relative overflow-hidden py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-[#FFF5F7] via-[#FFF1F4] to-[#FFEBF0] dark:from-[#1A100B] dark:via-[#1D110C] dark:to-[#170E0A] border-t border-rose-100 dark:border-[#382015] transition-colors duration-300"
-    :class="{ 'min-h-[80vh] flex flex-col justify-center': standalone }"
+    class="relative overflow-hidden bg-[#FAF7F5] dark:bg-[#170E0A] w-full transition-colors duration-300"
+    :class="standalone ? 'py-8 sm:py-12 lg:py-16' : 'py-12 sm:py-16 lg:py-20'"
   >
-    <!-- Background Decorative Confetti & Sprinkles (Matching Design Mockup) -->
+    <!-- Centered Ambient Glow (Locked to Screen Center - Never Drifts on Zoom / Ultra-Wide) -->
     <div class="absolute inset-0 pointer-events-none select-none overflow-hidden">
-      <!-- Top-Right 3 Angled Pink Strokes (Exact match to mockup) -->
-      <div class="absolute top-6 right-6 sm:top-10 sm:right-16 opacity-75">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl h-96 bg-rose-200/20 dark:bg-rose-950/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <div class="sweetbakes-container relative z-10">
+      <!-- Decorative Confetti & Sprinkles (Locked & Framed within container) -->
+      <div class="absolute -top-3 right-3 sm:-top-1 sm:right-8 opacity-75 pointer-events-none select-none hidden xs:block">
         <svg class="w-10 h-10 sm:w-14 sm:h-14 text-rose-400 dark:text-rose-500/70" viewBox="0 0 60 60" fill="currentColor">
           <rect x="8" y="4" width="5" height="18" rx="2.5" transform="rotate(-35 10 13)" />
           <rect x="27" y="0" width="5" height="20" rx="2.5" />
@@ -15,20 +19,12 @@
         </svg>
       </div>
 
-      <!-- Top-Left Subtle Sparkle / Sprinkle -->
-      <div class="absolute top-8 left-8 sm:top-12 sm:left-14 opacity-60">
+      <div class="absolute -top-1 left-3 sm:top-1 sm:left-8 opacity-60 pointer-events-none select-none hidden xs:block">
         <svg class="w-8 h-8 text-rose-300 dark:text-rose-500/50" viewBox="0 0 40 40" fill="currentColor">
           <circle cx="12" cy="12" r="3.5" />
           <rect x="22" y="8" width="12" height="4" rx="2" transform="rotate(25 28 10)" />
         </svg>
       </div>
-
-      <!-- Soft Radial Ambient Blurs -->
-      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-rose-200/40 dark:bg-rose-950/20 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-24 right-10 w-80 h-80 bg-rose-300/30 dark:bg-[#341822]/30 rounded-full blur-3xl"></div>
-    </div>
-
-    <div class="sweetbakes-container relative z-10">
       
       <!-- ================= SECTION HEADER ================= -->
       <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-14 space-y-2.5">
@@ -77,7 +73,7 @@
       </div>
 
       <!-- ================= MAIN CARD CONTAINER (Matching Mockup) ================= -->
-      <div class="bg-white/95 dark:bg-[#1F130D] backdrop-blur-md rounded-[28px] sm:rounded-[36px] border border-rose-100/90 dark:border-[#382318] p-5 sm:p-8 lg:p-10 shadow-xl shadow-rose-950/5 dark:shadow-black/40">
+      <div class="bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EFE5DB] dark:border-[#382318] p-5 sm:p-8 lg:p-10 shadow-xl shadow-stone-900/5 dark:shadow-black/40">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           
           <!-- ================= LEFT COLUMN: REAL GPS MAP & CONTACT DETAILS (5 cols) ================= -->
@@ -87,21 +83,21 @@
             <div class="space-y-2.5">
               
               <!-- Multi-Branch Real GPS Quick Switcher Bar -->
-              <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 text-[11px] font-bold scrollbar-none">
+              <div class="flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-bold">
                 <span class="text-[#786B60] dark:text-[#A89A90] shrink-0 mr-1 flex items-center space-x-1">
                   <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                   <span>{{ localeStore.isAmharic ? 'ቅርንጫፍ ምረጥ:' : 'Select GPS:' }}</span>
                 </span>
-                <div class="flex items-center space-x-1.5 shrink-0">
+                <div class="flex flex-wrap items-center gap-1.5">
                   <button
                     v-for="b in branchGPSList"
                     :key="b.id"
                     @click="selectBranchLocation(b)"
                     type="button"
-                    class="px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap"
+                    class="px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap text-xs"
                     :class="selectedBranchGPS.id === b.id
-                      ? 'bg-[#DE1B54] text-white shadow-xs'
-                      : 'bg-rose-50/80 dark:bg-[#2C1810] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-100 dark:hover:bg-[#382015]'"
+                      ? 'bg-[#DE1B54] text-white shadow-xs font-bold'
+                      : 'bg-[#FAF7F5] dark:bg-[#2C1810] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#382015] border border-gray-200/80 dark:border-[#3E2319]'"
                   >
                     {{ b.name }}
                   </button>
@@ -109,10 +105,11 @@
               </div>
 
               <!-- Map Wrapper with Live Real GPS Embed & Shimmer Placeholder -->
-              <div class="relative w-full h-[260px] sm:h-[300px] rounded-2xl overflow-hidden border border-rose-200/80 dark:border-[#3E2319] shadow-inner bg-[#F0E8DF] dark:bg-[#140C07] group" :class="{ 'shimmer-wave': !mapLoaded }">
+              <div ref="mapContainerRef" class="relative w-full aspect-16/10 sm:aspect-16/9 min-h-[250px] max-h-[340px] rounded-2xl overflow-hidden border border-[#EFE5DB] dark:border-[#3E2319] shadow-inner bg-[#F0E8DF] dark:bg-[#140C07] group" :class="{ 'shimmer-wave': !mapLoaded && shouldLoadMapIframe }">
                 
-                <!-- Live Real Interactive Google Maps Iframe -->
+                <!-- Live Real Interactive Google Maps Iframe (Lazy Loaded via IntersectionObserver) -->
                 <iframe
+                  v-if="shouldLoadMapIframe"
                   :key="`${selectedBranchGPS.id}-${mapType}`"
                   :src="googleMapEmbedUrl"
                   class="w-full h-full border-0 transition-opacity duration-500"
@@ -123,6 +120,21 @@
                   referrerpolicy="no-referrer-when-downgrade"
                   title="SweetBakes Bakery Real GPS Location"
                 ></iframe>
+
+                <!-- Facade Placeholder while waiting for scroll into view -->
+                <div v-else class="w-full h-full flex flex-col items-center justify-center p-4 text-center space-y-2 bg-[#F5EFE9] dark:bg-[#1E120B]">
+                  <span class="text-3xl animate-bounce">📍</span>
+                  <span class="text-xs font-bold text-[#786B60] dark:text-[#C5B7AF]">
+                    {{ selectedBranchGPS.name }} &middot; {{ selectedBranchGPS.area }}
+                  </span>
+                  <button
+                    type="button"
+                    @click="shouldLoadMapIframe = true"
+                    class="px-3.5 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-[11px] font-bold rounded-lg shadow-xs transition cursor-pointer"
+                  >
+                    View Interactive GPS Map
+                  </button>
+                </div>
 
                 <!-- Top-Left Floating Info Card (Authentic Mockup Replication) -->
                 <div class="absolute top-3 left-3 bg-white/95 dark:bg-[#20120B]/95 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-200/80 dark:border-[#3F2418] shadow-md pointer-events-auto max-w-[210px] space-y-0.5">
@@ -461,7 +473,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useLocaleStore } from '../stores/locale';
 import { useToastStore } from '../stores/toast';
 import api from '../api';
@@ -475,6 +487,41 @@ const props = defineProps({
 
 const localeStore = useLocaleStore();
 const toast = useToastStore();
+
+const mapContainerRef = ref(null);
+const shouldLoadMapIframe = ref(false);
+let mapObserver = null;
+
+onMounted(() => {
+  // If standalone on /contact, load immediately; otherwise lazy load on scroll
+  if (props.standalone) {
+    shouldLoadMapIframe.value = true;
+    return;
+  }
+
+  if (typeof IntersectionObserver !== 'undefined' && mapContainerRef.value) {
+    mapObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0] && entries[0].isIntersecting) {
+          shouldLoadMapIframe.value = true;
+          mapObserver?.disconnect();
+          mapObserver = null;
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    mapObserver.observe(mapContainerRef.value);
+  } else {
+    shouldLoadMapIframe.value = true;
+  }
+});
+
+onUnmounted(() => {
+  if (mapObserver) {
+    mapObserver.disconnect();
+    mapObserver = null;
+  }
+});
 
 // Form State
 const form = ref({
