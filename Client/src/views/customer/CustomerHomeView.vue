@@ -1,26 +1,25 @@
 <template>
   <div class="space-y-12 sm:space-y-16 md:space-y-20 selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-8 sm:pb-12 animate-fade-in-up w-full">
     <!-- 1. HERO SECTION: Full-Bleed 100% Cover Bakery Background -->
-    <section class="relative overflow-hidden min-h-[480px] sm:min-h-[540px] lg:min-h-[600px] xl:min-h-[660px] flex items-center w-full">
-      <!-- Full-Bleed 100% Background Image Covering Whole Banner (No Split Screen) -->
+    <section class="relative overflow-hidden min-h-[500px] sm:min-h-[560px] lg:min-h-[620px] xl:min-h-[680px] flex items-center w-full">
+      <!-- Full-Bleed 100% Background Image Covering Whole Banner (8K Ultra-HD Quality) -->
       <div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none" :class="{ 'shimmer-wave bg-[#F0E8DF] dark:bg-[#25150E]': !heroImageLoaded }">
         <img
-          :src="currentBanner?.image_url || '/mockup/hero_banner_hq.jpg'"
+          :src="currentBanner?.image_url || businessInfo?.hero_image_url || '/mockup/hero_banner_hq.jpg'"
           :alt="heroTitle1"
           class="w-full h-full object-cover object-[center_35%] lg:object-[center_30%] transition-all duration-700"
           :class="heroImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-102'"
           loading="eager"
+          fetchpriority="high"
+          decoding="async"
           @load="heroImageLoaded = true"
         />
 
-        <!-- Half-transparency gradient on left (for text readability), leaving right half 100% original image -->
+        <!-- Half-transparency gradient on left (for crisp text readability), leaving right half 100% rich original image -->
         <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/75 via-45% to-transparent dark:from-[#170E0A]/95 dark:via-[#170E0A]/75 dark:via-45% dark:to-transparent pointer-events-none"></div>
 
-        <!-- Soft Bottom Fade to Canvas -->
-        <div class="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-[#FAF7F5] to-transparent dark:from-[#170E0A] pointer-events-none"></div>
-
         <!-- Floating Luxury Artisan Stamp Badge on Image (Desktop) -->
-        <div class="hidden xl:flex absolute bottom-8 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto">
+        <div class="hidden xl:flex absolute bottom-12 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto z-10">
           <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-[#331A24] text-[#DE1B54] flex items-center justify-center text-xl shrink-0">
             🍰
           </div>
@@ -34,33 +33,46 @@
       <!-- Hero Text Content (Positioned over full cover image) -->
       <div class="sweetbakes-container py-12 sm:py-16 lg:py-24 relative z-10">
         <div class="max-w-xl xl:max-w-2xl space-y-4 sm:space-y-5 text-center lg:text-left">
-          <!-- Compact Artisan Pill Badge -->
-          <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-200/90 dark:border-[#58263A] text-[#DE1B54] text-xs sm:text-sm font-black tracking-wide shadow-xs">
-            <span>✨</span>
-            <span class="font-script text-lg sm:text-xl leading-none -mb-0.5">{{ heroSubtitle }}</span>
-            <span>♡</span>
+          <!-- Compact Artisan Pill Badge with Amber Star and Red Heart -->
+          <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-300/80 dark:border-[#58263A] text-[#DE1B54] text-xs sm:text-sm font-bold tracking-wide shadow-xs">
+            <span class="text-amber-500 font-black">★</span>
+            <span class="font-bold tracking-wide">{{ heroSubtitle }}</span>
+            <span class="text-[#DE1B54] font-black">♥</span>
           </div>
 
-          <!-- Large Bold Serif Title (Fluid Typography for flawless rendering on all screens 320px - 2560px) -->
-          <h1 class="text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.12] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-            <span>{{ heroTitle1 }}</span>
-            <span v-if="heroTitle2 && heroTitle2 !== heroTitle1" class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-              {{ heroTitle2 }}
-            </span>
+          <!-- Large Bold Serif Title with Hand-script "Love ♡" in Signature SweetBakes Red -->
+          <h1 class="text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.14] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+            <template v-if="localeStore.isAmharic">
+              <span>{{ heroTitle1 }}</span>
+              <span class="inline-block font-logo text-[#DE1B54] dark:text-rose-400 font-normal italic ml-2 drop-shadow-sm">♡</span>
+              <span v-if="heroTitle2" class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {{ heroTitle2 }}
+              </span>
+            </template>
+            <template v-else>
+              <span>{{ heroTitle1Parts.prefix }}</span>
+              <span v-if="heroTitle1Parts.highlight" class="inline-block font-logo text-[#DE1B54] dark:text-rose-400 font-normal italic ml-2.5 text-[1.15em] drop-shadow-sm">{{ heroTitle1Parts.highlight }}</span>
+              <span v-if="heroTitle2" class="block text-fluid-hero-sub font-serif font-black text-[#1A0C06] dark:text-white mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {{ heroTitle2 }}
+              </span>
+            </template>
           </h1>
 
           <!-- Body Description: Bold, Crisp, Clean & Impactful -->
-          <p class="text-base sm:text-lg md:text-xl text-[#1C0F0A] dark:text-[#F3EDE6] font-bold leading-relaxed max-w-lg lg:max-w-xl mx-auto lg:mx-0 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
+          <p class="text-base sm:text-lg md:text-xl text-[#1C0F0A] dark:text-[#F3EDE6] font-medium leading-relaxed max-w-lg lg:max-w-xl mx-auto lg:mx-0 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
             {{ heroDesc }}
           </p>
 
-          <!-- CTA Buttons: Responsive Wrap & Min Touch Target (>= 44px) -->
+          <!-- CTA Buttons: Primary Button in Signature SweetBakes Red (#DE1B54) with Cart Icon -->
           <div class="flex flex-col xs:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 w-full xs:w-auto">
-            <!-- Shop Now: Vivid Pink Pill Button -->
+            <!-- Order Online: Signature SweetBakes Red Pill Button -->
             <router-link
-              :to="currentBanner?.link_url || '/shop'"
-              class="w-full xs:w-auto px-9 py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base tracking-wide rounded-full shadow-lg hover:shadow-xl transition-transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
+              :to="currentBanner?.link_url || businessInfo?.hero_button_link || '/shop'"
+              class="w-full xs:w-auto px-9 py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base tracking-wide rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center space-x-2.5 cursor-pointer"
             >
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
               <span>{{ heroButtonText }}</span>
               <span class="text-lg font-black">&rarr;</span>
             </router-link>
@@ -70,7 +82,7 @@
               to="/custom-cake"
               class="w-full xs:w-auto px-8 py-4 min-h-[48px] bg-white hover:bg-rose-50 dark:bg-[#1E120B] dark:hover:bg-[#2A1710] text-[#1C0F0A] dark:text-[#FAF3EE] hover:text-[#DE1B54] border-2 border-[#1C0F0A]/15 hover:border-[#DE1B54] font-black text-sm sm:text-base rounded-full shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <span>🎨</span>
+              <span class="text-lg">🎂</span>
               <span>{{ localeStore.isAmharic ? 'ልዩ ኬክ ስቱዲዮ' : 'Custom Studio' }}</span>
             </router-link>
           </div>
@@ -84,14 +96,24 @@
             <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span class="text-amber-500 font-black">★</span>
               <span class="font-black text-[#1C0F0A] dark:text-white">4.9</span>
-              <span class="text-[#3A2218] dark:text-[#C5B7AF] font-bold">(1.2k+ reviews)</span>
+              <span class="text-[#3A2218] dark:text-[#C5B7AF] font-bold">(12k+ reviews)</span>
             </span>
             <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span>🌿</span>
-              <span class="font-bold text-[#1C0F0A] dark:text-[#F0E6DE]">{{ localeStore.isAmharic ? 'የጾም አማራጮች' : "Ye'Tsom Vegan" }}</span>
+              <span class="font-bold text-[#1C0F0A] dark:text-[#F0E6DE]">{{ localeStore.isAmharic ? '100% ትኩስ ጥራት' : '100% Fresh' }}</span>
             </span>
           </div>
         </div>
+      </div>
+
+      <!-- Organic Wave Divider (Matching Reference Image with Signature Red Accent Curve) -->
+      <div class="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden leading-none z-10 w-full">
+        <svg class="relative block w-full h-8 sm:h-12 md:h-16 lg:h-20" viewBox="0 0 1440 120" fill="none" preserveAspectRatio="none">
+          <!-- Red Accent Wave Layer -->
+          <path d="M0,64L60,58.7C120,53,240,43,360,48C480,53,600,75,720,80C840,85,960,75,1080,64C1200,53,1320,43,1380,37.3L1440,32L1440,120L1380,120C1320,120,1200,120,1080,120C960,120,840,120,720,120C600,120,480,120,360,120C240,120,120,120,60,120L0,120Z" class="fill-[#DE1B54]/20 dark:fill-[#DE1B54]/30"></path>
+          <!-- Background Canvas Wave -->
+          <path d="M0,76L60,71.3C120,66,240,55,360,60.7C480,66,600,87,720,87.3C840,87,960,66,1080,60.7C1200,55,1320,66,1380,71.3L1440,76L1440,120L1380,120C1320,120,1200,120,1080,120C960,120,840,120,720,120C600,120,480,120,360,120C240,120,120,120,60,120L0,120Z" class="fill-[#FAF7F5] dark:fill-[#170E0A]"></path>
+        </svg>
       </div>
 
       <!-- Carousel Navigation Arrows (Desktop) -->
@@ -126,7 +148,7 @@
     </section>
 
     <!-- 2. "ABOUT SWEETBAKES - A BAKERY YOU CAN TRUST" SECTION -->
-    <section id="about" class="sweetbakes-container">
+    <section id="about" class="sweetbakes-container" v-reveal>
       <div class="rounded-3xl bg-gradient-to-br from-[#FAF7F4] via-white to-[#FDF4F0] dark:from-[#20130C] dark:via-[#1A0E08] dark:to-[#22150E] border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-8 md:p-10 lg:p-12 shadow-sm relative overflow-hidden group">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-stretch">
           <!-- Left Column: Baker Chef Photo (Expanded Frame with Upward Shifted Crop) -->
@@ -137,7 +159,7 @@
                 :class="{ 'shimmer-wave': !aboutImageLoaded }"
               >
                 <img
-                  src="/mockup/baker_hires.jpg"
+                  :src="businessInfo?.about_image_url || '/mockup/baker_hires.jpg'"
                   alt="SweetBakes Baker Chef"
                   class="w-full h-full object-cover object-[center_18%] group-hover:scale-104 transition-all duration-700"
                   :class="aboutImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-98'"
@@ -155,12 +177,12 @@
               <div>
                 <div class="flex items-center space-x-2 text-[#DE1B54] font-script text-xl sm:text-2xl lg:text-3xl mb-1">
                   <span>🧁</span>
-                  <span>{{ localeStore.t('about_tag') }}</span>
+                  <span>{{ (localeStore.isAmharic ? businessInfo?.about_tag_am : businessInfo?.about_tag_en) || localeStore.t('about_tag') }}</span>
                 </div>
 
                 <!-- Headline -->
                 <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
-                  {{ localeStore.t('about_title') }}
+                  {{ (localeStore.isAmharic ? businessInfo?.about_title_am : businessInfo?.about_title_en) || localeStore.t('about_title') }}
                 </h3>
               </div>
 
@@ -168,7 +190,7 @@
               <div class="shrink-0">
                 <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-rose-50/95 dark:bg-[#341822]/95 border-2 border-dashed border-[#DE1B54] flex flex-col items-center justify-center text-center p-1 sm:p-1.5 shadow-xs text-[#DE1B54] rotate-6 hover:rotate-12 transition-transform duration-300 cursor-pointer select-none">
                   <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif">{{ localeStore.isAmharic ? 'ከ' : 'SINCE' }}</span>
-                  <span class="text-sm sm:text-base lg:text-lg font-black font-serif leading-none">2015</span>
+                  <span class="text-sm sm:text-base lg:text-lg font-black font-serif leading-none">{{ businessInfo?.since_year || '2015' }}</span>
                   <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif" v-if="localeStore.isAmharic">ጀምሮ</span>
                   <span class="text-[10px] sm:text-xs" v-else>♡</span>
                 </div>
@@ -184,19 +206,19 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm sm:text-base font-bold text-[#1C0F0A] dark:text-[#FAF3EE]">
               <div class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
-                <span>{{ localeStore.t('premium_quality') }}</span>
+                <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_1_am : businessInfo?.about_bullet_1_en) || localeStore.t('premium_quality') }}</span>
               </div>
               <div class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
-                <span>{{ localeStore.t('fresh_ingredients') }}</span>
+                <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_2_am : businessInfo?.about_bullet_2_en) || localeStore.t('fresh_ingredients') }}</span>
               </div>
               <div class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
-                <span>{{ localeStore.t('custom_orders') }}</span>
+                <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_3_am : businessInfo?.about_bullet_3_en) || localeStore.t('custom_orders') }}</span>
               </div>
               <div class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
-                <span>{{ localeStore.t('multibranch_service') }}</span>
+                <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_4_am : businessInfo?.about_bullet_4_en) || localeStore.t('multibranch_service') }}</span>
               </div>
             </div>
 
@@ -240,7 +262,7 @@
     </section>
 
     <!-- 3. "OUR POPULAR PRODUCTS" SECTION: With Interactive Category Filter Pills -->
-    <section id="popular-products" class="sweetbakes-container">
+    <section id="popular-products" class="sweetbakes-container" v-reveal>
       <!-- Section Header with Cake Icon & Dashes -->
       <div class="text-center space-y-1.5 mb-6 sm:mb-8">
         <div class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-gray-300">
@@ -279,14 +301,14 @@
       </div>
 
       <!-- Empty state when no products in category -->
-      <div v-else-if="displayedProducts.length === 0" class="text-center py-16 px-4 rounded-3xl bg-rose-50/30 dark:bg-[#1E120B] border border-rose-100 dark:border-[#382318] max-w-md mx-auto space-y-3">
-        <span class="text-4xl block">🧁</span>
-        <h4 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'በዚህ ምድብ ምንም ምርቶች አልተገኙም' : 'No Products Available' }}</h4>
-        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'እባክዎ ሌላ ምድብ ይምረጡ ወይም ሁሉንም ምርቶች ይመልከቱ።' : 'No items match your selection right now. Browse our full shop!' }}</p>
-        <button @click="selectedCategory = 'All'" class="px-5 py-2 min-h-[38px] text-xs font-bold bg-[#DE1B54] text-white rounded-full hover:bg-[#C51345] transition cursor-pointer">
-          {{ localeStore.isAmharic ? 'ሁሉንም አሳይ' : 'Show All Bakes' }}
-        </button>
-      </div>
+      <EmptyState
+        v-else-if="displayedProducts.length === 0"
+        icon="🧁"
+        :title="localeStore.isAmharic ? 'በዚህ ምድብ ምንም ምርቶች አልተገኙም' : 'No Products Available'"
+        :description="localeStore.isAmharic ? 'እባክዎ ሌላ ምድብ ይምረጡ ወይም ሁሉንም ምርቶች ይመልከቱ።' : 'No items match your selection right now. Browse our full shop!'"
+        :actionLabel="localeStore.isAmharic ? 'ሁሉንም አሳይ' : 'Show All Bakes'"
+        @action="selectedCategory = 'All'"
+      />
 
       <!-- Real Loaded Products Grid -->
       <div v-else class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-4 lg:gap-5 transition-all duration-300">
@@ -395,7 +417,7 @@
     </section>
 
     <!-- 4. "WHAT OUR CUSTOMERS SAY" (REVIEWS) SECTION: With Flanking Navigation Arrows -->
-    <section id="reviews" class="sweetbakes-container relative">
+    <section id="reviews" class="sweetbakes-container relative" v-reveal>
       <!-- Symmetrical Centered Ambient Blush Cloud (Locked to Center, Never Distorts on Zoom) -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-72 bg-rose-100/40 dark:bg-rose-950/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
@@ -520,7 +542,7 @@
     </section>
 
     <!-- 5. "SPECIAL OFFER: MAKE EVERY MOMENT SWEETER!" BANNER -->
-    <section class="sweetbakes-container">
+    <section class="sweetbakes-container" v-reveal>
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FFF0F4] via-[#FDE4EE] to-[#FCE4EC] dark:from-[#341822] dark:via-[#29121B] dark:to-[#381A25] border border-[#F6C5D6] dark:border-[#552438] p-5 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-sm group">
         <!-- Left Column: Special Offer Text & Call to Action -->
         <div class="space-y-3 sm:space-y-4 text-center md:text-left z-10 max-w-xl w-full">
@@ -572,6 +594,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import ProductCardSkeleton from '../../components/ProductCardSkeleton.vue';
+import EmptyState from '../../components/EmptyState.vue';
 import { useCartStore } from '../../stores/cart';
 import { useBranchStore } from '../../stores/branch';
 import { useToastStore } from '../../stores/toast';
@@ -600,35 +623,72 @@ const currentBanner = computed(() => {
 
 const heroSubtitle = computed(() => {
   if (currentBanner.value) {
-    return (localeStore.isAmharic ? currentBanner.value.subtitle_am : currentBanner.value.subtitle_en) || currentBanner.value.subtitle_en;
+    const text = localeStore.isAmharic ? currentBanner.value.subtitle_am : currentBanner.value.subtitle_en;
+    if (text) return text;
+  }
+  if (businessInfo.value) {
+    const text = localeStore.isAmharic ? businessInfo.value.hero_subtitle_am : businessInfo.value.hero_subtitle_en;
+    if (text) return text;
   }
   return localeStore.t('hero_sub');
 });
 
 const heroTitle1 = computed(() => {
   if (currentBanner.value) {
-    return (localeStore.isAmharic ? currentBanner.value.title_am : currentBanner.value.title_en) || currentBanner.value.title_en;
+    const text = localeStore.isAmharic ? currentBanner.value.title_am : currentBanner.value.title_en;
+    if (text) return text;
+  }
+  if (businessInfo.value) {
+    const text = localeStore.isAmharic ? businessInfo.value.hero_title_am : businessInfo.value.hero_title_en;
+    if (text) return text;
   }
   return localeStore.t('hero_title_1');
 });
 
+const heroTitle1Parts = computed(() => {
+  const t = heroTitle1.value || '';
+  const match = t.match(/^(.*?)(love.*)$/i);
+  if (match) {
+    return {
+      prefix: match[1],
+      highlight: match[2].includes('♡') ? match[2] : `${match[2]} ♡`
+    };
+  }
+  return { prefix: t, highlight: '' };
+});
+
 const heroTitle2 = computed(() => {
   if (currentBanner.value) {
-    return (localeStore.isAmharic ? currentBanner.value.badge_am : currentBanner.value.badge_en) || currentBanner.value.badge_en;
+    const text = localeStore.isAmharic ? (currentBanner.value.badge_am || currentBanner.value.subtitle_am) : (currentBanner.value.badge_en || currentBanner.value.subtitle_en);
+    if (text) return text;
+  }
+  if (businessInfo.value) {
+    const text = localeStore.isAmharic ? businessInfo.value.hero_title2_am : businessInfo.value.hero_title2_en;
+    if (text) return text;
   }
   return localeStore.t('hero_title_2');
 });
 
 const heroDesc = computed(() => {
   if (currentBanner.value) {
-    return (localeStore.isAmharic ? currentBanner.value.description_am : currentBanner.value.description_en) || currentBanner.value.description_en;
+    const text = localeStore.isAmharic ? currentBanner.value.description_am : currentBanner.value.description_en;
+    if (text) return text;
+  }
+  if (businessInfo.value) {
+    const text = localeStore.isAmharic ? businessInfo.value.hero_desc_am : businessInfo.value.hero_desc_en;
+    if (text) return text;
   }
   return localeStore.t('hero_desc');
 });
 
 const heroButtonText = computed(() => {
   if (currentBanner.value) {
-    return (localeStore.isAmharic ? currentBanner.value.button_text_am : currentBanner.value.button_text_en) || localeStore.t('shop_now');
+    const text = localeStore.isAmharic ? currentBanner.value.button_text_am : currentBanner.value.button_text_en;
+    if (text) return text;
+  }
+  if (businessInfo.value) {
+    const text = localeStore.isAmharic ? businessInfo.value.hero_button_text_am : businessInfo.value.hero_button_text_en;
+    if (text) return text;
   }
   return localeStore.t('shop_now');
 });

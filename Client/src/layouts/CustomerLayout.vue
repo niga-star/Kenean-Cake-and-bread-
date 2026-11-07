@@ -20,16 +20,16 @@
 
           <span class="text-[#4A3D36] hidden xs:inline">|</span>
 
-          <a href="tel:+251911123456" class="hidden xs:flex items-center space-x-1 hover:text-white transition">
+          <a :href="'tel:' + (businessInfo?.phone || '+251911123456')" class="hidden xs:flex items-center space-x-1 hover:text-white transition">
             <span>📞</span>
-            <span>+251 911 123 456</span>
+            <span>{{ businessInfo?.phone || '+251 911 123 456' }}</span>
           </a>
 
           <span class="text-[#4A3D36] hidden sm:inline">|</span>
 
-          <a href="mailto:hello@sweetbakes.com" class="hidden sm:flex items-center space-x-1 hover:text-white transition">
+          <a :href="'mailto:' + (businessInfo?.email || 'info@sweetbakes.com')" class="hidden sm:flex items-center space-x-1 hover:text-white transition">
             <span>✉️</span>
-            <span>hello@sweetbakes.com</span>
+            <span>{{ businessInfo?.email || 'info@sweetbakes.com' }}</span>
           </a>
         </div>
 
@@ -74,17 +74,18 @@
             <span class="text-xl sm:text-2xl">🧁</span>
           </div>
           <div>
-            <div class="text-xl sm:text-2xl lg:text-[26px] font-serif font-black tracking-tight text-[#2A1810] dark:text-[#FBF4ED] leading-none">
-              Sweet<span class="text-[#DE1B54]">Bakes</span>
+            <div class="text-2xl sm:text-3xl lg:text-[28px] font-logo font-bold text-[#2A1810] dark:text-[#FBF4ED] leading-none">
+              <template v-if="businessInfo?.site_name">{{ businessInfo.site_name }}</template>
+              <template v-else>Sweet<span class="text-[#DE1B54]">Bakes</span></template>
             </div>
-            <div class="hidden sm:block text-[8px] sm:text-[10px] tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5">
-              Cakes &middot; Bread &middot; Happiness
+            <div class="hidden sm:block text-[10px] sm:text-xs tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5">
+              {{ businessInfo?.site_tagline || 'Cakes · Bread · Happiness' }}
             </div>
           </div>
         </router-link>
 
         <!-- Center Nav Links (Balanced spacing from 1024px to 2560px) -->
-        <nav class="hidden lg:flex items-center space-x-5 xl:space-x-8 2xl:space-x-10 text-sm xl:text-[15px] font-bold text-[#2A1810] dark:text-[#F7EFE9]">
+        <nav class="hidden lg:flex items-center space-x-5 xl:space-x-8 2xl:space-x-10 text-[15px] xl:text-base font-bold text-[#2A1810] dark:text-[#F7EFE9]">
           <!-- Home -->
           <router-link
             to="/"
@@ -365,7 +366,8 @@
             </svg>
             <span
               v-if="cartStore.totalItems > 0"
-              class="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#DE1B54] text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center shadow-xs"
+              class="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#DE1B54] text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center shadow-xs transition-transform"
+              :class="{ 'animate-cart-pop': cartBadgePop }"
             >
               {{ cartStore.totalItems }}
             </span>
@@ -616,16 +618,17 @@
               🧁
             </div>
             <div>
-              <div class="text-2xl font-serif font-black text-white leading-none">
-                Sweet<span class="text-[#DE1B54]">Bakes</span>
+              <div class="text-3xl font-logo font-bold text-white leading-none">
+                <template v-if="businessInfo?.site_name">{{ businessInfo.site_name }}</template>
+                <template v-else>Sweet<span class="text-[#DE1B54]">Bakes</span></template>
               </div>
-              <div class="text-[9px] tracking-wider text-[#AFA39B] uppercase mt-0.5">
-                Cakes &middot; Bread &middot; Happiness
+              <div class="text-[10px] sm:text-xs tracking-wider text-[#AFA39B] uppercase mt-0.5">
+                {{ businessInfo?.site_tagline || 'Cakes · Bread · Happiness' }}
               </div>
             </div>
           </div>
 
-          <p class="text-xs text-[#C7BBB3] leading-relaxed max-w-sm">
+          <p class="text-sm text-[#C7BBB3] leading-relaxed max-w-sm">
             {{ localeStore.t('footer_mission') }}
           </p>
 
@@ -794,14 +797,11 @@
 
     <!-- Branch Picker Modal (Searchable, All Addis Branches) -->
     <BranchPickerModal />
-
-    <!-- Toast Notification Container -->
-    <ToastNotification />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
+import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useBranchStore } from '../stores/branch';
 import { useCartStore } from '../stores/cart';
@@ -810,7 +810,6 @@ import { useToastStore } from '../stores/toast';
 import { useThemeStore } from '../stores/theme';
 import { useLocaleStore } from '../stores/locale';
 import { useWishlistStore } from '../stores/wishlist';
-import ToastNotification from '../components/ToastNotification.vue';
 import api from '../api';
 
 // Standard Asynchronous Code-Splitting for Heavy Components
@@ -835,6 +834,16 @@ const branchMenuOpen = ref(false);
 const mobileNavOpen = ref(false);
 const shopDropdownOpen = ref(false);
 const businessInfo = ref(null);
+const cartBadgePop = ref(false);
+
+watch(() => cartStore.totalItems, (newVal, oldVal) => {
+  if (newVal > (oldVal || 0)) {
+    cartBadgePop.value = true;
+    setTimeout(() => {
+      cartBadgePop.value = false;
+    }, 600);
+  }
+});
 
 const shouldShowContactAboveFooter = computed(() => {
   return !['/contact', '/checkout'].includes(route.path);
