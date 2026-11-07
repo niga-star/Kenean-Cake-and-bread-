@@ -17,8 +17,14 @@ class WebsiteSettingController extends Controller
         $all = AppSetting::all()->pluck('value', 'key');
 
         return response()->json([
+            // Bakery Identity & Description
             'site_name' => $all['site_name'] ?? 'SweetBakes Bakery',
             'site_tagline' => $all['site_tagline'] ?? 'Artisanal Bakery & Celebration Cakes',
+            'site_description_en' => $all['site_description_en'] ?? 'Handcrafted celebration cakes and artisanal breads baked fresh daily with love in Addis Ababa.',
+            'site_description_am' => $all['site_description_am'] ?? 'በፍቅር እና በጥንቃቄ የተዘጋጁ ልዩ የክብረ በዓል ኬኮች እና ትኩስ የተፈጥሮ ዳቦዎች በአዲስ አበባ።',
+            'since_year' => $all['since_year'] ?? '2015',
+
+            // Contact & Location
             'phone' => $all['business_phone'] ?? '+251 911 123 456',
             'email' => $all['business_email'] ?? 'info@sweetbakes.com',
             'address_en' => $all['business_address_en'] ?? 'Bole Medhanialem, Next to Edna Mall, Addis Ababa, Ethiopia',
@@ -27,8 +33,47 @@ class WebsiteSettingController extends Controller
             'hours_am' => $all['business_hours_am'] ?? 'ከሰኞ – እሑድ፡ ከጠዋቱ 2:00 – ማታ 3:00',
             'latitude' => (float) ($all['business_lat'] ?? 9.0016),
             'longitude' => (float) ($all['business_lng'] ?? 38.7845),
+
+            // Homepage Hero Section Customization
+            'hero_subtitle_en' => $all['hero_subtitle_en'] ?? 'Artisanal Cakes & Breads',
+            'hero_subtitle_am' => $all['hero_subtitle_am'] ?? 'ልዩ የክብረ በዓል ኬኮች እና ዳቦ',
+            'hero_title_en' => $all['hero_title_en'] ?? 'Baked Fresh with Love',
+            'hero_title_am' => $all['hero_title_am'] ?? 'በፍቅር የተዘጋጀ ትኩስ ጣዕም',
+            'hero_title2_en' => $all['hero_title2_en'] ?? "Addis Ababa's Favorite",
+            'hero_title2_am' => $all['hero_title2_am'] ?? 'የአዲስ አበባ ተመራጭ',
+            'hero_desc_en' => $all['hero_desc_en'] ?? 'Handcrafted celebration cakes and warm sourdough delivered fresh to your doorstep.',
+            'hero_desc_am' => $all['hero_desc_am'] ?? 'የልደትና የሰርግ ኬኮች እንዲሁም ትኩስ የተፈጥሮ ዳቦዎች በሁሉም የአዲስ አበባ ክፍሎች ባሉበት ይደርሳሉ።',
+            'hero_button_text_en' => $all['hero_button_text_en'] ?? 'Order Online',
+            'hero_button_text_am' => $all['hero_button_text_am'] ?? 'አሁን ይዘዙ',
+            'hero_button_link' => $all['hero_button_link'] ?? '/shop',
+            'hero_image_url' => $all['hero_image_url'] ?? '/mockup/hero_banner_hq.jpg',
+
+            // About Page & Section Customization
+            'about_tag_en' => $all['about_tag_en'] ?? 'About SweetBakes',
+            'about_tag_am' => $all['about_tag_am'] ?? 'ስለ ስዊትቤክስ',
+            'about_title_en' => $all['about_title_en'] ?? 'A Bakery You Can Trust',
+            'about_title_am' => $all['about_title_am'] ?? 'የሚተማመኑበት የዳቦና ኬክ መጋገሪያ',
             'about_story_en' => $all['about_story_en'] ?? 'At SweetBakes, we believe every celebration starts with the aroma of freshly baked butter, warm vanilla, and handcrafted pastries.',
             'about_story_am' => $all['about_story_am'] ?? 'በስዊትቤክስ እያንዳንዱ በዓል የሚጀምረው አዲስ በተጋገረ ቅቤ፣ ሞቅ ባለ ቫኒላ እና በእጅ በተዘጋጁ ኬኮች መዓዛ ነው።',
+            'about_image_url' => $all['about_image_url'] ?? '/mockup/baker_hires.jpg',
+            'about_chef_quote_en' => $all['about_chef_quote_en'] ?? '“Making life sweeter, one cake and bread at a time.”',
+            'about_chef_quote_am' => $all['about_chef_quote_am'] ?? '“እያንዳንዱን ኬክ እና ዳቦ በፍቅር እና በጥንቃቄ እያዘጋጀን ህይወትዎን እናጣፍጣለን::”',
+            'about_chef_title_en' => $all['about_chef_title_en'] ?? '— SweetBakes Master Pastry Chef',
+            'about_chef_title_am' => $all['about_chef_title_am'] ?? '— የስዊትቤክስ ዋና ኬክ ሼፍ',
+            'about_bullet_1_en' => $all['about_bullet_1_en'] ?? '100% Artisanal & Fresh Daily',
+            'about_bullet_1_am' => $all['about_bullet_1_am'] ?? '100% በእጅ የተዘጋጀና ትኩስ',
+            'about_bullet_2_en' => $all['about_bullet_2_en'] ?? 'Finest Natural Ingredients',
+            'about_bullet_2_am' => $all['about_bullet_2_am'] ?? 'ከምርጥ የተፈጥሮ ግብአቶች የተዘጋጀ',
+            'about_bullet_3_en' => $all['about_bullet_3_en'] ?? 'Custom Design Celebration Cakes',
+            'about_bullet_3_am' => $all['about_bullet_3_am'] ?? 'ልዩ የክብረ በዓል ኬኮች ዲዛይን',
+            'about_bullet_4_en' => $all['about_bullet_4_en'] ?? 'Multi-Branch Addis Delivery',
+            'about_bullet_4_am' => $all['about_bullet_4_am'] ?? 'በሁሉም ቅርንጫፎች ፈጣን ማድረሻ',
+
+            // Key Statistics
+            'stat_experience_years' => $all['stat_experience_years'] ?? '12+',
+            'stat_happy_customers' => $all['stat_happy_customers'] ?? '50k+',
+            'stat_daily_fresh' => $all['stat_daily_fresh'] ?? '100%',
+            'stat_master_chefs' => $all['stat_master_chefs'] ?? '15+',
             'stats' => [
                 [
                     'id' => 'experience',

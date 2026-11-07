@@ -276,77 +276,325 @@
       </div>
     </div>
 
-    <!-- TAB 2: Business Info & Story -->
-    <div v-else-if="activeTab === 'business'" class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-6">
-      <div class="border-b border-[#EFE8DF] pb-3">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Bakery Contact Details, Location &amp; Story</h3>
-        <p class="text-xs text-[#8A7B71]">All customer-facing contact info, GPS coordinates, about story, and statistics</p>
+    <!-- TAB 2: Cafe Identity, Homepage Hero & About Page Settings -->
+    <div v-else-if="activeTab === 'business'" class="space-y-6">
+      <!-- Section 1: Cafe Identity & Slogan -->
+      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
+        <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+              <span>🏪</span>
+              <span>Cafe &amp; Bakery Identity</span>
+            </h3>
+            <p class="text-xs text-[#8A7B71]">Customize your cafe name, tagline, founding year, and general description</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 rounded-full border border-amber-200">Global Branding</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Bakery / Cafe Name *</label>
+            <input v-model="form.site_name" type="text" placeholder="e.g. SweetBakes Bakery" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Tagline / Slogan</label>
+            <input v-model="form.site_tagline" type="text" placeholder="e.g. Artisanal Bakery & Celebration Cakes" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Founded / Established Year</label>
+            <input v-model="form.since_year" type="text" placeholder="e.g. 2015" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Global Description (English)</label>
+            <textarea v-model="form.site_description_en" rows="2" placeholder="Brief description of the cafe..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Global Description (Amharic - አማርኛ)</label>
+            <textarea v-model="form.site_description_am" rows="2" placeholder="የካፌው አጭር መግለጫ..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
+          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Contact details -->
-        <div class="space-y-4">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-[#BA5420]">Contact Information</h4>
+      <!-- Section 2: Homepage Hero Banner Content -->
+      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
+        <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Bakery Name</label>
-            <input v-model="form.site_name" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+              <span>✨</span>
+              <span>Homepage Hero Banner &amp; Headline</span>
+            </h3>
+            <p class="text-xs text-[#8A7B71]">Customize the main headline, subtitle badge, description, and button shown at the top of the homepage</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-rose-50 text-[#DE1B54] rounded-full border border-rose-200">Homepage Top</span>
+        </div>
+
+        <!-- Hero Subtitle Badge -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Pill Badge (English)</label>
+            <input v-model="form.hero_subtitle_en" type="text" placeholder="e.g. Artisanal Cakes & Breads" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Phone Number</label>
-            <input v-model="form.business_phone" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Pill Badge (Amharic)</label>
+            <input v-model="form.hero_subtitle_am" type="text" placeholder="e.g. ልዩ የክብረ በዓል ኬኮች እና ዳቦ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <!-- Hero Main Headline (Line 1) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Main Headline Line 1 (English)</label>
+            <input v-model="form.hero_title_en" type="text" placeholder="e.g. Baked Fresh with Love" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Email Address</label>
-            <input v-model="form.business_email" type="email" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Main Headline Line 1 (Amharic)</label>
+            <input v-model="form.hero_title_am" type="text" placeholder="e.g. በፍቅር የተዘጋጀ ትኩስ ጣዕም" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <!-- Hero Subheadline (Line 2) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Headline Line 2 / Accent (English)</label>
+            <input v-model="form.hero_title2_en" type="text" placeholder="e.g. Addis Ababa's Favorite" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Address (English)</label>
-            <input v-model="form.business_address_en" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Headline Line 2 / Accent (Amharic)</label>
+            <input v-model="form.hero_title2_am" type="text" placeholder="e.g. የአዲስ አበባ ተመራጭ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <!-- Hero Description Paragraph -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Description (English)</label>
+            <textarea v-model="form.hero_desc_en" rows="2" placeholder="e.g. Handcrafted celebration cakes and warm sourdough..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Address (Amharic)</label>
-            <input v-model="form.business_address_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Description (Amharic)</label>
+            <textarea v-model="form.hero_desc_am" rows="2" placeholder="e.g. የልደትና የሰርግ ኬኮች እንዲሁም..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Latitude</label>
-              <input v-model="form.business_lat" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+        </div>
+
+        <!-- Hero CTA Button & Target URL -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Button Text (English)</label>
+            <input v-model="form.hero_button_text_en" type="text" placeholder="e.g. Order Online" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Button Text (Amharic)</label>
+            <input v-model="form.hero_button_text_am" type="text" placeholder="e.g. አሁን ይዘዙ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Button Target Link</label>
+            <input v-model="form.hero_button_link" type="text" placeholder="e.g. /shop" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Background Image URL (8K Ultra HD)</label>
+          <div class="flex items-center space-x-3">
+            <input v-model="form.hero_image_url" type="text" placeholder="/mockup/hero_banner_hq.jpg" class="flex-1 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+            <img v-if="form.hero_image_url" :src="form.hero_image_url" alt="Preview" class="w-14 h-9 rounded-lg object-cover border border-[#D8CDC0] shadow-xs" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: About Page & Story Section -->
+      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
+        <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+              <span>📖</span>
+              <span>About Page &amp; Story Section</span>
+            </h3>
+            <p class="text-xs text-[#8A7B71]">Customize the About section on the homepage and the full About Us page</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">About View &amp; Section</span>
+        </div>
+
+        <!-- About Tag & Headline -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Section Tag (English)</label>
+            <input v-model="form.about_tag_en" type="text" placeholder="e.g. About SweetBakes" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Section Tag (Amharic)</label>
+            <input v-model="form.about_tag_am" type="text" placeholder="e.g. ስለ ስዊትቤክስ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Main Headline (English)</label>
+            <input v-model="form.about_title_en" type="text" placeholder="e.g. A Bakery You Can Trust" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Main Headline (Amharic)</label>
+            <input v-model="form.about_title_am" type="text" placeholder="e.g. የሚተማመኑበት የዳቦና ኬክ መጋገሪያ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <!-- About Story Textarea -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Story (English)</label>
+            <textarea v-model="form.about_story_en" rows="3" placeholder="Tell the story of your bakery..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">About Story (Amharic)</label>
+            <textarea v-model="form.about_story_am" rows="3" placeholder="የዳቦ መጋገሪያዎን ታሪክ ይንገሩ..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"></textarea>
+          </div>
+        </div>
+
+        <!-- Chef Photo & Quote -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef / Bakery Image URL</label>
+            <div class="flex items-center space-x-2">
+              <input v-model="form.about_image_url" type="text" placeholder="/mockup/baker_hires.jpg" class="flex-1 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+              <img v-if="form.about_image_url" :src="form.about_image_url" alt="Chef Preview" class="w-10 h-10 rounded-lg object-cover border border-[#D8CDC0] shadow-xs" />
             </div>
-            <div>
-              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Longitude</label>
-              <input v-model="form.business_lng" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef Quote (English)</label>
+            <input v-model="form.about_chef_quote_en" type="text" placeholder="“Making life sweeter, one cake at a time.”" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef Quote (Amharic)</label>
+            <input v-model="form.about_chef_quote_am" type="text" placeholder="“እያንዳንዱን ኬክ እና ዳቦ በፍቅር...”" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
+          </div>
+        </div>
+
+        <!-- 4 Value Bullets -->
+        <div class="space-y-2 pt-2">
+          <label class="block text-xs font-bold text-[#4A3B32]">4 Key Value Bullets (English &amp; Amharic)</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+              <input v-model="form.about_bullet_1_en" type="text" placeholder="Bullet 1 (EN)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+              <input v-model="form.about_bullet_1_am" type="text" placeholder="Bullet 1 (AM)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+              <input v-model="form.about_bullet_2_en" type="text" placeholder="Bullet 2 (EN)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+              <input v-model="form.about_bullet_2_am" type="text" placeholder="Bullet 2 (AM)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+              <input v-model="form.about_bullet_3_en" type="text" placeholder="Bullet 3 (EN)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+              <input v-model="form.about_bullet_3_am" type="text" placeholder="Bullet 3 (AM)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
+              <input v-model="form.about_bullet_4_en" type="text" placeholder="Bullet 4 (EN)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+              <input v-model="form.about_bullet_4_am" type="text" placeholder="Bullet 4 (AM)" class="w-1/2 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
             </div>
           </div>
         </div>
 
-        <!-- Story & Stats -->
-        <div class="space-y-4">
-          <h4 class="font-bold text-xs uppercase tracking-wider text-[#BA5420]">Story &amp; Statistics</h4>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Working Hours (English)</label>
-            <input v-model="form.business_hours_en" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Working Hours (Amharic)</label>
-            <input v-model="form.business_hours_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">About Story (English)</label>
-            <textarea v-model="form.about_story_en" rows="3" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"></textarea>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">About Story (Amharic)</label>
-            <textarea v-model="form.about_story_am" rows="3" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"></textarea>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Key Stats Counter -->
+        <div class="pt-2">
+          <label class="block text-xs font-bold text-[#4A3B32] mb-2">Bakery Experience &amp; Impact Stats</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Experience Years Stat</label>
-              <input v-model="form.stat_experience_years" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+              <label class="block text-[11px] text-[#7D6E64] mb-1">Years of Baking</label>
+              <input v-model="form.stat_experience_years" type="text" placeholder="12+" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Happy Customers Stat</label>
-              <input v-model="form.stat_happy_customers" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+              <label class="block text-[11px] text-[#7D6E64] mb-1">Happy Customers</label>
+              <input v-model="form.stat_happy_customers" type="text" placeholder="50k+" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
             </div>
+            <div>
+              <label class="block text-[11px] text-[#7D6E64] mb-1">Daily Fresh</label>
+              <input v-model="form.stat_daily_fresh" type="text" placeholder="100%" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-[#7D6E64] mb-1">Master Chefs</label>
+              <input v-model="form.stat_master_chefs" type="text" placeholder="15+" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Contact, Location & Working Hours -->
+      <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
+        <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+              <span>📍</span>
+              <span>Contact Details, Working Hours &amp; GPS</span>
+            </h3>
+            <p class="text-xs text-[#8A7B71]">Customer contact channels, physical coordinates, and social profiles</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-800 rounded-full border border-blue-200">Customer Reach</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Phone Number</label>
+            <input v-model="form.business_phone" type="text" placeholder="+251 911 123 456" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Email Address</label>
+            <input v-model="form.business_email" type="email" placeholder="info@sweetbakes.com" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Working Hours (English)</label>
+            <input v-model="form.business_hours_en" type="text" placeholder="Mon – Sun: 8:00 AM – 9:00 PM" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Working Hours (Amharic)</label>
+            <input v-model="form.business_hours_am" type="text" placeholder="ከሰኞ – እሑድ፡ ከጠዋቱ 2:00 – ማታ 3:00" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Address (English)</label>
+            <input v-model="form.business_address_en" type="text" placeholder="Bole Medhanialem..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Address (Amharic)</label>
+            <input v-model="form.business_address_am" type="text" placeholder="ቦሌ መድኃኔዓለም..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">GPS Latitude</label>
+            <input v-model="form.business_lat" type="text" placeholder="9.0016" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">GPS Longitude</label>
+            <input v-model="form.business_lng" type="text" placeholder="38.7845" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div>
+            <label class="block text-[11px] text-[#7D6E64] mb-1">Facebook URL</label>
+            <input v-model="form.social_facebook" type="text" placeholder="https://facebook.com/..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-[#7D6E64] mb-1">Instagram URL</label>
+            <input v-model="form.social_instagram" type="text" placeholder="https://instagram.com/..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-[#7D6E64] mb-1">Telegram URL</label>
+            <input v-model="form.social_telegram" type="text" placeholder="https://t.me/..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
+          </div>
+          <div>
+            <label class="block text-[11px] text-[#7D6E64] mb-1">TikTok URL</label>
+            <input v-model="form.social_tiktok" type="text" placeholder="https://tiktok.com/@..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
           </div>
         </div>
       </div>
@@ -383,12 +631,20 @@
           </div>
           <div class="p-4 pt-2 border-t border-[#EFE8DF] flex items-center justify-between">
             <span class="text-[11px] text-[#8A7B71]">Order: {{ b.sort_order }}</span>
-            <button
-              @click="deleteBanner(b)"
-              class="text-xs font-semibold text-red-600 hover:text-red-800 transition cursor-pointer"
-            >
-              Delete
-            </button>
+            <div class="flex items-center space-x-3">
+              <button
+                @click="openEditBannerModal(b)"
+                class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314] transition cursor-pointer"
+              >
+                Edit
+              </button>
+              <button
+                @click="deleteBanner(b)"
+                class="text-xs font-semibold text-red-600 hover:text-red-800 transition cursor-pointer"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -416,7 +672,7 @@
             <tbody class="divide-y divide-[#F3EDE4]">
               <tr v-for="rev in reviewsList" :key="rev.review_id" class="hover:bg-[#FCFAF7]">
                 <td class="py-3 px-4 font-bold text-[#2A1D15]">{{ rev.user?.full_name || 'Customer' }}</td>
-                <td class="py-3 px-3 text-[#BA5420] font-semibold">{{ rev.product?.product_name || 'Product #' + rev.product_id }}</td>
+                <td class="py-3 px-3 text-[#BA5420] font-product font-bold text-xs sm:text-sm">{{ rev.product?.product_name || 'Product #' + rev.product_id }}</td>
                 <td class="py-3 px-3 text-amber-500 font-bold">
                   <span v-for="s in 5" :key="s">{{ s <= rev.rating ? '★' : '☆' }}</span>
                 </td>
@@ -521,38 +777,149 @@
       <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-xl w-full p-6 space-y-4 animate-in fade-in max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <h3 class="font-serif font-bold text-lg text-[#2A1D15]">Add Hero Banner</h3>
-          <button @click="isAddBannerModalOpen = false" class="text-xl font-bold text-[#7D6E64]">&times;</button>
+          <button @click="isAddBannerModalOpen = false" class="text-xl font-bold text-[#7D6E64] cursor-pointer">&times;</button>
         </div>
 
         <form @submit.prevent="submitBanner" class="space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (English) *</label>
-            <input v-model="newBanner.title_en" type="text" required class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (English) *</label>
+              <input v-model="newBanner.title_en" type="text" required class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (Amharic)</label>
+              <input v-model="newBanner.title_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Subtitle / Badge (EN)</label>
+              <input v-model="newBanner.subtitle_en" type="text" placeholder="e.g. Artisanal Cakes" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Subtitle / Badge (AM)</label>
+              <input v-model="newBanner.subtitle_am" type="text" placeholder="e.g. ልዩ የክብረ በዓል ኬኮች" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Badge Text (EN)</label>
+              <input v-model="newBanner.badge_en" type="text" placeholder="e.g. Addis Ababa's Favorite" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Badge Text (AM)</label>
+              <input v-model="newBanner.badge_am" type="text" placeholder="e.g. የአዲስ አበባ ተመራጭ" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (Amharic)</label>
-            <input v-model="newBanner.title_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Badge Text</label>
-            <input v-model="newBanner.badge_en" type="text" placeholder="e.g. Fresh Daily" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Description</label>
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Description (English)</label>
             <textarea v-model="newBanner.description_en" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image URL *</label>
-            <input v-model="newBanner.image_url" type="text" required placeholder="/mockup/hero_cake.jpg" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Description (Amharic)</label>
+            <textarea v-model="newBanner.description_am" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Target Link</label>
-            <input v-model="newBanner.link_url" type="text" placeholder="/shop" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image URL *</label>
+            <input v-model="newBanner.image_url" type="text" required placeholder="/mockup/hero_banner_hq.jpg" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Button Text (EN)</label>
+              <input v-model="newBanner.button_text_en" type="text" placeholder="Order Online" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Target Link</label>
+              <input v-model="newBanner.link_url" type="text" placeholder="/shop" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
           </div>
 
           <div class="flex justify-end space-x-2 pt-3 border-t border-[#EFE8DF]">
-            <button type="button" @click="isAddBannerModalOpen = false" class="px-4 py-1.5 text-xs font-semibold text-[#7D6E64]">Cancel</button>
-            <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm">Create Banner</button>
+            <button type="button" @click="isAddBannerModalOpen = false" class="px-4 py-1.5 text-xs font-semibold text-[#7D6E64] cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm cursor-pointer">Create Banner</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: Edit Banner Modal -->
+    <div v-if="isEditBannerModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-xl w-full p-6 space-y-4 animate-in fade-in max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
+          <h3 class="font-serif font-bold text-lg text-[#2A1D15]">Edit Hero Banner #{{ editingBanner?.banner_id }}</h3>
+          <button @click="isEditBannerModalOpen = false" class="text-xl font-bold text-[#7D6E64] cursor-pointer">&times;</button>
+        </div>
+
+        <form @submit.prevent="updateBannerSubmit" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (English) *</label>
+              <input v-model="editingBanner.title_en" type="text" required class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Title (Amharic)</label>
+              <input v-model="editingBanner.title_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Subtitle / Badge (EN)</label>
+              <input v-model="editingBanner.subtitle_en" type="text" placeholder="e.g. Artisanal Cakes" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Badge Text (EN)</label>
+              <input v-model="editingBanner.badge_en" type="text" placeholder="e.g. Addis Ababa's Favorite" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Subtitle / Badge (AM)</label>
+              <input v-model="editingBanner.subtitle_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Badge Text (AM)</label>
+              <input v-model="editingBanner.badge_am" type="text" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Description (English)</label>
+            <textarea v-model="editingBanner.description_en" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Description (Amharic)</label>
+            <textarea v-model="editingBanner.description_am" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image URL *</label>
+            <input v-model="editingBanner.image_url" type="text" required placeholder="/mockup/hero_banner_hq.jpg" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Button Text (EN)</label>
+              <input v-model="editingBanner.button_text_en" type="text" placeholder="Order Online" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Target Link</label>
+              <input v-model="editingBanner.link_url" type="text" placeholder="/shop" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Sort Order</label>
+              <input v-model.number="editingBanner.sort_order" type="number" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Status</label>
+              <select v-model="editingBanner.is_active" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]">
+                <option :value="true">Active (Visible)</option>
+                <option :value="false">Hidden</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-2 pt-3 border-t border-[#EFE8DF]">
+            <button type="button" @click="isEditBannerModalOpen = false" class="px-4 py-1.5 text-xs font-semibold text-[#7D6E64] cursor-pointer">Cancel</button>
+            <button type="submit" class="px-4 py-1.5 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm cursor-pointer">Save Changes</button>
           </div>
         </form>
       </div>
@@ -570,6 +937,7 @@ const successMsg = ref('');
 const errorMsg = ref('');
 
 const form = ref({
+  // System & Orders
   unpaid_reservation_minutes: 15,
   default_reorder_level: 10,
   pay_on_pickup_delivery: 'Enabled',
@@ -584,7 +952,15 @@ const form = ref({
   currency: 'ETB',
   admin_2fa: 'Optional',
   backups: 'Daily, kept 30 days',
+
+  // Cafe / Bakery Identity
   site_name: 'SweetBakes Bakery',
+  site_tagline: 'Artisanal Bakery & Celebration Cakes',
+  site_description_en: 'Handcrafted celebration cakes and artisanal breads baked fresh daily with love in Addis Ababa.',
+  site_description_am: 'በፍቅር እና በጥንቃቄ የተዘጋጁ ልዩ የክብረ በዓል ኬኮች እና ትኩስ የተፈጥሮ ዳቦዎች በአዲስ አበባ።',
+  since_year: '2015',
+
+  // Contact & Location
   business_phone: '+251 911 123 456',
   business_email: 'info@sweetbakes.com',
   business_address_en: 'Bole Medhanialem, Next to Edna Mall, Addis Ababa, Ethiopia',
@@ -593,21 +969,73 @@ const form = ref({
   business_hours_am: 'ከሰኞ – እሑድ፡ ከጠዋቱ 2:00 – ማታ 3:00',
   business_lat: '9.0016',
   business_lng: '38.7845',
+
+  // Homepage Hero Customization
+  hero_subtitle_en: 'Artisanal Cakes & Breads',
+  hero_subtitle_am: 'ልዩ የክብረ በዓል ኬኮች እና ዳቦ',
+  hero_title_en: 'Baked Fresh with Love',
+  hero_title_am: 'በፍቅር የተዘጋጀ ትኩስ ጣዕም',
+  hero_title2_en: "Addis Ababa's Favorite",
+  hero_title2_am: 'የአዲስ አበባ ተመራጭ',
+  hero_desc_en: 'Handcrafted celebration cakes and warm sourdough delivered fresh to your doorstep.',
+  hero_desc_am: 'የልደትና የሰርግ ኬኮች እንዲሁም ትኩስ የተፈጥሮ ዳቦዎች በሁሉም የአዲስ አበባ ክፍሎች ባሉበት ይደርሳሉ።',
+  hero_button_text_en: 'Order Online',
+  hero_button_text_am: 'አሁን ይዘዙ',
+  hero_button_link: '/shop',
+  hero_image_url: '/mockup/hero_banner_hq.jpg',
+
+  // About Page & Section Customization
+  about_tag_en: 'About SweetBakes',
+  about_tag_am: 'ስለ ስዊትቤክስ',
+  about_title_en: 'A Bakery You Can Trust',
+  about_title_am: 'የሚተማመኑበት የዳቦና ኬክ መጋገሪያ',
   about_story_en: 'At SweetBakes, we believe every celebration starts with the aroma of freshly baked butter, warm vanilla, and handcrafted pastries.',
   about_story_am: 'በስዊትቤክስ እያንዳንዱ በዓል የሚጀምረው አዲስ በተጋገረ ቅቤ፣ ሞቅ ባለ ቫኒላ እና በእጅ በተዘጋጁ ኬኮች መዓዛ ነው።',
+  about_image_url: '/mockup/baker_hires.jpg',
+  about_chef_quote_en: '“Making life sweeter, one cake and bread at a time.”',
+  about_chef_quote_am: '“እያንዳንዱን ኬክ እና ዳቦ በፍቅር እና በጥንቃቄ እያዘጋጀን ህይወትዎን እናጣፍጣለን::”',
+  about_chef_title_en: '— SweetBakes Master Pastry Chef',
+  about_chef_title_am: '— የስዊትቤክስ ዋና ኬክ ሼፍ',
+  about_bullet_1_en: '100% Artisanal & Fresh Daily',
+  about_bullet_1_am: '100% በእጅ የተዘጋጀና ትኩስ',
+  about_bullet_2_en: 'Finest Natural Ingredients',
+  about_bullet_2_am: 'ከምርጥ የተፈጥሮ ግብአቶች የተዘጋጀ',
+  about_bullet_3_en: 'Custom Design Celebration Cakes',
+  about_bullet_3_am: 'ልዩ የክብረ በዓል ኬኮች ዲዛይን',
+  about_bullet_4_en: 'Multi-Branch Addis Delivery',
+  about_bullet_4_am: 'በሁሉም ቅርንጫፎች ፈጣን ማድረሻ',
+
+  // Key Statistics
   stat_experience_years: '12+',
   stat_happy_customers: '50k+',
+  stat_daily_fresh: '100%',
+  stat_master_chefs: '15+',
+
+  // Social Links
+  social_facebook: 'https://facebook.com/sweetbakes',
+  social_instagram: 'https://instagram.com/sweetbakes',
+  social_telegram: 'https://t.me/sweetbakes',
+  social_tiktok: 'https://tiktok.com/@sweetbakes',
 });
 
 // Banners management
 const banners = ref([]);
 const isAddBannerModalOpen = ref(false);
+const isEditBannerModalOpen = ref(false);
+const editingBanner = ref(null);
+
 const newBanner = ref({
   title_en: '',
   title_am: '',
+  subtitle_en: '',
+  subtitle_am: '',
   badge_en: 'Fresh Daily',
+  badge_am: 'በየቀኑ ትኩስ',
   description_en: '',
-  image_url: '/mockup/hero_cake.jpg',
+  description_am: '',
+  image_url: '/mockup/hero_banner_hq.jpg',
+  button_text_en: 'Order Online',
+  button_text_am: 'አሁን ይዘዙ',
   link_url: '/shop',
   is_active: true,
   sort_order: 1,
@@ -626,9 +1054,15 @@ const openAddBannerModal = () => {
   newBanner.value = {
     title_en: '',
     title_am: '',
+    subtitle_en: '',
+    subtitle_am: '',
     badge_en: 'Fresh Daily',
+    badge_am: 'በየቀኑ ትኩስ',
     description_en: '',
-    image_url: '/mockup/hero_cake.jpg',
+    description_am: '',
+    image_url: '/mockup/hero_banner_hq.jpg',
+    button_text_en: 'Order Online',
+    button_text_am: 'አሁን ይዘዙ',
     link_url: '/shop',
     is_active: true,
     sort_order: banners.value.length + 1,
@@ -644,6 +1078,23 @@ const submitBanner = async () => {
     await loadBanners();
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Failed to create banner';
+  }
+};
+
+const openEditBannerModal = (b) => {
+  editingBanner.value = { ...b, is_active: Boolean(b.is_active) };
+  isEditBannerModalOpen.value = true;
+};
+
+const updateBannerSubmit = async () => {
+  if (!editingBanner.value) return;
+  try {
+    await api.patch(`/admin/banners/${editingBanner.value.banner_id}`, editingBanner.value);
+    successMsg.value = 'Banner updated successfully!';
+    isEditBannerModalOpen.value = false;
+    await loadBanners();
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Failed to update banner';
   }
 };
 
@@ -717,7 +1168,7 @@ const saveSettings = async () => {
   errorMsg.value = '';
   try {
     await api.post('/admin/settings', form.value);
-    successMsg.value = 'Settings saved successfully.';
+    successMsg.value = 'Settings saved successfully! Homepage and About page have been updated.';
     setTimeout(() => { successMsg.value = ''; }, 3500);
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Failed to save settings';
