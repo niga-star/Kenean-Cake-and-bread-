@@ -1,5 +1,8 @@
 <template>
   <div class="relative min-h-screen">
+    <!-- Professional Initial Bakery Welcome Screen (Runs once per session) -->
+    <InitialLoadingScreen />
+
     <!-- Slim SweetBakes Berry Pink Top Loading Progress Bar -->
     <div v-if="isLoading" class="sweet-top-loader">
       <div
@@ -14,12 +17,17 @@
         <component :is="Component" />
       </transition>
     </router-view>
+
+    <!-- Global SweetBakes Toast Notifications Stack -->
+    <ToastNotification />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import InitialLoadingScreen from './components/InitialLoadingScreen.vue';
+import ToastNotification from './components/ToastNotification.vue';
 
 const router = useRouter();
 const isLoading = ref(false);
