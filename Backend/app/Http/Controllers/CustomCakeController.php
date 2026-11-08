@@ -278,11 +278,12 @@ class CustomCakeController extends Controller
             }
         }
 
+        $cakeReq->loadMissing('branch');
         AuditLog::create([
             'user_id' => $user?->user_id,
             'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
             'action' => 'Custom cake submitted',
-            'record' => $cakeReq->request_number,
+            'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
             'entity_id' => (string) $cakeReq->request_id,
             'old_value' => '—',
@@ -339,11 +340,12 @@ class CustomCakeController extends Controller
         $cakeReq->status = 'Quoted';
         $cakeReq->save();
 
+        $cakeReq->loadMissing('branch');
         AuditLog::create([
             'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Branch Admin',
+            'user_name' => $request->user()?->full_name ?? 'Branch Manager',
             'action' => 'Custom cake quoted',
-            'record' => $cakeReq->request_number,
+            'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
             'entity_id' => (string) $cakeReq->request_id,
             'old_value' => 'Submitted',
@@ -379,11 +381,12 @@ class CustomCakeController extends Controller
         }
         $cakeReq->save();
 
+        $cakeReq->loadMissing('branch');
         AuditLog::create([
             'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Branch Admin',
+            'user_name' => $request->user()?->full_name ?? 'Branch Staff',
             'action' => 'Custom cake status updated',
-            'record' => $cakeReq->request_number,
+            'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
             'entity_id' => (string) $cakeReq->request_id,
             'old_value' => $oldStatus,
@@ -420,11 +423,12 @@ class CustomCakeController extends Controller
         $cakeReq->deposit_paid = $amountPaid;
         $cakeReq->save();
 
+        $cakeReq->loadMissing('branch');
         AuditLog::create([
             'user_id' => $user?->user_id,
             'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
             'action' => 'Custom cake quote accepted',
-            'record' => $cakeReq->request_number,
+            'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
             'entity_id' => (string) $cakeReq->request_id,
             'old_value' => 'Quoted',
@@ -485,11 +489,12 @@ class CustomCakeController extends Controller
         $cakeReq->rejection_reason = $validated['reason'] ?? 'Cancelled by customer';
         $cakeReq->save();
 
+        $cakeReq->loadMissing('branch');
         AuditLog::create([
             'user_id' => $user?->user_id,
             'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
             'action' => 'Custom cake cancelled',
-            'record' => $cakeReq->request_number,
+            'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
             'entity_id' => (string) $cakeReq->request_id,
             'old_value' => $oldStatus,

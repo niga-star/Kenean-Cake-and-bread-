@@ -167,7 +167,7 @@ class SalaryController extends Controller
             'entity_type' => 'Salary',
             'entity_id' => (string) $user->user_id,
             'old_value' => "ETB " . number_format($oldSalary, 2),
-            'new_value' => "ETB " . number_format($newSalary, 2) . ($validated['reason'] ? " ({$validated['reason']})" : ""),
+            'new_value' => "ETB " . number_format($newSalary, 2) . (!empty($validated['reason']) ? " ({$validated['reason']})" : ""),
             'created_at' => now(),
         ]);
 

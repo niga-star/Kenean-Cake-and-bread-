@@ -338,9 +338,9 @@ class OrderController extends Controller
 
             AuditLog::create([
                 'user_id' => $user?->user_id,
-                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'System',
-                'action' => 'Order status change',
-                'record' => $order->order_number,
+                'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Branch Staff',
+                'action' => 'Order status updated',
+                'record' => $order->order_number . ($order->branch ? " · {$order->branch->branch_name}" : ""),
                 'entity_type' => 'Order',
                 'entity_id' => (string) $order->order_id,
                 'old_value' => $oldStatus,
@@ -426,7 +426,7 @@ class OrderController extends Controller
                 'user_id' => $user?->user_id,
                 'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
                 'action' => 'Order cancelled',
-                'record' => $order->order_number,
+                'record' => $order->order_number . ($order->branch ? " · {$order->branch->branch_name}" : ""),
                 'entity_type' => 'Order',
                 'entity_id' => (string) $order->order_id,
                 'old_value' => $oldStatus,

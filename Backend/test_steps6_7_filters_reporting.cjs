@@ -320,3 +320,4 @@ async function runTests() {
 }
 
 runTests();
+

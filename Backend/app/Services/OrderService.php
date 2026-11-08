@@ -279,7 +279,7 @@ class OrderService
                 'user_id' => $user?->user_id,
                 'user_name' => $customerName,
                 'action' => 'Order placed',
-                'record' => $order->order_number,
+                'record' => $order->order_number . ($branch ? " · {$branch->branch_name}" : ""),
                 'entity_type' => 'Order',
                 'entity_id' => (string) $order->order_id,
                 'old_value' => '—',

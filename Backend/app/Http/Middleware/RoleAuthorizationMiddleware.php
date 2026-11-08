@@ -31,14 +31,6 @@ class RoleAuthorizationMiddleware
             }
         }
 
-        // Local testing environment fallback for test scripts (strictly disallowed in production)
-        if (!$user && (app()->environment('local', 'testing') && !app()->environment('production'))) {
-            $user = User::where('role', 'Super Admin')->first();
-            if ($user) {
-                $request->setUserResolver(fn () => $user);
-            }
-        }
-
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
