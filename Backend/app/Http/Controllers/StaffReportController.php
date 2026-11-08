@@ -30,16 +30,29 @@ class StaffReportController extends Controller
             if ($branchId && $branchId !== 'all') {
                 $query->where('branch_id', $branchId);
             }
-            $reportType = $request->query('report_type');
-            if ($reportType && $reportType !== 'all') {
-                $query->where('report_type', $reportType);
-            }
         } elseif (in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
             // Manager sees reports from their assigned branch
             $query->where('branch_id', $currentUser->branch_id);
         } else {
             // Staff sees own reports
             $query->where('user_id', $currentUser->user_id);
+        }
+
+        $reportType = $request->query('report_type');
+        if ($reportType && $reportType !== 'all') {
+            $query->where('report_type', $reportType);
+        }
+
+        $date = $request->query('date');
+        if ($date) {
+            $query->whereDate('created_at', $date);
+        }
+
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date') ?: $startDate;
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate)
+                  ->whereDate('created_at', '<=', $endDate);
         }
 
         $reports = $query->orderByDesc('created_at')->get();

@@ -108,15 +108,47 @@
       </div>
 
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Date</label>
+        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Date Filter</label>
         <select
           v-model="filters.date"
           @change="applyFilters"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
         >
+          <option value="all">All Orders</option>
           <option value="today">Today</option>
-          <option value="all">All time</option>
+          <option value="this_week">This Week</option>
+          <option value="this_month">This Month</option>
+          <option value="custom">Custom Date Range</option>
         </select>
+      </div>
+
+      <!-- Custom Date Range Pickers (Step 6) -->
+      <div v-if="filters.date === 'custom'" class="sm:col-span-4 flex flex-wrap items-center gap-3 pt-2.5 border-t border-[#EFE8DF] bg-[#FAF7F2] p-3 rounded-lg">
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-semibold text-[#65554B]">From:</label>
+          <input
+            v-model="filters.start_date"
+            @change="applyFilters"
+            type="date"
+            class="bg-white border border-[#DDD2C5] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+          />
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="text-xs font-semibold text-[#65554B]">To:</label>
+          <input
+            v-model="filters.end_date"
+            @change="applyFilters"
+            type="date"
+            class="bg-white border border-[#DDD2C5] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+          />
+        </div>
+        <button
+          type="button"
+          @click="clearCustomDates"
+          class="text-xs font-semibold text-[#BA5420] hover:underline cursor-pointer"
+        >
+          Reset Custom Dates
+        </button>
       </div>
     </div>
 
@@ -397,7 +429,7 @@ import api from '../../api';
 
 const authStore = useAuthStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
-const isBranchScoped = computed(() => ['Branch Admin', 'Branch Staff'].includes(authStore.user?.role));
+const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
 const userBranchId = computed(() => authStore.user?.branch_id || authStore.user?.branch?.branch_id);
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || 'My');
 
@@ -420,7 +452,16 @@ const filters = ref({
   branch_id: 'all',
   method: 'all',
   date: 'all',
+  start_date: '',
+  end_date: '',
 });
+
+const clearCustomDates = () => {
+  filters.value.start_date = '';
+  filters.value.end_date = '';
+  filters.value.date = 'all';
+  loadOrders();
+};
 
 const loadOrders = async () => {
   try {
@@ -432,6 +473,8 @@ const loadOrders = async () => {
         method: filters.value.method,
         search: filters.value.search,
         date: filters.value.date,
+        start_date: filters.value.start_date,
+        end_date: filters.value.end_date,
       }
     });
     orders.value = res.data.orders;

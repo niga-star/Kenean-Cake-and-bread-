@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\User;
 use App\Models\AuditLog;
 use App\Models\Notification;
+use Carbon\Carbon;
 
 class CustomCakeController extends Controller
 {
@@ -64,11 +65,36 @@ class CustomCakeController extends Controller
             });
         }
 
+        // Date filter (Step 6: Today, This Week, This Month, Custom Date Range, All Orders)
+        $dateFilter = $request->query('date_range') ?: $request->query('date');
+        if ($dateFilter && $dateFilter !== 'all') {
+            $now = Carbon::now();
+            if ($dateFilter === 'today') {
+                $query->whereDate('created_at', Carbon::today());
+            } elseif ($dateFilter === 'this_week' || $dateFilter === 'week') {
+                $query->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+            } elseif ($dateFilter === 'this_month' || $dateFilter === 'month') {
+                $query->whereBetween('created_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()]);
+            } elseif ($dateFilter === 'custom') {
+                $startDate = $request->query('start_date');
+                $endDate = $request->query('end_date') ?: $startDate;
+                if ($startDate) {
+                    $query->whereDate('created_at', '>=', $startDate)
+                          ->whereDate('created_at', '<=', $endDate);
+                }
+            }
+        } elseif ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+            if ($request->has('end_date') && $request->end_date) {
+                $query->whereDate('created_at', '<=', $request->end_date);
+            }
+        }
+
         $requests = $query->get();
 
-        // Calculate card metrics
+        // Calculate card metrics respecting branch scoping
         $allForMetrics = CustomCakeRequest::query();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+        if ($user && $user->role !== 'Super Admin' && $userBranchId) {
             $allForMetrics->where('branch_id', $userBranchId);
         }
 

@@ -97,9 +97,29 @@ class OrderController extends Controller
             });
         }
 
-        // Date filter
-        if ($request->has('date') && $request->date === 'today') {
-            $query->whereDate('placed_at', Carbon::today());
+        // Date filter (Step 6: Today, This Week, This Month, Custom Date Range, All Orders)
+        $dateFilter = $request->query('date_range') ?: $request->query('date');
+        if ($dateFilter && $dateFilter !== 'all') {
+            $now = Carbon::now();
+            if ($dateFilter === 'today') {
+                $query->whereDate('placed_at', Carbon::today());
+            } elseif ($dateFilter === 'this_week' || $dateFilter === 'week') {
+                $query->whereBetween('placed_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+            } elseif ($dateFilter === 'this_month' || $dateFilter === 'month') {
+                $query->whereBetween('placed_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()]);
+            } elseif ($dateFilter === 'custom') {
+                $startDate = $request->query('start_date');
+                $endDate = $request->query('end_date') ?: $startDate;
+                if ($startDate) {
+                    $query->whereDate('placed_at', '>=', $startDate)
+                          ->whereDate('placed_at', '<=', $endDate);
+                }
+            }
+        } elseif ($request->has('start_date') && $request->start_date) {
+            $query->whereDate('placed_at', '>=', $request->start_date);
+            if ($request->has('end_date') && $request->end_date) {
+                $query->whereDate('placed_at', '<=', $request->end_date);
+            }
         }
 
         $orders = $query->latest('placed_at')->get();

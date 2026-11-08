@@ -33,6 +33,48 @@
           <option value="Delivered">Delivered / Handed Over</option>
           <option value="Rejected">Rejected</option>
         </select>
+
+        <!-- Date Filter (Step 6) -->
+        <select
+          v-model="selectedDateFilter"
+          @change="loadRequests"
+          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+        >
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="this_week">This Week</option>
+          <option value="this_month">This Month</option>
+          <option value="custom">Custom Date Range</option>
+        </select>
+      </div>
+
+      <!-- Custom Date Inputs -->
+      <div v-if="selectedDateFilter === 'custom'" class="flex flex-wrap items-center gap-3 p-3 bg-[#FAF7F2] rounded-xl border border-[#E9E0D4] text-xs">
+        <div class="flex items-center space-x-2">
+          <label class="font-semibold text-[#65554B]">From:</label>
+          <input
+            v-model="customStartDate"
+            @change="loadRequests"
+            type="date"
+            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+          />
+        </div>
+        <div class="flex items-center space-x-2">
+          <label class="font-semibold text-[#65554B]">To:</label>
+          <input
+            v-model="customEndDate"
+            @change="loadRequests"
+            type="date"
+            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+          />
+        </div>
+        <button
+          type="button"
+          @click="clearCustomDates"
+          class="font-semibold text-[#BA5420] hover:underline cursor-pointer"
+        >
+          Reset Dates
+        </button>
       </div>
     </div>
 
@@ -440,6 +482,9 @@ import api from '../../api';
 const branches = ref([]);
 const selectedBranch = ref('all');
 const selectedStatusFilter = ref('all');
+const selectedDateFilter = ref('all');
+const customStartDate = ref('');
+const customEndDate = ref('');
 const searchQuery = ref('');
 const requests = ref([]);
 const summary = ref({
@@ -448,6 +493,13 @@ const summary = ref({
   confirmed: 0,
   ready_this_week: 0,
 });
+
+const clearCustomDates = () => {
+  customStartDate.value = '';
+  customEndDate.value = '';
+  selectedDateFilter.value = 'all';
+  loadRequests();
+};
 
 const selectedRequest = ref(null);
 const quoteForm = ref({
@@ -502,6 +554,16 @@ const loadRequests = async () => {
     const params = {};
     if (selectedBranch.value !== 'all') {
       params.branch_id = selectedBranch.value;
+    }
+    if (selectedStatusFilter.value !== 'all') {
+      params.status = selectedStatusFilter.value;
+    }
+    if (selectedDateFilter.value && selectedDateFilter.value !== 'all') {
+      params.date = selectedDateFilter.value;
+      if (selectedDateFilter.value === 'custom') {
+        params.start_date = customStartDate.value;
+        params.end_date = customEndDate.value;
+      }
     }
     const res = await api.get('/admin/custom-cakes', { params });
     requests.value = res.data.requests || [];
