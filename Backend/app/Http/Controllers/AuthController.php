@@ -68,8 +68,20 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'full_name' => [
+                'required',
+                'string',
+                'min:3',
+                'max:25',
+                'regex:/^[\p{L}\s]+$/u',
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                'unique:users,email',
+            ],
             'phone' => [
                 'nullable',
                 'string',
@@ -78,6 +90,14 @@ class AuthController extends Controller
             ],
             'password' => 'required|string|min:6',
         ], [
+            'full_name.required' => 'Full name is required.',
+            'full_name.min' => 'Full name must be at least 3 characters.',
+            'full_name.max' => 'Full name cannot exceed 25 characters.',
+            'full_name.regex' => 'Full name must contain only letters and spaces (no numbers or special characters).',
+            'email.required' => 'Email address is required.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.regex' => 'Email must follow the Gmail format (e.g. example@gmail.com).',
+            'email.unique' => 'This email address is already registered.',
             'phone.regex' => 'Phone numbers must follow valid Ethiopian format: +251 9XX XXX XXX, +251 7XX XXX XXX, or 09XX XXX XXX.',
         ]);
 
