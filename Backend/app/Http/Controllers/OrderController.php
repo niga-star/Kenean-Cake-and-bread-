@@ -51,11 +51,16 @@ class OrderController extends Controller
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
-        // Scoping rule: branch admin / staff see only their branch. Super Admin and Main Manager see all.
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
-            $query->where('branch_id', $userBranchId);
-        } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
-            $query->where('branch_id', $request->branch_id);
+        // Scoping rule: Branch Managers and Staff strictly see ONLY their assigned branch.
+        if ($user && $user->role !== 'Customer') {
+            if ($user->role === 'Super Admin') {
+                if ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
+                    $query->where('branch_id', $request->branch_id);
+                }
+            } elseif ($userBranchId) {
+                // Non-super-admin is strictly scoped to own branch; cannot query other branches
+                $query->where('branch_id', $userBranchId);
+            }
         }
 
         // Customer scoping: see own account orders
@@ -101,7 +106,7 @@ class OrderController extends Controller
 
         // Calculate pending count respecting branch scoping
         $countQuery = Order::query();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
+        if ($user && $user->role !== 'Super Admin' && $userBranchId) {
             $countQuery->where('branch_id', $userBranchId);
         }
         $pendingCount = (clone $countQuery)->where('order_status', 'Pending')->count();
@@ -124,7 +129,7 @@ class OrderController extends Controller
 
         $user = request()->user();
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId && $order->branch_id != $userBranchId) {
+        if ($user && $user->role !== 'Customer' && $user->role !== 'Super Admin' && $userBranchId && $order->branch_id != $userBranchId) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
@@ -189,8 +194,15 @@ class OrderController extends Controller
         $order = Order::with(['items', 'payment', 'branch'])->findOrFail($id);
         $user = $request->user();
 
-        // Branch scoping: branch admin and staff can only update their assigned branch
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $order->branch_id != $user->branch_id) {
+        // Step 2 & 3: Super Admin no longer directly manages operational orders
+        if ($user && $user->role === 'Super Admin') {
+            return response()->json([
+                'message' => 'Super Admin no longer directly manages or updates branch orders. Branch Managers and staff manage orders independently for their assigned branch.',
+            ], 403);
+        }
+
+        // Branch scoping: Branch Managers and staff can only update their assigned branch
+        if ($user && $user->branch_id && $order->branch_id != $user->branch_id) {
             return response()->json(['message' => 'Access denied: You can only manage orders for your assigned branch.'], 403);
         }
 

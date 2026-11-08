@@ -30,10 +30,15 @@ class CustomCakeController extends Controller
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = CustomCakeRequest::with(['branch', 'user', 'images'])->latest('created_at');
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId) {
-            $query->where('branch_id', $userBranchId);
-        } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
-            $query->where('branch_id', $request->branch_id);
+        // Scoping rule: Branch Managers and Staff strictly see ONLY their assigned branch.
+        if ($user && $user->role !== 'Customer') {
+            if ($user->role === 'Super Admin') {
+                if ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
+                    $query->where('branch_id', $request->branch_id);
+                }
+            } elseif ($userBranchId) {
+                $query->where('branch_id', $userBranchId);
+            }
         }
 
         if ($user && $user->role === 'Customer') {
@@ -97,7 +102,7 @@ class CustomCakeController extends Controller
 
         $user = $request->user();
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $userBranchId && $cakeRequest->branch_id != $userBranchId) {
+        if ($user && $user->role !== 'Customer' && $user->role !== 'Super Admin' && $userBranchId && $cakeRequest->branch_id != $userBranchId) {
             return response()->json(['message' => 'Access denied: You can only view custom cake requests for your assigned branch.'], 403);
         }
         if ($user && $user->role === 'Customer' && $cakeRequest->user_id && $cakeRequest->user_id != $user->user_id) {
@@ -275,13 +280,22 @@ class CustomCakeController extends Controller
         $cakeReq = CustomCakeRequest::findOrFail($id);
         $user = $request->user();
 
-        if ($user && $user->role === 'Branch Staff') {
-            return response()->json(['message' => 'Branch staff are not permitted to quote custom cakes.'], 403);
+        if ($user && $user->role === 'Super Admin') {
+            return response()->json(['message' => 'Super Admin no longer directly quotes custom cakes. Branch Managers quote custom cakes independently for their assigned branch.'], 403);
         }
-        if ($user && $user->role === 'Branch Admin' && $user->branch_id != $cakeReq->branch_id) {
-            return response()->json(['message' => 'You can only quote custom cakes for your assigned branch.'], 403);
+        if ($user && in_array($user->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'])) {
+            return response()->json(['message' => 'Branch staff are not permitted to quote custom cakes. Only Branch Managers can quote.'], 403);
+        }
+        if ($user && $user->branch_id && $user->branch_id != $cakeReq->branch_id) {
+            return response()->json(['message' => 'Access denied: You can only quote custom cakes for your assigned branch.'], 403);
         }
 
+        if (!$request->has('quoted_price') && $request->has('estimated_price')) {
+            $request->merge(['quoted_price' => $request->estimated_price]);
+        }
+        if (!$request->has('quoted_price') && $request->has('price')) {
+            $request->merge(['quoted_price' => $request->price]);
+        }
         if (!$request->has('deposit_required_percentage') && $request->has('deposit_percentage')) {
             $request->merge(['deposit_required_percentage' => $request->deposit_percentage]);
         }
@@ -319,8 +333,12 @@ class CustomCakeController extends Controller
         $cakeReq = CustomCakeRequest::findOrFail($id);
         $user = $request->user();
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id && $cakeReq->branch_id != $user->branch_id) {
-            return response()->json(['message' => 'You can only manage custom cakes for your assigned branch.'], 403);
+        if ($user && $user->role === 'Super Admin') {
+            return response()->json(['message' => 'Super Admin no longer directly manages custom cakes. Branch Managers and staff manage custom cakes independently for their assigned branch.'], 403);
+        }
+
+        if ($user && $user->branch_id && $cakeReq->branch_id != $user->branch_id) {
+            return response()->json(['message' => 'Access denied: You can only manage custom cakes for your assigned branch.'], 403);
         }
 
         $validated = $request->validate([

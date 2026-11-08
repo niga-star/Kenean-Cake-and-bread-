@@ -64,8 +64,8 @@ const routes = [
       { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant'] } },
       { path: 'distribution', component: DistributionView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff'] } },
       { path: 'transfers/new', component: NewTransferView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
-      { path: 'orders', component: OrdersView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
-      { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'orders', component: OrdersView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'] } },
+      { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'] } },
       { path: 'payments', component: PaymentsView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
       { path: 'reports', component: ReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
@@ -186,7 +186,7 @@ router.beforeEach((to, from, next) => {
       let hasAccess = allowed.includes(role);
 
       if (!hasAccess) {
-        if (role === 'Super Admin' && to.path !== '/admin/products') hasAccess = true;
+        if (role === 'Super Admin' && !['/admin/products', '/admin/orders', '/admin/custom-cakes'].includes(to.path)) hasAccess = true;
         if (allowed.includes('Branch Manager') && role === 'Branch Admin') hasAccess = true;
         if (allowed.includes('Branch Admin') && role === 'Branch Manager') hasAccess = true;
         if (allowed.includes('Branch Staff') && [
@@ -201,6 +201,9 @@ router.beforeEach((to, from, next) => {
 
       if (!hasAccess) {
         toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
+        if (role === 'Super Admin') {
+          return next('/admin/overview');
+        }
         if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(role)) {
           return next('/admin/orders');
         }

@@ -525,7 +525,7 @@ const roleScope = computed(() => {
 
 // Role-based permission map
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
   'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'audit-logs'],
   'Branch Manager': ['overview', 'branches', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
   'Branch Admin': ['overview', 'branches', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],

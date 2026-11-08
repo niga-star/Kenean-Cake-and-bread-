@@ -134,17 +134,20 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/stock-requests', [TransferController::class, 'storeRequest']);
     Route::post('/stock-requests/{id}/convert', [TransferController::class, 'convertRequest'])->middleware('role:Super Admin,Main Branch Manager');
 
-    // Orders (Scoped by controller to caller's branch if Branch Admin / Staff)
+    // Orders (Section 2: Branch Managers & Staff manage; Super Admin blocked from direct order processing)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::match(['patch', 'put'], '/orders/{id}/status', [OrderController::class, 'updateStatus'])
+        ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
     Route::patch('/orders/{id}/branch', [OrderController::class, 'reassignBranch'])->middleware('role:Super Admin');
 
-    // Custom Cakes (Scoped by controller to caller's branch if Branch Admin)
+    // Custom Cakes (Section 2: Branch Managers & Staff manage; Super Admin blocked from direct management)
     Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
     Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
-    Route::patch('/custom-cakes/{id}/quote', [CustomCakeController::class, 'quote']);
-    Route::patch('/custom-cakes/{id}/status', [CustomCakeController::class, 'updateStatus']);
+    Route::match(['patch', 'put'], '/custom-cakes/{id}/quote', [CustomCakeController::class, 'quote'])
+        ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
+    Route::match(['patch', 'put'], '/custom-cakes/{id}/status', [CustomCakeController::class, 'updateStatus'])
+        ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
 
     // Payments & Refunds
     Route::get('/payments', [PaymentController::class, 'index']);

@@ -25,42 +25,59 @@ class OverviewController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today();
-        $startOfWeek = Carbon::now()->startOfWeek();
+        $dateParam = $request->query('date');
+        $today = $dateParam ? Carbon::parse($dateParam)->startOfDay() : Carbon::today();
+        $startOfWeek = (clone $today)->startOfWeek();
 
-        $isBranchScoped = ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id);
+        // Branch-scoped users: Branch Manager, Branch Admin, Branch Staff, Cashier, Delivery Staff, etc.
+        $isBranchScoped = ($user && $user->role !== 'Super Admin' && $user->branch_id);
 
         if ($isBranchScoped) {
             return $this->getBranchOverview($user->branch_id, $today, $startOfWeek);
         }
 
-        // Central Dashboard (Super Admin / Main Manager)
+        // Central Dashboard (Super Admin)
         $filterBranchId = $request->query('branch_id');
-        if ($filterBranchId && $filterBranchId !== 'all') {
+        $viewMode = $request->query('view_mode');
+        if ($viewMode === 'branch' && $filterBranchId && $filterBranchId !== 'all') {
             return $this->getBranchOverview((int) $filterBranchId, $today, $startOfWeek);
         }
 
-        return $this->getCentralOverview($today, $startOfWeek);
+        return $this->getCentralOverview($today, $startOfWeek, $filterBranchId, $dateParam);
     }
 
     /**
-     * Central Dashboard Overview: Whole Business (Super Admin & Main Manager)
+     * Central Dashboard Overview: Whole Business (Super Admin)
      */
-    private function getCentralOverview($today, $startOfWeek)
+    private function getCentralOverview($today, $startOfWeek, $filterBranchId = null, $filterDate = null)
     {
+        $hasBranchFilter = ($filterBranchId && $filterBranchId !== 'all');
+        $selectedBranchId = $hasBranchFilter ? (int) $filterBranchId : null;
+
         // 1. Sales & Orders Today
         $ordersTodayQuery = Order::whereDate('placed_at', $today);
+        if ($hasBranchFilter) {
+            $ordersTodayQuery->where('branch_id', $selectedBranchId);
+        }
         $ordersToday = (clone $ordersTodayQuery)->count();
         $revenueToday = (float) (clone $ordersTodayQuery)
             ->where('order_status', '!=', 'Cancelled')
             ->sum('total_amount');
 
-        $pendingOrders = Order::where('order_status', 'Pending')->count();
+        $pendingOrdersQuery = Order::where('order_status', 'Pending');
+        if ($hasBranchFilter) {
+            $pendingOrdersQuery->where('branch_id', $selectedBranchId);
+        }
+        $pendingOrders = $pendingOrdersQuery->count();
         $activeBranches = Branch::where('status', 'Active')->count();
 
         // 2. Units in Transit
-        $inTransitTransfers = StockTransfer::whereIn('status', ['Dispatched', 'In transit'])->get();
-        $unitsInTransit = (int) StockTransferItem::whereIn('transfer_id', $inTransitTransfers->pluck('transfer_id'))->sum('quantity_sent');
+        $inTransitTransfers = StockTransfer::whereIn('status', ['Dispatched', 'In transit']);
+        if ($hasBranchFilter) {
+            $inTransitTransfers->where('destination_branch_id', $selectedBranchId);
+        }
+        $transfersList = $inTransitTransfers->get();
+        $unitsInTransit = (int) StockTransferItem::whereIn('transfer_id', $transfersList->pluck('transfer_id'))->sum('quantity_sent');
 
         // 3. Sales by Branch this week (Stacked Bar Chart: Cakes vs Bread & Pastries)
         $branches = Branch::where('status', 'Active')->get();
@@ -186,16 +203,92 @@ class OverviewController extends Controller
                 $transferStatus = "1 " . strtolower($openTransfers->status);
             }
 
+            // Custom cakes active for this branch
+            $activeCakesCount = CustomCakeRequest::where('branch_id', $b->branch_id)
+                ->whereIn('status', ['Submitted', 'Quoted', 'Confirmed', 'Preparing', 'Ready'])
+                ->count();
+
+            // Active staff count for this branch
+            $staffCount = \App\Models\User::where('branch_id', $b->branch_id)
+                ->where('role', '!=', 'Customer')
+                ->count();
+
+            $manager = \App\Models\User::where('branch_id', $b->branch_id)
+                ->whereIn('role', ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])
+                ->first();
+
             $branchesToday[] = [
                 'branch_id' => $b->branch_id,
                 'branch' => "{$b->branch_name}" . ($b->branch_type === 'Regular' ? " ({$b->branch_code})" : ""),
+                'branch_name' => $b->branch_name,
+                'branch_code' => $b->branch_code,
+                'manager_name' => $manager?->full_name ?? ($b->branch_type === 'Main' ? 'Dawit Tadesse' : 'Assigned'),
+                'staff_count' => $staffCount,
                 'orders' => $bOrders,
                 'revenue' => $bRev,
+                'active_cakes' => $activeCakesCount,
                 'stock_health' => $health,
                 'open_transfers' => $transferStatus,
                 'is_shopping_enabled' => $b->is_shopping_enabled,
             ];
         }
+
+        // 6. Branch Manager Submitted Reports (Section 3 Requirement)
+        $reportsQuery = \App\Models\StaffReport::with(['user', 'branch'])->latest('created_at');
+        if ($hasBranchFilter) {
+            $reportsQuery->where('branch_id', $selectedBranchId);
+        }
+        if ($filterDate) {
+            $reportsQuery->whereDate('created_at', $filterDate);
+        }
+        $submittedReports = $reportsQuery->take(10)->get()
+            ->map(function ($r) {
+                return [
+                    'report_id' => $r->report_id,
+                    'title' => $r->title,
+                    'report_type' => $r->report_type,
+                    'content' => $r->content,
+                    'status' => $r->status,
+                    'branch_name' => $r->branch?->branch_name ?? 'Branch',
+                    'author_name' => $r->user?->full_name ?? 'Staff',
+                    'author_role' => $r->user?->role ?? '',
+                    'date' => $r->created_at ? $r->created_at->format('M d, H:i') : '—',
+                ];
+            });
+
+        // 7. Custom Cake Orders Summary (Section 3 Requirement)
+        $cakeBaseQuery = CustomCakeRequest::query();
+        if ($hasBranchFilter) {
+            $cakeBaseQuery->where('branch_id', $selectedBranchId);
+        }
+        if ($filterDate) {
+            $cakeBaseQuery->whereDate('created_at', $filterDate);
+        }
+        $customCakesSummary = [
+            'submitted' => (clone $cakeBaseQuery)->where('status', 'Submitted')->count(),
+            'quoted' => (clone $cakeBaseQuery)->where('status', 'Quoted')->count(),
+            'confirmed' => (clone $cakeBaseQuery)->where('status', 'Confirmed')->count(),
+            'ready' => (clone $cakeBaseQuery)->where('status', 'Ready')->count(),
+            'delivered' => (clone $cakeBaseQuery)->whereIn('status', ['Delivered', 'Picked up'])->count(),
+            'total_active' => (clone $cakeBaseQuery)->whereNotIn('status', ['Delivered', 'Picked up', 'Cancelled', 'Rejected'])->count(),
+        ];
+
+        // 8. Recent Product & Price changes recorded in Audit Logs (Section 3 Requirement)
+        $auditQuery = \App\Models\AuditLog::where('action', 'Price change')->latest('created_at');
+        if ($filterDate) {
+            $auditQuery->whereDate('created_at', $filterDate);
+        }
+        $priceChanges = $auditQuery->take(8)->get()
+            ->map(function ($log) {
+                return [
+                    'log_id' => $log->log_id,
+                    'author' => $log->user_name,
+                    'record' => $log->record,
+                    'old_value' => $log->old_value,
+                    'new_value' => $log->new_value,
+                    'time' => $log->created_at ? $log->created_at->format('M d, H:i') : '—',
+                ];
+            });
 
         return response()->json([
             'is_branch_view' => false,
@@ -207,6 +300,9 @@ class OverviewController extends Controller
             'sales_by_branch' => $salesByBranch,
             'needs_attention' => $needsAttention,
             'branches_today' => $branchesToday,
+            'submitted_reports' => $submittedReports,
+            'custom_cakes_summary' => $customCakesSummary,
+            'recent_price_changes' => $priceChanges,
         ]);
     }
 
