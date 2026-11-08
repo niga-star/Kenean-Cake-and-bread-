@@ -1,10 +1,27 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins relative">
+    <!-- Decorative Background Botanical Wheat Accent (Top Right) -->
+    <div class="absolute -top-3 right-0 pointer-events-none opacity-40 select-none overflow-hidden pr-2 hidden md:block">
+      <svg class="w-40 h-24 text-[#D9A371]" viewBox="0 0 160 100" fill="currentColor">
+        <path d="M10,85 Q60,65 140,20" stroke="#C88E57" stroke-width="1.8" fill="none" opacity="0.6"/>
+        <ellipse cx="140" cy="20" rx="8" ry="4" transform="rotate(-30 140 20)" fill="#D9A371"/>
+        <ellipse cx="126" cy="28" rx="8" ry="4" transform="rotate(-40 126 28)" fill="#D9A371"/>
+        <ellipse cx="120" cy="37" rx="8" ry="4" transform="rotate(-15 120 37)" fill="#D9A371"/>
+        <ellipse cx="106" cy="42" rx="7.5" ry="3.8" transform="rotate(-45 106 42)" fill="#D9A371"/>
+        <ellipse cx="100" cy="51" rx="7.5" ry="3.8" transform="rotate(-20 100 51)" fill="#D9A371"/>
+        <ellipse cx="86" cy="56" rx="7" ry="3.5" transform="rotate(-45 86 56)" fill="#D9A371"/>
+        <ellipse cx="80" cy="65" rx="7" ry="3.5" transform="rotate(-25 80 65)" fill="#D9A371"/>
+        <ellipse cx="66" cy="70" rx="6.5" ry="3" transform="rotate(-45 66 70)" fill="#D9A371"/>
+      </svg>
+    </div>
+
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-[#FAF3EC] border border-[#E8DDD0] flex items-center justify-center text-xl shrink-0">
-          🏪
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center shrink-0 border border-[#F0DFD0] shadow-xs">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
         </div>
         <div>
           <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Management</h2>
@@ -13,9 +30,12 @@
       </div>
       <button
         @click="openAddBranchModal"
-        class="w-full sm:w-auto px-4 py-2 text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer font-poppins"
+        class="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer font-poppins"
       >
-        <span>+ Add Branch</span>
+        <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Add Branch</span>
       </button>
     </div>
 
@@ -98,13 +118,28 @@
                   </button>
                 </div>
               </td>
-              <td class="py-3.5 px-5 text-right">
-                <button
-                  @click.stop="selectBranchForEdit(b)"
-                  class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
-                >
-                  Edit
-                </button>
+              <td class="py-3 px-5 text-right" @click.stop>
+                <div class="inline-flex items-center space-x-1.5 justify-end">
+                  <button
+                    @click="selectBranchForEdit(b)"
+                    class="inline-flex items-center space-x-1 px-3 py-1 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#3E3027] rounded-md shadow-2xs transition cursor-pointer"
+                  >
+                    <svg class="w-3 h-3 text-[#7A6B60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-1 text-[#7A6B60] hover:text-[#2A1D15] hover:bg-[#F4ECE3] rounded transition cursor-pointer"
+                    title="More actions"
+                    @click="selectBranchForEdit(b)"
+                  >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -273,10 +308,15 @@
       <!-- Right: Delivery Zones -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <span class="text-base">📍</span>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-full bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center shrink-0 border border-[#F0DFD0]">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
             <div>
-              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Delivery Zones</h3>
+              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Delivery zones</h3>
               <p class="text-[11px] text-[#8C7D73] font-poppins">Delivery coverage for {{ editingBranch.branch_name }}</p>
             </div>
           </div>
@@ -313,10 +353,12 @@
                 <td class="py-2.5 px-3 text-right">
                   <button
                     @click="deleteDeliveryZone(z)"
-                    class="text-red-500 hover:text-red-700 text-xs font-semibold"
+                    class="p-1 text-[#E53935] hover:text-red-700 hover:bg-red-50 rounded transition font-bold cursor-pointer"
                     title="Remove zone"
                   >
-                    &times;
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </td>
               </tr>
