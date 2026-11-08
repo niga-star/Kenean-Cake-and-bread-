@@ -19,3 +19,4 @@ return new class extends Migration
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Staff', 'Customer') NOT NULL DEFAULT 'Customer'");
     }
 };
+

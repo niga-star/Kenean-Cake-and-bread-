@@ -37,3 +37,4 @@ class StaffReport extends Model
         return $this->belongsTo(User::class, 'submitted_to_id', 'user_id');
     }
 }
+

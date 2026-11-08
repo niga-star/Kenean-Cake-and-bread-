@@ -60,7 +60,7 @@ const routes = [
       { path: 'salaries', component: SalariesView, meta: { roles: ['Super Admin'] } },
       { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'my-account', component: MyAccountView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
-      { path: 'products', component: ProductsPricesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'products', component: ProductsPricesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier'] } },
       { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant'] } },
       { path: 'distribution', component: DistributionView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff'] } },
       { path: 'transfers/new', component: NewTransferView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
@@ -186,7 +186,7 @@ router.beforeEach((to, from, next) => {
       let hasAccess = allowed.includes(role);
 
       if (!hasAccess) {
-        if (role === 'Super Admin') hasAccess = true;
+        if (role === 'Super Admin' && to.path !== '/admin/products') hasAccess = true;
         if (allowed.includes('Branch Manager') && role === 'Branch Admin') hasAccess = true;
         if (allowed.includes('Branch Admin') && role === 'Branch Manager') hasAccess = true;
         if (allowed.includes('Branch Staff') && [

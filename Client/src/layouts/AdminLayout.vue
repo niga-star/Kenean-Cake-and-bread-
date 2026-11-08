@@ -525,15 +525,16 @@ const roleScope = computed(() => {
 
 // Role-based permission map
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'staff-reports', 'my-account', 'products', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
-  'Main Branch Manager': ['overview', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'audit-logs'],
-  'Branch Manager': ['overview', 'branches', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
-  'Branch Admin': ['overview', 'branches', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
-  'Branch Seller / Cashier': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Seller': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
+  'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'audit-logs'],
+  'Branch Manager': ['overview', 'branches', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
+  'Branch Admin': ['overview', 'branches', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
+  'Branch Seller / Cashier': ['products', 'orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Seller': ['products', 'orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Cashier': ['products', 'orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Servant': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Delivery Staff': ['orders', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Staff': ['inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Staff': ['products', 'inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
   'Customer': [],
 };
 

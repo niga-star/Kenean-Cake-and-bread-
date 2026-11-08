@@ -112,3 +112,4 @@ class StaffAndSalarySeeder extends Seeder
         );
     }
 }
+

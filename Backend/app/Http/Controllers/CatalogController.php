@@ -116,6 +116,7 @@ class CatalogController extends Controller
                 'product_name' => $product->product_name,
                 'description' => $product->description,
                 'base_price' => (float) $product->base_price,
+                'price' => $resolvedPrice,
                 'resolved_price' => $resolvedPrice,
                 'has_branch_override' => $hasOverride,
                 'shelf_life_hours' => $product->shelf_life_hours,
@@ -267,8 +268,38 @@ class CatalogController extends Controller
         ]);
     }
 
+    /**
+     * Verify caller is an authorized Branch Manager and not Super Admin or Seller.
+     */
+    protected function checkBranchManagerPermission(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if ($user->role === 'Super Admin') {
+            return response()->json([
+                'message' => 'Super Admin no longer directly manages products or branch prices. Branch Managers manage products and prices independently for their assigned branch.',
+            ], 403);
+        }
+
+        if (!in_array($user->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
+            return response()->json([
+                'message' => 'Unauthorized: Only Branch Managers have permission to modify products and branch prices. Staff members have read-only access.',
+            ], 403);
+        }
+
+        return null;
+    }
+
     public function store(Request $request)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
+
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,category_id',
@@ -308,11 +339,19 @@ class CatalogController extends Controller
             );
         }
 
+        // Set branch-specific price for the creating manager's branch
+        if ($user->branch_id) {
+            BranchProductPrice::updateOrCreate(
+                ['branch_id' => $user->branch_id, 'product_id' => $product->product_id],
+                ['price' => $validated['base_price'], 'active' => true]
+            );
+        }
+
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
             'action' => 'Product created',
-            'record' => $product->product_name,
+            'record' => ($user->branch ? $user->branch->branch_name . ' · ' : '') . $product->product_name,
             'entity_type' => 'Product',
             'entity_id' => (string) $product->product_id,
             'old_value' => '—',
@@ -325,6 +364,10 @@ class CatalogController extends Controller
 
     public function update(Request $request, $id)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
         $product = Product::findOrFail($id);
 
         $validated = $request->validate([
@@ -337,7 +380,34 @@ class CatalogController extends Controller
             'image_url' => 'nullable|string',
         ]);
 
-        $oldPrice = $product->base_price;
+        $oldPrice = $user->branch_id ? $product->getPriceForBranch($user->branch_id) : $product->base_price;
+
+        // When a Branch Manager updates price, update THEIR branch's price override independently!
+        if (isset($validated['base_price']) && $user->branch_id) {
+            $newPrice = (float) $validated['base_price'];
+            BranchProductPrice::updateOrCreate(
+                ['branch_id' => $user->branch_id, 'product_id' => $product->product_id],
+                ['price' => $newPrice, 'active' => true]
+            );
+
+            // Do not alter global base_price to preserve independent pricing for other branches
+            unset($validated['base_price']);
+
+            if ((float) $newPrice !== (float) $oldPrice) {
+                AuditLog::create([
+                    'user_id' => $user->user_id,
+                    'user_name' => $user->full_name . " ({$user->role})",
+                    'action' => 'Price change',
+                    'record' => ($user->branch ? $user->branch->branch_name : 'Branch') . ' · ' . $product->product_name,
+                    'entity_type' => 'BranchProductPrice',
+                    'entity_id' => (string) $product->product_id,
+                    'old_value' => 'ETB ' . number_format($oldPrice, 0),
+                    'new_value' => 'ETB ' . number_format($newPrice, 0),
+                    'created_at' => now(),
+                ]);
+            }
+        }
+
         $product->update($validated);
 
         if (!empty($validated['image_url'])) {
@@ -353,25 +423,27 @@ class CatalogController extends Controller
             }
         }
 
-        if (isset($validated['base_price']) && (float) $validated['base_price'] !== (float) $oldPrice) {
-            AuditLog::create([
-                'user_id' => $request->user()?->user_id,
-                'user_name' => $request->user()?->full_name ?? 'Super Admin',
-                'action' => 'Price change',
-                'record' => 'Base · ' . $product->product_name,
-                'entity_type' => 'Product',
-                'entity_id' => (string) $product->product_id,
-                'old_value' => 'ETB ' . number_format($oldPrice, 0),
-                'new_value' => 'ETB ' . number_format($validated['base_price'], 0),
-                'created_at' => now(),
-            ]);
-        }
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
+            'action' => 'Product updated',
+            'record' => ($user->branch ? $user->branch->branch_name . ' · ' : '') . $product->product_name,
+            'entity_type' => 'Product',
+            'entity_id' => (string) $product->product_id,
+            'old_value' => 'Updated',
+            'new_value' => $product->product_name,
+            'created_at' => now(),
+        ]);
 
-        return response()->json($product->load(['category', 'images']));
+        return response()->json($product->load(['category', 'images', 'branchPrices']));
     }
 
     public function destroy(Request $request, $id)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
         $product = Product::findOrFail($id);
         $name = $product->product_name;
 
@@ -391,10 +463,10 @@ class CatalogController extends Controller
         }
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
             'action' => 'Product deleted',
-            'record' => $name,
+            'record' => ($user->branch ? $user->branch->branch_name . ' · ' : '') . $name,
             'entity_type' => 'Product',
             'entity_id' => (string) $id,
             'old_value' => $name,
@@ -407,6 +479,9 @@ class CatalogController extends Controller
 
     public function uploadImage(Request $request)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
         $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
@@ -431,6 +506,10 @@ class CatalogController extends Controller
 
     public function destroyCategory(Request $request, $id)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
         $category = Category::findOrFail($id);
         $name = $category->category_name;
 
@@ -444,8 +523,8 @@ class CatalogController extends Controller
         $category->delete();
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
             'action' => 'Category deleted',
             'record' => $name,
             'entity_type' => 'Category',
@@ -460,6 +539,11 @@ class CatalogController extends Controller
 
     public function storeCategory(Request $request)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
+
         $validated = $request->validate([
             'category_name' => 'required|string|max:255|unique:categories,category_name',
             'description' => 'nullable|string',
@@ -472,8 +556,8 @@ class CatalogController extends Controller
         ]);
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
             'action' => 'Category created',
             'record' => $category->category_name,
             'entity_type' => 'Category',
@@ -488,11 +572,23 @@ class CatalogController extends Controller
 
     public function setBranchPrice(Request $request, $productId)
     {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
+
         $validated = $request->validate([
             'branch_id' => 'required|exists:branches,branch_id',
             'price' => 'required|numeric|min:0',
             'active' => 'sometimes|boolean',
         ]);
+
+        // Branch-tenancy: Branch Manager can ONLY update prices for their own branch!
+        if ($user->branch_id && (int) $validated['branch_id'] !== (int) $user->branch_id) {
+            return response()->json([
+                'message' => 'Access denied: You can only set and update product prices for your own assigned branch.',
+            ], 403);
+        }
 
         $product = Product::findOrFail($productId);
         $oldPrice = $product->getPriceForBranch($validated['branch_id']);
@@ -502,11 +598,13 @@ class CatalogController extends Controller
             ['price' => $validated['price'], 'active' => $validated['active'] ?? true]
         );
 
+        $priceRecord->load('branch');
+
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
             'action' => 'Price change',
-            'record' => $priceRecord->branch->branch_name . ' · ' . $product->product_name,
+            'record' => ($priceRecord->branch ? $priceRecord->branch->branch_name : "Branch #{$validated['branch_id']}") . ' · ' . $product->product_name,
             'entity_type' => 'BranchProductPrice',
             'entity_id' => (string) $priceRecord->id,
             'old_value' => 'ETB ' . number_format($oldPrice, 0),
@@ -515,5 +613,54 @@ class CatalogController extends Controller
         ]);
 
         return response()->json($priceRecord);
+    }
+
+    /**
+     * Submit a Product & Price Update Report to the Super Admin.
+     * Section 1 requirement: Branch Managers must submit product and price update reports to the Super Admin.
+     */
+    public function reportPriceUpdate(Request $request)
+    {
+        $authError = $this->checkBranchManagerPermission($request);
+        if ($authError) return $authError;
+
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:255',
+            'content' => 'required|string|min:5|max:2000',
+        ]);
+
+        $superAdmin = \App\Models\User::where('role', 'Super Admin')->first();
+        $branchName = $user->branch ? $user->branch->branch_name : 'Branch';
+
+        $reportTitle = $validated['title'] ?: "Product & Price Update Report - {$branchName}";
+
+        $report = \App\Models\StaffReport::create([
+            'user_id' => $user->user_id,
+            'branch_id' => $user->branch_id ?: 1,
+            'report_type' => 'Price Update',
+            'title' => $reportTitle,
+            'content' => $validated['content'],
+            'submitted_to_id' => $superAdmin?->user_id,
+            'status' => 'Submitted',
+        ]);
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . " ({$user->role})",
+            'action' => 'Price update report submitted',
+            'record' => $report->title,
+            'entity_type' => 'StaffReport',
+            'entity_id' => (string) $report->report_id,
+            'old_value' => '—',
+            'new_value' => "Price update report forwarded to Super Admin ({$branchName})",
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Product and price update report successfully submitted to the Super Admin.',
+            'report' => $report->load(['user', 'branch']),
+        ], 201);
     }
 }
