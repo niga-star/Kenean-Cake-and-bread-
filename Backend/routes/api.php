@@ -177,15 +177,15 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/branches/{id}/delivery-zones', [BranchController::class, 'addDeliveryZone'])->middleware('role:Super Admin');
     Route::delete('/branches/{id}/delivery-zones/{zoneId}', [BranchController::class, 'deleteDeliveryZone'])->middleware('role:Super Admin');
 
-    // Catalog & Pricing Management (Section 1: Branch Managers Only; Super Admin and Staff blocked)
-    Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::post('/products/upload-image', [CatalogController::class, 'uploadImage'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::delete('/categories/{id}', [CatalogController::class, 'destroyCategory'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
-    Route::post('/products/report-price-update', [CatalogController::class, 'reportPriceUpdate'])->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
+    // Catalog & Pricing Management (Super Admin & Branch Managers)
+    Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::post('/products/upload-image', [CatalogController::class, 'uploadImage'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::delete('/categories/{id}', [CatalogController::class, 'destroyCategory'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
+    Route::post('/products/report-price-update', [CatalogController::class, 'reportPriceUpdate'])->middleware('role:Super Admin,Branch Manager,Branch Admin,Main Branch Manager');
 
     // Banners & Website Content Management
     Route::get('/banners', [WebsiteSettingController::class, 'adminBanners']);

@@ -182,7 +182,7 @@
                   {{ req.request_number }}
                 </td>
                 <td class="py-3.5 px-3 text-xs text-[#4A3B32] font-medium">
-                  {{ req.branch?.branch_name || 'Bole' }}
+                  {{ req.branch?.branch_name || 'Unassigned' }}
                 </td>
                 <td class="py-3.5 px-3 text-xs text-[#382C24]">
                   <div class="font-bold text-[#241710]">{{ req.customer_name || req.user?.full_name || 'Customer' }}</div>

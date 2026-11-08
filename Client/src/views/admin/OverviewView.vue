@@ -526,6 +526,11 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F3EDE4] text-sm">
+              <tr v-if="!data.branches_today || data.branches_today.length === 0">
+                <td colspan="9" class="py-12 text-center text-sm text-[#7A6B60]">
+                  No branches registered yet. Click <router-link to="/admin/branches" class="font-bold text-[#BA5420] underline">Manage branches</router-link> to create your first branch.
+                </td>
+              </tr>
               <tr
                 v-for="bt in data.branches_today"
                 :key="bt.branch_id"
@@ -716,7 +721,10 @@
           </div>
 
           <div class="overflow-x-auto pb-2">
-            <div class="h-64 min-w-[320px] flex items-end justify-between px-3 sm:px-6 pt-6 border-b border-[#EFE8DF]">
+            <div v-if="!data.sales_by_branch || data.sales_by_branch.length === 0" class="h-64 flex items-center justify-center text-sm text-[#8A7B71] border-b border-[#EFE8DF]">
+              No branch sales recorded yet.
+            </div>
+            <div v-else class="h-64 min-w-[320px] flex items-end justify-between px-3 sm:px-6 pt-6 border-b border-[#EFE8DF]">
               <div
                 v-for="sb in data.sales_by_branch"
                 :key="sb.branch"

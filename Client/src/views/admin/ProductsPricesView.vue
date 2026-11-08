@@ -131,6 +131,11 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-[#F3EDE4]">
+            <tr v-if="!filteredProducts || filteredProducts.length === 0">
+              <td colspan="6" class="py-12 text-center text-sm text-[#7A6B60]">
+                No products found. Click <button @click="openAddProductModal" class="font-bold text-[#BA5420] underline cursor-pointer">+ Add Product</button> to add your first product.
+              </td>
+            </tr>
             <tr
               v-for="p in filteredProducts"
               :key="p.product_id"
@@ -654,7 +659,7 @@ const isSaving = ref(false);
 
 // Role & Branch scoping
 const isBranchManager = computed(() => {
-  return ['Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role);
+  return ['Super Admin', 'Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role);
 });
 
 const currentBranch = computed(() => {

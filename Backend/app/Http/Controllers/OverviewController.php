@@ -222,7 +222,7 @@ class OverviewController extends Controller
                 'branch' => "{$b->branch_name}" . ($b->branch_type === 'Regular' ? " ({$b->branch_code})" : ""),
                 'branch_name' => $b->branch_name,
                 'branch_code' => $b->branch_code,
-                'manager_name' => $manager?->full_name ?? ($b->branch_type === 'Main' ? 'Dawit Tadesse' : 'Assigned'),
+                'manager_name' => $manager?->full_name ?? ($b->manager?->full_name ?? 'Unassigned'),
                 'staff_count' => $staffCount,
                 'orders' => $bOrders,
                 'revenue' => $bRev,

@@ -108,7 +108,7 @@ class OrderService
                 'user_id' => $orderUserId,
                 'city' => $validated['city'] ?? 'Addis Ababa',
                 'region' => $branch->branch_name,
-                'street' => $validated['delivery_address'] ?? 'Bole Road, Addis Ababa',
+                'street' => $validated['delivery_address'] ?? 'Customer Delivery Address',
                 'notes' => $validated['order_notes'] ?? 'Deliver to doorstep',
                 'is_default' => true,
             ]);

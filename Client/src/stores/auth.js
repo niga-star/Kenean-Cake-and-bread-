@@ -28,15 +28,6 @@ export const useAuthStore = defineStore('auth', {
       token: localStorage.getItem('token') || '',
       availableRoles: [
         { role: 'Super Admin', label: 'Super Admin (All branches)', email: 'admin@goldencrust.com' },
-        { role: 'Main Branch Manager', label: 'Main Manager (Main Branch)', email: 'main@goldencrust.com', branch_code: 'MAIN01' },
-        { role: 'Branch Manager', label: 'Branch Manager (Bole)', email: 'bole.admin@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Branch Manager', label: 'Branch Manager (Megenagna)', email: 'megenagna.admin@goldencrust.com', branch_code: 'BR002' },
-        { role: 'Branch Manager', label: 'Branch Manager (Piassa)', email: 'piassa.admin@goldencrust.com', branch_code: 'BR003' },
-        { role: 'Branch Seller / Cashier', label: 'Branch Seller / Cashier (Bole)', email: 'seller.bole@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Servant', label: 'Servant (Bole)', email: 'servant.bole@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Delivery Staff', label: 'Delivery Staff (Bole)', email: 'delivery.bole@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Branch Staff', label: 'Branch Staff (Bole)', email: 'bole.staff@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Customer', label: 'Customer (Sara Mengistu)', email: 'customer@gmail.com' },
       ],
     };
   },
@@ -119,6 +110,33 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', token);
       }
       localStorage.setItem('user', JSON.stringify(user));
+    },
+
+    async fetchAvailableRoles() {
+      if (!this.canSimulatePersona) return;
+      try {
+        const res = await api.get('/auth/users');
+        const roles = [
+          { role: 'Super Admin', label: 'Super Admin (All branches)', email: this.actualUser?.email || 'admin@goldencrust.com' }
+        ];
+        if (Array.isArray(res.data)) {
+          res.data
+            .filter((u) => u.role !== 'Super Admin' && u.role !== 'Customer')
+            .forEach((u) => {
+              roles.push({
+                role: u.role,
+                label: `${u.role} (${u.full_name}${u.branch?.branch_name ? ' · ' + u.branch.branch_name : ''})`,
+                email: u.email,
+                branch_code: u.branch?.branch_code || null,
+              });
+            });
+        }
+        this.availableRoles = roles;
+      } catch (e) {
+        this.availableRoles = [
+          { role: 'Super Admin', label: 'Super Admin (All branches)', email: this.actualUser?.email || 'admin@goldencrust.com' }
+        ];
+      }
     },
 
     logout() {

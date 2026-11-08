@@ -4,7 +4,8 @@ import { useCartStore } from './cart';
 
 export const useBranchStore = defineStore('branch', {
   state: () => {
-    const saved = parseInt(localStorage.getItem('selectedBranchId')) || parseInt(localStorage.getItem('cart_branch_id')) || 2;
+    const rawSaved = localStorage.getItem('selectedBranchId') || localStorage.getItem('cart_branch_id');
+    const saved = rawSaved ? parseInt(rawSaved) : null;
     return {
       branches: [],
       selectedBranchId: saved,
@@ -20,7 +21,7 @@ export const useBranchStore = defineStore('branch', {
     },
     currentBranchName: (state) => {
       const b = state.branches.find((br) => br.branch_id === state.selectedBranchId);
-      return b?.branch_name || 'Bole';
+      return b?.branch_name || state.branches[0]?.branch_name || 'Main Branch';
     },
     isCurrentBranchShoppingEnabled: (state) => {
       const b = state.branches.find((br) => br.branch_id === state.selectedBranchId);

@@ -164,6 +164,11 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-if="!items || items.length === 0">
+                <td :colspan="isSuperAdmin ? 8 : 7" class="py-12 text-center text-sm text-[#7A6B60]">
+                  No inventory records yet. Once branches and products are created, adjust or assign stock here.
+                </td>
+              </tr>
               <tr
                 v-for="item in items"
                 :key="item.inventory_id"

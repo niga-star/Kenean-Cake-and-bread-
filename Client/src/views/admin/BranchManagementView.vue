@@ -67,6 +67,11 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-[#F3EDE4]">
+            <tr v-if="!branches || branches.length === 0">
+              <td colspan="9" class="py-12 text-center text-sm text-[#7A6B60]">
+                No branches registered yet. Click <button @click="openAddBranchModal" class="font-bold text-[#BA5420] underline cursor-pointer">+ Add Branch</button> to add your first bakery branch.
+              </td>
+            </tr>
             <tr
               v-for="b in branches"
               :key="b.branch_id"

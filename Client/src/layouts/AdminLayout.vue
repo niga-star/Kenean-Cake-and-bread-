@@ -361,7 +361,7 @@
           </button>
 
           <!-- 1. Super Admin Only: Persona Simulator -->
-          <div v-if="authStore.canSimulatePersona" class="flex flex-wrap items-center gap-2.5 text-sm min-w-0">
+          <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="flex flex-wrap items-center gap-2.5 text-sm min-w-0">
             <span class="text-[#7A6B60] font-semibold text-xs sm:text-sm hidden sm:inline shrink-0">Simulate Role:</span>
             <select
               :value="selectedRoleKey"
@@ -436,7 +436,7 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-[#DE1B54] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none shadow-xs">3</span>
+            <span v-if="unreadCount > 0" class="absolute top-1.5 right-1.5 w-4 h-4 bg-[#DE1B54] text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none shadow-xs">{{ unreadCount }}</span>
           </router-link>
 
           <!-- SweetBakes Client Storefront Shortcut (Beauty link) -->
@@ -464,13 +464,29 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import api from '../api';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const unreadCount = ref(0);
+
+onMounted(async () => {
+  if (authStore.canSimulatePersona) {
+    await authStore.fetchAvailableRoles();
+  }
+  try {
+    const res = await api.get('/admin/notifications?limit=1');
+    if (res.data && typeof res.data.unread_count === 'number') {
+      unreadCount.value = res.data.unread_count;
+    }
+  } catch (e) {
+    unreadCount.value = 0;
+  }
+});
 
 // Mobile sidebar drawer state
 const sidebarOpen = ref(false);

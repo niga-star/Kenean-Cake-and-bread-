@@ -279,9 +279,7 @@ class CatalogController extends Controller
         }
 
         if ($user->role === 'Super Admin') {
-            return response()->json([
-                'message' => 'Super Admin no longer directly manages products or branch prices. Branch Managers manage products and prices independently for their assigned branch.',
-            ], 403);
+            return null; // Super Admin has full authority to manage products and prices
         }
 
         if (!in_array($user->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
