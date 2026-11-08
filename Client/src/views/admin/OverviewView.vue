@@ -381,6 +381,7 @@
                 <th class="py-3 px-5">Branch</th>
                 <th class="py-3 px-4 text-center">Orders</th>
                 <th class="py-3 px-4 text-center">Revenue</th>
+                <th class="py-3 px-4 text-center">Shopping Access</th>
                 <th class="py-3 px-4 text-center">Stock Health</th>
                 <th class="py-3 px-5 text-right">Open Transfers</th>
               </tr>
@@ -390,6 +391,14 @@
                 <td class="py-3.5 px-5 font-medium text-[#382C24]">{{ bt.branch }}</td>
                 <td class="py-3.5 px-4 text-center text-[#55463C]">{{ bt.orders }}</td>
                 <td class="py-3.5 px-4 text-center font-bold text-[#241710]">ETB {{ Number(bt.revenue).toLocaleString() }}</td>
+                <td class="py-3.5 px-4 text-center">
+                  <span
+                    class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full border"
+                    :class="bt.is_shopping_enabled !== false ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#FAF0F0] text-[#B84B42] border-[#E8C4C4]'"
+                  >
+                    {{ bt.is_shopping_enabled !== false ? '✓ Enabled' : '✕ Disabled' }}
+                  </span>
+                </td>
                 <td class="py-3.5 px-4 text-center">
                   <span
                     class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full"

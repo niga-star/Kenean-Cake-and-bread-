@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\Branch;
 use App\Models\BranchInventory;
 
 class CartController extends Controller
@@ -72,6 +73,13 @@ class CartController extends Controller
             'items.*.product_id' => 'required|integer|exists:products,product_id',
             'items.*.quantity' => 'required|integer|min:1|max:999',
         ]);
+
+        $branch = Branch::find($validated['branch_id']);
+        if ($branch && (!$branch->is_shopping_enabled || $branch->status !== 'Active')) {
+            return response()->json([
+                'message' => 'Sorry, this branch is currently unavailable for shopping.'
+            ], 422);
+        }
 
         $user = $request->user();
         $sessionId = $validated['session_id'] ?? $request->header('X-Session-Id');

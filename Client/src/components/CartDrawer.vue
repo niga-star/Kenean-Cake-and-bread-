@@ -198,12 +198,19 @@
               </div>
             </div>
 
+            <!-- Branch Shopping Unavailable Banner in Drawer -->
+            <div v-if="!branchStore.isCurrentBranchShoppingEnabled" class="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl text-xs text-[#B84B42] dark:text-rose-400 font-semibold flex items-center space-x-2">
+              <span>⚠️</span>
+              <span>{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
+            </div>
+
             <!-- Action Buttons: Vibrant Red Primary Button + Clean White Secondary Button -->
             <div class="space-y-2.5 pt-1">
               <!-- Primary Proceed to Checkout: Signature Red Pill Button -->
               <button
                 @click="goToCheckout"
-                class="w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
+                :disabled="!branchStore.isCurrentBranchShoppingEnabled"
+                class="w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <span>{{ localeStore.isAmharic ? 'ትዕዛዝ ያጠናቁ' : 'PROCEED TO CHECKOUT' }}</span>
                 <span class="text-base font-black">&rarr;</span>
@@ -281,6 +288,12 @@ function goToCart() {
 
 function goToCheckout() {
   cartStore.closeDrawer();
+  if (!branchStore.isCurrentBranchShoppingEnabled) {
+    toastStore.warning(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
   if (!authStore.isAuthenticated) {
     toastStore.info(localeStore.isAmharic 
       ? 'ወደ ክፍያ ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።' 

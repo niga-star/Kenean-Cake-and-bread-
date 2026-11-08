@@ -151,6 +151,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Branch management (Super Admin Only)
     Route::post('/branches', [BranchController::class, 'store'])->middleware('role:Super Admin');
     Route::patch('/branches/{id}', [BranchController::class, 'update'])->middleware('role:Super Admin');
+    Route::patch('/branches/{id}/shopping-access', [BranchController::class, 'toggleShoppingAccess'])->middleware('role:Super Admin');
     Route::post('/branches/{id}/delivery-zones', [BranchController::class, 'addDeliveryZone'])->middleware('role:Super Admin');
     Route::delete('/branches/{id}/delivery-zones/{zoneId}', [BranchController::class, 'deleteDeliveryZone'])->middleware('role:Super Admin');
 

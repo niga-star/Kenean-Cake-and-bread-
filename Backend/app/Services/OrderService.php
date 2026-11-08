@@ -54,8 +54,8 @@ class OrderService
         }
 
         $branch = Branch::findOrFail($validated['branch_id']);
-        if ($branch->status !== 'Active') {
-            throw new Exception('Selected branch is currently inactive.', 422);
+        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
+            throw new Exception('Sorry, this branch is currently unavailable for shopping.', 422);
         }
 
         // 3. Resolve customer identity

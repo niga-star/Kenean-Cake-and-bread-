@@ -211,11 +211,19 @@
                 v-for="b in branchStore.branches"
                 :key="b.branch_id"
                 :value="b.branch_id"
+                :disabled="b.is_shopping_enabled === false || b.status !== 'Active'"
               >
-                {{ localeStore.tBranch(b.branch_name) }} — {{ b.address || b.city }}
+                {{ localeStore.tBranch(b.branch_name) }} — {{ b.address || b.city }} {{ (b.is_shopping_enabled === false || b.status !== 'Active') ? (localeStore.isAmharic ? '(አገልግሎት አይሰጥም)' : '(Unavailable for Shopping)') : '' }}
               </option>
             </select>
-            <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
+            <div
+              v-if="!isPreparingBranchAvailable"
+              class="p-3 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-xl text-xs text-[#DE1B54] flex items-center space-x-2 mt-2"
+            >
+              <span class="font-bold">⚠️</span>
+              <span class="font-medium">{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለትዕዛዝ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
+            </div>
+            <p v-else class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
               {{ localeStore.isAmharic ? 'በዚህ ቅርንጫፍ የሚገኘው ዋና ኬክ ዲኮሬተር ኬክዎን በእጅ ያዘጋጃል እና ያስጌጣል።' : 'The master pastry decorator at this branch will personally bake and decorate your centerpiece.' }}
             </p>
           </div>
@@ -508,7 +516,7 @@
           <!-- Submit Request Button -->
           <button
             type="submit"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || !isPreparingBranchAvailable"
             class="w-full py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>{{ isSubmitting ? (localeStore.isAmharic ? 'ጥያቄውን በመላክ ላይ...' : 'Transmitting Design Brief...') : (localeStore.isAmharic ? 'የኬክ ጥያቄውን ላክ →' : 'Submit Design Request →') }}</span>
@@ -758,6 +766,10 @@ const chosenBranchName = computed(() => {
   return localeStore.tBranch(raw);
 });
 
+const isPreparingBranchAvailable = computed(() => {
+  return branchStore.isBranchShoppingEnabled(preparingBranchId.value);
+});
+
 // Draft Persistence (Zero Data Loss on Refresh)
 function saveDraftToStorage() {
   try {
@@ -937,6 +949,13 @@ function previewImage(img) {
 }
 
 async function handleSubmitCustomCake() {
+  if (!isPreparingBranchAvailable.value) {
+    toast.error(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለትዕዛዝ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
+
   if (!authStore.isAuthenticated) {
     toast.info(localeStore.isAmharic 
       ? 'የብጁ ኬክ ጥያቄዎን ለማስገባት እባክዎ ይግቡ ወይም ይመዝገቡ።' 

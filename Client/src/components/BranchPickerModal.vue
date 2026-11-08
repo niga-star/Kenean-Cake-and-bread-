@@ -110,9 +110,18 @@
                 >
                   {{ branch.branch_type === 'Main' ? (localeStore.isAmharic ? 'ዋና ማዕከል' : 'Central HQ') : (branch.branch_code || 'Bakehouse') }}
                 </span>
-                <span v-if="branchStore.selectedBranchId === branch.branch_id" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#387A54] text-white">
+                <span v-if="branch.is_shopping_enabled === false" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF0F0] text-[#B84B42] border border-[#E8C4C4]">
+                  {{ localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable' }}
+                </span>
+                <span v-else-if="branchStore.selectedBranchId === branch.branch_id" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#387A54] text-white">
                   {{ localeStore.isAmharic ? '✓ ንቁ ቅርንጫፍ' : '✓ Active' }}
                 </span>
+              </div>
+
+              <!-- Shopping Unavailable Warning Notice -->
+              <div v-if="branch.is_shopping_enabled === false" class="p-2 rounded-xl bg-rose-50/80 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-[11px] text-[#B84B42] dark:text-rose-400 font-semibold flex items-center space-x-1.5">
+                <span>⚠️</span>
+                <span>{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
               </div>
 
               <!-- Address & City -->
@@ -152,7 +161,15 @@
             <!-- Action Button -->
             <div class="sm:shrink-0 flex sm:flex-col items-center justify-end">
               <button
-                v-if="branchStore.selectedBranchId === branch.branch_id"
+                v-if="branch.is_shopping_enabled === false"
+                disabled
+                class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 text-xs font-bold border border-gray-200 dark:border-gray-700 cursor-not-allowed flex items-center justify-center space-x-1.5"
+              >
+                <span>✕</span>
+                <span>{{ localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Unavailable' }}</span>
+              </button>
+              <button
+                v-else-if="branchStore.selectedBranchId === branch.branch_id"
                 disabled
                 class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#387A54] text-white text-xs font-bold shadow-xs cursor-default flex items-center justify-center space-x-1.5"
               >

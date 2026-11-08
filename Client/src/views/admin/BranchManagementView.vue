@@ -34,6 +34,7 @@
               <th class="py-3 px-4">City</th>
               <th class="py-3 px-4">Phone</th>
               <th class="py-3 px-4 text-center">Status</th>
+              <th class="py-3 px-4 text-center">Shopping Access</th>
               <th class="py-3 px-5 text-right">Action</th>
             </tr>
           </thead>
@@ -65,6 +66,29 @@
                 >
                   {{ b.status }}
                 </span>
+              </td>
+              <td class="py-3.5 px-4 text-center" @click.stop>
+                <div class="inline-flex items-center gap-1.5">
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 text-[11px] font-bold rounded-full border"
+                    :class="b.is_shopping_enabled !== false ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#FAF0F0] text-[#B84B42] border-[#E8C4C4]'"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full mr-1" :class="b.is_shopping_enabled !== false ? 'bg-[#2E7D32]' : 'bg-[#B84B42]'"></span>
+                    {{ b.is_shopping_enabled !== false ? 'Enabled' : 'Disabled' }}
+                  </span>
+                  <button
+                    @click="toggleShopping(b)"
+                    :disabled="togglingBranchId === b.branch_id"
+                    class="px-2.5 py-1 text-[11px] font-bold rounded-lg border transition shadow-2xs cursor-pointer disabled:opacity-50"
+                    :class="b.is_shopping_enabled !== false
+                      ? 'border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 hover:border-rose-400'
+                      : 'border-emerald-400 text-white bg-[#2E7D32] hover:bg-[#256628] shadow-xs'"
+                    :title="b.is_shopping_enabled !== false ? 'Click to disable customer shopping for this branch' : 'Click to enable customer shopping for this branch'"
+                  >
+                    <span v-if="togglingBranchId === b.branch_id">...</span>
+                    <span v-else>{{ b.is_shopping_enabled !== false ? 'Disable' : 'Enable' }}</span>
+                  </button>
+                </div>
               </td>
               <td class="py-3.5 px-5 text-right">
                 <button
@@ -176,6 +200,28 @@
               type="text"
               class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
             />
+          </div>
+
+          <!-- Shopping Access Control Card -->
+          <div class="p-4 bg-[#FAF7F2] border border-[#E8DDD0] rounded-xl space-y-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-[#2A1D15]">Branch Shopping Access Control</h4>
+                <p class="text-[11px] text-[#7D6E64]">Controls whether customers can view products, add items to cart, and place orders from this branch.</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  v-model="editForm.isShoppingEnabled"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2E7D32]"></div>
+              </label>
+            </div>
+            <div class="text-[11px] flex items-center space-x-1.5" :class="editForm.isShoppingEnabled ? 'text-[#2E7D32] font-semibold' : 'text-[#B84B42] font-semibold'">
+              <span>{{ editForm.isShoppingEnabled ? '● Shopping Enabled:' : '○ Shopping Disabled:' }}</span>
+              <span>{{ editForm.isShoppingEnabled ? 'Customers can shop and place orders normally.' : 'Customers cannot shop or place orders. Message: "Sorry, this branch is currently unavailable for shopping."' }}</span>
+            </div>
           </div>
 
           <!-- Active Toggle -->
@@ -489,6 +535,8 @@ const newZone = ref({
   delivery_fee: 50,
 });
 
+const togglingBranchId = ref(null);
+
 const editForm = ref({
   branch_name: '',
   branch_code: '',
@@ -498,6 +546,7 @@ const editForm = ref({
   address: '',
   opening_hours: '',
   isActive: true,
+  isShoppingEnabled: true,
 });
 
 const loadBranches = async () => {
@@ -527,7 +576,30 @@ const selectBranchForEdit = (b) => {
     address: b.address,
     opening_hours: b.opening_hours,
     isActive: b.status === 'Active',
+    isShoppingEnabled: b.is_shopping_enabled !== false,
   };
+};
+
+const toggleShopping = async (b) => {
+  togglingBranchId.value = b.branch_id;
+  successMsg.value = '';
+  errorMsg.value = '';
+  try {
+    const nextState = b.is_shopping_enabled === false;
+    const res = await api.patch(`/admin/branches/${b.branch_id}/shopping-access`, {
+      is_shopping_enabled: nextState,
+    });
+    b.is_shopping_enabled = res.data.branch.is_shopping_enabled;
+    if (editingBranch.value && editingBranch.value.branch_id === b.branch_id) {
+      editForm.value.isShoppingEnabled = b.is_shopping_enabled;
+    }
+    successMsg.value = res.data.message || `Customer shopping access updated for ${b.branch_name}.`;
+    await loadBranches();
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Failed to toggle branch shopping access.';
+  } finally {
+    togglingBranchId.value = null;
+  }
 };
 
 const saveBranch = async () => {
@@ -543,6 +615,7 @@ const saveBranch = async () => {
       address: editForm.value.address,
       opening_hours: editForm.value.opening_hours,
       status: editForm.value.isActive ? 'Active' : 'Inactive',
+      is_shopping_enabled: editForm.value.isShoppingEnabled,
     });
     successMsg.value = `Branch ${editForm.value.branch_name} updated successfully.`;
     await loadBranches();

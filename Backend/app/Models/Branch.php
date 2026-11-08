@@ -23,6 +23,11 @@ class Branch extends Model
         'opening_hours',
         'manager_id',
         'status',
+        'is_shopping_enabled',
+    ];
+
+    protected $casts = [
+        'is_shopping_enabled' => 'boolean',
     ];
 
     public function manager()

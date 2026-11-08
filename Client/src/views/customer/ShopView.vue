@@ -576,6 +576,30 @@
             </button>
           </div>
 
+          <!-- Branch Shopping Unavailable Banner -->
+          <div
+            v-if="!branchStore.isCurrentBranchShoppingEnabled"
+            class="mb-6 p-4 sm:p-5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left shadow-xs"
+          >
+            <div class="flex items-center space-x-3.5">
+              <span class="text-3xl shrink-0">⚠️</span>
+              <div>
+                <h3 class="font-serif font-bold text-sm sm:text-base text-[#B84B42] dark:text-rose-300">
+                  {{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}
+                </h3>
+                <p class="text-xs text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
+                  {{ localeStore.isAmharic ? `${branchStore.currentBranchName} ቅርንጫፍ በአሁኑ ወቅት የደንበኞች ትዕዛዝ አይቀበልም። እባክዎ ወደ ሌላ ንቁ ቅርንጫፍ ይቀይሩ።` : `${branchStore.currentBranchName} branch is not currently accepting customer orders. Please choose another active branch.` }}
+                </p>
+              </div>
+            </div>
+            <button
+              @click="branchStore.openPicker()"
+              class="px-5 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95 shrink-0 cursor-pointer"
+            >
+              {{ localeStore.isAmharic ? 'ቅርንጫፍ ቀይር' : 'Switch Branch' }} →
+            </button>
+          </div>
+
           <!-- Error State -->
           <ErrorState
             v-if="hasError"
@@ -690,17 +714,19 @@
                 <button
                   type="button"
                   @click="handleAddToCart(p)"
-                  :disabled="p.isAdding || (p.available ?? 0) <= 0"
+                  :disabled="p.isAdding || (p.available ?? 0) <= 0 || !branchStore.isCurrentBranchShoppingEnabled"
                   class="w-full py-2 min-h-[42px] disabled:opacity-50 text-white text-xs xs:text-sm font-bold rounded-xl transition-all duration-300 shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
-                  :class="p.isAdding 
-                    ? 'bg-[#387A54] scale-98' 
-                    : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
+                  :class="!branchStore.isCurrentBranchShoppingEnabled
+                    ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+                    : (p.isAdding 
+                      ? 'bg-[#387A54] scale-98' 
+                      : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]'))"
                 >
-                  <svg v-if="!p.isAdding" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg v-if="!p.isAdding && branchStore.isCurrentBranchShoppingEnabled" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span v-else class="text-xs">✓</span>
-                  <span>{{ p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : localeStore.t('add_to_cart')) }}</span>
+                  <span v-else-if="p.isAdding" class="text-xs">✓</span>
+                  <span>{{ !branchStore.isCurrentBranchShoppingEnabled ? (localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable') : (p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : localeStore.t('add_to_cart'))) }}</span>
                 </button>
               </div>
             </div>
@@ -758,11 +784,13 @@
                   <button
                     type="button"
                     @click="handleAddToCart(p)"
-                    :disabled="p.isAdding || (p.available ?? 0) <= 0"
+                    :disabled="p.isAdding || (p.available ?? 0) <= 0 || !branchStore.isCurrentBranchShoppingEnabled"
                     class="min-h-[40px] px-5 py-2.5 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center space-x-1.5 cursor-pointer active:scale-95"
-                    :class="p.isAdding ? 'bg-[#387A54]' : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]')"
+                    :class="!branchStore.isCurrentBranchShoppingEnabled
+                      ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed'
+                      : (p.isAdding ? 'bg-[#387A54]' : ((p.available ?? 0) <= 0 ? 'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-[#DE1B54] hover:bg-[#C51345]'))"
                   >
-                    <span>{{ p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : (localeStore.isAmharic ? 'ወደ ቅርጫት ጨምር' : 'Add to Bag')) }}</span>
+                    <span>{{ !branchStore.isCurrentBranchShoppingEnabled ? (localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable') : (p.isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added!') : ((p.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : (localeStore.isAmharic ? 'ወደ ቅርጫት ጨምር' : 'Add to Bag'))) }}</span>
                   </button>
                 </div>
               </div>
@@ -1283,6 +1311,13 @@ async function toggleWishlist(productOrId) {
 }
 
 function handleAddToCart(p) {
+  if (!branchStore.isCurrentBranchShoppingEnabled) {
+    toastStore.warning(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
+
   const avail = Number(p.available ?? 0);
   const isSoldOut = avail <= 0 || p.stock_status === 'Sold out';
   if (isSoldOut) {

@@ -153,6 +153,14 @@ class OrderController extends Controller
             ], 401);
         }
 
+        $branchId = $request->input('branch_id');
+        $branch = \App\Models\Branch::find($branchId);
+        if ($branch && (!$branch->is_shopping_enabled || $branch->status !== 'Active')) {
+            return response()->json([
+                'message' => 'Sorry, this branch is currently unavailable for shopping.'
+            ], 422);
+        }
+
         $idempotencyKey = $request->header('Idempotency-Key') ?? $request->input('idempotency_key');
 
         try {

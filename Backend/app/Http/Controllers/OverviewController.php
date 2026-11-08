@@ -193,6 +193,7 @@ class OverviewController extends Controller
                 'revenue' => $bRev,
                 'stock_health' => $health,
                 'open_transfers' => $transferStatus,
+                'is_shopping_enabled' => $b->is_shopping_enabled,
             ];
         }
 

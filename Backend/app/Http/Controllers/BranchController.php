@@ -76,8 +76,15 @@ class BranchController extends Controller
             'address' => 'sometimes|string',
             'opening_hours' => 'sometimes|string',
             'status' => 'sometimes|in:Active,Inactive',
+            'is_shopping_enabled' => 'sometimes|boolean',
             'manager_id' => 'nullable|exists:users,user_id',
         ]);
+
+        if (array_key_exists('is_shopping_enabled', $validated) && $request->user()?->role !== 'Super Admin') {
+            return response()->json([
+                'message' => 'Unauthorized: Only Super Admin can change branch shopping availability.'
+            ], 403);
+        }
 
         // Constraint check: cannot deactivate branch if open orders or transfers in transit
         if (isset($validated['status']) && $validated['status'] === 'Inactive' && $branch->status === 'Active') {
@@ -92,7 +99,14 @@ class BranchController extends Controller
         }
 
         $oldStatus = $branch->status;
+        $oldShopping = $branch->is_shopping_enabled ? 'Enabled' : 'Disabled';
         $branch->update($validated);
+
+        $actionNote = "Status: {$branch->status}";
+        if (array_key_exists('is_shopping_enabled', $validated)) {
+            $newShopping = $branch->is_shopping_enabled ? 'Enabled' : 'Disabled';
+            $actionNote .= " | Shopping: {$newShopping}";
+        }
 
         AuditLog::create([
             'user_id' => $request->user()?->user_id,
@@ -101,12 +115,52 @@ class BranchController extends Controller
             'record' => $branch->branch_code,
             'entity_type' => 'Branch',
             'entity_id' => (string) $branch->branch_id,
-            'old_value' => $oldStatus,
-            'new_value' => $branch->status,
+            'old_value' => "Status: {$oldStatus} | Shopping: {$oldShopping}",
+            'new_value' => $actionNote,
             'created_at' => now(),
         ]);
 
         return response()->json($branch->load('deliveryZones'));
+    }
+
+    /**
+     * Toggle Customer Shopping Access for a Branch (Super Admin Only)
+     */
+    public function toggleShoppingAccess(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!$user || $user->role !== 'Super Admin') {
+            return response()->json([
+                'message' => 'Unauthorized: Only Super Admin can change branch shopping availability.'
+            ], 403);
+        }
+
+        $branch = Branch::findOrFail($id);
+        $newState = $request->has('is_shopping_enabled')
+            ? filter_var($request->input('is_shopping_enabled'), FILTER_VALIDATE_BOOLEAN)
+            : !$branch->is_shopping_enabled;
+
+        $oldState = $branch->is_shopping_enabled ? 'Enabled' : 'Disabled';
+        $branch->is_shopping_enabled = $newState;
+        $branch->save();
+        $newStateStr = $newState ? 'Enabled' : 'Disabled';
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (Super Admin)',
+            'action' => 'Branch shopping access toggled',
+            'record' => $branch->branch_code . ' (' . $branch->branch_name . ')',
+            'entity_type' => 'Branch',
+            'entity_id' => (string) $branch->branch_id,
+            'old_value' => "Shopping {$oldState}",
+            'new_value' => "Shopping {$newStateStr}",
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Customer shopping access for {$branch->branch_name} has been {$newStateStr}.",
+            'branch' => $branch->load('deliveryZones'),
+        ]);
     }
 
     public function deliveryZones($id)

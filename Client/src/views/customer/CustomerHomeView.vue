@@ -894,6 +894,13 @@ async function toggleWishlist(product) {
 }
 
 function handleAddToCart(p) {
+  if (!branchStore.isCurrentBranchShoppingEnabled) {
+    toastStore.warning(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
+
   if (p.isSoldOut || (p.available ?? 0) <= 0) {
     toastStore.warning(`${p.name} is currently sold out at ${branchStore.currentBranchName} branch.`);
     return;

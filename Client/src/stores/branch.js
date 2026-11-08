@@ -22,6 +22,16 @@ export const useBranchStore = defineStore('branch', {
       const b = state.branches.find((br) => br.branch_id === state.selectedBranchId);
       return b?.branch_name || 'Bole';
     },
+    isCurrentBranchShoppingEnabled: (state) => {
+      const b = state.branches.find((br) => br.branch_id === state.selectedBranchId);
+      if (!b) return true;
+      return b.is_shopping_enabled !== false && b.status === 'Active';
+    },
+    isBranchShoppingEnabled: (state) => (branchId) => {
+      const b = state.branches.find((br) => br.branch_id === Number(branchId));
+      if (!b) return true;
+      return b.is_shopping_enabled !== false && b.status === 'Active';
+    },
   },
 
   actions: {

@@ -14,6 +14,21 @@
 
     <!-- Active Branch & Draft Notification Bar -->
     <div class="space-y-3">
+      <!-- Shopping Disabled Warning Banner -->
+      <div v-if="!isBranchShoppingEnabled" class="p-4 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-2xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#DE1B54] dark:text-rose-300 gap-3">
+        <div class="flex items-center space-x-2.5">
+          <span class="text-base font-bold">🚫</span>
+          <span class="font-bold">Sorry, this branch is currently unavailable for shopping.</span>
+        </div>
+        <button
+          type="button"
+          @click="branchStore.openPicker()"
+          class="px-3.5 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white rounded-xl font-bold cursor-pointer transition text-xs shrink-0"
+        >
+          {{ localeStore.t('switch_branch') }}
+        </button>
+      </div>
+
       <div class="bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] px-5 py-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between text-xs text-[#29231F] dark:text-[#FAF3EE] shadow-2xs gap-3">
         <div class="flex items-center space-x-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-[#387A54] animate-pulse shrink-0"></span>
@@ -613,7 +628,7 @@
           <!-- Place Order Button -->
           <button
             type="submit"
-            :disabled="isSubmitting || (fulfillmentMethod === 'Delivery' && selectedZoneId === 'outside') || cartStore.hasSoldOutItems"
+            :disabled="isSubmitting || (fulfillmentMethod === 'Delivery' && selectedZoneId === 'outside') || cartStore.hasSoldOutItems || !isBranchShoppingEnabled"
             class="w-full py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
           >
             <span v-if="isSubmitting" class="animate-spin inline-block mr-1">⌛</span>
@@ -711,6 +726,10 @@ const currentBranchName = computed(() => {
   if (branchId.value === 4) return 'Piassa';
   if (branchId.value === 1) return 'Main Branch';
   return 'Bole';
+});
+
+const isBranchShoppingEnabled = computed(() => {
+  return branchStore.isBranchShoppingEnabled(branchId.value);
 });
 
 const cartItems = computed(() => cartStore.items);
@@ -982,6 +1001,12 @@ onMounted(async () => {
 
 async function handlePlaceOrder() {
   orderError.value = null;
+
+  if (!isBranchShoppingEnabled.value) {
+    orderError.value = 'Sorry, this branch is currently unavailable for shopping.';
+    toastStore.error(orderError.value);
+    return;
+  }
 
   if (!authStore.isAuthenticated) {
     orderError.value = localeStore.isAmharic ? 'እባክዎ ትዕዛዝዎን ከማጠናቀቅዎ በፊት ይግቡ ወይም ይመዝገቡ።' : 'Please sign in or create an account to place an order.';

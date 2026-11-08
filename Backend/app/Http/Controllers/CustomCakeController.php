@@ -154,6 +154,13 @@ class CustomCakeController extends Controller
             'image_urls.*' => 'nullable|string',
         ]);
 
+        $branch = Branch::findOrFail($validated['branch_id']);
+        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
+            return response()->json([
+                'message' => 'Sorry, this branch is currently unavailable for shopping.'
+            ], 422);
+        }
+
         $customerName = trim($request->input('customer_name') ?? $request->input('name') ?? '');
         $customerPhone = trim($request->input('customer_phone') ?? $request->input('phone') ?? '');
 

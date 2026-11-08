@@ -407,6 +407,20 @@
         </div>
 
         <div class="space-y-2.5 pt-2">
+          <!-- Branch Shopping Unavailable in Cart -->
+          <div v-if="!branchStore.isCurrentBranchShoppingEnabled" class="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl text-xs text-[#B84B42] dark:text-rose-400 font-semibold space-y-1.5">
+            <div class="flex items-center space-x-2">
+              <span>⚠️</span>
+              <span>{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
+            </div>
+            <button
+              @click="branchStore.openPicker()"
+              class="w-full mt-1.5 py-2 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition cursor-pointer"
+            >
+              {{ localeStore.isAmharic ? 'ወደ ሌላ ቅርንጫፍ ቀይር' : 'Switch to an Active Branch' }} &rarr;
+            </button>
+          </div>
+
           <!-- Checkout button: disabled if any sold out item present -->
           <div v-if="cartStore.hasSoldOutItems" class="space-y-2">
             <button
@@ -425,7 +439,8 @@
           <button
             v-else
             @click="handleProceedToCheckout"
-            class="block w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
+            :disabled="!branchStore.isCurrentBranchShoppingEnabled"
+            class="block w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
           >
             {{ localeStore.isAmharic ? 'ትዕዛዝ ያጠናቁ' : 'PROCEED TO CHECKOUT' }} →
           </button>
@@ -466,6 +481,12 @@ const toastStore = useToastStore();
 const localeStore = useLocaleStore();
 
 function handleProceedToCheckout() {
+  if (!branchStore.isCurrentBranchShoppingEnabled) {
+    toastStore.warning(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
   if (!authStore.isAuthenticated) {
     toastStore.info(localeStore.isAmharic 
       ? 'ወደ ክፍያ ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።' 

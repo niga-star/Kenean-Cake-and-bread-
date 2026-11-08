@@ -261,21 +261,46 @@
             </div>
           </div>
 
+          <!-- Branch Shopping Unavailable Banner -->
+          <div v-if="!branchStore.isCurrentBranchShoppingEnabled" class="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl flex items-center justify-between gap-3">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-2xl shrink-0">⚠️</span>
+              <div>
+                <div class="font-bold text-xs sm:text-sm text-[#B84B42] dark:text-rose-300">
+                  {{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}
+                </div>
+                <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
+                  {{ localeStore.isAmharic ? 'እባክዎ ትዕዛዝ ለማስገባት ወደ ሌላ ንቁ ቅርንጫፍ ይቀይሩ።' : 'Please select another active bakery branch to place an order.' }}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="branchStore.openPicker()"
+              class="px-3.5 py-1.5 bg-[#DE1B54] text-white text-xs font-bold rounded-lg shrink-0 cursor-pointer hover:bg-[#C51345]"
+            >
+              {{ localeStore.isAmharic ? 'ቀይር' : 'Switch' }}
+            </button>
+          </div>
+
           <!-- Action Buttons: [ 🛒 Add to Cart ] & [ ♥ Add to Wishlist ] -->
           <div class="flex flex-col sm:flex-row items-center gap-2.5 sm:gap-3 pt-3">
             <!-- Add to Cart Button -->
             <button
               type="button"
               @click="handleAddToCart"
-              :disabled="(product?.available ?? 15) <= 0 || isAdding"
+              :disabled="(product?.available ?? 15) <= 0 || isAdding || !branchStore.isCurrentBranchShoppingEnabled"
               class="w-full sm:flex-1 py-3 px-6 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-all transform active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
-              :class="{ 'bg-emerald-600 hover:bg-emerald-700': isAdding }"
+              :class="{
+                'bg-emerald-600 hover:bg-emerald-700': isAdding,
+                'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed': !branchStore.isCurrentBranchShoppingEnabled || (product?.available ?? 15) <= 0
+              }"
             >
               <span v-if="isAdding">✓</span>
-              <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else-if="branchStore.isCurrentBranchShoppingEnabled" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span>{{ isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : localeStore.t('add_to_cart') }}</span>
+              <span>{{ !branchStore.isCurrentBranchShoppingEnabled ? (localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable') : (isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : localeStore.t('add_to_cart')) }}</span>
             </button>
 
             <!-- Add to Wishlist Button -->
@@ -801,6 +826,13 @@ async function submitReview() {
 }
 
 function handleAddToCart() {
+  if (!branchStore.isCurrentBranchShoppingEnabled) {
+    toastStore.warning(localeStore.isAmharic 
+      ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለግዢ ዝግ ነው።' 
+      : 'Sorry, this branch is currently unavailable for shopping.');
+    return;
+  }
+
   if (!product.value && !productName.value) return;
 
   const avail = Number(product.value?.available ?? product.value?.available_stock ?? 0);
