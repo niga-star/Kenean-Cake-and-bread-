@@ -55,7 +55,7 @@ const routes = [
     },
     children: [
       { path: 'overview', component: OverviewView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
-      { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin'] } },
       { path: 'users', component: UsersRolesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'salaries', component: SalariesView, meta: { roles: ['Super Admin'] } },
       { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },

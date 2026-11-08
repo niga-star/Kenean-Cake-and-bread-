@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#E9E0D4] shadow-sm">
       <div class="flex items-center space-x-3.5">
         <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center text-xl shrink-0 border border-[#F0DFD0] shadow-xs">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -9,23 +9,23 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Salaries & Wage Management</h2>
-          <p class="text-xs text-[#7A6B60] mt-0.5">Centralized payroll control and branch wage expense tracking</p>
+          <h1 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Salary & Wage Management</h1>
+          <p class="text-xs text-[#7A6B60] mt-0.5">Centralized payroll control, branch wage expense breakdown, and salary adjustments.</p>
         </div>
       </div>
 
       <!-- Quick Tab Switcher -->
-      <div class="flex items-center space-x-2 bg-white border border-[#D8CDC0] rounded-xl p-1 shadow-xs">
+      <div class="flex items-center space-x-2 bg-[#FAF7F2] border border-[#D8CDC0] rounded-xl p-1 shadow-xs">
         <button
           @click="activeTab = 'payroll'"
-          class="px-3 py-1.5 text-xs font-semibold rounded-lg transition"
+          class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition"
           :class="activeTab === 'payroll' ? 'bg-[#BA5420] text-white shadow-xs' : 'text-[#6A5A50] hover:text-[#2A1D15]'"
         >
           Branch Payroll
         </button>
         <button
           @click="activeTab = 'requests'"
-          class="px-3 py-1.5 text-xs font-semibold rounded-lg transition flex items-center space-x-1.5"
+          class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition flex items-center space-x-1.5"
           :class="activeTab === 'requests' ? 'bg-[#BA5420] text-white shadow-xs' : 'text-[#6A5A50] hover:text-[#2A1D15]'"
         >
           <span>Correction Requests</span>
@@ -37,19 +37,19 @@
     </div>
 
     <!-- Alert / Status Messages -->
-    <div v-if="successMsg" class="p-3 bg-[#EBF7EB] border border-[#C5E9C6] rounded-lg text-xs text-[#1E7422] flex items-center justify-between">
+    <div v-if="successMsg" class="p-3 bg-[#EBF7EB] border border-[#C5E9C6] rounded-xl text-xs text-[#1E7422] flex items-center justify-between">
       <span>{{ successMsg }}</span>
       <button @click="successMsg = ''" class="text-[#1E7422] font-bold ml-2">&times;</button>
     </div>
 
-    <!-- Top KPI Cards: Total Business Payroll & Analytics -->
+    <!-- Top KPI Cards: Combined Business Payroll Expenses -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Total Wage Expenses</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Combined Salary Expenses</div>
         <div class="text-2xl font-serif font-bold text-[#BA5420]">
           ETB {{ Number(summary.total_wage_expenses || 0).toLocaleString() }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Monthly business payroll</p>
+        <p class="text-[11px] text-[#7A6B60]">Total monthly payroll for all branches</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
@@ -57,7 +57,7 @@
         <div class="text-2xl font-serif font-bold text-[#2A1D15]">
           {{ summary.total_employees || 0 }} <span class="text-xs font-normal text-[#8A7B71]">employees</span>
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Across all bakery branches</p>
+        <p class="text-[11px] text-[#7A6B60]">Managers, sellers, servants & delivery</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
@@ -65,94 +65,157 @@
         <div class="text-2xl font-serif font-bold text-[#2A1D15]">
           ETB {{ Number(summary.average_wage || 0).toLocaleString() }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Per staff member</p>
+        <p class="text-[11px] text-[#7A6B60]">Across all operating locations</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Pending Requests</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Pending Correction Requests</div>
         <div class="text-2xl font-serif font-bold" :class="pendingRequestsCount > 0 ? 'text-[#E53935]' : 'text-[#2E7D32]'">
           {{ pendingRequestsCount }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Awaiting Super Admin review</p>
+        <p class="text-[11px] text-[#7A6B60]">Submitted by branch employees</p>
       </div>
     </div>
 
     <!-- TAB 1: Branch Payroll & Employees -->
     <div v-if="activeTab === 'payroll'" class="space-y-6">
-      <!-- Branch by Branch Payroll Expense Breakdown Cards -->
+      <!-- Section 5: CLICKABLE BRANCH DETAILS GRID -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl shadow-sm p-6 space-y-4">
-        <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
-          <h3 class="font-serif font-bold text-base text-[#2A1D15] flex items-center space-x-2">
-            <span>🏪</span>
-            <span>Branch-by-Branch Wage Expense Breakdown</span>
-          </h3>
-          <span class="text-xs text-[#8A7B71]">{{ branchBreakdown.length }} branches</span>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#EFE8DF] pb-3">
+          <div>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center space-x-2">
+              <span>🏪</span>
+              <span>Click a Branch to View Staff & Salaries</span>
+            </h3>
+            <p class="text-xs text-[#7A6B60] mt-0.5">
+              Click any branch card below to inspect its Branch Manager, staff members, and specific wage breakdown.
+            </p>
+          </div>
+          <span class="text-xs font-semibold text-[#BA5420]">
+            {{ selectedBranchFilter === 'all' ? 'Showing: Whole Business' : `Showing: ${currentSelectedBranchName}` }}
+          </span>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-1">
+          <!-- Combined 'All Branches' Card -->
           <div
-            v-for="b in branchBreakdown"
-            :key="b.branch_id"
-            class="bg-[#FAF7F2] border border-[#EFE4D6] rounded-xl p-4 space-y-2"
+            @click="selectBranch('all')"
+            class="rounded-xl p-4 space-y-2 border transition cursor-pointer"
+            :class="selectedBranchFilter === 'all'
+              ? 'bg-[#FFF7F0] border-[#BA5420] ring-2 ring-[#BA5420]/30 shadow-md'
+              : 'bg-[#FAF7F2] border-[#EFE4D6] hover:bg-[#F5EFE8]'"
           >
             <div class="flex items-center justify-between">
-              <span class="font-bold text-sm text-[#2A1D15]">{{ b.branch_name }}</span>
-              <span class="font-mono text-[10px] text-[#8C7D73] font-semibold bg-white px-1.5 py-0.5 rounded border border-[#E8DACB]">{{ b.branch_code }}</span>
+              <span class="font-bold text-sm text-[#2A1D15]">All Branches</span>
+              <span class="text-[10px] text-[#BA5420] font-bold bg-[#FAF0E6] px-1.5 py-0.5 rounded border border-[#F0D5C1]">
+                Combined
+              </span>
             </div>
             <div>
               <div class="text-lg font-serif font-bold text-[#BA5420]">
+                ETB {{ Number(summary.total_wage_expenses || 0).toLocaleString() }}
+              </div>
+              <div class="text-[11px] text-[#7A6B60] mt-0.5 flex justify-between">
+                <span>Staff: {{ summary.total_employees || 0 }}</span>
+                <span>Avg: ETB {{ Number(summary.average_wage || 0).toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Individual Clickable Branch Cards -->
+          <div
+            v-for="b in branchBreakdown"
+            :key="b.branch_id"
+            @click="selectBranch(b.branch_id)"
+            class="rounded-xl p-4 space-y-2 border transition cursor-pointer"
+            :class="selectedBranchFilter === b.branch_id
+              ? 'bg-[#FFF7F0] border-[#BA5420] ring-2 ring-[#BA5420]/30 shadow-md'
+              : 'bg-[#FAF7F2] border-[#EFE4D6] hover:bg-[#F5EFE8]'"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sm text-[#2A1D15] truncate" :title="b.branch_name">{{ b.branch_name }}</span>
+              <span class="font-mono text-[10px] text-[#8C7D73] font-semibold bg-white px-1.5 py-0.5 rounded border border-[#E8DACB]">
+                {{ b.branch_code }}
+              </span>
+            </div>
+
+            <div class="text-[11px] text-[#55463C] truncate">
+              <span class="text-[#8A7B71]">Manager:</span> <strong class="text-[#2A1D15]">{{ b.manager_name }}</strong>
+            </div>
+
+            <div class="pt-0.5 border-t border-[#EFE4D6]/60">
+              <div class="text-base font-serif font-bold text-[#BA5420]">
                 ETB {{ Number(b.total_wage || 0).toLocaleString() }}
               </div>
               <div class="text-[11px] text-[#7A6B60] mt-0.5 flex justify-between">
-                <span>Staff: {{ b.staff_count }} / {{ b.max_staff || 15 }}</span>
-                <span>Avg: ETB {{ Number(b.avg_wage || 0).toLocaleString() }}</span>
+                <span>{{ b.staff_count }} staff</span>
+                <span>Avg: {{ Number(b.avg_wage || 0).toLocaleString() }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- All Employees Salary Table with Super Admin Edit Action -->
+      <!-- Employees Salary Table with Clickable Rows & Search Filter -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl shadow-sm overflow-hidden">
         <div class="p-5 sm:p-6 border-b border-[#EFE8DF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 class="font-serif font-bold text-base text-[#2A1D15]">All Employees & Assigned Salaries</h3>
-            <p class="text-xs text-[#7A6B60] mt-0.5">Control individual wages and log all salary adjustments to audit records</p>
+            <div class="flex items-center space-x-2">
+              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">
+                {{ selectedBranchFilter === 'all' ? 'All Employees & Assigned Salaries' : `Employees assigned to ${currentSelectedBranchName}` }}
+              </h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1]">
+                {{ filteredEmployees.length }} employees
+              </span>
+            </div>
+            <p class="text-xs text-[#7A6B60] mt-0.5">
+              Click any employee row to inspect complete profile. Salary editing is restricted to Super Admin.
+            </p>
           </div>
 
-          <!-- Branch Filter -->
-          <div class="flex items-center space-x-2">
-            <label class="text-xs font-medium text-[#7D6E64]">Filter Branch:</label>
-            <select
-              v-model="selectedBranchFilter"
-              @change="loadSalaryData"
-              class="bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]"
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Search bar -->
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search by name, amharic, phone..."
+              class="bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] min-w-[200px]"
+            />
+
+            <!-- Reset to All Branches button -->
+            <button
+              v-if="selectedBranchFilter !== 'all'"
+              @click="selectBranch('all')"
+              class="px-3 py-1.5 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#3E3027] rounded-lg shadow-2xs transition cursor-pointer"
             >
-              <option value="all">All branches</option>
-              <option v-for="b in branchBreakdown" :key="b.branch_id" :value="b.branch_id">
-                {{ b.branch_name }}
-              </option>
-            </select>
+              ✕ Clear Filter
+            </button>
           </div>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[700px]">
+          <table class="w-full text-left text-xs min-w-[780px]">
             <thead class="bg-[#FAF6F0] text-[#88786B] uppercase font-semibold border-b border-[#EFE8DF]">
               <tr>
-                <th class="py-3 px-5">Employee</th>
-                <th class="py-3 px-4">Amharic (ተያዥ)</th>
-                <th class="py-3 px-4">Role</th>
-                <th class="py-3 px-4">Branch</th>
-                <th class="py-3 px-4 text-right">Monthly Salary</th>
-                <th class="py-3 px-4 text-center">Status</th>
-                <th class="py-3 px-5 text-right">Action</th>
+                <th class="py-3.5 px-5">Employee</th>
+                <th class="py-3.5 px-4">Amharic (ተያዥ)</th>
+                <th class="py-3.5 px-4">Role</th>
+                <th class="py-3.5 px-4">Phone Number</th>
+                <th class="py-3.5 px-4">Branch</th>
+                <th class="py-3.5 px-4 text-right">Monthly Salary</th>
+                <th class="py-3.5 px-4 text-center">Status</th>
+                <th class="py-3.5 px-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
-              <tr v-for="emp in employees" :key="emp.user_id" class="hover:bg-[#FCFAF7] transition">
+              <tr
+                v-for="emp in filteredEmployees"
+                :key="emp.user_id"
+                @click="openProfileModal(emp)"
+                class="hover:bg-[#FCFAF7] transition cursor-pointer group"
+              >
                 <td class="py-3 px-5">
-                  <div class="font-bold text-xs text-[#2A1D15]">{{ emp.full_name }}</div>
+                  <div class="font-bold text-xs text-[#2A1D15] group-hover:text-[#BA5420] transition">{{ emp.full_name }}</div>
                   <div class="text-[11px] text-[#7A6B60]">{{ emp.email }}</div>
                 </td>
                 <td class="py-3 px-4 text-xs font-medium text-[#4A3B32]">
@@ -160,7 +223,7 @@
                 </td>
                 <td class="py-3 px-4">
                   <span
-                    class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                    class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
                     :class="{
                       'bg-[#FFF3E0] text-[#E65100]': emp.role === 'Super Admin',
                       'bg-[#EBF3FB] text-[#1565C0]': emp.role === 'Main Branch Manager',
@@ -168,8 +231,11 @@
                       'bg-[#F3EFE9] text-[#5A4B41]': !['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(emp.role)
                     }"
                   >
-                    {{ emp.role }}
+                    {{ emp.role === 'Branch Admin' ? 'Branch Manager' : emp.role }}
                   </span>
+                </td>
+                <td class="py-3 px-4 text-xs font-mono text-[#55463C]">
+                  {{ emp.phone || '—' }}
                 </td>
                 <td class="py-3 px-4 text-xs text-[#4A3B32] font-medium">{{ emp.branch_name }}</td>
                 <td class="py-3 px-4 text-right font-serif font-bold text-sm text-[#BA5420]">
@@ -180,19 +246,29 @@
                     class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                     :class="emp.status === 'Active' ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-gray-100 text-gray-700 border-gray-200'"
                   >
-                    {{ emp.status }}
+                    {{ emp.employment_status || emp.status }}
                   </span>
                 </td>
-                <td class="py-3 px-5 text-right">
+                <td class="py-3 px-5 text-right space-x-1" @click.stop>
+                  <button
+                    @click="openProfileModal(emp)"
+                    class="inline-flex items-center px-2 py-1 text-[11px] font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-2xs transition"
+                    title="View complete information"
+                  >
+                    View
+                  </button>
                   <button
                     @click="openEditSalaryModal(emp)"
-                    class="inline-flex items-center space-x-1 px-3 py-1 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#3E3027] rounded-md shadow-2xs transition cursor-pointer"
+                    class="inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-semibold bg-[#FAF0E6] border border-[#F0D5C1] hover:bg-[#BA5420] hover:text-white text-[#BA5420] rounded-md shadow-2xs transition cursor-pointer"
+                    title="Edit salary as Super Admin"
                   >
-                    <svg class="w-3 h-3 text-[#7A6B60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                    </svg>
                     <span>Edit Wage</span>
                   </button>
+                </td>
+              </tr>
+              <tr v-if="filteredEmployees.length === 0">
+                <td colspan="8" class="py-8 text-center text-xs text-[#8A7B71]">
+                  No employees found for the selected branch filter.
                 </td>
               </tr>
             </tbody>
@@ -278,26 +354,108 @@
       </div>
     </div>
 
-    <!-- MODAL: Super Admin Edit Employee Salary -->
+    <!-- ============================================== -->
+    <!-- MODAL: EMPLOYEE COMPLETE PROFILE INFORMATION  -->
+    <!-- ============================================== -->
+    <div
+      v-if="profileModalEmployee"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4"
+      @click.self="profileModalEmployee = null"
+    >
+      <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-lg w-full p-6 space-y-5 animate-in fade-in">
+        <div class="flex items-start justify-between border-b border-[#EFE8DF] pb-4">
+          <div class="flex items-center space-x-3.5">
+            <div class="w-12 h-12 rounded-full bg-[#FAF0E6] text-[#BA5420] font-bold text-lg flex items-center justify-center border border-[#F0DFD0]">
+              {{ profileModalEmployee.full_name?.charAt(0) || 'E' }}
+            </div>
+            <div>
+              <h3 class="font-serif font-bold text-lg text-[#2A1D15]">{{ profileModalEmployee.full_name }}</h3>
+              <p v-if="profileModalEmployee.full_name_am" class="text-xs text-[#BA5420] font-medium">
+                ተያዥ: {{ profileModalEmployee.full_name_am }}
+              </p>
+            </div>
+          </div>
+          <button @click="profileModalEmployee = null" class="text-[#8A7B71] hover:text-[#2A1D15] text-xl font-bold">&times;</button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <!-- Two-column employee details -->
+          <div class="grid grid-cols-2 gap-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#EFE4D6]">
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Assigned Role</span>
+              <strong class="text-[#2A1D15]">{{ profileModalEmployee.role }}</strong>
+            </div>
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Assigned Branch</span>
+              <strong class="text-[#2A1D15]">{{ profileModalEmployee.branch_name }}</strong>
+            </div>
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Phone Number</span>
+              <span class="font-mono text-[#2A1D15] font-semibold">{{ profileModalEmployee.phone || '—' }}</span>
+            </div>
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Email Address</span>
+              <span class="text-[#2A1D15] truncate block">{{ profileModalEmployee.email }}</span>
+            </div>
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Employment Status</span>
+              <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded-full bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]">
+                {{ profileModalEmployee.employment_status || profileModalEmployee.status || 'Active' }}
+              </span>
+            </div>
+            <div>
+              <span class="text-[#8A7B71] block mb-0.5">Hire Date</span>
+              <span class="text-[#2A1D15]">{{ profileModalEmployee.hire_date || '—' }}</span>
+            </div>
+          </div>
+
+          <!-- Highlighted Current Salary -->
+          <div class="p-4 bg-[#FFF7F0] border border-[#F0D5C1] rounded-xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-[#7A6B60] uppercase tracking-wider font-semibold block">Monthly Wage</span>
+              <div class="text-2xl font-serif font-bold text-[#BA5420] mt-0.5">
+                ETB {{ Number(profileModalEmployee.salary || 0).toLocaleString() }}
+              </div>
+            </div>
+            <button
+              @click="openEditSalaryFromProfile"
+              class="px-4 py-2 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm transition cursor-pointer"
+            >
+              Edit Salary
+            </button>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-[#EFE8DF]">
+          <button
+            @click="profileModalEmployee = null"
+            class="px-4 py-2 text-xs font-semibold bg-[#2A1D15] text-white rounded-lg hover:bg-[#3D2C20] transition cursor-pointer"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL: SUPER ADMIN EDIT EMPLOYEE SALARY       -->
+    <!-- ============================================== -->
     <div v-if="isEditSalaryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
       <div class="bg-white rounded-2xl shadow-2xl border border-[#E9E0D4] max-w-md w-full p-6 space-y-4 animate-in fade-in">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <div>
             <h3 class="font-serif font-bold text-base text-[#2A1D15]">Update Employee Salary</h3>
-            <p class="text-xs text-[#8A7B71]">{{ selectedEmployee?.full_name }} ({{ selectedEmployee?.role }})</p>
+            <p class="text-xs text-[#8A7B71]">
+              {{ selectedEmployee?.full_name }} ({{ selectedEmployee?.role }}) · {{ selectedEmployee?.branch_name }}
+            </p>
           </div>
           <button @click="isEditSalaryModalOpen = false" class="text-[#8A7B71] hover:text-[#2A1D15] text-xl font-bold">&times;</button>
         </div>
 
         <form @submit.prevent="submitUpdateSalary" class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Assigned Branch</label>
-            <input
-              type="text"
-              :value="selectedEmployee?.branch_name || 'HQ'"
-              readonly
-              class="w-full bg-[#F7F2EA] border border-[#DCD0C2] rounded-lg px-3 py-2 text-xs text-[#5A4A3E]"
-            />
+          <div class="grid grid-cols-2 gap-2 bg-[#FAF7F2] p-2.5 rounded-lg border border-[#E9E0D4] text-[11px]">
+            <div><span class="text-[#8A7B71]">Amharic:</span> <strong>{{ selectedEmployee?.full_name_am || '—' }}</strong></div>
+            <div><span class="text-[#8A7B71]">Phone:</span> <strong>{{ selectedEmployee?.phone || '—' }}</strong></div>
           </div>
 
           <div>
@@ -308,7 +466,7 @@
               min="0"
               step="50"
               required
-              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs font-bold text-[#BA5420]"
+              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-sm font-bold text-[#BA5420] focus:ring-1 focus:ring-[#BA5420]"
             />
           </div>
 
@@ -317,12 +475,12 @@
             <input
               v-model="editSalaryForm.reason"
               type="text"
-              placeholder="e.g. Annual merit review, role promotion, branch alignment"
-              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              placeholder="e.g. Annual merit review, role promotion, branch wage alignment"
+              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
             />
           </div>
 
-          <div class="p-3 bg-[#FCFAF7] border border-[#EFE8DF] rounded-lg text-[11px] text-[#8C7D73]">
+          <div class="p-3 bg-[#FCFAF7] border border-[#EFE8DF] rounded-lg text-[11px] text-[#8C7D73] leading-relaxed">
             This salary update will be recorded in the official audit log with your Super Admin signature.
           </div>
 
@@ -330,14 +488,14 @@
             <button
               type="button"
               @click="isEditSalaryModalOpen = false"
-              class="px-4 py-2 text-xs font-medium text-[#6A5A50] hover:bg-[#F3EFE9] rounded-lg transition"
+              class="px-4 py-2 text-xs font-medium text-[#6A5A50] hover:bg-[#F3EFE9] rounded-lg transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               :disabled="isUpdatingSalary"
-              class="px-5 py-2 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm transition disabled:opacity-50"
+              class="px-5 py-2 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
             >
               {{ isUpdatingSalary ? 'Updating...' : 'Save Salary' }}
             </button>
@@ -358,9 +516,11 @@ const branchBreakdown = ref([]);
 const employees = ref([]);
 const requests = ref([]);
 const selectedBranchFilter = ref('all');
+const searchQuery = ref('');
 const successMsg = ref('');
 
-// Edit Salary Modal
+// Modals
+const profileModalEmployee = ref(null);
 const isEditSalaryModalOpen = ref(false);
 const selectedEmployee = ref(null);
 const isUpdatingSalary = ref(false);
@@ -369,9 +529,37 @@ const editSalaryForm = ref({
   reason: '',
 });
 
+const currentSelectedBranchName = computed(() => {
+  if (selectedBranchFilter.value === 'all') return 'Whole Business';
+  const found = branchBreakdown.value.find(b => b.branch_id === selectedBranchFilter.value);
+  return found ? found.branch_name : 'Selected Branch';
+});
+
+const filteredEmployees = computed(() => {
+  let list = employees.value;
+
+  if (searchQuery.value && searchQuery.value.trim() !== '') {
+    const q = searchQuery.value.toLowerCase().trim();
+    list = list.filter(emp =>
+      (emp.full_name && emp.full_name.toLowerCase().includes(q)) ||
+      (emp.full_name_am && emp.full_name_am.includes(q)) ||
+      (emp.email && emp.email.toLowerCase().includes(q)) ||
+      (emp.phone && emp.phone.includes(q)) ||
+      (emp.role && emp.role.toLowerCase().includes(q))
+    );
+  }
+
+  return list;
+});
+
 const pendingRequestsCount = computed(() => {
   return requests.value.filter(r => r.status === 'Pending').length;
 });
+
+const selectBranch = (branchId) => {
+  selectedBranchFilter.value = branchId;
+  loadSalaryData();
+};
 
 const loadSalaryData = async () => {
   try {
@@ -393,6 +581,16 @@ const loadRequests = async () => {
   } catch (err) {
     console.error('Failed to load requests', err);
   }
+};
+
+const openProfileModal = (emp) => {
+  profileModalEmployee.value = emp;
+};
+
+const openEditSalaryFromProfile = () => {
+  const emp = profileModalEmployee.value;
+  profileModalEmployee.value = null;
+  openEditSalaryModal(emp);
 };
 
 const openEditSalaryModal = (emp) => {
@@ -439,4 +637,3 @@ onMounted(() => {
   loadRequests();
 });
 </script>
-

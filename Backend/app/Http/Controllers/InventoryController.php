@@ -28,8 +28,8 @@ class InventoryController extends Controller
         $user = $request->user();
         $selectedBranchId = $request->query('branch_id');
 
-        // Scoping rule: Branch admin and Branch staff can only see their own branch
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
+        // Scoping rule: All branch users strictly see their own branch only; Super Admin sees all
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
             $selectedBranchId = $user->branch_id;
         }
 
@@ -92,8 +92,8 @@ class InventoryController extends Controller
 
         $branch = Branch::findOrFail($validated['branch_id']);
 
-        // Branch role check: must belong to the branch unless super_admin or main_manager
-        if ($user && $user->role === 'Branch Admin' && $user->branch_id != $validated['branch_id']) {
+        // Branch role check: must belong to the branch unless super_admin
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $validated['branch_id']) {
             return response()->json(['message' => 'You can only adjust stock for your assigned branch.'], 403);
         }
 
@@ -122,7 +122,7 @@ class InventoryController extends Controller
         $user = $request->user();
         $query = InventoryTransaction::with(['branch', 'product', 'creator'])->latest('created_at');
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
             $query->where('branch_id', $user->branch_id);
         } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
@@ -144,7 +144,7 @@ class InventoryController extends Controller
         $user = $request->user();
         $branchId = $request->query('branch_id');
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
             $branchId = $user->branch_id;
         }
 

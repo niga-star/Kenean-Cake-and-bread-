@@ -203,9 +203,12 @@ class TransferController extends Controller
         $query = StockTransfer::with(['sourceBranch', 'destinationBranch', 'items.product', 'creator', 'approver'])
             ->latest('created_at');
 
-        // Scoping for Branch Admin / Staff to their branch
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $query->where('destination_branch_id', $user->branch_id);
+        // Scoping: Non-super-admin, non-main-manager strictly restricted to transfers concerning their branch
+        if ($user && $user->role !== 'Super Admin' && $user->role !== 'Main Branch Manager' && $user->branch_id) {
+            $query->where(function ($q) use ($user) {
+                $q->where('destination_branch_id', $user->branch_id)
+                  ->orWhere('source_branch_id', $user->branch_id);
+            });
         }
 
         if ($request->has('status') && $request->status) {
@@ -218,10 +221,17 @@ class TransferController extends Controller
     /**
      * Show single transfer details
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $transfer = StockTransfer::with(['sourceBranch', 'destinationBranch', 'items.product', 'creator', 'approver'])
             ->findOrFail($id);
+
+        $user = $request->user();
+        if ($user && $user->role !== 'Super Admin' && $user->role !== 'Main Branch Manager' && $user->branch_id) {
+            if ($transfer->destination_branch_id != $user->branch_id && $transfer->source_branch_id != $user->branch_id) {
+                return response()->json(['message' => 'Access denied: You can only view transfers concerning your assigned branch.'], 403);
+            }
+        }
 
         return response()->json($transfer);
     }
@@ -409,8 +419,8 @@ class TransferController extends Controller
         $transfer = StockTransfer::with(['items.product', 'destinationBranch', 'sourceBranch'])->findOrFail($id);
         $user = $request->user();
 
-        // Permission check
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id != $transfer->destination_branch_id) {
+        // Permission check: destination branch staff/manager or Super Admin
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $transfer->destination_branch_id) {
             return response()->json(['message' => 'You can only confirm receipts for transfers sent to your assigned branch.'], 403);
         }
         if ($user && $user->role === 'Main Branch Manager') {
@@ -718,6 +728,10 @@ class TransferController extends Controller
             'items.*.product_id' => 'required|exists:products,product_id',
             'items.*.quantity_requested' => 'required|integer|min:1',
         ]);
+
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $validated['branch_id']) {
+            return response()->json(['message' => 'Access denied: You can only submit stock requests for your assigned branch.'], 403);
+        }
 
         $stockReq = DB::transaction(function () use ($validated, $user) {
             $req = StockRequest::create([

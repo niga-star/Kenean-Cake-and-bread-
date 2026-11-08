@@ -69,11 +69,15 @@ class SalaryController extends Controller
             $staffCount = $b->users->count();
             $totalWage = (float) $b->users->sum('salary');
             $avgWage = $staffCount > 0 ? round($totalWage / $staffCount, 2) : 0;
+            $manager = $b->users->first(function ($u) {
+                return in_array($u->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+            });
 
             return [
                 'branch_id' => $b->branch_id,
                 'branch_name' => $b->branch_name,
                 'branch_code' => $b->branch_code,
+                'manager_name' => $manager?->full_name ?? ($b->branch_type === 'Main' ? 'Dawit Tadesse' : 'Assigned'),
                 'staff_count' => $staffCount,
                 'total_wage' => $totalWage,
                 'avg_wage' => $avgWage,
