@@ -126,7 +126,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        if ($request->user()) {
+        $bearer = $request->bearerToken();
+        if ($bearer) {
+            \Laravel\Sanctum\PersonalAccessToken::findToken($bearer)?->delete();
+        }
+
+        if ($request->user() && method_exists($request->user(), 'currentAccessToken') && $request->user()->currentAccessToken()) {
             $request->user()->currentAccessToken()->delete();
         }
 

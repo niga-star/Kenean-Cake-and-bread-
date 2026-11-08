@@ -18,7 +18,9 @@ class AuthenticateBearerToken
             if ($bearer) {
                 $token = PersonalAccessToken::findToken($bearer);
                 if ($token && $token->tokenable) {
-                    $request->setUserResolver(fn () => $token->tokenable);
+                    $user = $token->tokenable;
+                    $user->withAccessToken($token);
+                    $request->setUserResolver(fn () => $user);
                 }
             }
         }

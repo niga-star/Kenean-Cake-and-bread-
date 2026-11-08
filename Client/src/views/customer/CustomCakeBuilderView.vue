@@ -594,12 +594,14 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
+const router = useRouter();
 const branchStore = useBranchStore();
 const authStore = useAuthStore();
 const toast = useToastStore();
@@ -935,6 +937,14 @@ function previewImage(img) {
 }
 
 async function handleSubmitCustomCake() {
+  if (!authStore.isAuthenticated) {
+    toast.info(localeStore.isAmharic 
+      ? 'የብጁ ኬክ ጥያቄዎን ለማስገባት እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to submit your custom cake order.');
+    router.push({ path: '/login', query: { redirect: '/custom-cake' } });
+    return;
+  }
+
   isSubmitting.value = true;
   try {
     const payload = {

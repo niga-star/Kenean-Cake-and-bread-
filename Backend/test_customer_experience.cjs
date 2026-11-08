@@ -144,7 +144,7 @@ async function runCustomerJourneyTests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${customerToken}` },
   }, {
     branch_id: boleBranch.branch_id,
     customer_name: 'Sara Tesfaye',

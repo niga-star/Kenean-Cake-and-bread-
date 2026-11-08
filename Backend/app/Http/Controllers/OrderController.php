@@ -147,6 +147,12 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Authentication required: Please sign in or create an account to place an order.'
+            ], 401);
+        }
+
         $idempotencyKey = $request->header('Idempotency-Key') ?? $request->input('idempotency_key');
 
         try {

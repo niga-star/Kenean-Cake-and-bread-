@@ -234,12 +234,14 @@
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCartStore } from '../stores/cart';
+import { useAuthStore } from '../stores/auth';
 import { useBranchStore } from '../stores/branch';
 import { useToastStore } from '../stores/toast';
 import { useLocaleStore } from '../stores/locale';
 
 const router = useRouter();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 const branchStore = useBranchStore();
 const toastStore = useToastStore();
 const localeStore = useLocaleStore();
@@ -279,6 +281,13 @@ function goToCart() {
 
 function goToCheckout() {
   cartStore.closeDrawer();
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic 
+      ? 'ወደ ክፍያ ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to proceed to checkout.');
+    router.push({ path: '/login', query: { redirect: '/checkout' } });
+    return;
+  }
   router.push('/checkout');
 }
 </script>

@@ -168,7 +168,7 @@
       <!-- Login Link -->
       <div class="text-center text-xs text-[#786B60] dark:text-[#C5B7AF] pt-2 border-t border-gray-100 dark:border-[#382318]">
         {{ localeStore.t('already_have_account') }}
-        <router-link to="/login" class="font-bold text-[#DE1B54] hover:underline ml-1">
+        <router-link :to="{ path: '/login', query: route.query }" class="font-bold text-[#DE1B54] hover:underline ml-1">
           {{ localeStore.t('sign_in') }}
         </router-link>
       </div>
@@ -179,15 +179,18 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import { useCartStore } from '../../stores/cart';
 import { useToastStore } from '../../stores/toast';
 import { useWishlistStore } from '../../stores/wishlist';
 import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
 const localeStore = useLocaleStore();
@@ -307,7 +310,22 @@ async function handleRegister() {
     authStore.setAuth(res.data.token, res.data.user);
     wishlistStore.fetchWishlist();
     toastStore.success(`Welcome to SweetBakes Bakery, ${res.data.user.full_name}!`);
-    router.push('/account');
+
+    // Process pending add-to-cart item if present
+    try {
+      const rawPending = sessionStorage.getItem('pending_cart_item');
+      if (rawPending) {
+        const item = JSON.parse(rawPending);
+        sessionStorage.removeItem('pending_cart_item');
+        if (item && item.product_id) {
+          cartStore.addItem(item, item.branch_id, item.quantity || 1);
+          toastStore.success(`Added "${item.product_name || 'Item'}" to your bag!`);
+        }
+      }
+    } catch (e) {}
+
+    const redirectPath = route.query.redirect || '/account';
+    router.push(redirectPath);
   } catch (err) {
     const data = err.response?.data;
     if (data?.errors) {

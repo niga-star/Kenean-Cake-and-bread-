@@ -111,7 +111,9 @@
 
 <script setup>
 import { computed, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useCartStore } from '../stores/cart';
+import { useAuthStore } from '../stores/auth';
 import { useBranchStore } from '../stores/branch';
 import { useToastStore } from '../stores/toast';
 import { useWishlistStore } from '../stores/wishlist';
@@ -128,6 +130,9 @@ const props = defineProps({
   },
 });
 
+const router = useRouter();
+const route = useRoute();
+const authStore = useAuthStore();
 const cartStore = useCartStore();
 const branchStore = useBranchStore();
 const toastStore = useToastStore();
@@ -209,6 +214,37 @@ function onImageError(e) {
 
 function handleAddToCart() {
   if (isOutOfStock.value) return;
+
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic 
+      ? 'ምርቶችን ወደ ቅርጫት ለመጨመር እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to add items to your cart.');
+
+    const pendingItem = {
+      product_id: props.product.product_id,
+      product_name: props.product.product_name,
+      price: displayPrice.value,
+      image_url: productImage.value,
+      quantity: 1,
+      available: stockNumber.value,
+      available_stock: stockNumber.value,
+      isSoldOut: isOutOfStock.value,
+      branch_id: branchStore.selectedBranchId,
+    };
+    try {
+      sessionStorage.setItem('pending_cart_item', JSON.stringify(pendingItem));
+    } catch (e) {}
+
+    const returnUrl = route.fullPath || '/shop';
+    router.push({
+      path: '/login',
+      query: {
+        redirect: returnUrl,
+        pending_add_id: props.product.product_id,
+      },
+    });
+    return;
+  }
 
   isAdding.value = true;
   const res = cartStore.addItem(

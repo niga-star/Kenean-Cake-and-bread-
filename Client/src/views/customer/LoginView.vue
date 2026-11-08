@@ -95,7 +95,7 @@
         <!-- Register Link -->
         <div class="text-center text-xs text-[#786B60] dark:text-[#C5B7AF] pt-2 border-t border-gray-100 dark:border-[#382318]">
           {{ localeStore.t('dont_have_account') }}
-          <router-link to="/register" class="font-bold text-[#DE1B54] hover:underline ml-1">
+          <router-link :to="{ path: '/register', query: route.query }" class="font-bold text-[#DE1B54] hover:underline ml-1">
             {{ localeStore.t('create_account') }}
           </router-link>
         </div>
@@ -150,6 +150,7 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
+import { useCartStore } from '../../stores/cart';
 import { useToastStore } from '../../stores/toast';
 import { useWishlistStore } from '../../stores/wishlist';
 import { useLocaleStore } from '../../stores/locale';
@@ -158,6 +159,7 @@ import api from '../../api';
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const cartStore = useCartStore();
 const toastStore = useToastStore();
 const wishlistStore = useWishlistStore();
 const localeStore = useLocaleStore();
@@ -187,6 +189,19 @@ async function handleLogin() {
     authStore.setAuth(res.data.token, res.data.user);
     wishlistStore.fetchWishlist();
     toastStore.success(`Welcome back, ${res.data.user.full_name}!`);
+
+    // Process pending add-to-cart item if present
+    try {
+      const rawPending = sessionStorage.getItem('pending_cart_item');
+      if (rawPending) {
+        const item = JSON.parse(rawPending);
+        sessionStorage.removeItem('pending_cart_item');
+        if (item && item.product_id) {
+          cartStore.addItem(item, item.branch_id, item.quantity || 1);
+          toastStore.success(`Added "${item.product_name || 'Item'}" to your bag!`);
+        }
+      }
+    } catch (e) {}
 
     if (res.data.user.role === 'Branch Staff') {
       router.push('/admin/orders');

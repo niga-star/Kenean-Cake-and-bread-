@@ -950,6 +950,13 @@ watch(
 );
 
 onMounted(async () => {
+  // 0. Enforce authentication on checkout
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic ? 'ወደ ክፍያ ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።' : 'Please sign in or create an account to proceed to checkout.');
+    router.push({ path: '/login', query: { redirect: '/checkout' } });
+    return;
+  }
+
   // 1. Fetch branch data if needed
   if (branchStore.branches.length === 0) {
     await branchStore.fetchBranches();
@@ -975,6 +982,13 @@ onMounted(async () => {
 
 async function handlePlaceOrder() {
   orderError.value = null;
+
+  if (!authStore.isAuthenticated) {
+    orderError.value = localeStore.isAmharic ? 'እባክዎ ትዕዛዝዎን ከማጠናቀቅዎ በፊት ይግቡ ወይም ይመዝገቡ።' : 'Please sign in or create an account to place an order.';
+    toastStore.info(orderError.value);
+    router.push({ path: '/login', query: { redirect: '/checkout' } });
+    return;
+  }
 
   if (cartItems.value.length === 0) {
     orderError.value = localeStore.isAmharic ? 'የእርስዎ ቅርጫት ባዶ ነው። እባክዎ ከማዘዝዎ በፊት ምርቶችን ይጨምሩ።' : 'Your shopping bag is empty. Please add items before checking out.';

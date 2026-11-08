@@ -40,13 +40,24 @@ async function runSection8Tests() {
     }
   }
 
+  // Obtain customer token for order testing
+  const authRes = await request({
+    hostname: '127.0.0.1',
+    port: 8000,
+    path: '/api/auth/switch-role',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+  }, { role: 'Customer' });
+  const custToken = authRes.data.token;
+  const custHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': `Bearer ${custToken}` };
+
   // 1. Test Order Placement with Online Payment (Chapa)
   const placeRes = await request({
     hostname: '127.0.0.1',
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2, // Bole
     fulfillment_method: 'Pickup',
@@ -70,7 +81,7 @@ async function runSection8Tests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2,
     fulfillment_method: 'Pickup',
@@ -189,7 +200,7 @@ async function runSection8Tests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2,
     fulfillment_method: 'Pickup',
@@ -207,7 +218,7 @@ async function runSection8Tests() {
     port: 8000,
     path: `/api/orders/${order2.order_number}/cancel`,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     reason: 'Customer cancelled prior to baking',
   });
@@ -220,7 +231,7 @@ async function runSection8Tests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2,
     fulfillment_method: 'Pickup',
@@ -244,7 +255,7 @@ async function runSection8Tests() {
     port: 8000,
     path: `/api/orders/${order3.order_number}/cancel`,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   });
   assert(cancelBlockedRes.status === 422, 'Cancellation blocked once preparation started (422)');
   assert(
@@ -258,7 +269,7 @@ async function runSection8Tests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2, // Bole
     fulfillment_method: 'Pickup',
@@ -301,7 +312,7 @@ async function runSection8Tests() {
     port: 8000,
     path: '/api/orders',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    headers: custHeaders,
   }, {
     branch_id: 2,
     fulfillment_method: 'Pickup',

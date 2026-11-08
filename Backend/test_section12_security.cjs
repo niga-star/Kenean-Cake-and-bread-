@@ -296,6 +296,7 @@ async function runTests() {
     // First submission with Idempotency-Key
     const firstOrderRes = await request('POST', '/orders', orderPayload, {
       'Idempotency-Key': idempotencyKey,
+      'Authorization': `Bearer ${superAdminToken}`,
     });
     assert(firstOrderRes.status === 201, 'First order submission succeeds (201 Created)');
     const createdOrderId = firstOrderRes.data.order_id;
@@ -304,6 +305,7 @@ async function runTests() {
     // Immediate second submission with identical Idempotency-Key
     const secondOrderRes = await request('POST', '/orders', orderPayload, {
       'Idempotency-Key': idempotencyKey,
+      'Authorization': `Bearer ${superAdminToken}`,
     });
     assert(secondOrderRes.status === 200, 'Duplicate submission with identical Idempotency-Key returns 200 OK');
     assert(secondOrderRes.headers['x-idempotent-replay'] === 'true', 'Header X-Idempotent-Replay: true is returned');
@@ -321,6 +323,8 @@ async function runTests() {
       items: [
         { product_id: 1, quantity: 1 }
       ]
+    }, {
+      'Authorization': `Bearer ${superAdminToken}`,
     });
     assert(onlineOrderRes.status === 201, 'Online order created with Pending payment');
     const pendingPaymentTxRef = onlineOrderRes.data.payment.transaction_reference;
@@ -392,7 +396,7 @@ async function runTests() {
     // Valid Ethiopian phone formats (+251 911 123 456, 0911123456)
     const validRegisterRes = await request('POST', '/auth/register', {
       full_name: 'Test Customer Ethio',
-      email: `test_ethio_${Date.now()}@sweetbakes.com`,
+      email: `test_ethio_${Date.now()}@gmail.com`,
       phone: '+251 911 123 456',
       password: 'password123',
     });
@@ -401,7 +405,7 @@ async function runTests() {
     // Invalid phone format
     const invalidPhoneRes = await request('POST', '/auth/register', {
       full_name: 'Bad Phone User',
-      email: `test_badphone_${Date.now()}@sweetbakes.com`,
+      email: `test_badphone_${Date.now()}@gmail.com`,
       phone: '12345',
       password: 'password123',
     });

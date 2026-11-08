@@ -833,6 +833,7 @@ import EmptyState from '../../components/EmptyState.vue';
 import ErrorState from '../../components/ErrorState.vue';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
+import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
 import { useWishlistStore } from '../../stores/wishlist';
@@ -842,6 +843,7 @@ const route = useRoute();
 const router = useRouter();
 const branchStore = useBranchStore();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 const toastStore = useToastStore();
 const localeStore = useLocaleStore();
 const wishlistStore = useWishlistStore();
@@ -1285,6 +1287,36 @@ function handleAddToCart(p) {
   const isSoldOut = avail <= 0 || p.stock_status === 'Sold out';
   if (isSoldOut) {
     toastStore.warning(`${p.product_name} is currently sold out at this branch.`);
+    return;
+  }
+
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic 
+      ? 'ምርቶችን ወደ ቅርጫት ለመጨመር እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to add items to your cart.');
+
+    const pendingItem = {
+      product_id: p.product_id,
+      product_name: p.product_name,
+      price: Number(p.resolved_price || p.base_price),
+      image_url: getProductImage(p),
+      available_stock: avail,
+      available: avail,
+      isSoldOut: false,
+      branch_id: branchStore.selectedBranchId,
+      quantity: 1,
+    };
+    try {
+      sessionStorage.setItem('pending_cart_item', JSON.stringify(pendingItem));
+    } catch (e) {}
+
+    router.push({
+      path: '/login',
+      query: {
+        redirect: route.fullPath || '/shop',
+        pending_add_id: p.product_id,
+      },
+    });
     return;
   }
 

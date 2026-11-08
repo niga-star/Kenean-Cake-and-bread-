@@ -111,6 +111,11 @@ class CustomCakeController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Authentication required: Please sign in or create an account to submit a custom cake order.'
+            ], 401);
+        }
 
         // Harmonize field aliases from frontend
         if (!$request->has('cake_size') && $request->has('size')) {

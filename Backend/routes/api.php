@@ -67,7 +67,7 @@ Route::post('/cart/sync', [CartController::class, 'syncCart']);
 Route::delete('/cart', [CartController::class, 'clearCart']);
 
 // Public Contact Form
-Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:30,1');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:60,1');
 
 // Public Promotions
 Route::get('/promotions/active', [PromotionController::class, 'activePromotions']);

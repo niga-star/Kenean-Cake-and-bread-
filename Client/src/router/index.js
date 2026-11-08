@@ -128,10 +128,11 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const user = rawUser ? JSON.parse(rawUser) : null;
 
-  // Protect Customer Account from unauthenticated guest access
-  if (to.path === '/account') {
+  // Protect Customer Account and Checkout from unauthenticated guest access
+  if (to.path === '/account' || to.path === '/checkout') {
     if (!user || !token) {
-      return next('/login?redirect=/account');
+      const redirectTarget = to.fullPath || to.path;
+      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
     }
   }
 
@@ -142,7 +143,8 @@ router.beforeEach((to, from, next) => {
     } else if (user.role === 'Branch Staff') {
       return next('/admin/orders');
     } else {
-      return next('/account');
+      const redirectPath = to.query.redirect || '/account';
+      return next(redirectPath);
     }
   }
 

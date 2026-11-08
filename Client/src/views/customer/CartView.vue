@@ -422,13 +422,13 @@
               {{ localeStore.t('remove_sold_out_notice') }}
             </button>
           </div>
-          <router-link
+          <button
             v-else
-            to="/checkout"
-            class="block w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98"
+            @click="handleProceedToCheckout"
+            class="block w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl text-center shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
           >
             {{ localeStore.isAmharic ? 'ትዕዛዝ ያጠናቁ' : 'PROCEED TO CHECKOUT' }} →
-          </router-link>
+          </button>
 
           <router-link
             to="/shop"
@@ -449,17 +449,32 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import EmptyState from '../../components/EmptyState.vue';
 import api from '../../api';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
+import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
 
+const router = useRouter();
 const branchStore = useBranchStore();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 const toastStore = useToastStore();
 const localeStore = useLocaleStore();
+
+function handleProceedToCheckout() {
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic 
+      ? 'ወደ ክፍያ ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to proceed to checkout.');
+    router.push({ path: '/login', query: { redirect: '/checkout' } });
+    return;
+  }
+  router.push('/checkout');
+}
 
 const promoInput = ref('');
 const promoLoading = ref(false);

@@ -631,6 +631,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
+import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
 import { useWishlistStore } from '../../stores/wishlist';
@@ -640,6 +641,7 @@ const route = useRoute();
 const router = useRouter();
 const branchStore = useBranchStore();
 const cartStore = useCartStore();
+const authStore = useAuthStore();
 const toastStore = useToastStore();
 const localeStore = useLocaleStore();
 const wishlistStore = useWishlistStore();
@@ -810,6 +812,36 @@ function handleAddToCart() {
   let itemTitle = `${productName.value} (${selectedSize.value})`;
   if (cakeMessage.value.trim()) {
     itemTitle += ` — "${cakeMessage.value.trim()}"`;
+  }
+
+  if (!authStore.isAuthenticated) {
+    toastStore.info(localeStore.isAmharic 
+      ? 'ምርቶችን ወደ ቅርጫት ለመጨመር እባክዎ ይግቡ ወይም ይመዝገቡ።' 
+      : 'Please sign in or create an account to add items to your cart.');
+
+    const pendingItem = {
+      product_id: product.value?.product_id || 1,
+      product_name: itemTitle,
+      price: currentPrice.value,
+      image_url: activeGallery.value[activeImageIdx.value] || '/mockup/detail_main_cake.jpg',
+      available: avail,
+      available_stock: avail,
+      isSoldOut: false,
+      branch_id: branchStore.selectedBranchId,
+      quantity: quantity.value,
+    };
+    try {
+      sessionStorage.setItem('pending_cart_item', JSON.stringify(pendingItem));
+    } catch (e) {}
+
+    router.push({
+      path: '/login',
+      query: {
+        redirect: route.fullPath,
+        pending_add_id: product.value?.product_id,
+      },
+    });
+    return;
   }
 
   const result = cartStore.addItem(
