@@ -247,6 +247,29 @@
             />
           </div>
 
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Latitude (Optional)</label>
+              <input
+                v-model.number="editForm.latitude"
+                type="number"
+                step="any"
+                placeholder="e.g. 11.1292"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Longitude (Optional)</label>
+              <input
+                v-model.number="editForm.longitude"
+                type="number"
+                step="any"
+                placeholder="e.g. 39.6387"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
+          </div>
+
           <div>
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Opening hours</label>
             <input
@@ -494,10 +517,33 @@
             <input
               v-model="newBranch.address"
               type="text"
-              placeholder="Kazanchis, Near UNECA Building"
+              placeholder="e.g. Piazza, Near Arada"
               required
               class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
             />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Latitude (Optional)</label>
+              <input
+                v-model.number="newBranch.latitude"
+                type="number"
+                step="any"
+                placeholder="e.g. 11.1292"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">GPS Longitude (Optional)</label>
+              <input
+                v-model.number="newBranch.longitude"
+                type="number"
+                step="any"
+                placeholder="e.g. 39.6387"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
           </div>
 
           <div>
@@ -617,6 +663,8 @@ const newBranch = ref({
   city: 'Dessie',
   region: 'Amhara',
   address: '',
+  latitude: null,
+  longitude: null,
   phone: '',
   opening_hours: 'Mon–Sun 07:00–21:00',
 });
@@ -637,6 +685,8 @@ const editForm = ref({
   city: '',
   phone: '',
   address: '',
+  latitude: null,
+  longitude: null,
   opening_hours: '',
   max_staff: 15,
   max_managers: 1,
@@ -683,6 +733,8 @@ const selectBranchForEdit = (b, scroll = true) => {
     city: b.city || 'Dessie',
     phone: b.phone || '',
     address: b.address || '',
+    latitude: b.latitude ?? null,
+    longitude: b.longitude ?? null,
     opening_hours: b.opening_hours || 'Mon–Sun 07:00–21:00',
     max_staff: b.max_staff || 15,
     max_managers: b.max_managers || 1,
@@ -735,6 +787,8 @@ const saveBranch = async () => {
       city: editForm.value.city,
       phone: editForm.value.phone,
       address: editForm.value.address,
+      latitude: editForm.value.latitude ? Number(editForm.value.latitude) : null,
+      longitude: editForm.value.longitude ? Number(editForm.value.longitude) : null,
       opening_hours: editForm.value.opening_hours,
       manager_id: editForm.value.manager_id,
       max_staff: editForm.value.max_staff,
@@ -759,6 +813,8 @@ const openAddBranchModal = () => {
     city: 'Dessie',
     region: 'Amhara',
     address: '',
+    latitude: null,
+    longitude: null,
     phone: '',
     opening_hours: 'Mon–Sun 07:00–21:00',
   };

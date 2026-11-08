@@ -95,7 +95,7 @@
                     @click="selectBranchLocation(b)"
                     type="button"
                     class="px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap text-xs"
-                    :class="selectedBranchGPS.id === b.id
+                    :class="selectedBranchGPS?.id === b.id
                       ? 'bg-[#DE1B54] text-white shadow-xs font-bold'
                       : 'bg-[#FAF7F5] dark:bg-[#2C1810] text-[#786B60] dark:text-[#C5B7AF] hover:bg-rose-50 dark:hover:bg-[#382015] border border-gray-200/80 dark:border-[#3E2319]'"
                   >
@@ -109,7 +109,7 @@
                 
                 <!-- Live Real Interactive Google Maps Iframe (Lazy Loaded via IntersectionObserver) -->
                 <iframe
-                  v-if="shouldLoadMapIframe"
+                  v-if="shouldLoadMapIframe && selectedBranchGPS"
                   :key="`${selectedBranchGPS.id}-${mapType}`"
                   :src="googleMapEmbedUrl"
                   class="w-full h-full border-0 transition-opacity duration-500"
@@ -122,7 +122,7 @@
                 ></iframe>
 
                 <!-- Facade Placeholder while waiting for scroll into view -->
-                <div v-else class="w-full h-full flex flex-col items-center justify-center p-4 text-center space-y-2 bg-[#F5EFE9] dark:bg-[#1E120B]">
+                <div v-else-if="selectedBranchGPS" class="w-full h-full flex flex-col items-center justify-center p-4 text-center space-y-2 bg-[#F5EFE9] dark:bg-[#1E120B]">
                   <span class="text-3xl animate-bounce">📍</span>
                   <span class="text-xs font-bold text-[#786B60] dark:text-[#C5B7AF]">
                     {{ selectedBranchGPS.name }} &middot; {{ selectedBranchGPS.area }}
@@ -137,16 +137,16 @@
                 </div>
 
                 <!-- Top-Left Floating Info Card (Authentic Mockup Replication) -->
-                <div class="absolute top-3 left-3 bg-white/95 dark:bg-[#20120B]/95 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-200/80 dark:border-[#3F2418] shadow-md pointer-events-auto max-w-[210px] space-y-0.5">
+                <div v-if="selectedBranchGPS" class="absolute top-3 left-3 bg-white/95 dark:bg-[#20120B]/95 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-200/80 dark:border-[#3F2418] shadow-md pointer-events-auto max-w-[220px] space-y-0.5">
                   <div class="font-serif font-black text-xs text-[#2A1810] dark:text-white flex items-center space-x-1">
                     <span class="text-rose-500">🧁</span>
-                    <span class="truncate">SweetBakes Bakery</span>
+                    <span class="truncate">{{ selectedBranchGPS.name }}</span>
                   </div>
                   <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                    {{ selectedBranchGPS.area }}, Addis Ababa
+                    {{ selectedBranchGPS.area }}
                   </div>
                   <a
-                    :href="googleDirectionsUrl"
+                    :href="googleLargerMapUrl"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-[10px] font-bold text-[#DE1B54] hover:underline flex items-center space-x-0.5 pt-0.5"
@@ -185,11 +185,11 @@
               </div>
 
               <!-- Real GPS Live Coordinates Badge & User Geolocation Distance Calculator -->
-              <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-rose-50/70 dark:bg-[#25150E] border border-rose-100 dark:border-[#3A2218] text-[11px]">
+              <div v-if="selectedBranchGPS" class="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-rose-50/70 dark:bg-[#25150E] border border-rose-100 dark:border-[#3A2218] text-[11px]">
                 <div class="flex items-center space-x-1.5 text-gray-600 dark:text-gray-300">
                   <span class="text-rose-500">📍</span>
                   <span class="font-mono font-semibold">{{ selectedBranchGPS.lat.toFixed(4) }}° N, {{ selectedBranchGPS.lng.toFixed(4) }}° E</span>
-                  <span class="text-gray-400 hidden xs:inline">&middot; Elev. 2,355m</span>
+                  <span class="text-gray-400 hidden xs:inline">&middot; Elev. {{ selectedBranchGPS.elev }}m</span>
                 </div>
 
                 <!-- Live Distance Button / Result -->
@@ -223,24 +223,42 @@
 
             </div>
 
-            <!-- ================= 4 CONTACT DETAILS (Exact Mockup Replication) ================= -->
-            <div class="space-y-4 pt-2">
+            <!-- ================= 4 CONTACT DETAILS ================= -->
+            <div v-if="selectedBranchGPS" class="space-y-4 pt-2">
               
               <!-- 1. Our Location -->
-              <div class="flex items-center space-x-3.5 group">
-                <div class="w-11 h-11 rounded-full bg-[#FCE7F0] dark:bg-[#341822] text-[#DE1B54] border border-rose-200/60 dark:border-[#58263A] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <div class="flex items-start space-x-3.5 group">
+                <div class="w-11 h-11 rounded-full bg-[#FCE7F0] dark:bg-[#341822] text-[#DE1B54] border border-rose-200/60 dark:border-[#58263A] flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform mt-0.5">
                   <!-- Location Pin SVG -->
                   <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
                 </div>
-                <div class="min-w-0">
-                  <h4 class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">
-                    {{ localeStore.isAmharic ? 'የእኛ አድራሻ' : 'Our Location' }}
-                  </h4>
-                  <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] truncate mt-0.5">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-serif font-bold text-sm text-[#2A1810] dark:text-[#FAF3EE]">
+                      {{ localeStore.isAmharic ? 'የእኛ አድራሻ' : 'Our Location' }}
+                    </h4>
+                    <a
+                      :href="googleDirectionsUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-[11px] font-bold text-[#DE1B54] hover:underline flex items-center space-x-1"
+                      title="Get directions in Google Maps"
+                    >
+                      <span>🧭 {{ localeStore.isAmharic ? 'አቅጣጫ' : 'Directions' }}</span>
+                      <span>&nearr;</span>
+                    </a>
+                  </div>
+                  <a
+                    :href="googleLargerMapUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#DE1B54] dark:hover:text-rose-400 block truncate mt-0.5 transition cursor-pointer"
+                    title="Click to view full branch location on Google Maps"
+                  >
                     {{ selectedBranchGPS.address }}
-                  </p>
+                  </a>
                 </div>
               </div>
 
@@ -300,7 +318,7 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                   </h4>
                   <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] truncate mt-0.5">
-                    {{ localeStore.isAmharic ? 'ሰኞ – እሁድ: ከጠዋቱ 2:00 – ማታ 3:00' : 'Mon – Sun: 8:00 AM – 9:00 PM' }}
+                    {{ selectedBranchGPS.opening_hours || (localeStore.isAmharic ? 'ሰኞ – እሁድ: ከጠዋቱ 1:00 – ማታ 3:00' : 'Mon – Sun: 07:00 – 21:00') }}
                   </p>
                 </div>
               </div>
@@ -595,9 +613,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useLocaleStore } from '../stores/locale';
 import { useToastStore } from '../stores/toast';
+import { useBranchStore } from '../stores/branch';
 import api from '../api';
 
 const props = defineProps({
@@ -609,12 +628,20 @@ const props = defineProps({
 
 const localeStore = useLocaleStore();
 const toast = useToastStore();
+const branchStore = useBranchStore();
 
 const mapContainerRef = ref(null);
 const shouldLoadMapIframe = ref(false);
 let mapObserver = null;
 
-onMounted(() => {
+onMounted(async () => {
+  // Always fetch latest branches from database to stay 100% in sync with Branch Management
+  try {
+    await branchStore.fetchBranches();
+  } catch (err) {
+    console.error('Failed to load branches on contact section', err);
+  }
+
   // If standalone on /contact, load immediately; otherwise lazy load on scroll
   if (props.standalone) {
     shouldLoadMapIframe.value = true;
@@ -774,68 +801,191 @@ function getFieldClass(field) {
   return 'border border-gray-200 dark:border-[#3E2319] bg-[#FAF7F5] dark:bg-[#2A1810] text-[#2A1810] dark:text-white focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20';
 }
 
-// Real GPS Addis Ababa Branches
-const branchGPSList = [
-  {
-    id: 'main',
-    name: 'Meskel Sq (HQ)',
-    area: 'Meskel Square & Mexico',
-    address: 'Commercial Center Bldg, Mexico Square, Addis Ababa',
-    phone: '+251 911 123 456',
-    lat: 9.010793,
-    lng: 38.749520,
-    searchQuery: 'Meskel+Square+Addis+Ababa+SweetBakes',
-  },
-  {
-    id: 'bole',
-    name: 'Bole Flagship',
-    area: 'Bole Medhanialem',
-    address: 'Edna Mall Area, Cameroon St, Bole, Addis Ababa',
-    phone: '+251 11 661 1111',
-    lat: 8.995012,
-    lng: 38.786524,
-    searchQuery: 'Bole+Medhanialem+Addis+Ababa',
-  },
-  {
-    id: 'megenagna',
-    name: 'Megenagna',
-    area: 'Megenagna Plaza',
-    address: 'Zefmesh Grand Mall Area, Yeka, Addis Ababa',
-    phone: '+251 11 662 2222',
-    lat: 9.020510,
-    lng: 38.802035,
-    searchQuery: 'Zefmesh+Grand+Mall+Megenagna+Addis+Ababa',
-  },
-  {
-    id: 'piassa',
-    name: 'Piassa Historic',
-    area: 'Piassa Churchill Ave',
-    address: 'Churchill Ave, Near Degol Square, Arada, Addis Ababa',
-    phone: '+251 11 155 3333',
-    lat: 9.034520,
-    lng: 38.752530,
-    searchQuery: 'Churchill+Avenue+Piassa+Addis+Ababa',
-  },
-];
+// Geolocation coordinate detection dictionary for Ethiopian cities and towns
+const KNOWN_GEO_COORDINATES = {
+  dessie: { lat: 11.1333, lng: 39.6333, elev: 2470 },
+  ደሴ: { lat: 11.1333, lng: 39.6333, elev: 2470 },
+  piazza_dessie: { lat: 11.1292, lng: 39.6387, elev: 2470 },
+  hotte_dessie: { lat: 11.1390, lng: 39.6320, elev: 2485 },
+  buanbua_dessie: { lat: 11.1480, lng: 39.6230, elev: 2510 },
+  segno_dessie: { lat: 11.1220, lng: 39.6450, elev: 2460 },
+  menafesha_dessie: { lat: 11.1340, lng: 39.6360, elev: 2475 },
+  wollo_dessie: { lat: 11.1550, lng: 39.6100, elev: 2530 },
+  kombolcha: { lat: 11.0833, lng: 39.7333, elev: 1857 },
+  ኮምቦልቻ: { lat: 11.0833, lng: 39.7333, elev: 1857 },
+  woldiya: { lat: 11.8333, lng: 39.6000, elev: 2112 },
+  ወልዲያ: { lat: 11.8333, lng: 39.6000, elev: 2112 },
+  addis_ababa: { lat: 9.0108, lng: 38.7495, elev: 2355 },
+  'አዲስ አበባ': { lat: 9.0108, lng: 38.7495, elev: 2355 },
+  bahir_dar: { lat: 11.5936, lng: 37.3908, elev: 1800 },
+  ባሕር_ዳር: { lat: 11.5936, lng: 37.3908, elev: 1800 },
+  gondar: { lat: 12.6030, lng: 37.4521, elev: 2133 },
+  ጎንደር: { lat: 12.6030, lng: 37.4521, elev: 2133 },
+  hawassa: { lat: 7.0504, lng: 38.4955, elev: 1708 },
+  ሐዋሳ: { lat: 7.0504, lng: 38.4955, elev: 1708 },
+  adama: { lat: 8.5400, lng: 39.2700, elev: 1712 },
+  አዳማ: { lat: 8.5400, lng: 39.2700, elev: 1712 },
+  mekelle: { lat: 13.4967, lng: 39.4753, elev: 2084 },
+  መቀሌ: { lat: 13.4967, lng: 39.4753, elev: 2084 },
+  dire_dawa: { lat: 9.6009, lng: 41.8501, elev: 1276 },
+  ድሬዳዋ: { lat: 9.6009, lng: 41.8501, elev: 1276 },
+  debre_birhan: { lat: 9.6800, lng: 39.5300, elev: 2840 },
+  ደብረ_ብርሃን: { lat: 9.6800, lng: 39.5300, elev: 2840 },
+  jimma: { lat: 7.6734, lng: 36.8344, elev: 1780 },
+  harar: { lat: 9.3149, lng: 42.1286, elev: 1885 },
+};
 
-const selectedBranchGPS = ref(branchGPSList[0]);
+function resolveBranchCoordinates(b) {
+  // 1. Explicit database coordinates if provided
+  if (b.latitude && b.longitude && !isNaN(b.latitude) && !isNaN(b.longitude)) {
+    return {
+      lat: Number(b.latitude),
+      lng: Number(b.longitude),
+      elev: (b.city && b.city.toLowerCase().includes('des')) ? 2470 : 2355,
+    };
+  }
+
+  // 2. Intelligent detection from town, city, or address
+  const fullText = `${b.address || ''} ${b.city || ''} ${b.region || ''}`.toLowerCase();
+  
+  if (fullText.includes('piazza') || fullText.includes('ፒያሳ') || fullText.includes('arada') || fullText.includes('አራዳ')) {
+    if (fullText.includes('des') || fullText.includes('ደሴ') || !fullText.includes('addis')) {
+      return KNOWN_GEO_COORDINATES.piazza_dessie;
+    }
+  }
+  if (fullText.includes('hotte') || fullText.includes('ሆቴ') || fullText.includes('akale')) {
+    return KNOWN_GEO_COORDINATES.hotte_dessie;
+  }
+  if (fullText.includes('buanbua') || fullText.includes('ቧንቧ') || fullText.includes('robit')) {
+    return KNOWN_GEO_COORDINATES.buanbua_dessie;
+  }
+  if (fullText.includes('segno') || fullText.includes('ሰኞ') || fullText.includes('shell')) {
+    return KNOWN_GEO_COORDINATES.segno_dessie;
+  }
+  if (fullText.includes('menafesha') || fullText.includes('መናፈሻ')) {
+    return KNOWN_GEO_COORDINATES.menafesha_dessie;
+  }
+  if (fullText.includes('wollo') || fullText.includes('ወሎ') || fullText.includes('tita')) {
+    return KNOWN_GEO_COORDINATES.wollo_dessie;
+  }
+  if (fullText.includes('des') || fullText.includes('ደሴ')) {
+    return KNOWN_GEO_COORDINATES.dessie;
+  }
+  if (fullText.includes('kombol') || fullText.includes('ኮምቦል')) {
+    return KNOWN_GEO_COORDINATES.kombolcha;
+  }
+  if (fullText.includes('wold') || fullText.includes('ወልድ')) {
+    return KNOWN_GEO_COORDINATES.woldiya;
+  }
+  if (fullText.includes('bahir') || fullText.includes('ባሕር')) {
+    return KNOWN_GEO_COORDINATES.bahir_dar;
+  }
+  if (fullText.includes('gond') || fullText.includes('ጎንደር')) {
+    return KNOWN_GEO_COORDINATES.gondar;
+  }
+  if (fullText.includes('hawas') || fullText.includes('ሐዋሳ')) {
+    return KNOWN_GEO_COORDINATES.hawassa;
+  }
+  if (fullText.includes('adama') || fullText.includes('አዳማ') || fullText.includes('nazret')) {
+    return KNOWN_GEO_COORDINATES.adama;
+  }
+  if (fullText.includes('mekel') || fullText.includes('መቀሌ')) {
+    return KNOWN_GEO_COORDINATES.mekelle;
+  }
+  if (fullText.includes('dire') || fullText.includes('ድሬ')) {
+    return KNOWN_GEO_COORDINATES.dire_dawa;
+  }
+  if (fullText.includes('debre') || fullText.includes('ደብረ')) {
+    return KNOWN_GEO_COORDINATES.debre_birhan;
+  }
+  if (fullText.includes('addis') || fullText.includes('አዲስ')) {
+    return KNOWN_GEO_COORDINATES.addis_ababa;
+  }
+
+  // Default to Dessie as current primary branch hub
+  return KNOWN_GEO_COORDINATES.dessie;
+}
+
+// Dynamically mapped branches from database
+const branchGPSList = computed(() => {
+  const bList = branchStore.branches || [];
+  const activeOnly = bList.filter(b => b.status === 'Active');
+  const source = activeOnly.length > 0 ? activeOnly : bList;
+
+  if (source.length === 0) {
+    return [{
+      id: 1,
+      name: 'Dessie Main Branch',
+      area: 'Piazza, Central Dessie',
+      address: 'Piazza, Central Dessie, Ethiopia',
+      city: 'Dessie',
+      region: 'Amhara',
+      phone: '+251 911 123 456',
+      opening_hours: 'Mon–Sun 07:00–21:00',
+      lat: 11.1292,
+      lng: 39.6387,
+      elev: 2470,
+    }];
+  }
+
+  return source.map((b) => {
+    const coords = resolveBranchCoordinates(b);
+    const fullAddr = [b.address, b.city, b.region, 'Ethiopia'].filter(Boolean).join(', ');
+    return {
+      id: b.branch_id,
+      name: b.branch_name,
+      area: `${b.address || b.city}, ${b.city || ''}`,
+      address: fullAddr,
+      city: b.city || 'Dessie',
+      region: b.region || 'Amhara',
+      phone: b.phone || '+251 911 123 456',
+      opening_hours: b.opening_hours || 'Mon–Sun 07:00–21:00',
+      lat: coords.lat,
+      lng: coords.lng,
+      elev: coords.elev || 2470,
+    };
+  });
+});
+
+const selectedBranchGPS = ref(null);
+
+watch(
+  branchGPSList,
+  (list) => {
+    if (list && list.length > 0) {
+      if (!selectedBranchGPS.value || !list.some(b => b.id === selectedBranchGPS.value.id)) {
+        selectedBranchGPS.value = list[0];
+      }
+    }
+  },
+  { immediate: true }
+);
+
 const mapType = ref('m'); // 'm' for roadmap, 'k' for satellite
 const mapLoaded = ref(false);
 const copiedCoords = ref(false);
 const calculatingDistance = ref(false);
 const userDistanceText = ref('');
 
-// Dynamic Google Maps Embed URL with Real GPS Coordinates
+// Dynamic Google Maps Embed URL with Real GPS Coordinates & Marker
 const googleMapEmbedUrl = computed(() => {
+  if (!selectedBranchGPS.value) return '';
   const { lat, lng } = selectedBranchGPS.value;
-  // Use universal Google Maps embed with query coordinates & roadmap/satellite mode
-  return `https://maps.google.com/maps?q=${lat},${lng}&t=${mapType.value}&z=15&ie=UTF8&iwloc=&output=embed`;
+  return `https://maps.google.com/maps?q=${lat},${lng}&t=${mapType.value}&z=16&ie=UTF8&iwloc=&output=embed`;
 });
 
 // Google Maps Real Navigation / Directions URL
 const googleDirectionsUrl = computed(() => {
+  if (!selectedBranchGPS.value) return 'https://www.google.com/maps';
   const { lat, lng } = selectedBranchGPS.value;
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+});
+
+// View Larger Map URL
+const googleLargerMapUrl = computed(() => {
+  if (!selectedBranchGPS.value) return 'https://www.google.com/maps';
+  const { lat, lng } = selectedBranchGPS.value;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 });
 
 function selectBranchLocation(b) {
@@ -851,6 +1001,7 @@ function toggleMapType() {
 
 // Copy GPS Coordinates to Clipboard
 async function copyCoordinates() {
+  if (!selectedBranchGPS.value) return;
   const coords = `${selectedBranchGPS.value.lat.toFixed(6)}, ${selectedBranchGPS.value.lng.toFixed(6)}`;
   try {
     if (navigator.clipboard) {
@@ -907,9 +1058,10 @@ function calculateDistanceToBakery() {
     (err) => {
       calculatingDistance.value = false;
       console.warn('Geolocation permission denied or timed out:', err);
-      // Graceful fallback for demo/simulated Addis Ababa distance
-      userDistanceText.value = '3.2 km away (~10 min drive)';
-      toast.info('Using local Addis Ababa estimated distance: 3.2 km');
+      // Graceful fallback based on selected branch city
+      const city = selectedBranchGPS.value?.city || 'Dessie';
+      userDistanceText.value = `~2.5 km away (~8 min drive in ${city})`;
+      toast.info(`Using estimated local ${city} distance: 2.5 km`);
     },
     { timeout: 7000 }
   );

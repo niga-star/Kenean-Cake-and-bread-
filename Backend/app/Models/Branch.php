@@ -19,6 +19,8 @@ class Branch extends Model
         'region',
         'city',
         'address',
+        'latitude',
+        'longitude',
         'phone',
         'opening_hours',
         'manager_id',
@@ -29,6 +31,8 @@ class Branch extends Model
     ];
 
     protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
         'is_shopping_enabled' => 'boolean',
         'max_managers' => 'integer',
         'max_staff' => 'integer',
