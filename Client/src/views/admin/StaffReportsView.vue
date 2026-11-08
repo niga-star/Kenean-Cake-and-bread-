@@ -87,6 +87,12 @@
               </option>
             </select>
           </div>
+          <!-- Scoped Branch Badge for Branch Staff / Managers -->
+          <div v-else class="flex items-center space-x-1.5">
+            <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1]">
+              📍 {{ userBranchName }} Branch Only
+            </span>
+          </div>
 
           <!-- Report Type Filter -->
           <div class="flex items-center space-x-1.5">
@@ -109,7 +115,7 @@
             </select>
           </div>
 
-          <!-- Date Filter (Step 6/7) -->
+          <!-- Date Filter (Step 4 & 6/7) -->
           <div class="flex items-center space-x-1.5">
             <label class="text-xs font-semibold text-[#65554B]">Date:</label>
             <select
@@ -121,17 +127,27 @@
               <option value="today">Today</option>
               <option value="this_week">This Week</option>
               <option value="this_month">This Month</option>
-              <option value="custom">Custom Date</option>
+              <option value="custom">Custom Date Range</option>
             </select>
           </div>
 
-          <input
-            v-if="selectedDateFilter === 'custom'"
-            type="date"
-            v-model="customDate"
-            @change="loadReports"
-            class="bg-white border border-[#D8CDC0] rounded-lg px-2 py-1 text-xs text-[#2D231D]"
-          />
+          <div v-if="selectedDateFilter === 'custom'" class="flex items-center space-x-1">
+            <input
+              type="date"
+              v-model="customStartDate"
+              @change="loadReports"
+              class="bg-white border border-[#D8CDC0] rounded-lg px-2 py-1 text-xs text-[#2D231D]"
+              title="Start Date"
+            />
+            <span class="text-xs text-gray-400">to</span>
+            <input
+              type="date"
+              v-model="customEndDate"
+              @change="loadReports"
+              class="bg-white border border-[#D8CDC0] rounded-lg px-2 py-1 text-xs text-[#2D231D]"
+              title="End Date"
+            />
+          </div>
         </div>
       </div>
 
@@ -419,7 +435,8 @@ const reports = ref([]);
 const selectedBranchFilter = ref('all');
 const selectedTypeFilter = ref('all');
 const selectedDateFilter = ref('all');
-const customDate = ref('');
+const customStartDate = ref('');
+const customEndDate = ref('');
 const successMsg = ref('');
 
 // Modals
@@ -438,6 +455,8 @@ const newReportForm = ref({
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 const isManager = computed(() => ['Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role));
 const isManagerOrAdmin = computed(() => isSuperAdmin.value || isManager.value);
+const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
+const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
 
 const filteredReports = computed(() => {
   return reports.value;
@@ -446,15 +465,22 @@ const filteredReports = computed(() => {
 const loadReports = async () => {
   try {
     const params = {};
-    if (selectedBranchFilter.value !== 'all') {
-      params.branch_id = selectedBranchFilter.value;
+    if (isSuperAdmin.value) {
+      if (selectedBranchFilter.value !== 'all') {
+        params.branch_id = selectedBranchFilter.value;
+      }
+    } else if (authStore.user?.branch_id) {
+      params.branch_id = authStore.user.branch_id;
     }
+
     if (selectedTypeFilter.value !== 'all') {
       params.report_type = selectedTypeFilter.value;
     }
+
     if (selectedDateFilter.value !== 'all') {
       if (selectedDateFilter.value === 'custom') {
-        params.date = customDate.value;
+        if (customStartDate.value) params.start_date = customStartDate.value;
+        if (customEndDate.value) params.end_date = customEndDate.value;
       } else {
         params.date_range = selectedDateFilter.value;
       }

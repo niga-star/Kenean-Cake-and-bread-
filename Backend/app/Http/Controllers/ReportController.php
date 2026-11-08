@@ -28,16 +28,20 @@ class ReportController extends Controller
     {
         $user = $request->user();
 
-        // Server-side enforcement: Branch staff cannot view financial reports
-        if ($user && $user->role === 'Branch Staff') {
-            abort(403, 'Access denied: Branch staff are not permitted to view financial reports.');
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
         }
 
-        // Scoping rule: Branch Admin only sees their assigned branch
-        if ($user && $user->role === 'Branch Admin' && $user->branch_id) {
-            return $user->branch_id;
+        // Branch Managers, Sellers, and Staff can ONLY access their own assigned branch
+        if ($user->role !== 'Super Admin' && $user->branch_id) {
+            $requestedBranch = $request->query('branch_id');
+            if ($requestedBranch && $requestedBranch !== 'all' && (int) $requestedBranch !== (int) $user->branch_id) {
+                abort(403, 'Access denied: You can only view reports for your assigned branch.');
+            }
+            return (int) $user->branch_id;
         }
 
+        // Super Admin can view all or specific branch
         $branchId = $request->query('branch_id');
         if ($branchId && $branchId !== 'all') {
             return (int) $branchId;
@@ -56,6 +60,20 @@ class ReportController extends Controller
         $categoryId = $request->query('category_id');
         $fromDate = $request->query('from_date');
         $toDate = $request->query('to_date');
+        $dateRange = $request->query('date_range');
+
+        if ($dateRange) {
+            if ($dateRange === 'today') {
+                $fromDate = Carbon::today()->toDateString();
+                $toDate = Carbon::today()->toDateString();
+            } elseif ($dateRange === 'this_week') {
+                $fromDate = Carbon::now()->startOfWeek()->toDateString();
+                $toDate = Carbon::now()->endOfWeek()->toDateString();
+            } elseif ($dateRange === 'this_month') {
+                $fromDate = Carbon::now()->startOfMonth()->toDateString();
+                $toDate = Carbon::now()->endOfMonth()->toDateString();
+            }
+        }
 
         // Filter branches
         if ($effectiveBranchId) {
@@ -168,6 +186,20 @@ class ReportController extends Controller
         $productId = $request->query('product_id');
         $fromDate = $request->query('from_date');
         $toDate = $request->query('to_date');
+        $dateRange = $request->query('date_range');
+
+        if ($dateRange) {
+            if ($dateRange === 'today') {
+                $fromDate = Carbon::today()->toDateString();
+                $toDate = Carbon::today()->toDateString();
+            } elseif ($dateRange === 'this_week') {
+                $fromDate = Carbon::now()->startOfWeek()->toDateString();
+                $toDate = Carbon::now()->endOfWeek()->toDateString();
+            } elseif ($dateRange === 'this_month') {
+                $fromDate = Carbon::now()->startOfMonth()->toDateString();
+                $toDate = Carbon::now()->endOfMonth()->toDateString();
+            }
+        }
 
         switch ($type) {
             case 'branch_performance':

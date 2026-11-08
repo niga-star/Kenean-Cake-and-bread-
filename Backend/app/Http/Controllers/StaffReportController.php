@@ -7,6 +7,7 @@ use App\Models\StaffReport;
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\AuditLog;
+use Carbon\Carbon;
 
 class StaffReportController extends Controller
 {
@@ -30,12 +31,13 @@ class StaffReportController extends Controller
             if ($branchId && $branchId !== 'all') {
                 $query->where('branch_id', $branchId);
             }
-        } elseif (in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
-            // Manager sees reports from their assigned branch
-            $query->where('branch_id', $currentUser->branch_id);
         } else {
-            // Staff sees own reports
-            $query->where('user_id', $currentUser->user_id);
+            // Branch privacy enforcement: Branch Manager and Branch Staff only access their assigned branch
+            $requestedBranch = $request->query('branch_id');
+            if ($requestedBranch && $requestedBranch !== 'all' && (int)$requestedBranch !== (int)$currentUser->branch_id) {
+                return response()->json(['message' => 'Access denied: You cannot view reports from other branches.'], 403);
+            }
+            $query->where('branch_id', $currentUser->branch_id);
         }
 
         $reportType = $request->query('report_type');
@@ -43,13 +45,24 @@ class StaffReportController extends Controller
             $query->where('report_type', $reportType);
         }
 
+        $dateRange = $request->query('date_range');
+        if ($dateRange) {
+            if ($dateRange === 'today') {
+                $query->whereDate('created_at', Carbon::today());
+            } elseif ($dateRange === 'this_week') {
+                $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            } elseif ($dateRange === 'this_month') {
+                $query->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()]);
+            }
+        }
+
         $date = $request->query('date');
         if ($date) {
             $query->whereDate('created_at', $date);
         }
 
-        $startDate = $request->query('start_date');
-        $endDate = $request->query('end_date') ?: $startDate;
+        $startDate = $request->query('start_date') ?: $request->query('from_date');
+        $endDate = $request->query('end_date') ?: ($request->query('to_date') ?: $startDate);
         if ($startDate) {
             $query->whereDate('created_at', '>=', $startDate)
                   ->whereDate('created_at', '<=', $endDate);
@@ -83,9 +96,13 @@ class StaffReportController extends Controller
             'branch_id' => 'nullable|exists:branches,branch_id',
         ]);
 
-        $branchId = $currentUser->branch_id ?: $validated['branch_id'];
+        $branchId = $currentUser->branch_id ?: ($validated['branch_id'] ?? null);
         if (!$branchId && $currentUser->role !== 'Super Admin') {
             return response()->json(['message' => 'You must be assigned to a branch to submit a report.'], 422);
+        }
+
+        if ($currentUser->role !== 'Super Admin' && !empty($validated['branch_id']) && (int)$validated['branch_id'] !== (int)$currentUser->branch_id) {
+            return response()->json(['message' => 'Access denied: You can only submit reports for your assigned branch.'], 403);
         }
 
         // Determine hierarchy destination:

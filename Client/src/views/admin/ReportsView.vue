@@ -43,15 +43,16 @@
       </div>
     </div>
 
-    <!-- Scoped Branch Notice if Branch Admin -->
+    <!-- Scoped Branch Notice if not Super Admin -->
     <div
-      v-if="isBranchAdmin"
-      class="p-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl flex items-center justify-between text-xs text-[#92400E]"
+      v-if="isBranchScoped"
+      class="p-3.5 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl flex items-center justify-between text-xs text-[#92400E] shadow-2xs"
     >
-      <div class="flex items-center space-x-2">
-        <span>🔒</span>
-        <span>Branch Scoped View: You are viewing reports strictly for <strong>{{ userBranchName }} Branch</strong>. Central comparisons are restricted to Super Admin.</span>
+      <div class="flex items-center space-x-2.5">
+        <span class="text-base">🔒</span>
+        <span><strong>Strict Branch Privacy:</strong> You are viewing reports exclusively for <strong>{{ userBranchName }} Branch</strong>. Cross-branch comparisons are restricted to Super Admin.</span>
       </div>
+      <span class="text-[11px] font-bold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full border border-amber-300">Branch Scoped</span>
     </div>
 
     <!-- 4 High-Level Summary Metric Cards -->
@@ -99,59 +100,109 @@
       </div>
     </div>
 
-    <!-- Filters Row -->
-    <div class="bg-white p-4 border border-[#E9E0D4] rounded-2xl shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-      <!-- Branch Filter -->
-      <div>
-        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Branch</label>
-        <select
-          v-model="filters.branch_id"
-          :disabled="isBranchAdmin"
-          @change="reloadAll"
-          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] disabled:bg-gray-100 disabled:cursor-not-allowed font-medium"
-        >
-          <option v-if="!isBranchAdmin" value="all">All active branches</option>
-          <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-            {{ b.branch_name }} Branch
-          </option>
-        </select>
+    <!-- Quick Date Filters & Detailed Parameters -->
+    <div class="bg-white p-4 border border-[#E9E0D4] rounded-2xl shadow-2xs space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F2EAE0] pb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-[#7D6E64]">Date Filter:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              @click="setDateFilter('today')"
+              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
+              :class="quickDateFilter === 'today' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              @click="setDateFilter('this_week')"
+              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
+              :class="quickDateFilter === 'this_week' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
+            >
+              This Week
+            </button>
+            <button
+              type="button"
+              @click="setDateFilter('this_month')"
+              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
+              :class="quickDateFilter === 'this_month' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
+            >
+              This Month
+            </button>
+            <button
+              type="button"
+              @click="setDateFilter('custom')"
+              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
+              :class="quickDateFilter === 'custom' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
+            >
+              Custom Date Range
+            </button>
+          </div>
+        </div>
+
+        <div v-if="isBranchScoped" class="text-xs font-bold text-[#BA5420] flex items-center space-x-1.5">
+          <span>📍</span>
+          <span>Assigned: {{ userBranchName }} Branch</span>
+        </div>
       </div>
 
-      <!-- Category Filter -->
-      <div>
-        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Category</label>
-        <select
-          v-model="filters.category_id"
-          @change="reloadAll"
-          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
-        >
-          <option value="all">All categories</option>
-          <option v-for="c in categories" :key="c.category_id" :value="c.category_id">
-            {{ c.category_name }}
-          </option>
-        </select>
-      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end pt-1">
+        <!-- Branch Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Branch</label>
+          <div v-if="isBranchScoped" class="p-2 bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl text-xs font-bold text-[#2D231D]">
+            {{ userBranchName }} Branch
+          </div>
+          <select
+            v-else
+            v-model="filters.branch_id"
+            @change="reloadAll"
+            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
+          >
+            <option value="all">All active branches</option>
+            <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
+              {{ b.branch_name }} Branch
+            </option>
+          </select>
+        </div>
 
-      <!-- Date From -->
-      <div>
-        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date From</label>
-        <input
-          v-model="filters.from_date"
-          @change="reloadAll"
-          type="date"
-          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
-        />
-      </div>
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Category</label>
+          <select
+            v-model="filters.category_id"
+            @change="reloadAll"
+            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
+          >
+            <option value="all">All categories</option>
+            <option v-for="c in categories" :key="c.category_id" :value="c.category_id">
+              {{ c.category_name }}
+            </option>
+          </select>
+        </div>
 
-      <!-- Date To -->
-      <div>
-        <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date To</label>
-        <input
-          v-model="filters.to_date"
-          @change="reloadAll"
-          type="date"
-          class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
-        />
+        <!-- Date From -->
+        <div>
+          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date From</label>
+          <input
+            v-model="filters.from_date"
+            @change="quickDateFilter = 'custom'; reloadAll()"
+            type="date"
+            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          />
+        </div>
+
+        <!-- Date To -->
+        <div>
+          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date To</label>
+          <input
+            v-model="filters.to_date"
+            @change="quickDateFilter = 'custom'; reloadAll()"
+            type="date"
+            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          />
+        </div>
       </div>
     </div>
 
@@ -368,7 +419,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuthStore } from '../../stores/auth';
 import api from '../../api';
+
+const authStore = useAuthStore();
+const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
+const isBranchScoped = computed(() => !isSuperAdmin.value);
+const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
+const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
 
 // Report tabs definition per Section 10 specs
 const reportTabs = [
@@ -389,18 +447,37 @@ const categories = ref([]);
 const loading = ref(false);
 const sendingSummary = ref(false);
 
-const rawUser = localStorage.getItem('user');
-const currentUser = rawUser ? JSON.parse(rawUser) : null;
-const isBranchAdmin = computed(() => currentUser?.role === 'Branch Admin');
-const userBranchName = computed(() => currentUser?.branch_name || 'Bole');
+const quickDateFilter = ref('this_month');
 
 const filters = ref({
-  branch_id: isBranchAdmin.value ? (currentUser?.branch_id || 2) : 'all',
+  branch_id: isBranchScoped.value ? userBranchId.value : 'all',
   category_id: 'all',
   product_id: 'all',
-  from_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  from_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
   to_date: new Date().toISOString().split('T')[0],
 });
+
+const setDateFilter = (filterKey) => {
+  quickDateFilter.value = filterKey;
+  const now = new Date();
+  if (filterKey === 'today') {
+    const todayStr = now.toISOString().split('T')[0];
+    filters.value.from_date = todayStr;
+    filters.value.to_date = todayStr;
+  } else if (filterKey === 'this_week') {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    filters.value.from_date = monday.toISOString().split('T')[0];
+    filters.value.to_date = new Date().toISOString().split('T')[0];
+  } else if (filterKey === 'this_month') {
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    filters.value.from_date = firstDay.toISOString().split('T')[0];
+    filters.value.to_date = new Date().toISOString().split('T')[0];
+  }
+  reloadAll();
+};
 
 const metrics = ref({
   revenue: 0,
@@ -513,6 +590,10 @@ onMounted(async () => {
     branches.value = bRes.data;
     categories.value = cRes.data;
   } catch (e) {}
+
+  if (isBranchScoped.value && userBranchId.value) {
+    filters.value.branch_id = userBranchId.value;
+  }
 
   await reloadAll();
 });

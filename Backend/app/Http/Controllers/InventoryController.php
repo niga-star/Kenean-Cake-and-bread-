@@ -31,9 +31,10 @@ class InventoryController extends Controller
         // Scoping rule: All branch users strictly see their own branch only; Super Admin sees all
         if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
             $selectedBranchId = $user->branch_id;
+            $branches = Branch::where('branch_id', $user->branch_id)->get();
+        } else {
+            $branches = Branch::where('status', 'Active')->get();
         }
-
-        $branches = Branch::where('status', 'Active')->get();
 
         $query = BranchInventory::with(['branch', 'product.category'])
             ->join('branches', 'branch_inventory.branch_id', '=', 'branches.branch_id')
@@ -110,6 +111,16 @@ class InventoryController extends Controller
             return response()->json([
                 'message' => 'Stock adjusted successfully',
                 'inventory' => $result['inventory'],
+                'details' => [
+                    'branch' => $branch->branch_name,
+                    'product' => $result['inventory']->product?->product_name ?? ('Product #' . $validated['product_id']),
+                    'previous_quantity' => $result['old_quantity'] ?? null,
+                    'new_quantity' => $result['new_quantity'] ?? null,
+                    'delta' => $result['delta'] ?? null,
+                    'employee' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'System Admin',
+                    'reason' => $validated['reason'],
+                    'date' => now()->toIso8601String(),
+                ],
             ]);
         } catch (\Exception $e) {
             $status = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;

@@ -130,10 +130,14 @@ class InventoryService
             $inventory->quantity_on_hand = $newOnHand;
             $inventory->save();
 
+            $dbType = in_array($type, ['production', 'transfer_dispatch', 'transfer_receive', 'order_placed', 'order_completed', 'order_cancelled', 'damaged', 'expired', 'manual_adjustment'])
+                ? $type
+                : 'manual_adjustment';
+
             $tx = InventoryTransaction::create([
                 'branch_id' => $branchId,
                 'product_id' => $productId,
-                'transaction_type' => $type,
+                'transaction_type' => $dbType,
                 'quantity' => $qtyDelta,
                 'reference_type' => 'manual',
                 'reference_id' => $inventory->inventory_id ?? null,
@@ -150,7 +154,7 @@ class InventoryService
                 'entity_type' => 'BranchInventory',
                 'entity_id' => (string) $inventory->inventory_id,
                 'old_value' => "On hand: {$oldOnHand}",
-                'new_value' => "On hand: {$newOnHand} (Delta: " . ($qtyDelta >= 0 ? "+{$qtyDelta}" : $qtyDelta) . ")",
+                'new_value' => "On hand: {$newOnHand} (Delta: " . ($qtyDelta >= 0 ? "+{$qtyDelta}" : $qtyDelta) . ", Reason: {$reason})",
                 'created_at' => now(),
             ]);
 
@@ -168,6 +172,9 @@ class InventoryService
             return [
                 'inventory' => $inventory->fresh(['product', 'branch']),
                 'transaction' => $tx,
+                'old_quantity' => $oldOnHand,
+                'new_quantity' => $newOnHand,
+                'delta' => $qtyDelta,
             ];
         }, 3);
     }
