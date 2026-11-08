@@ -51,10 +51,40 @@ class RoleAuthorizationMiddleware
         }
 
         // Check specific allowed roles if specified on route
-        if (!empty($allowedRoles) && !in_array($user->role, $allowedRoles)) {
-            return response()->json([
-                'message' => "Access denied: This action requires one of the following roles: " . implode(', ', $allowedRoles) . ". Your role is: {$user->role}."
-            ], 403);
+        if (!empty($allowedRoles)) {
+            // Super Admin always satisfies any administrative role requirement
+            $isAuthorized = ($user->role === 'Super Admin');
+
+            if (!$isAuthorized) {
+                // Exact role match
+                if (in_array($user->role, $allowedRoles)) {
+                    $isAuthorized = true;
+                }
+                // Branch Manager / Branch Admin equivalence
+                elseif (in_array('Branch Admin', $allowedRoles) && $user->role === 'Branch Manager') {
+                    $isAuthorized = true;
+                }
+                elseif (in_array('Branch Manager', $allowedRoles) && $user->role === 'Branch Admin') {
+                    $isAuthorized = true;
+                }
+                // Branch Staff includes specialized branch staff roles
+                elseif (in_array('Branch Staff', $allowedRoles) && in_array($user->role, [
+                    'Branch Staff',
+                    'Branch Seller',
+                    'Branch Seller / Cashier',
+                    'Cashier',
+                    'Servant',
+                    'Delivery Staff',
+                ])) {
+                    $isAuthorized = true;
+                }
+            }
+
+            if (!$isAuthorized) {
+                return response()->json([
+                    'message' => "Access denied: This action requires one of the following roles: " . implode(', ', $allowedRoles) . ". Your role is: {$user->role}."
+                ], 403);
+            }
         }
 
         return $next($request);

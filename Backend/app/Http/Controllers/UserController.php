@@ -10,11 +10,18 @@ use App\Models\AuditLog;
 
 class UserController extends Controller
 {
+    /**
+     * List users and staff.
+     * - Super Admin: views all branches and users.
+     * - Main Branch Manager: views Main Branch staff.
+     * - Branch Manager: views staff assigned to their own branch only.
+     * - Non-managers (Sellers, Servants, Delivery): forbidden (403).
+     */
     public function index(Request $request)
     {
         $user = $request->user();
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff'])) {
-            return response()->json(['message' => 'Branch Admin and Staff are not authorized to view user management.'], 403);
+        if ($user && in_array($user->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff', 'Customer'])) {
+            return response()->json(['message' => 'Staff members are not authorized to view user management.'], 403);
         }
 
         $role = $request->query('role');
@@ -23,7 +30,13 @@ class UserController extends Controller
 
         $query = User::with('branch');
 
-        if ($user && $user->role === 'Main Branch Manager') {
+        // Scoping for Branch Managers: strictly restricted to their own branch
+        if ($user && in_array($user->role, ['Branch Manager', 'Branch Admin'])) {
+            if ($tab === 'customers') {
+                return response()->json([]);
+            }
+            $query->where('branch_id', $user->branch_id);
+        } elseif ($user && $user->role === 'Main Branch Manager') {
             $mainBranch = Branch::where('branch_type', 'Main')->first();
             if ($mainBranch && $tab !== 'customers') {
                 $query->where('branch_id', $mainBranch->branch_id);
@@ -37,14 +50,27 @@ class UserController extends Controller
         }
 
         if ($role && $role !== 'all') {
-            $query->where('role', $role);
+            if ($role === 'Branch Manager') {
+                $query->whereIn('role', ['Branch Manager', 'Branch Admin']);
+            } elseif ($role === 'Branch Staff') {
+                $query->whereIn('role', ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff']);
+            } else {
+                $query->where('role', $role);
+            }
         }
 
         if ($branchId && $branchId !== 'all') {
-            $query->where('branch_id', $branchId);
+            // Non-super-admin cannot query other branches
+            if ($user && !in_array($user->role, ['Super Admin'])) {
+                $query->where('branch_id', $user->branch_id);
+            } else {
+                $query->where('branch_id', $branchId);
+            }
         }
 
-        $users = $query->get()->map(function ($u) {
+        $isSuperAdmin = ($user && $user->role === 'Super Admin');
+
+        $users = $query->get()->map(function ($u) use ($isSuperAdmin, $user) {
             $initials = '';
             $parts = explode(' ', $u->full_name);
             foreach ($parts as $p) {
@@ -52,89 +78,199 @@ class UserController extends Controller
             }
             if (strlen($initials) < 2) $initials = strtoupper(substr($u->role, 0, 2));
 
+            // Standardize display role: 'Branch Admin' presented as 'Branch Manager'
+            $displayRole = $u->role === 'Branch Admin' ? 'Branch Manager' : $u->role;
+
             return [
                 'user_id' => $u->user_id,
                 'initials' => substr($initials, 0, 2),
                 'full_name' => $u->full_name,
+                'full_name_am' => $u->full_name_am,
                 'email' => $u->email,
                 'phone' => $u->phone,
-                'role' => $u->role,
+                'role' => $displayRole,
+                'original_role' => $u->role,
                 'branch_id' => $u->branch_id,
-                'branch_name' => $u->branch ? $u->branch->branch_name : 'All branches',
-                'last_sign_in' => 'Today',
+                'branch_name' => $u->branch ? $u->branch->branch_name : ($u->role === 'Customer' ? 'Online Customer' : 'All branches'),
+                'salary' => ($isSuperAdmin || ($user && $user->user_id === $u->user_id)) ? (float) $u->salary : null,
+                'employment_status' => $u->employment_status ?: $u->status,
                 'status' => $u->status,
+                'hire_date' => $u->hire_date ? $u->hire_date->format('Y-m-d') : null,
+                'last_sign_in' => 'Today',
             ];
         });
 
         return response()->json($users);
     }
 
+    /**
+     * Create a user/staff member.
+     * - Super Admin can create any role, set salary, and assign to any branch.
+     * - Branch Manager can only create staff for their own branch (Sellers, Servants, Delivery), cannot set salary.
+     * - Enforces branch staff and manager quotas set by Super Admin.
+     */
     public function store(Request $request)
     {
         $currentUser = $request->user();
-        if ($currentUser && in_array($currentUser->role, ['Branch Admin', 'Branch Staff'])) {
-            return response()->json(['message' => 'Branch Admin and Staff are not authorized to create users.'], 403);
+        if ($currentUser && in_array($currentUser->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff', 'Customer'])) {
+            return response()->json(['message' => 'Staff members are not authorized to create users.'], 403);
         }
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
+            'full_name_am' => 'nullable|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:Super Admin,Main Branch Manager,Branch Admin,Branch Staff,Customer',
+            'phone' => 'nullable|string|max:40',
+            'role' => 'required|string',
             'branch_id' => 'nullable|exists:branches,branch_id',
+            'salary' => 'nullable|numeric|min:0',
+            'employment_status' => 'nullable|in:Active,On Leave,Inactive,Suspended,Terminated',
+            'hire_date' => 'nullable|date',
         ]);
 
-        if ($currentUser && $currentUser->role === 'Main Branch Manager') {
-            $mainBranch = Branch::where('branch_type', 'Main')->first();
-            if ($validated['role'] !== 'Branch Staff' && $validated['role'] !== 'Branch Admin') {
-                return response()->json(['message' => 'Main Branch Manager can only create staff for the main branch.'], 403);
+        $role = $validated['role'];
+        if ($role === 'Branch Admin') {
+            $role = 'Branch Manager';
+        }
+
+        $branchId = $validated['branch_id'] ?? null;
+
+        // Branch Manager permission enforcement
+        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin'])) {
+            $allowedStaffRoles = [
+                'Branch Seller',
+                'Branch Seller / Cashier',
+                'Cashier',
+                'Servant',
+                'Delivery Staff',
+                'Branch Staff',
+            ];
+
+            if (!in_array($role, $allowedStaffRoles)) {
+                return response()->json([
+                    'message' => 'Branch Managers can only add branch staff (Sellers, Servants, Delivery Staff).'
+                ], 403);
             }
-            $validated['branch_id'] = $mainBranch?->branch_id;
+
+            // Strictly bind to the manager's branch
+            $branchId = $currentUser->branch_id;
+            // Branch managers cannot set salaries
+            $validated['salary'] = 0.00;
+        } elseif ($currentUser && $currentUser->role === 'Main Branch Manager') {
+            $mainBranch = Branch::where('branch_type', 'Main')->first();
+            $branchId = $mainBranch?->branch_id;
         }
 
-        // Constraint from spec Page 14:
-        // Branch Admin and Branch Staff must have a branch. Customers and Super Admins have none.
-        if (in_array($validated['role'], ['Branch Admin', 'Branch Staff']) && empty($validated['branch_id'])) {
-            return response()->json(['message' => 'Branch Admin and Branch Staff must have an assigned branch.'], 422);
+        // Branch required for branch-scoped roles
+        $branchScopedRoles = [
+            'Branch Manager',
+            'Branch Admin',
+            'Main Branch Manager',
+            'Branch Seller',
+            'Branch Seller / Cashier',
+            'Cashier',
+            'Servant',
+            'Delivery Staff',
+            'Branch Staff',
+        ];
+
+        if (in_array($role, $branchScopedRoles) && empty($branchId)) {
+            return response()->json(['message' => 'Branch staff and managers must have an assigned branch.'], 422);
         }
 
-        if (in_array($validated['role'], ['Super Admin', 'Customer'])) {
-            $validated['branch_id'] = null;
+        if (in_array($role, ['Super Admin', 'Customer'])) {
+            $branchId = null;
+        }
+
+        // Quota verification for the branch
+        if ($branchId) {
+            $branch = Branch::find($branchId);
+            if ($branch) {
+                $isManagerRole = in_array($role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+                if ($isManagerRole) {
+                    $currentManagers = User::where('branch_id', $branchId)
+                        ->whereIn('role', ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])
+                        ->count();
+                    $maxManagers = $branch->max_managers ?: 1;
+                    if ($currentManagers >= $maxManagers && (!$currentUser || $currentUser->role !== 'Super Admin')) {
+                        return response()->json([
+                            'message' => "Manager quota reached for {$branch->branch_name} (Maximum: {$maxManagers})."
+                        ], 422);
+                    }
+                } else {
+                    $currentStaff = User::where('branch_id', $branchId)
+                        ->whereIn('role', ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'])
+                        ->count();
+                    $maxStaff = $branch->max_staff ?: 15;
+                    if ($currentStaff >= $maxStaff && (!$currentUser || $currentUser->role !== 'Super Admin')) {
+                        return response()->json([
+                            'message' => "Branch staff limit reached for {$branch->branch_name} (Maximum allowed: {$maxStaff}). Please request a quota increase from the Super Admin."
+                        ], 422);
+                    }
+                }
+            }
+        }
+
+        // Only Super Admin can set salary upon creation
+        $salary = 0.00;
+        if ($currentUser && $currentUser->role === 'Super Admin' && isset($validated['salary'])) {
+            $salary = (float) $validated['salary'];
         }
 
         $user = User::create([
             'full_name' => $validated['full_name'],
+            'full_name_am' => $validated['full_name_am'] ?? null,
             'email' => $validated['email'],
-            'role' => $validated['role'],
-            'branch_id' => $validated['branch_id'],
-            'password' => Hash::make('password123'),
+            'phone' => $validated['phone'] ?? null,
+            'role' => $role,
+            'branch_id' => $branchId,
+            'salary' => $salary,
+            'employment_status' => $validated['employment_status'] ?? 'Active',
             'status' => 'Active',
+            'hire_date' => $validated['hire_date'] ?? now()->toDateString(),
+            'password' => Hash::make('password123'),
         ]);
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $currentUser?->user_id,
+            'user_name' => $currentUser?->full_name ?? 'Super Admin',
             'action' => 'User created',
             'record' => $user->full_name,
             'entity_type' => 'User',
             'entity_id' => (string) $user->user_id,
             'old_value' => '—',
-            'new_value' => "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches'),
+            'new_value' => "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . ($user->salary > 0 ? " · ETB {$user->salary}" : ""),
             'created_at' => now(),
         ]);
 
         return response()->json($user->load('branch'), 201);
     }
 
+    /**
+     * Update an existing user or staff member.
+     * - Super Admin can update all fields (role, branch, salary, etc.).
+     * - Branch Manager can only update staff in their own branch, cannot edit salary or reassign branch.
+     */
     public function update(Request $request, $id)
     {
         $currentUser = $request->user();
-        if ($currentUser && in_array($currentUser->role, ['Branch Admin', 'Branch Staff'])) {
-            return response()->json(['message' => 'Branch Admin and Staff are not authorized to update users.'], 403);
+        if ($currentUser && in_array($currentUser->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff', 'Customer'])) {
+            return response()->json(['message' => 'Staff members are not authorized to update users.'], 403);
         }
 
         $user = User::findOrFail($id);
 
-        if ($currentUser && $currentUser->role === 'Main Branch Manager') {
+        // Branch Manager permission checks
+        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin'])) {
+            // Cannot modify users from other branches
+            if ($user->branch_id !== $currentUser->branch_id) {
+                return response()->json(['message' => 'Access denied: You can only manage staff within your assigned branch.'], 403);
+            }
+            // Cannot modify another manager or super admin
+            if (in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+                return response()->json(['message' => 'Access denied: You cannot modify manager or administrator accounts.'], 403);
+            }
+        } elseif ($currentUser && $currentUser->role === 'Main Branch Manager') {
             $mainBranch = Branch::where('branch_type', 'Main')->first();
             if ($user->branch_id != $mainBranch?->branch_id) {
                 return response()->json(['message' => 'Main Branch Manager can only update users assigned to the Main Branch.'], 403);
@@ -143,29 +279,45 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'sometimes|string|max:255',
-            'phone' => 'nullable|string',
-            'role' => 'sometimes|in:Super Admin,Main Branch Manager,Branch Admin,Branch Staff,Customer',
+            'full_name_am' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:40',
+            'role' => 'sometimes|string',
             'branch_id' => 'nullable|exists:branches,branch_id',
+            'salary' => 'nullable|numeric|min:0',
+            'employment_status' => 'sometimes|in:Active,On Leave,Inactive,Suspended,Terminated',
             'status' => 'sometimes|in:Active,Inactive',
+            'hire_date' => 'nullable|date',
         ]);
 
+        // Branch Managers CANNOT edit salary or change branch
+        if ($currentUser && $currentUser->role !== 'Super Admin') {
+            unset($validated['salary']);
+            unset($validated['branch_id']);
+            if (isset($validated['role']) && in_array($validated['role'], ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+                unset($validated['role']);
+            }
+        }
+
         if (isset($validated['role'])) {
-            if (in_array($validated['role'], ['Branch Admin', 'Branch Staff']) && empty($validated['branch_id']) && empty($user->branch_id)) {
-                return response()->json(['message' => 'Branch Admin and Branch Staff must have an assigned branch.'], 422);
+            if ($validated['role'] === 'Branch Admin') {
+                $validated['role'] = 'Branch Manager';
             }
             if (in_array($validated['role'], ['Super Admin', 'Customer'])) {
                 $validated['branch_id'] = null;
             }
         }
 
-        $oldVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · {$user->status}";
+        $oldVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · Salary: ETB {$user->salary} · {$user->status}";
+
+        $oldSalary = (float) $user->salary;
         $user->update($validated);
         $user->load('branch');
-        $newVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · {$user->status}";
+
+        $newVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · Salary: ETB {$user->salary} · {$user->status}";
 
         AuditLog::create([
-            'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Super Admin',
+            'user_id' => $currentUser?->user_id,
+            'user_name' => $currentUser?->full_name ?? 'Super Admin',
             'action' => 'User updated',
             'record' => $user->full_name,
             'entity_type' => 'User',
@@ -175,6 +327,98 @@ class UserController extends Controller
             'created_at' => now(),
         ]);
 
+        // Log salary change separately if modified
+        if (isset($validated['salary']) && (float) $validated['salary'] !== $oldSalary) {
+            AuditLog::create([
+                'user_id' => $currentUser?->user_id,
+                'user_name' => $currentUser?->full_name ?? 'Super Admin',
+                'action' => 'Salary updated',
+                'record' => $user->full_name,
+                'entity_type' => 'Salary',
+                'entity_id' => (string) $user->user_id,
+                'old_value' => "ETB " . number_format($oldSalary, 2),
+                'new_value' => "ETB " . number_format((float) $validated['salary'], 2),
+                'created_at' => now(),
+            ]);
+        }
+
         return response()->json($user);
+    }
+
+    /**
+     * Get branch staff and manager quota usage.
+     */
+    public function branchQuotas(Request $request)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser || in_array($currentUser->role, ['Customer', 'Branch Staff', 'Branch Seller', 'Servant', 'Delivery Staff'])) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $query = Branch::with(['users' => function ($q) {
+            $q->where('role', '!=', 'Customer');
+        }]);
+
+        if (in_array($currentUser->role, ['Branch Manager', 'Branch Admin'])) {
+            $query->where('branch_id', $currentUser->branch_id);
+        }
+
+        $branches = $query->get()->map(function ($b) {
+            $managerCount = $b->users->filter(function ($u) {
+                return in_array($u->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+            })->count();
+
+            $staffCount = $b->users->filter(function ($u) {
+                return in_array($u->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff']);
+            })->count();
+
+            return [
+                'branch_id' => $b->branch_id,
+                'branch_name' => $b->branch_name,
+                'branch_code' => $b->branch_code,
+                'manager_count' => $managerCount,
+                'max_managers' => $b->max_managers ?: 1,
+                'staff_count' => $staffCount,
+                'max_staff' => $b->max_staff ?: 15,
+                'is_staff_quota_reached' => $staffCount >= ($b->max_staff ?: 15),
+                'is_manager_quota_reached' => $managerCount >= ($b->max_managers ?: 1),
+            ];
+        });
+
+        return response()->json($branches);
+    }
+
+    /**
+     * Delete an employee account.
+     * Accessible to Super Admin only.
+     */
+    public function destroy(Request $request, $id)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser || $currentUser->role !== 'Super Admin') {
+            return response()->json(['message' => 'Only Super Admin can delete employee accounts.'], 403);
+        }
+
+        $targetUser = User::findOrFail($id);
+        if ($targetUser->user_id === $currentUser->user_id) {
+            return response()->json(['message' => 'Cannot delete your own account.'], 422);
+        }
+
+        $userName = $targetUser->full_name;
+        $targetUser->delete();
+
+        AuditLog::create([
+            'user_id' => $currentUser->user_id,
+            'user_name' => $currentUser->full_name,
+            'action' => 'User deleted',
+            'record' => $userName,
+            'entity_type' => 'User',
+            'entity_id' => (string) $id,
+            'old_value' => $userName,
+            'new_value' => 'Deleted',
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'User deleted successfully.']);
     }
 }

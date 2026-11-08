@@ -15,12 +15,16 @@ class User extends Authenticatable
 
     protected $fillable = [
         'full_name',
+        'full_name_am',
         'email',
         'phone',
         'password',
         'role',
         'branch_id',
+        'salary',
+        'employment_status',
         'status',
+        'hire_date',
     ];
 
     protected $hidden = [
@@ -32,6 +36,8 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'salary' => 'float',
+            'hire_date' => 'date',
         ];
     }
 
@@ -50,6 +56,16 @@ class User extends Authenticatable
         return $this->hasMany(CustomCakeRequest::class, 'user_id', 'user_id');
     }
 
+    public function salaryCorrectionRequests()
+    {
+        return $this->hasMany(SalaryCorrectionRequest::class, 'user_id', 'user_id');
+    }
+
+    public function staffReports()
+    {
+        return $this->hasMany(StaffReport::class, 'user_id', 'user_id');
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'Super Admin';
@@ -60,14 +76,41 @@ class User extends Authenticatable
         return $this->role === 'Main Branch Manager';
     }
 
+    public function isBranchManager(): bool
+    {
+        return in_array($this->role, ['Branch Manager', 'Branch Admin']);
+    }
+
     public function isBranchAdmin(): bool
     {
-        return $this->role === 'Branch Admin';
+        return in_array($this->role, ['Branch Manager', 'Branch Admin']);
+    }
+
+    public function isBranchSeller(): bool
+    {
+        return in_array($this->role, ['Branch Seller', 'Branch Seller / Cashier', 'Cashier']);
+    }
+
+    public function isServant(): bool
+    {
+        return $this->role === 'Servant';
+    }
+
+    public function isDeliveryStaff(): bool
+    {
+        return $this->role === 'Delivery Staff';
     }
 
     public function isBranchStaff(): bool
     {
-        return $this->role === 'Branch Staff';
+        return in_array($this->role, [
+            'Branch Staff',
+            'Branch Seller',
+            'Branch Seller / Cashier',
+            'Cashier',
+            'Servant',
+            'Delivery Staff',
+        ]);
     }
 
     public function isCustomer(): bool

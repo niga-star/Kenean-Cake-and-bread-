@@ -12,12 +12,27 @@ class AuditLogController extends Controller
     {
         $user = $request->user();
 
-        // Security requirement: Only Super Admin can view audit logs
-        if ($user && $user->role !== 'Super Admin') {
-            return response()->json(['message' => 'Unauthorized. Only Super Admin can view audit logs.'], 403);
+        // Allowed: Super Admin, Main Branch Manager, Branch Manager, Branch Admin
+        if ($user && !in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+            return response()->json(['message' => 'Unauthorized. Staff members cannot view audit logs.'], 403);
         }
 
         $query = AuditLog::with('user')->orderBy('created_at', 'desc');
+
+        // Scoping for Branch Managers: only records created by their branch users or related to their branch
+        if ($user && in_array($user->role, ['Branch Manager', 'Branch Admin'])) {
+            $branchUserIds = User::where('branch_id', $user->branch_id)->pluck('user_id');
+            $branchName = $user->branch?->branch_name ?? '';
+
+            $query->where(function ($q) use ($branchUserIds, $branchName) {
+                $q->whereIn('user_id', $branchUserIds);
+                if (!empty($branchName)) {
+                    $q->orWhere('record', 'like', "%{$branchName}%")
+                      ->orWhere('new_value', 'like', "%{$branchName}%")
+                      ->orWhere('old_value', 'like', "%{$branchName}%");
+                }
+            });
+        }
 
         if ($request->has('user_id') && $request->user_id && $request->user_id !== 'all') {
             $query->where('user_id', $request->user_id);

@@ -285,35 +285,48 @@
               </div>
 
               <div class="py-1 text-xs font-medium">
-                <router-link
-                  to="/account"
-                  @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                >
-                  <span>👤 {{ localeStore.t('my_orders') }}</span>
-                </router-link>
+                <!-- Customer specific links -->
+                <template v-if="!authStore.isStaff">
+                  <router-link
+                    to="/account"
+                    @click="accountMenuOpen = false"
+                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                  >
+                    <span>👤 {{ localeStore.t('my_orders') }}</span>
+                  </router-link>
 
-                <router-link
-                  to="/account?tab=wishlist"
-                  @click="accountMenuOpen = false"
-                  class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                >
-                  <div class="flex items-center space-x-2">
-                    <span>❤️</span>
-                    <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
-                  </div>
-                  <span v-if="wishlistStore.count > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54]">
-                    {{ wishlistStore.count }}
-                  </span>
-                </router-link>
+                  <router-link
+                    to="/account?tab=wishlist"
+                    @click="accountMenuOpen = false"
+                    class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                  >
+                    <div class="flex items-center space-x-2">
+                      <span>❤️</span>
+                      <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
+                    </div>
+                    <span v-if="wishlistStore.count > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54]">
+                      {{ wishlistStore.count }}
+                    </span>
+                  </router-link>
+                </template>
 
-                <router-link
-                  to="/admin/overview"
-                  @click="accountMenuOpen = false"
-                  class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-bold hover:bg-rose-50 dark:hover:bg-[#331A24] border-t border-gray-100 dark:border-[#3D261B] mt-1 pt-2"
-                >
-                  <span>⚙️ {{ localeStore.t('staff_portal') }}</span>
-                </router-link>
+                <!-- Staff specific links (Section 8: Employee account resides in Admin Dashboard) -->
+                <template v-else>
+                  <router-link
+                    to="/admin/my-account"
+                    @click="accountMenuOpen = false"
+                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                  >
+                    <span>💼 {{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }}</span>
+                  </router-link>
+                  <router-link
+                    to="/admin/overview"
+                    @click="accountMenuOpen = false"
+                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24]"
+                  >
+                    <span>⚙️ {{ localeStore.t('staff_portal') }}</span>
+                  </router-link>
+                </template>
 
                 <button
                   @click="handleLogout"
@@ -541,15 +554,36 @@
 
         <!-- Mobile User Account & Portal Links -->
         <div class="pt-3 border-t border-gray-100 dark:border-[#3D261B] space-y-1.5 text-xs font-semibold">
-          <router-link
-            v-if="authStore.user"
-            to="/account"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
-          >
-            <span>👤</span>
-            <span>{{ localeStore.t('my_orders') }} ({{ authStore.user.full_name }})</span>
-          </router-link>
+          <template v-if="authStore.user && !authStore.isStaff">
+            <router-link
+              to="/account"
+              @click="mobileNavOpen = false"
+              class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+            >
+              <span>👤</span>
+              <span>{{ localeStore.t('my_orders') }} ({{ authStore.user.full_name }})</span>
+            </router-link>
+            <router-link
+              to="/account?tab=wishlist"
+              @click="mobileNavOpen = false"
+              class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+            >
+              <span>❤️</span>
+              <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
+            </router-link>
+          </template>
+
+          <template v-if="authStore.user && authStore.isStaff">
+            <router-link
+              to="/admin/my-account"
+              @click="mobileNavOpen = false"
+              class="flex items-center space-x-2 py-2 text-[#DE1B54] font-bold"
+            >
+              <span>💼</span>
+              <span>{{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }} ({{ authStore.user.full_name }})</span>
+            </router-link>
+          </template>
+
           <router-link
             v-if="!authStore.user"
             to="/login"

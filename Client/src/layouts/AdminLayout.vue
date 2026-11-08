@@ -88,7 +88,20 @@
                 <svg class="w-4 h-4 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <span>Users and roles</span>
+                <span>{{ isBranchScoped ? 'Branch staff' : 'Users and staff' }}</span>
+              </router-link>
+
+              <router-link
+                v-if="canAccess('salaries')"
+                to="/admin/salaries"
+                @click="sidebarOpen = false"
+                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                :class="$route.path.startsWith('/admin/salaries') ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
+              >
+                <svg class="w-4 h-4 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Salaries & wages</span>
               </router-link>
 
               <router-link
@@ -209,13 +222,39 @@
                 </svg>
                 <span>{{ isBranchScoped ? 'Branch Reports' : 'Reports' }}</span>
               </router-link>
+
+              <router-link
+                v-if="canAccess('staff-reports')"
+                to="/admin/staff-reports"
+                @click="sidebarOpen = false"
+                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                :class="$route.path.startsWith('/admin/staff-reports') ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
+              >
+                <svg class="w-4 h-4 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Staff reports</span>
+              </router-link>
             </div>
           </div>
 
           <!-- SYSTEM Section -->
-          <div v-if="canAccess('notifications') || canAccess('audit-logs') || canAccess('settings')">
+          <div v-if="canAccess('notifications') || canAccess('audit-logs') || canAccess('settings') || canAccess('my-account')">
             <div class="px-3 mb-2 text-[11px] font-bold tracking-wider text-[#7E6A5C] uppercase">System</div>
             <div class="space-y-1">
+              <router-link
+                v-if="canAccess('my-account')"
+                to="/admin/my-account"
+                @click="sidebarOpen = false"
+                class="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                :class="$route.path.startsWith('/admin/my-account') ? 'bg-[#BA5420] text-white shadow-sm' : 'text-[#B8A79B] hover:bg-[#2A1D15] hover:text-white'"
+              >
+                <svg class="w-4 h-4 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>My account</span>
+              </router-link>
+
               <router-link
                 v-if="canAccess('notifications')"
                 to="/admin/notifications"
@@ -265,7 +304,11 @@
 
       <!-- Bottom User Profile with Role & Branch Tag -->
       <div class="p-3 sm:p-3.5 border-t border-[#2C1F16]/60 bg-[#160E0A] flex items-center justify-between">
-        <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+        <router-link
+          to="/admin/my-account"
+          class="flex items-center space-x-2.5 min-w-0 pr-2 hover:opacity-90 transition group cursor-pointer"
+          title="View My Account"
+        >
           <div class="w-8 h-8 rounded-full overflow-hidden bg-[#BA5420] shrink-0 border border-amber-300/40 shadow-xs flex items-center justify-center text-white text-xs font-bold">
             <img
               src="/mockup/avatar_mekdes.jpg"
@@ -275,14 +318,15 @@
             />
           </div>
           <div class="min-w-0">
-            <div class="text-xs sm:text-sm font-semibold text-[#F4EDE4] truncate leading-tight">
+            <div class="text-xs sm:text-sm font-semibold text-[#F4EDE4] truncate leading-tight group-hover:text-[#DE1B54] transition">
               {{ authStore.user?.full_name || 'Abeebe Kebede' }}
             </div>
             <div class="text-[11px] text-[#9B897D] truncate mt-0.5 leading-tight">
-              <span class="text-[#D4A373] font-medium">{{ currentRole }}</span>
+              <span class="text-[#D4A373] font-medium">{{ displayRole }}</span>
+              <span v-if="authStore.user?.branch"> · {{ authStore.user.branch.branch_name }}</span>
             </div>
           </div>
-        </div>
+        </router-link>
 
         <button
           @click="handleLogout"
@@ -437,29 +481,59 @@ watch(() => route.path, () => {
 
 const currentRole = computed(() => authStore.user?.role || 'Super Admin');
 
+const displayRole = computed(() => {
+  if (currentRole.value === 'Branch Admin') return 'Branch Manager';
+  return currentRole.value;
+});
+
 const isBranchScoped = computed(() => {
-  return currentRole.value === 'Branch Admin' || currentRole.value === 'Branch Staff';
+  return [
+    'Branch Manager',
+    'Branch Admin',
+    'Branch Staff',
+    'Branch Seller',
+    'Branch Seller / Cashier',
+    'Cashier',
+    'Servant',
+    'Delivery Staff',
+  ].includes(currentRole.value);
+});
+
+const isStaffMember = computed(() => {
+  return [
+    'Branch Staff',
+    'Branch Seller',
+    'Branch Seller / Cashier',
+    'Cashier',
+    'Servant',
+    'Delivery Staff',
+  ].includes(currentRole.value);
 });
 
 const homePath = computed(() => {
-  if (currentRole.value === 'Branch Staff') return '/admin/orders';
+  if (isStaffMember.value) return '/admin/orders';
   return '/admin/overview';
 });
 
 const roleScope = computed(() => {
   if (currentRole.value === 'Super Admin') return 'Whole business (All branches)';
   if (currentRole.value === 'Main Branch Manager') return 'Main Branch & Distribution';
-  if (currentRole.value === 'Branch Admin') return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch`;
-  if (currentRole.value === 'Branch Staff') return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch (Staff)`;
+  if (['Branch Manager', 'Branch Admin'].includes(currentRole.value)) return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch`;
+  if (isStaffMember.value) return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch (${displayRole.value})`;
   return 'Customer Storefront';
 });
 
 // Role-based permission map
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'products', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
-  'Main Branch Manager': ['overview', 'users', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications'],
-  'Branch Admin': ['overview', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications'],
-  'Branch Staff': ['inventory', 'distribution', 'orders', 'notifications'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'staff-reports', 'my-account', 'products', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
+  'Main Branch Manager': ['overview', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'audit-logs'],
+  'Branch Manager': ['overview', 'branches', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
+  'Branch Admin': ['overview', 'branches', 'users', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
+  'Branch Seller / Cashier': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Seller': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Servant': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Delivery Staff': ['orders', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Staff': ['inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
   'Customer': [],
 };
 
@@ -481,7 +555,7 @@ const handleRoleChange = async (index) => {
     await authStore.switchRole(roleItem);
     if (roleItem.role === 'Customer') {
       router.push('/');
-    } else if (roleItem.role === 'Branch Staff') {
+    } else if (['Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'].includes(roleItem.role)) {
       router.push('/admin/orders');
     } else {
       router.push('/admin/overview');

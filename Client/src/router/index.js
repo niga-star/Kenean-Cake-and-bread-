@@ -20,6 +20,9 @@ const ReportsView = () => import('../views/admin/ReportsView.vue');
 const NotificationsView = () => import('../views/admin/NotificationsView.vue');
 const SettingsView = () => import('../views/admin/SettingsView.vue');
 const AuditLogView = () => import('../views/admin/AuditLogView.vue');
+const MyAccountView = () => import('../views/admin/MyAccountView.vue');
+const SalariesView = () => import('../views/admin/SalariesView.vue');
+const StaffReportsView = () => import('../views/admin/StaffReportsView.vue');
 
 // Customer views (Lazy Loaded)
 const CustomerHomeView = () => import('../views/customer/CustomerHomeView.vue');
@@ -51,20 +54,23 @@ const routes = [
       return '/admin/overview';
     },
     children: [
-      { path: 'overview', component: OverviewView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin'] } },
-      { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin'] } },
-      { path: 'users', component: UsersRolesView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
-      { path: 'products', component: ProductsPricesView, meta: { roles: ['Super Admin'] } },
-      { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Staff'] } },
-      { path: 'distribution', component: DistributionView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Staff'] } },
+      { path: 'overview', component: OverviewView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'users', component: UsersRolesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'salaries', component: SalariesView, meta: { roles: ['Super Admin'] } },
+      { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
+      { path: 'my-account', component: MyAccountView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
+      { path: 'products', component: ProductsPricesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant'] } },
+      { path: 'distribution', component: DistributionView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff'] } },
       { path: 'transfers/new', component: NewTransferView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
-      { path: 'orders', component: OrdersView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Staff'] } },
-      { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin'] } },
+      { path: 'orders', component: OrdersView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
+      { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'payments', component: PaymentsView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
-      { path: 'reports', component: ReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin'] } },
-      { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Staff'] } },
+      { path: 'reports', component: ReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'settings', component: SettingsView, meta: { roles: ['Super Admin'] } },
-      { path: 'audit-logs', component: AuditLogView, meta: { roles: ['Super Admin'] } },
+      { path: 'audit-logs', component: AuditLogView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
     ],
   },
 
@@ -128,8 +134,19 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const user = rawUser ? JSON.parse(rawUser) : null;
 
-  // Protect Customer Account and Checkout from unauthenticated guest access
-  if (to.path === '/account' || to.path === '/checkout') {
+  // Protect Customer Account from unauthenticated guest access;
+  // If staff/admin visits customer /account, redirect them to their staff portal /admin/my-account (Section 8)
+  if (to.path === '/account') {
+    if (!user || !token) {
+      const redirectTarget = to.fullPath || to.path;
+      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+    }
+    if (user.role !== 'Customer') {
+      return next('/admin/my-account');
+    }
+  }
+
+  if (to.path === '/checkout') {
     if (!user || !token) {
       const redirectTarget = to.fullPath || to.path;
       return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
@@ -138,9 +155,9 @@ router.beforeEach((to, from, next) => {
 
   // Redirect already authenticated users away from login/register
   if ((to.path === '/login' || to.path === '/register') && token && user) {
-    if (['Super Admin', 'Main Branch Manager', 'Branch Admin'].includes(user.role)) {
+    if (['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(user.role)) {
       return next('/admin/overview');
-    } else if (user.role === 'Branch Staff') {
+    } else if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(user.role)) {
       return next('/admin/orders');
     } else {
       const redirectPath = to.query.redirect || '/account';
@@ -163,12 +180,32 @@ router.beforeEach((to, from, next) => {
       return next('/account');
     }
 
-    if (to.meta?.roles && !to.meta.roles.includes(role)) {
-      toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
-      if (role === 'Branch Staff') {
-        return next('/admin/orders');
+    if (to.meta?.roles) {
+      // Check role with equivalence mapping
+      const allowed = to.meta.roles;
+      let hasAccess = allowed.includes(role);
+
+      if (!hasAccess) {
+        if (role === 'Super Admin') hasAccess = true;
+        if (allowed.includes('Branch Manager') && role === 'Branch Admin') hasAccess = true;
+        if (allowed.includes('Branch Admin') && role === 'Branch Manager') hasAccess = true;
+        if (allowed.includes('Branch Staff') && [
+          'Branch Staff',
+          'Branch Seller',
+          'Branch Seller / Cashier',
+          'Cashier',
+          'Servant',
+          'Delivery Staff',
+        ].includes(role)) hasAccess = true;
       }
-      return next('/admin/overview');
+
+      if (!hasAccess) {
+        toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
+        if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(role)) {
+          return next('/admin/orders');
+        }
+        return next('/admin/overview');
+      }
     }
   }
 

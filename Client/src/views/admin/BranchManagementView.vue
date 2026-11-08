@@ -248,6 +248,28 @@
             />
           </div>
 
+          <!-- Staff & Manager Quotas (Super Admin Authority, Section 1) -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Staff Quota (Max Staff)</label>
+              <input
+                v-model.number="editForm.max_staff"
+                type="number"
+                min="1"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Manager Quota (Max Managers)</label>
+              <input
+                v-model.number="editForm.max_managers"
+                type="number"
+                min="1"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+              />
+            </div>
+          </div>
+
           <!-- Shopping Access Control Card -->
           <div class="p-4 bg-[#FAF7F2] border border-[#E8DDD0] rounded-xl space-y-2">
             <div class="flex items-center justify-between">
@@ -631,6 +653,8 @@ const selectBranchForEdit = (b) => {
     phone: b.phone,
     address: b.address,
     opening_hours: b.opening_hours,
+    max_staff: b.max_staff || 15,
+    max_managers: b.max_managers || 1,
     isActive: b.status === 'Active',
     isShoppingEnabled: b.is_shopping_enabled !== false,
   };
@@ -670,6 +694,8 @@ const saveBranch = async () => {
       phone: editForm.value.phone,
       address: editForm.value.address,
       opening_hours: editForm.value.opening_hours,
+      max_staff: editForm.value.max_staff,
+      max_managers: editForm.value.max_managers,
       status: editForm.value.isActive ? 'Active' : 'Inactive',
       is_shopping_enabled: editForm.value.isShoppingEnabled,
     });

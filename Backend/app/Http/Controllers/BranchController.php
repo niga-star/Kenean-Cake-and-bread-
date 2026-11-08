@@ -11,13 +11,28 @@ class BranchController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Branch::with(['manager', 'deliveryZones']);
+        $query = Branch::with(['manager', 'deliveryZones', 'users' => function ($q) {
+            $q->where('role', '!=', 'Customer');
+        }]);
 
         if ($request->has('active_only') && $request->active_only) {
             $query->where('status', 'Active');
         }
 
-        $branches = $query->orderBy('branch_type', 'asc')->orderBy('branch_name', 'asc')->get();
+        $branches = $query->orderBy('branch_type', 'asc')->orderBy('branch_name', 'asc')->get()->map(function ($b) {
+            $staffCount = $b->users->filter(function ($u) {
+                return in_array($u->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff']);
+            })->count();
+
+            $managerCount = $b->users->filter(function ($u) {
+                return in_array($u->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+            })->count();
+
+            $b->staff_count = $staffCount;
+            $b->manager_count = $managerCount;
+            return $b;
+        });
+
         return response()->json($branches);
     }
 
@@ -78,6 +93,8 @@ class BranchController extends Controller
             'status' => 'sometimes|in:Active,Inactive',
             'is_shopping_enabled' => 'sometimes|boolean',
             'manager_id' => 'nullable|exists:users,user_id',
+            'max_managers' => 'nullable|integer|min:1',
+            'max_staff' => 'nullable|integer|min:1',
         ]);
 
         if (array_key_exists('is_shopping_enabled', $validated) && $request->user()?->role !== 'Super Admin') {

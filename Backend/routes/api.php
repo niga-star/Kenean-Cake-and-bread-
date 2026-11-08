@@ -22,6 +22,8 @@ use App\Http\Controllers\WebsiteSettingController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\SalaryController;
+use App\Http\Controllers\StaffReportController;
 
 // Public Auth with Rate Limiting (Section 12 requirement)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
@@ -90,10 +92,27 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/overview', [OverviewController::class, 'index']);
 
     // Users and Roles (Super Admin full, Main Branch Manager limited to Main Branch)
+    Route::get('/users', [UserController::class, 'index']);
     Route::get('/users-list', [UserController::class, 'index']);
     Route::get('/auth/users', [AuthController::class, 'listUsers'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/users', [UserController::class, 'store']);
-    Route::patch('/users/{id}', [UserController::class, 'update']);
+    Route::match(['put', 'patch'], '/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'destroy'])->middleware('role:Super Admin');
+    Route::get('/branches-quotas', [UserController::class, 'branchQuotas']);
+
+    // Salary and Wage Management (Section 4)
+    Route::get('/salaries', [SalaryController::class, 'index'])->middleware('role:Super Admin');
+    Route::get('/salaries/my-account', [SalaryController::class, 'myAccount']);
+    Route::match(['put', 'patch'], '/salaries/{userId}', [SalaryController::class, 'updateSalary'])->middleware('role:Super Admin');
+    Route::post('/salary-requests', [SalaryController::class, 'submitCorrectionRequest']);
+    Route::get('/salary-requests', [SalaryController::class, 'listCorrectionRequests']);
+    Route::match(['post', 'put', 'patch'], '/salary-requests/{id}/review', [SalaryController::class, 'reviewCorrectionRequest'])->middleware('role:Super Admin');
+    Route::match(['post', 'put', 'patch'], '/salary-requests/{id}/status', [SalaryController::class, 'reviewCorrectionRequest'])->middleware('role:Super Admin');
+
+    // Staff Reporting Hierarchy (Section 9)
+    Route::get('/staff-reports', [StaffReportController::class, 'index']);
+    Route::post('/staff-reports', [StaffReportController::class, 'store']);
+    Route::match(['post', 'put', 'patch'], '/staff-reports/{id}/review', [StaffReportController::class, 'review']);
 
     // Inventory (Scoped by controller to caller's branch if Branch Admin / Staff)
     Route::get('/inventory', [InventoryController::class, 'index']);
@@ -145,8 +164,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->middleware('role:Super Admin');
     Route::post('/settings', [SettingController::class, 'update'])->middleware('role:Super Admin');
 
-    // Audit Log (Super Admin Only)
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('role:Super Admin');
+    // Audit Log (Super Admin and Branch Managers)
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
 
     // Branch management (Super Admin Only)
     Route::post('/branches', [BranchController::class, 'store'])->middleware('role:Super Admin');

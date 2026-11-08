@@ -22,12 +22,16 @@ class Branch extends Model
         'phone',
         'opening_hours',
         'manager_id',
+        'max_managers',
+        'max_staff',
         'status',
         'is_shopping_enabled',
     ];
 
     protected $casts = [
         'is_shopping_enabled' => 'boolean',
+        'max_managers' => 'integer',
+        'max_staff' => 'integer',
     ];
 
     public function manager()
@@ -73,5 +77,15 @@ class Branch extends Model
     public function stockRequests()
     {
         return $this->hasMany(StockRequest::class, 'branch_id', 'branch_id');
+    }
+
+    public function salaryCorrectionRequests()
+    {
+        return $this->hasMany(SalaryCorrectionRequest::class, 'branch_id', 'branch_id');
+    }
+
+    public function staffReports()
+    {
+        return $this->hasMany(StaffReport::class, 'branch_id', 'branch_id');
     }
 }

@@ -29,9 +29,12 @@ export const useAuthStore = defineStore('auth', {
       availableRoles: [
         { role: 'Super Admin', label: 'Super Admin (All branches)', email: 'admin@goldencrust.com' },
         { role: 'Main Branch Manager', label: 'Main Manager (Main Branch)', email: 'main@goldencrust.com', branch_code: 'MAIN01' },
-        { role: 'Branch Admin', label: 'Branch Admin (Bole)', email: 'bole.admin@goldencrust.com', branch_code: 'BR001' },
-        { role: 'Branch Admin', label: 'Branch Admin (Megenagna)', email: 'megenagna.admin@goldencrust.com', branch_code: 'BR002' },
-        { role: 'Branch Admin', label: 'Branch Admin (Piassa)', email: 'piassa.admin@goldencrust.com', branch_code: 'BR003' },
+        { role: 'Branch Manager', label: 'Branch Manager (Bole)', email: 'bole.admin@goldencrust.com', branch_code: 'BR001' },
+        { role: 'Branch Manager', label: 'Branch Manager (Megenagna)', email: 'megenagna.admin@goldencrust.com', branch_code: 'BR002' },
+        { role: 'Branch Manager', label: 'Branch Manager (Piassa)', email: 'piassa.admin@goldencrust.com', branch_code: 'BR003' },
+        { role: 'Branch Seller / Cashier', label: 'Branch Seller / Cashier (Bole)', email: 'seller.bole@goldencrust.com', branch_code: 'BR001' },
+        { role: 'Servant', label: 'Servant (Bole)', email: 'servant.bole@goldencrust.com', branch_code: 'BR001' },
+        { role: 'Delivery Staff', label: 'Delivery Staff (Bole)', email: 'delivery.bole@goldencrust.com', branch_code: 'BR001' },
         { role: 'Branch Staff', label: 'Branch Staff (Bole)', email: 'bole.staff@goldencrust.com', branch_code: 'BR001' },
         { role: 'Customer', label: 'Customer (Sara Mengistu)', email: 'customer@gmail.com' },
       ],
@@ -42,9 +45,14 @@ export const useAuthStore = defineStore('auth', {
     isAuthenticated: (state) => Boolean(state.user && state.token),
     isSuperAdmin: (state) => state.user?.role === 'Super Admin',
     isMainManager: (state) => state.user?.role === 'Main Branch Manager',
-    isBranchAdmin: (state) => state.user?.role === 'Branch Admin',
-    isBranchStaff: (state) => state.user?.role === 'Branch Staff',
+    isBranchManager: (state) => ['Branch Manager', 'Branch Admin'].includes(state.user?.role),
+    isBranchAdmin: (state) => ['Branch Manager', 'Branch Admin'].includes(state.user?.role),
+    isBranchSeller: (state) => ['Branch Seller', 'Branch Seller / Cashier', 'Cashier'].includes(state.user?.role),
+    isServant: (state) => state.user?.role === 'Servant',
+    isDeliveryStaff: (state) => state.user?.role === 'Delivery Staff',
+    isBranchStaff: (state) => ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(state.user?.role),
     isCustomer: (state) => state.user?.role === 'Customer',
+    isStaff: (state) => Boolean(state.user && state.user.role !== 'Customer'),
 
     // STRICT ROLE CONTROL:
     // "Simulate Persona" is ONLY accessible when authentic user is Super Admin!
