@@ -24,7 +24,7 @@ export const useCartStore = defineStore('cart', {
       storedItems = [];
     }
 
-    const savedBranch = parseInt(localStorage.getItem('cart_branch_id')) || parseInt(localStorage.getItem('selectedBranchId')) || 2;
+    const savedBranch = parseInt(localStorage.getItem('cart_branch_id')) || parseInt(localStorage.getItem('selectedBranchId')) || 1;
 
     return {
       items: storedItems,
@@ -77,7 +77,7 @@ export const useCartStore = defineStore('cart', {
       if (branchId && !isNaN(branchId)) {
         this.branchId = Number(branchId);
       } else if (!this.branchId || isNaN(this.branchId)) {
-        this.branchId = parseInt(localStorage.getItem('selectedBranchId')) || 2;
+        this.branchId = parseInt(localStorage.getItem('selectedBranchId')) || 1;
       }
 
       const qty = Math.max(1, Number(requestedQty ?? product.quantity ?? 1) || 1);
@@ -361,7 +361,7 @@ export const useCartStore = defineStore('cart', {
         }));
 
         await api.post('/cart/sync', {
-          branch_id: Number(this.branchId) || 2,
+          branch_id: Number(this.branchId) || 1,
           session_id: sessionId,
           items: validItems,
         });

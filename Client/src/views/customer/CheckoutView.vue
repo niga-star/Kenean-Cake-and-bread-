@@ -145,7 +145,7 @@
               <span>{{ localeStore.t('pickup_counter') }}: {{ localeStore.tBranch(currentBranchName) }}</span>
             </div>
             <div class="text-[#786B60] dark:text-[#C5B7AF] pl-6">
-              {{ branchDetails?.address || 'Bole Medhanialem Area, Addis Ababa' }}
+              {{ branchDetails?.address || currentBranchAddress }}
             </div>
             <div class="text-[#DE1B54] font-semibold pl-6">
               🕒 {{ localeStore.t('daily_hours') }}: {{ branchDetails?.opening_hours || 'Mon - Sun: 07:00 - 21:00' }}
@@ -248,7 +248,7 @@
                   <div class="flex items-center justify-between">
                     <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1">
                       <span>{{ addr.is_default ? '⭐' : '📍' }}</span>
-                      <span>{{ addr.region || 'Addis Ababa' }}</span>
+                      <span>{{ addr.city || addr.region || currentBranchCity }}</span>
                     </span>
                     <span v-if="addr.is_default" class="text-[10px] font-bold bg-[#DE1B54]/10 text-[#DE1B54] px-1.5 py-0.5 rounded-full">
                       {{ localeStore.t('default_badge') }}
@@ -284,7 +284,9 @@
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none font-medium min-h-[42px]"
               required
             >
-              <option value="" disabled>{{ localeStore.t('select_zone_placeholder') }}</option>
+              <option value="" disabled>
+                {{ localeStore.isAmharic ? `-- በ${currentBranchCity === 'Dessie' ? 'ደሴ' : currentBranchCity} ውስጥ የማድረሻ ዞንዎን ይምረጡ --` : `-- Select your delivery zone in ${currentBranchCity} --` }}
+              </option>
               <option
                 v-for="zone in activeZones"
                 :key="zone.zone_id"
@@ -292,31 +294,37 @@
               >
                 {{ zone.zone_name }} — {{ localeStore.isAmharic ? (subtotal >= 1000 ? '0 ብር (ከ 1,000 ብር በላይ ነፃ)' : `${zone.delivery_fee} ብር`) : (subtotal >= 1000 ? 'ETB 0 (Free over ETB 1,000)' : `ETB ${zone.delivery_fee}`) }}
               </option>
-              <option value="outside">{{ localeStore.t('outside_zones') }}</option>
+              <option value="outside">
+                {{ localeStore.isAmharic ? `⚠️ አድራሻው ከ${currentBranchCity === 'Dessie' ? 'ደሴ' : currentBranchCity} የሽፋን ክልል ውጭ ነው (ማድረስ አይቻልም)` : `⚠️ Address is outside ${currentBranchCity} coverage zones (Restricted)` }}
+              </option>
             </select>
           </div>
 
-          <!-- Outside Zone Warning -->
-          <div v-if="selectedZoneId === 'outside'" class="p-4 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-2xl text-xs text-[#B84B42] space-y-2">
-            <div class="font-bold flex items-center space-x-1.5">
-              <span>⚠️</span>
-              <span>{{ localeStore.t('outside_radius_title') }} ({{ localeStore.tBranch(currentBranchName) }})</span>
+          <!-- Outside Zone Warning & Restriction -->
+          <div v-if="selectedZoneId === 'outside'" class="p-4 bg-[#FAF0F0] dark:bg-rose-950/40 border-2 border-red-300 dark:border-rose-800 rounded-2xl text-xs text-[#B84B42] space-y-2.5">
+            <div class="font-bold flex items-center space-x-1.5 text-red-700 dark:text-red-400">
+              <span class="text-base">🚫</span>
+              <span>{{ localeStore.isAmharic ? `ከ${currentBranchCity === 'Dessie' ? 'ደሴ' : currentBranchCity} የሽፋን ክልል ውጭ ማድረስ አይቻልም` : `Delivery Outside ${currentBranchCity} is Restricted` }} ({{ localeStore.tBranch(currentBranchName) }})</span>
             </div>
-            <p>
-              {{ localeStore.tBranch(currentBranchName) }} {{ localeStore.t('outside_radius_desc') }}
+            <p class="text-[#8B3029] dark:text-rose-200 leading-relaxed font-medium">
+              {{ localeStore.isAmharic 
+                ? `${localeStore.tBranch(currentBranchName)} ቅርንጫፍ በአሁኑ ሰዓት በ${currentBranchCity === 'Dessie' ? 'ደሴ' : currentBranchCity} ከተማ ውስጥ ባሉ ንቁ የሽፋን ክልሎች ብቻ ያደርሳል። ከ${currentBranchCity === 'Dessie' ? 'ደሴ' : currentBranchCity} ውጭ ያሉ አድራሻዎች በቀጥታ ማድረስ የተገደበ ነው። እባክዎ ትዕዛዝዎን ከመደብር በነፃ ለመውሰድ (Shop Pickup) ይምረጡ።` 
+                : `${currentBranchName} branch exclusively delivers within designated coverage zones inside ${currentBranchCity}. Delivery addresses outside ${currentBranchCity} are strictly restricted. Please switch to Free Shop Pickup to collect your order at the bakery counter.` 
+              }}
             </p>
             <div class="pt-1 flex items-center space-x-3">
               <button
                 type="button"
                 @click="setMethod('Pickup')"
-                class="px-3 py-1.5 bg-[#B84B42] text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer"
+                class="px-4 py-2 bg-[#DE1B54] hover:bg-[#C21647] text-white rounded-xl font-bold text-xs shadow-xs cursor-pointer transition flex items-center space-x-1.5"
               >
-                {{ localeStore.t('switch_to_pickup') }}
+                <span>🛍️</span>
+                <span>{{ localeStore.t('switch_to_pickup') }}</span>
               </button>
               <button
                 type="button"
                 @click="branchStore.openPicker()"
-                class="font-bold text-[#B84B42] underline cursor-pointer"
+                class="font-bold text-[#DE1B54] underline cursor-pointer text-xs"
               >
                 {{ localeStore.t('switch_branch_btn') }}
               </button>
@@ -331,7 +339,7 @@
             <input
               v-model="customer.address"
               type="text"
-              :placeholder="localeStore.t('street_placeholder')"
+              :placeholder="localeStore.isAmharic ? 'ምሳሌ፡ ፒያሳ፣ አራዳ አካባቢ፣ ሆቴ፣ ሰኞ ገበያ፣ ቤት ቁጥር 12' : `e.g. Piazza, Near Arada, Kebele 03, House 12, ${currentBranchCity}`"
               class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
               required
             />
@@ -712,7 +720,13 @@ const customer = ref({
 
 // Computed Branch & Cart
 const branchId = computed(() => {
-  return Number(cartStore.branchId || branchStore.selectedBranchId || 2);
+  const bList = branchStore.branches || [];
+  const candidateId = Number(cartStore.branchId || branchStore.selectedBranchId);
+  const exists = bList.some((b) => b.branch_id === candidateId);
+  if (exists) return candidateId;
+  if (branchStore.selectedBranch?.branch_id) return branchStore.selectedBranch.branch_id;
+  if (bList.length > 0) return bList[0].branch_id;
+  return 1;
 });
 
 const currentBranch = computed(() => {
@@ -721,11 +735,15 @@ const currentBranch = computed(() => {
 });
 
 const currentBranchName = computed(() => {
-  if (currentBranch.value?.branch_name) return currentBranch.value.branch_name;
-  if (branchId.value === 3) return 'Megenagna';
-  if (branchId.value === 4) return 'Piassa';
-  if (branchId.value === 1) return 'Main Branch';
-  return 'Bole';
+  return currentBranch.value?.branch_name || branchDetails.value?.branch_name || 'Dessie Branch';
+});
+
+const currentBranchCity = computed(() => {
+  return currentBranch.value?.city || branchDetails.value?.city || 'Dessie';
+});
+
+const currentBranchAddress = computed(() => {
+  return currentBranch.value?.address || branchDetails.value?.address || `${currentBranchCity.value}, Ethiopia`;
 });
 
 const isBranchShoppingEnabled = computed(() => {
@@ -1030,8 +1048,8 @@ async function handlePlaceOrder() {
   if (fulfillmentMethod.value === 'Delivery') {
     if (selectedZoneId.value === 'outside') {
       orderError.value = localeStore.isAmharic 
-        ? `${localeStore.tBranch(currentBranchName.value)} ቅርንጫፍ ከተመደበው የሽፋን ክልል ውጭ አያደርስም። እባክዎ ንቁ የማድረሻ ክልል ይምረጡ ወይም ከመደብር መውሰድን ይምረጡ።` 
-        : `${currentBranchName.value} branch does not deliver to addresses outside its designated coverage zone. Please select an active delivery zone or choose Shop Pickup.`;
+        ? `${localeStore.tBranch(currentBranchName.value)} ቅርንጫፍ ከተመደበው የ${currentBranchCity.value === 'Dessie' ? 'ደሴ' : currentBranchCity.value} የሽፋን ክልል ውጭ አያደርስም። እባክዎ በ${currentBranchCity.value === 'Dessie' ? 'ደሴ' : currentBranchCity.value} ውስጥ ያለ ንቁ የማድረሻ ክልል ይምረጡ ወይም ከመደብር መውሰድን ይምረጡ።` 
+        : `${currentBranchName.value} branch delivers only within active zones in ${currentBranchCity.value}. Delivery outside ${currentBranchCity.value} is restricted. Please select an active delivery zone or choose Shop Pickup.`;
       return;
     }
     if (!selectedZoneId.value && activeZones.value.length > 0) {
@@ -1073,8 +1091,8 @@ async function handlePlaceOrder() {
       try {
         await api.post('/addresses', {
           street: customer.value.address.trim(),
-          city: 'Addis Ababa',
-          region: currentBranchName.value,
+          city: currentBranchCity.value,
+          region: currentBranch.value?.region || branchDetails.value?.region || 'Amhara',
           notes: customer.value.notes ? customer.value.notes.trim() : null,
           is_default: false,
         });
@@ -1093,7 +1111,7 @@ async function handlePlaceOrder() {
       fulfillment_method: fulfillmentMethod.value,
       payment_method: mappedPayment,
       address_id: selectedAddressId.value || null,
-      delivery_address: customer.value.address || (fulfillmentMethod.value === 'Pickup' ? `${currentBranchName.value} Branch Counter Pickup` : 'Addis Ababa Doorstep Delivery'),
+      delivery_address: customer.value.address || (fulfillmentMethod.value === 'Pickup' ? `${currentBranchName.value} Branch Counter Pickup` : `${currentBranchCity.value} Doorstep Delivery`),
       promo_code: appliedPromo.value?.promotion_name || null,
       order_notes: (selectedTimeSlot.value ? `[Slot: ${selectedTimeSlot.value}] ` : '') + (customer.value.notes ? customer.value.notes.trim() : ''),
       zone_id: fulfillmentMethod.value === 'Delivery' ? selectedZoneId.value : null,

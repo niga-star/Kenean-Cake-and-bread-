@@ -78,6 +78,33 @@ class BranchController extends Controller
             );
         }
 
+        // Auto-seed active delivery zones for the new branch's city
+        $cityLower = strtolower($branch->city ?? '');
+        if (str_contains($cityLower, 'des') || str_contains($cityLower, 'ደሴ')) {
+            $defaultZones = [
+                ['zone_name' => 'Piazza & Arada (Central Dessie)', 'delivery_fee' => 40.00],
+                ['zone_name' => 'Hotte & Memhir Akale Wold', 'delivery_fee' => 50.00],
+                ['zone_name' => 'Buanbua Wuha & Robit Road', 'delivery_fee' => 60.00],
+                ['zone_name' => 'Segno Gebeya & Shell Area', 'delivery_fee' => 50.00],
+                ['zone_name' => 'Dessie Menafesha & Kebele 01-10', 'delivery_fee' => 50.00],
+                ['zone_name' => 'Wollo Sefer & Tita Area', 'delivery_fee' => 70.00],
+            ];
+        } else {
+            $cityName = $branch->city ?: 'City';
+            $defaultZones = [
+                ['zone_name' => "{$cityName} Central & Commercial Area", 'delivery_fee' => 40.00],
+                ['zone_name' => "{$cityName} Residential Zone 1", 'delivery_fee' => 50.00],
+                ['zone_name' => "{$cityName} Outer Delivery Radius", 'delivery_fee' => 70.00],
+            ];
+        }
+
+        foreach ($defaultZones as $dz) {
+            \App\Models\DeliveryZone::firstOrCreate(
+                ['branch_id' => $branch->branch_id, 'zone_name' => $dz['zone_name']],
+                ['delivery_fee' => $dz['delivery_fee'], 'status' => 'Active']
+            );
+        }
+
         // Audit log
         AuditLog::create([
             'user_id' => $request->user()?->user_id,

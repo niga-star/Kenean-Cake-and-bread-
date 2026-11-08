@@ -472,7 +472,7 @@
               <input
                 v-model="newBranch.city"
                 type="text"
-                placeholder="Addis Ababa"
+                placeholder="Dessie"
                 required
                 class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
               />
@@ -482,7 +482,7 @@
               <input
                 v-model="newBranch.region"
                 type="text"
-                placeholder="Addis Ababa"
+                placeholder="Amhara"
                 required
                 class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
               />
@@ -614,8 +614,8 @@ const newBranch = ref({
   branch_name: '',
   branch_code: '',
   branch_type: 'Regular',
-  city: 'Addis Ababa',
-  region: 'Addis Ababa',
+  city: 'Dessie',
+  region: 'Amhara',
   address: '',
   phone: '',
   opening_hours: 'Mon–Sun 07:00–21:00',
@@ -679,8 +679,8 @@ const selectBranchForEdit = (b, scroll = true) => {
     branch_code: b.branch_code || '',
     branch_type: b.branch_type || 'Regular',
     manager_id: b.manager_id || (b.manager?.user_id ?? null),
-    region: b.region || 'Addis Ababa',
-    city: b.city || 'Addis Ababa',
+    region: b.region || 'Amhara',
+    city: b.city || 'Dessie',
     phone: b.phone || '',
     address: b.address || '',
     opening_hours: b.opening_hours || 'Mon–Sun 07:00–21:00',
@@ -756,8 +756,8 @@ const openAddBranchModal = () => {
     branch_name: '',
     branch_code: '',
     branch_type: 'Regular',
-    city: 'Addis Ababa',
-    region: 'Addis Ababa',
+    city: 'Dessie',
+    region: 'Amhara',
     address: '',
     phone: '',
     opening_hours: 'Mon–Sun 07:00–21:00',

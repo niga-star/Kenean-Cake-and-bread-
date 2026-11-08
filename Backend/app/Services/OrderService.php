@@ -106,8 +106,8 @@ class OrderService
         if ($validated['fulfillment_method'] === 'Delivery' && empty($addressId)) {
             $address = Address::create([
                 'user_id' => $orderUserId,
-                'city' => $validated['city'] ?? 'Addis Ababa',
-                'region' => $branch->branch_name,
+                'city' => $validated['city'] ?? $branch->city ?? 'Dessie',
+                'region' => $validated['region'] ?? $branch->region ?? 'Amhara',
                 'street' => $validated['delivery_address'] ?? 'Customer Delivery Address',
                 'notes' => $validated['order_notes'] ?? 'Deliver to doorstep',
                 'is_default' => true,

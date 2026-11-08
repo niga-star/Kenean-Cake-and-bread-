@@ -29,7 +29,7 @@
             <span class="text-2xl">📍</span>
             <div>
               <h2 class="font-serif font-black text-base sm:text-lg text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
-                {{ localeStore.t('choose_branch_title') || 'Choose Your Addis Ababa Branch' }}
+                {{ localeStore.t('choose_branch_title') || 'Choose Your Bakery Branch' }}
               </h2>
               <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
                 {{ localeStore.isAmharic ? 'እያንዳንዱ ትዕዛዝ እና የማድረሻ ክፍያ በቀጥታ ከተመረጠው ቅርንጫፍ ጋር የተገናኘ ነው::' : 'Every order, oven batch, and delivery fee strictly belongs to your chosen location.' }}
@@ -127,7 +127,7 @@
               <!-- Address & City -->
               <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] flex items-center space-x-1.5">
                 <span class="text-rose-500 shrink-0">📍</span>
-                <span class="truncate">{{ branch.address || branch.city || (localeStore.isAmharic ? 'አዲስ አበባ' : 'Addis Ababa') }}</span>
+                <span class="truncate">{{ branch.address || branch.city || (localeStore.isAmharic ? 'ደሴ' : 'Dessie') }}</span>
               </div>
 
               <!-- Phone & Opening Hours -->
