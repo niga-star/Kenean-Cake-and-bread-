@@ -539,6 +539,11 @@
           </button>
         </div>
 
+        <div v-if="modalErrorMsg" class="p-3 bg-red-50 border border-red-200 rounded-lg text-xs font-semibold text-red-700 flex items-center justify-between">
+          <span>{{ modalErrorMsg }}</span>
+          <button type="button" @click="modalErrorMsg = ''" class="text-red-700 font-bold ml-2 cursor-pointer">&times;</button>
+        </div>
+
         <form @submit.prevent="submitNewProduct" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -659,7 +664,16 @@ const isSaving = ref(false);
 
 // Role & Branch scoping
 const isBranchManager = computed(() => {
-  return ['Super Admin', 'Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role);
+  return [
+    'Super Admin',
+    'Main Branch Manager',
+    'Branch Manager',
+    'Branch Admin',
+    'Branch Seller / Cashier',
+    'Branch Seller',
+    'Cashier',
+    'Branch Staff',
+  ].includes(authStore.user?.role);
 });
 
 const currentBranch = computed(() => {
@@ -681,6 +695,7 @@ const isPriceReportModalOpen = ref(false);
 const isSubmittingCategory = ref(false);
 const isSubmittingProduct = ref(false);
 const isSubmittingPriceReport = ref(false);
+const modalErrorMsg = ref('');
 
 const priceReportForm = ref({
   title: '',
@@ -781,6 +796,7 @@ const saveProduct = async () => {
 };
 
 const openAddProductModal = () => {
+  modalErrorMsg.value = '';
   newProduct.value = {
     product_name: '',
     category_id: categories.value[0]?.category_id || '',
@@ -793,16 +809,30 @@ const openAddProductModal = () => {
 };
 
 const submitNewProduct = async () => {
-  if (!isBranchManager.value) return;
+  modalErrorMsg.value = '';
+  if (!newProduct.value.product_name) {
+    modalErrorMsg.value = 'Please provide a product name.';
+    return;
+  }
+  if (!newProduct.value.category_id) {
+    modalErrorMsg.value = 'Please select a product category.';
+    return;
+  }
   isSubmittingProduct.value = true;
+  successMsg.value = '';
+  errorMsg.value = '';
   try {
     const res = await api.post('/admin/products', newProduct.value);
-    successMsg.value = `Product "${res.data.product_name}" added to catalog with ${currentBranchName.value} price set to ETB ${newProduct.value.base_price}!`;
+    successMsg.value = `Product "${res.data.product_name}" added to catalog successfully with ${currentBranchName.value} price set to ETB ${newProduct.value.base_price}!`;
     isAddProductModalOpen.value = false;
     await loadCatalog();
-    selectProductForEdit(res.data);
+    if (res.data) {
+      selectProductForEdit(res.data);
+    }
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to create product';
+    const msg = err.response?.data?.message || 'Failed to create product';
+    modalErrorMsg.value = msg;
+    errorMsg.value = msg;
   } finally {
     isSubmittingProduct.value = false;
   }

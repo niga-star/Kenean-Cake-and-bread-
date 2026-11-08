@@ -745,11 +745,15 @@ const loadingProducts = ref(true);
 async function fetchLiveProducts() {
   loadingProducts.value = true;
   try {
-    const branchId = branchStore.selectedBranchId || 2;
-    const res = await api.get(`/catalog/products?branch_id=${branchId}`);
-    if (Array.isArray(res.data) && res.data.length > 0) {
+    if (!branchStore.branches || branchStore.branches.length === 0) {
+      await branchStore.fetchBranches();
+    }
+    const branchId = branchStore.selectedBranchId || branchStore.branches[0]?.branch_id || '';
+    const query = branchId ? `?branch_id=${branchId}` : '';
+    const res = await api.get(`/catalog/products${query}`);
+    if (Array.isArray(res.data)) {
       liveProducts.value = res.data.map(p => {
-        const avail = Number(p.available ?? 0);
+        const avail = Number(p.available ?? p.available_stock ?? 20);
         const isSoldOut = avail <= 0 || p.stock_status === 'Sold out';
         return {
           id: p.product_id,

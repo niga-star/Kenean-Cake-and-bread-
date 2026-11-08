@@ -1173,7 +1173,8 @@ async function loadProducts(targetBranchId) {
   loading.value = true;
   hasError.value = false;
   try {
-    const res = await api.get(`/catalog/products?branch_id=${targetBranchId}`);
+    const query = targetBranchId && targetBranchId !== 'all' ? `?branch_id=${targetBranchId}` : '';
+    const res = await api.get(`/catalog/products${query}`);
     if (res.data) {
       products.value = res.data;
     }
@@ -1186,7 +1187,10 @@ async function loadProducts(targetBranchId) {
 }
 
 onMounted(async () => {
-  const branchId = branchStore.selectedBranchId || 2;
+  if (!branchStore.branches || branchStore.branches.length === 0) {
+    await branchStore.fetchBranches();
+  }
+  const branchId = branchStore.selectedBranchId || branchStore.branches[0]?.branch_id || '';
   await Promise.all([
     loadProducts(branchId),
     loadCategories(),

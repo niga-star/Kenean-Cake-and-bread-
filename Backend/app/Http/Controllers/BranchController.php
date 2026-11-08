@@ -65,6 +65,19 @@ class BranchController extends Controller
 
         $branch = Branch::create($validated);
 
+        // Auto-seed initial inventory for all active products at this new branch
+        $products = \App\Models\Product::where('status', 'Active')->get();
+        foreach ($products as $p) {
+            \App\Models\BranchInventory::firstOrCreate(
+                ['branch_id' => $branch->branch_id, 'product_id' => $p->product_id],
+                [
+                    'quantity_on_hand' => 20,
+                    'reserved_quantity' => 0,
+                    'reorder_level' => 10,
+                ]
+            );
+        }
+
         // Audit log
         AuditLog::create([
             'user_id' => $request->user()?->user_id,

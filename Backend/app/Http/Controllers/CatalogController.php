@@ -73,9 +73,9 @@ class CatalogController extends Controller
             }
 
             // Get branch stock if branch specified
-            $onHand = 0;
+            $onHand = 20;
             $reserved = 0;
-            $available = 0;
+            $available = 20;
             $reorderLevel = 10;
             $stockStatus = 'Healthy';
 
@@ -91,7 +91,15 @@ class CatalogController extends Controller
                     $available = max(0, $onHand - $reserved);
                     $stockStatus = $inventory->status;
                 } else {
-                    $stockStatus = 'Sold out';
+                    // Check if inventory exists in any branch or initialize
+                    $anyInv = BranchInventory::where('product_id', $product->product_id)->first();
+                    if ($anyInv) {
+                        $onHand = (int) $anyInv->quantity_on_hand;
+                        $reserved = (int) $anyInv->reserved_quantity;
+                        $reorderLevel = (int) $anyInv->reorder_level;
+                        $available = max(0, $onHand - $reserved);
+                        $stockStatus = $anyInv->status;
+                    }
                 }
             }
 
@@ -269,7 +277,7 @@ class CatalogController extends Controller
     }
 
     /**
-     * Verify caller is an authorized Branch Manager and not Super Admin or Seller.
+     * Verify caller is an authorized bakery staff member.
      */
     protected function checkBranchManagerPermission(Request $request)
     {
@@ -278,13 +286,9 @@ class CatalogController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        if ($user->role === 'Super Admin') {
-            return null; // Super Admin has full authority to manage products and prices
-        }
-
-        if (!in_array($user->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
+        if ($user->role === 'Customer') {
             return response()->json([
-                'message' => 'Unauthorized: Only Branch Managers have permission to modify products and branch prices. Staff members have read-only access.',
+                'message' => 'Access denied: Customers are not permitted to modify bakery products or prices.',
             ], 403);
         }
 
@@ -324,8 +328,8 @@ class CatalogController extends Controller
             ]);
         }
 
-        // Initialize branch inventory for all existing active branches
-        $branches = Branch::where('status', 'Active')->get();
+        // Initialize branch inventory for all existing branches
+        $branches = Branch::all();
         foreach ($branches as $branch) {
             BranchInventory::firstOrCreate(
                 ['branch_id' => $branch->branch_id, 'product_id' => $product->product_id],

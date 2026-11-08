@@ -148,3 +148,4 @@ $passOk = Hash::check('password123', $recheckAdmin->password);
 echo "Super Admin Login Authenticity check: " . ($passOk ? "PASSED (Credentials Intact)" : "FAILED") . "\n";
 
 echo "\nDatabase cleanup completed successfully!\n";
+
