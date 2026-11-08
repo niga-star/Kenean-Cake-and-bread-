@@ -148,15 +148,15 @@
     </div>
 
     <!-- Bottom Two Columns: Branch Details Editor + Delivery Zones -->
-    <div v-if="editingBranch" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div v-if="editingBranch" id="branch-details-editor" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start scroll-mt-6">
       <!-- Left: Branch Details (Col span 2) -->
-      <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
+      <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-2xl shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
           <div class="flex items-center space-x-2">
             <span class="text-base">🏪</span>
             <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Branch Details</h3>
           </div>
-          <span class="text-xs text-[#8A7B71]">Editing: <strong>{{ editingBranch.branch_name }}</strong></span>
+          <span class="text-xs text-[#8A7B71]">Editing: <strong class="text-[#BA5420]">{{ editingBranch.branch_name }}</strong></span>
         </div>
 
         <form @submit.prevent="saveBranch" class="space-y-4">
@@ -166,7 +166,7 @@
               <input
                 v-model="editForm.branch_name"
                 type="text"
-                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D]"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
                 required
               />
             </div>
@@ -185,20 +185,23 @@
             <div>
               <label class="block text-xs font-medium text-[#7D6E64] mb-1">Branch type</label>
               <input
-                :value="editingBranch.branch_type === 'Main' ? 'Main branch' : 'Regular branch'"
+                :value="editingBranch.branch_type === 'Main' ? 'Main branch (Central Kitchen)' : 'Regular branch'"
                 type="text"
                 readonly
                 class="w-full bg-[#F7F2EA] border border-[#DCD0C2] rounded-lg px-3 py-2 text-xs text-[#5A4A3E]"
               />
             </div>
             <div>
-              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Manager</label>
-              <input
-                :value="editingBranch.manager?.full_name || 'Assigned Branch Admin'"
-                type="text"
-                readonly
-                class="w-full bg-[#F7F2EA] border border-[#DCD0C2] rounded-lg px-3 py-2 text-xs text-[#5A4A3E]"
-              />
+              <label class="block text-xs font-medium text-[#7D6E64] mb-1">Assigned Branch Manager</label>
+              <select
+                v-model="editForm.manager_id"
+                class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+              >
+                <option :value="null">-- Select / Unassigned --</option>
+                <option v-for="m in managersList" :key="m.user_id" :value="m.user_id">
+                  {{ m.full_name }} ({{ m.role }})
+                </option>
+              </select>
             </div>
           </div>
 
@@ -582,11 +585,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useAuthStore } from '../../stores/auth';
 import api from '../../api';
+
+const authStore = useAuthStore();
+const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
 const branches = ref([]);
 const editingBranch = ref(null);
+const managersList = ref([]);
 const successMsg = ref('');
 const errorMsg = ref('');
 const isSavingBranch = ref(false);
@@ -618,46 +626,73 @@ const togglingBranchId = ref(null);
 const editForm = ref({
   branch_name: '',
   branch_code: '',
+  branch_type: 'Regular',
+  manager_id: null,
   region: '',
   city: '',
   phone: '',
   address: '',
   opening_hours: '',
+  max_staff: 15,
+  max_managers: 1,
   isActive: true,
   isShoppingEnabled: true,
 });
+
+const loadManagers = async () => {
+  try {
+    const res = await api.get('/admin/users');
+    const allUsers = Array.isArray(res.data) ? res.data : [];
+    managersList.value = allUsers.filter(u => ['Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(u.role));
+  } catch (err) {
+    console.error('Failed to load managers list', err);
+  }
+};
 
 const loadBranches = async () => {
   try {
     const res = await api.get('/branches');
     branches.value = res.data;
-    if (!editingBranch.value && branches.value.length > 2) {
-      // Default to Megenagna as in Mockup Page 13
-      selectBranchForEdit(branches.value[2]);
+    if (!editingBranch.value && branches.value.length > 0) {
+      // Automatically load the first branch details
+      selectBranchForEdit(branches.value[0], false);
     } else if (editingBranch.value) {
       const refreshed = branches.value.find(b => b.branch_id === editingBranch.value.branch_id);
-      if (refreshed) editingBranch.value = refreshed;
+      if (refreshed) {
+        editingBranch.value = refreshed;
+      }
     }
   } catch (err) {
     console.error('Failed to load branches', err);
   }
 };
 
-const selectBranchForEdit = (b) => {
+const selectBranchForEdit = (b, scroll = true) => {
   editingBranch.value = b;
   editForm.value = {
-    branch_name: b.branch_name,
-    branch_code: b.branch_code,
-    region: b.region,
-    city: b.city,
-    phone: b.phone,
-    address: b.address,
-    opening_hours: b.opening_hours,
+    branch_name: b.branch_name || '',
+    branch_code: b.branch_code || '',
+    branch_type: b.branch_type || 'Regular',
+    manager_id: b.manager_id || (b.manager?.user_id ?? null),
+    region: b.region || 'Addis Ababa',
+    city: b.city || 'Addis Ababa',
+    phone: b.phone || '',
+    address: b.address || '',
+    opening_hours: b.opening_hours || 'Mon–Sun 07:00–21:00',
     max_staff: b.max_staff || 15,
     max_managers: b.max_managers || 1,
     isActive: b.status === 'Active',
     isShoppingEnabled: b.is_shopping_enabled !== false,
   };
+
+  if (scroll) {
+    setTimeout(() => {
+      const el = document.getElementById('branch-details-editor');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  }
 };
 
 const toggleShopping = async (b) => {
@@ -691,15 +726,18 @@ const saveBranch = async () => {
   try {
     await api.patch(`/admin/branches/${editingBranch.value.branch_id}`, {
       branch_name: editForm.value.branch_name,
+      region: editForm.value.region,
+      city: editForm.value.city,
       phone: editForm.value.phone,
       address: editForm.value.address,
       opening_hours: editForm.value.opening_hours,
+      manager_id: editForm.value.manager_id,
       max_staff: editForm.value.max_staff,
       max_managers: editForm.value.max_managers,
       status: editForm.value.isActive ? 'Active' : 'Inactive',
       is_shopping_enabled: editForm.value.isShoppingEnabled,
     });
-    successMsg.value = `Branch ${editForm.value.branch_name} updated successfully.`;
+    successMsg.value = `Branch ${editForm.value.branch_name} details saved successfully!`;
     await loadBranches();
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Failed to update branch';
@@ -771,7 +809,7 @@ const deleteDeliveryZone = async (zone) => {
   }
 };
 
-onMounted(() => {
-  loadBranches();
+onMounted(async () => {
+  await Promise.all([loadBranches(), loadManagers()]);
 });
 </script>

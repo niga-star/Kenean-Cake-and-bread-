@@ -104,6 +104,7 @@
               <option value="Price Update">Price Update</option>
               <option value="Shift Log">Shift Log</option>
               <option value="Task Report">Task Report</option>
+              <option value="Product Information">Product Information</option>
               <option value="Branch Performance">Branch Performance</option>
             </select>
           </div>
@@ -263,6 +264,7 @@
               <option value="Custom Cake Report">Custom Cake Report (Bespoke Cake Production Updates)</option>
               <option value="Shift Log">Shift Log (Kitchen Preparation, Stock Usage, Baking Shifts)</option>
               <option value="Task Report">Task Report (Routine Sanitation, Maintenance, Equipment)</option>
+              <option value="Product Information">Product Information (Stock Feedback, Low Stock, Shelf Display)</option>
               <option v-if="isManagerOrAdmin" value="Branch Performance">Branch Performance (Consolidated Performance Summary)</option>
               <option v-if="isManagerOrAdmin" value="Price Update">Price Update (Branch Price Adjustments Notification)</option>
             </select>

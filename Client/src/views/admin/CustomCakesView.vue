@@ -8,16 +8,33 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Branch Selector or Scoped Badge -->
+        <div
+          v-if="isBranchScoped"
+          class="bg-[#FAF3EC] border border-[#EACBB8] rounded-xl px-3.5 py-2 text-xs font-bold text-[#BA5420] flex items-center space-x-1.5 shadow-2xs"
+        >
+          <span>📍</span>
+          <span>{{ userBranchName }} Only</span>
+        </div>
         <select
+          v-else
           v-model="selectedBranch"
           @change="loadRequests"
-          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420]"
+          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
         >
           <option value="all">All Branches</option>
           <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
             {{ b.branch_name }}
           </option>
         </select>
+
+        <router-link
+          to="/admin/staff-reports"
+          class="px-3.5 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1"
+        >
+          <span>📋</span>
+          <span>Submit Cake Report</span>
+        </router-link>
 
         <select
           v-model="selectedStatusFilter"
@@ -279,10 +296,12 @@
 
         <!-- ================= DYNAMIC ACTION CONTROLS BASED ON STATUS ================= -->
         
-        <!-- 1. STATUS: Submitted -> Show Quote Form -->
+        <!-- 1. STATUS: Submitted -> Show Quote Form (Manager) or Pending Banner (Seller) -->
         <div v-if="selectedRequest.status === 'Submitted'" class="pt-2 border-t border-[#EFE8DF] space-y-3">
           <div class="text-xs font-bold text-[#2A1D15]">Quotation &amp; Review</div>
-          <form @submit.prevent="submitQuote" class="space-y-3">
+
+          <!-- Manager Quote Form -->
+          <form v-if="isManager" @submit.prevent="submitQuote" class="space-y-3">
             <div>
               <label class="block text-xs font-medium text-[#65554B] mb-1">Quoted Price (ETB) *</label>
               <input
@@ -335,6 +354,17 @@
               </button>
             </div>
           </form>
+
+          <!-- Seller / Staff Awaiting Quote Info -->
+          <div v-else class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs text-amber-900">
+            <div class="font-bold flex items-center space-x-1.5">
+              <span>⏳</span>
+              <span>Awaiting Branch Manager Quotation</span>
+            </div>
+            <p class="text-[11px] text-amber-800 leading-snug">
+              This custom cake request is pending quotation by the {{ selectedRequest.branch?.branch_name || userBranchName }} Branch Manager. Sellers can track status and advance kitchen baking once confirmed.
+            </p>
+          </div>
         </div>
 
         <!-- 2. STATUS: Quoted -> Awaiting Customer Acceptance -->
@@ -477,7 +507,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useAuthStore } from '../../stores/auth';
 import api from '../../api';
+
+const authStore = useAuthStore();
+const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
+const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
+const userBranchId = computed(() => authStore.user?.branch_id || authStore.user?.branch?.branch_id);
+const userBranchName = computed(() => authStore.user?.branch?.branch_name || 'My Branch');
+const isManager = computed(() => ['Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role));
 
 const branches = ref([]);
 const selectedBranch = ref('all');
@@ -552,7 +590,9 @@ const statusBadgeStyle = (status) => {
 const loadRequests = async () => {
   try {
     const params = {};
-    if (selectedBranch.value !== 'all') {
+    if (isBranchScoped.value && userBranchId.value) {
+      params.branch_id = userBranchId.value;
+    } else if (selectedBranch.value !== 'all') {
       params.branch_id = selectedBranch.value;
     }
     if (selectedStatusFilter.value !== 'all') {

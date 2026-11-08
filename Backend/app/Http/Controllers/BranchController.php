@@ -89,6 +89,8 @@ class BranchController extends Controller
             'branch_name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|string',
             'address' => 'sometimes|string',
+            'region' => 'sometimes|string',
+            'city' => 'sometimes|string',
             'opening_hours' => 'sometimes|string',
             'status' => 'sometimes|in:Active,Inactive',
             'is_shopping_enabled' => 'sometimes|boolean',
@@ -137,7 +139,7 @@ class BranchController extends Controller
             'created_at' => now(),
         ]);
 
-        return response()->json($branch->load('deliveryZones'));
+        return response()->json($branch->load(['deliveryZones', 'manager']));
     }
 
     /**

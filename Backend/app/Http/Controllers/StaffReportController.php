@@ -77,7 +77,7 @@ class StaffReportController extends Controller
         }
 
         $validated = $request->validate([
-            'report_type' => 'required|in:Daily Sales,Delivery Summary,Shift Log,Task Report,Branch Performance,Price Update,Order Activity,Custom Cake Report',
+            'report_type' => 'required|in:Daily Sales,Delivery Summary,Shift Log,Task Report,Branch Performance,Price Update,Order Activity,Custom Cake Report,Product Information,Product Info Report',
             'title' => 'required|string|min:3|max:255',
             'content' => 'required|string|min:5|max:5000',
             'branch_id' => 'nullable|exists:branches,branch_id',

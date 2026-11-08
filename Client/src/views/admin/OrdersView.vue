@@ -13,12 +13,21 @@
           📍 {{ userBranchName }} Only
         </span>
       </div>
-      <button
-        @click="exportCSV"
-        class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
-      >
-        Export CSV
-      </button>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <router-link
+          to="/admin/staff-reports"
+          class="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer"
+        >
+          <span>📋</span>
+          <span>Submit Order Report</span>
+        </router-link>
+        <button
+          @click="exportCSV"
+          class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+        >
+          Export CSV
+        </button>
+      </div>
     </div>
 
     <!-- Alert Banner -->
