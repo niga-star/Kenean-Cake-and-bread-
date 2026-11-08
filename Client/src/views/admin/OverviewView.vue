@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- ========================================== -->
     <!-- BRANCH DASHBOARD VIEW (Branch Admin/Staff) -->
     <!-- ========================================== -->
@@ -11,11 +11,11 @@
             <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
               {{ data.branch?.branch_name }} Branch Dashboard
             </h2>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8] font-poppins">
               {{ data.branch?.branch_code }}
             </span>
           </div>
-          <p class="text-xs text-[#7A6B60] mt-1">
+          <p class="text-xs text-[#7A6B60] mt-1 font-poppins">
             Locked to {{ data.branch?.branch_name }}. Address: {{ data.branch?.address }} · Phone: {{ data.branch?.phone }}
           </p>
         </div>
@@ -76,8 +76,8 @@
           <!-- Recent Orders Table -->
           <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
             <div class="p-4 border-b border-[#EFE8DF] flex items-center justify-between">
-              <h3 class="font-semibold text-sm text-[#2A1D15]">Recent Branch Orders</h3>
-              <router-link to="/admin/orders" class="text-xs font-semibold text-[#BA5420] hover:underline">
+              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Recent Branch Orders</h3>
+              <router-link to="/admin/orders" class="text-xs font-semibold text-[#BA5420] hover:underline font-poppins">
                 View all →
               </router-link>
             </div>
@@ -126,8 +126,8 @@
           <!-- Stock Availability Table -->
           <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
             <div class="p-4 border-b border-[#EFE8DF] flex items-center justify-between">
-              <h3 class="font-semibold text-sm text-[#2A1D15]">Branch Stock Status</h3>
-              <router-link to="/admin/inventory" class="text-xs font-semibold text-[#BA5420] hover:underline">
+              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Branch Stock Status</h3>
+              <router-link to="/admin/inventory" class="text-xs font-semibold text-[#BA5420] hover:underline font-poppins">
                 Full inventory →
               </router-link>
             </div>
@@ -174,9 +174,9 @@
         <div class="space-y-6">
           <!-- Needs Attention Feed -->
           <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 space-y-3">
-            <h3 class="font-semibold text-sm text-[#2A1D15]">Needs Attention</h3>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Needs Attention</h3>
 
-            <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-xs text-[#8A7B71] py-4 text-center">
+            <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-xs text-[#8A7B71] py-4 text-center font-poppins">
               No urgent alerts for your branch.
             </div>
 
@@ -184,7 +184,7 @@
               <div
                 v-for="(item, idx) in data.needs_attention"
                 :key="idx"
-                class="p-3 rounded-lg border text-xs font-medium leading-relaxed"
+                class="p-3 rounded-lg border text-xs font-medium leading-relaxed font-poppins"
                 :class="{
                   'bg-[#FDEAEA] text-[#C62828] border-[#FFCDD2]': item.type === 'disputed',
                   'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': item.type === 'in_transit' || item.type === 'low_stock',
@@ -198,7 +198,7 @@
 
           <!-- Branch Quick Actions -->
           <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 space-y-3">
-            <h3 class="font-semibold text-sm text-[#2A1D15]">Branch Operations</h3>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Branch Operations</h3>
             <div class="space-y-2 text-xs">
               <router-link
                 to="/admin/distribution"
@@ -294,8 +294,8 @@
         <!-- Stacked Bar Chart Box -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-4 sm:p-6 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h3 class="font-semibold text-base text-[#2A1D15]">Sales by branch, this week</h3>
-            <div class="flex items-center space-x-4 text-xs">
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Sales by branch, this week</h3>
+            <div class="flex items-center space-x-4 text-xs font-poppins">
               <span class="flex items-center space-x-1.5">
                 <span class="w-3 h-3 rounded bg-[#BA5420]"></span>
                 <span class="text-[#65554B]">Cakes</span>
@@ -339,9 +339,9 @@
 
         <!-- Needs Attention Feed -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-3.5">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Needs attention</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Needs attention</h3>
 
-          <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-xs text-[#8A7B71] py-4 text-center">
+          <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-xs text-[#8A7B71] py-4 text-center font-poppins">
             All branches healthy. No urgent alerts.
           </div>
 
@@ -349,7 +349,7 @@
             <div
               v-for="(item, idx) in data.needs_attention"
               :key="idx"
-              class="p-3.5 rounded-lg border text-xs font-medium leading-relaxed transition"
+              class="p-3.5 rounded-lg border text-xs font-medium leading-relaxed transition font-poppins"
               :class="{
                 'bg-[#FDEAEA] text-[#C62828] border-[#FFCDD2]': item.type === 'disputed',
                 'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': item.type === 'in_transit' || item.type === 'low_stock',
@@ -365,10 +365,10 @@
       <!-- Branches Today Table matching PDF Page 2 / 12 -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
         <div class="p-5 border-b border-[#EFE8DF] flex items-center justify-between">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Branches today</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Branches today</h3>
           <router-link
             to="/admin/branches"
-            class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314]"
+            class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314] font-poppins"
           >
             Manage branches
           </router-link>

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Distribution and Stock Transfer Management</h2>
@@ -85,10 +85,10 @@
     <!-- Table 1: Latest transfer per branch -->
     <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
       <div class="p-5 border-b border-[#EFE8DF] flex items-center justify-between">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Latest transfer per branch</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Latest transfer per branch</h3>
         <button
           @click="loadDashboard"
-          class="text-xs font-medium text-[#BA5420] hover:text-[#9E4314]"
+          class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314] font-poppins cursor-pointer"
         >
           Refresh
         </button>
@@ -218,7 +218,7 @@
       <!-- Stock Requests from Branches (Col span 2) -->
       <div id="stock-requests" class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
         <div class="p-5 border-b border-[#EFE8DF]">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Stock requests from branches</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Stock requests from branches</h3>
         </div>
 
         <div class="overflow-x-auto">
@@ -257,7 +257,7 @@
 
       <!-- Rules Box -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-3">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Rules</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Rules</h3>
         <p class="text-xs leading-relaxed text-[#78695E]">
           Unreceived after 24 hours: reminder to the branch and alert to Main Branch. Dispatched transfers cannot be cancelled; they are received or written off through dispute resolution.
         </p>

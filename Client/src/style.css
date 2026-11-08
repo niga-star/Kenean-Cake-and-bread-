@@ -349,6 +349,129 @@
   }
 }
 
+/* ========================================================================== */
+/* SWEETBAKES ADMIN DASHBOARD TYPOGRAPHY SYSTEM                               */
+/* Primary Font: Poppins (sidebar, nav, tables, forms, buttons, labels, inputs)*/
+/* Heading Font: Playfair Display (page titles & section headings)          */
+/* Clean, readable, professional, and responsive across desktop, tablet, mobile*/
+/* ========================================================================== */
+
+.admin-dashboard {
+  font-family: var(--font-poppins);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Page Titles and Section Headings strictly use Playfair Display */
+.admin-dashboard h1,
+.admin-dashboard h2,
+.admin-dashboard h3,
+.admin-dashboard .admin-page-title,
+.admin-dashboard .admin-section-heading,
+.admin-dashboard .font-serif,
+.admin-dashboard .font-playfair {
+  font-family: var(--font-playfair) !important;
+  letter-spacing: -0.015em;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.admin-dashboard h1 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.admin-dashboard h2 {
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.admin-dashboard h3 {
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* All UI & structural elements strictly use Poppins */
+.admin-dashboard aside,
+.admin-dashboard nav,
+.admin-dashboard header,
+.admin-dashboard p,
+.admin-dashboard label,
+.admin-dashboard input,
+.admin-dashboard select,
+.admin-dashboard textarea,
+.admin-dashboard button,
+.admin-dashboard .btn,
+.admin-dashboard table,
+.admin-dashboard thead,
+.admin-dashboard tbody,
+.admin-dashboard th,
+.admin-dashboard td,
+.admin-dashboard span:not(.font-serif):not(.font-logo):not(.font-heading):not(.font-playfair),
+.admin-dashboard a:not(.font-serif):not(.font-logo):not(.font-heading):not(.font-playfair),
+.admin-dashboard div:not(.font-serif):not(.font-heading):not(.font-playfair) {
+  font-family: var(--font-poppins);
+}
+
+/* Sidebar brand script logo retains its signature touch */
+.admin-dashboard .font-logo {
+  font-family: var(--font-logo) !important;
+}
+
+/* Table Headers: Poppins clean uppercase with consistent letter spacing */
+.admin-dashboard table th {
+  font-family: var(--font-poppins) !important;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Table Cells: Poppins readable standard */
+.admin-dashboard table td {
+  font-family: var(--font-poppins) !important;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Form Controls & Labels */
+.admin-dashboard label {
+  font-family: var(--font-poppins) !important;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.admin-dashboard input,
+.admin-dashboard select,
+.admin-dashboard textarea {
+  font-family: var(--font-poppins) !important;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+}
+
+.admin-dashboard input::placeholder,
+.admin-dashboard textarea::placeholder {
+  font-family: var(--font-poppins) !important;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
+/* Buttons & Interactive Elements */
+.admin-dashboard button,
+.admin-dashboard .btn {
+  font-family: var(--font-poppins) !important;
+  font-size: 0.8125rem;
+  letter-spacing: 0.015em;
+}
+
+/* Code & monospace elements preserve monospace */
+.admin-dashboard code,
+.admin-dashboard kbd,
+.admin-dashboard samp,
+.admin-dashboard pre,
+.admin-dashboard .font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
 /* ========================================================= */
 /* ELEGANT SWEETBAKES DARK CHOCOLATE THEME (.dark)           */
 /* Rich dark chocolate-brown backgrounds, cream text & pink   */

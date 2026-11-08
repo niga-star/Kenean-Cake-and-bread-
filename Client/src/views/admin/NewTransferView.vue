@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
@@ -38,7 +38,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       <!-- 1. Route Box -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">1. Route</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">1. Route</h3>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
@@ -85,7 +85,7 @@
 
       <!-- 2. Products to send Box -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">2. Products to send</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">2. Products to send</h3>
 
         <div class="overflow-x-auto">
           <table class="w-full min-w-[480px] text-left text-xs">
@@ -161,7 +161,7 @@
       <!-- 3. Receiving at destination (Branch 01 example) (Col span 2) -->
       <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-base text-[#2A1D15]">
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">
             3. Receiving at destination (Branch {{ destinationBranchName }} example)
           </h3>
         </div>
@@ -243,7 +243,7 @@
 
       <!-- Workflow Guide Card -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Workflow</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Workflow</h3>
 
         <div class="space-y-2.5 text-xs text-[#55463C]">
           <div class="flex items-start space-x-2">

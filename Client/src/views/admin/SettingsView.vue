@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -88,7 +88,7 @@
       <div class="space-y-6">
         <!-- Orders and stock -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Orders and stock</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Orders and stock</h3>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -136,7 +136,7 @@
 
         <!-- Transfers -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Transfers</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Transfers</h3>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -160,7 +160,7 @@
 
         <!-- Custom cakes -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Custom cakes</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Custom cakes</h3>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -193,7 +193,7 @@
       <div class="space-y-6">
         <!-- Payments -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Payments</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Payments</h3>
 
           <div>
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Gateways</label>
@@ -220,7 +220,7 @@
 
         <!-- Language and currency -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Language and currency</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Language and currency</h3>
 
           <div>
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Languages</label>
@@ -248,7 +248,7 @@
 
         <!-- Security -->
         <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Security &amp; Backups</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Security &amp; Backups</h3>
 
           <div>
             <label class="block text-xs font-medium text-[#7D6E64] mb-1">Admin two-factor sign-in</label>
@@ -282,11 +282,11 @@
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
         <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center gap-2">
               <span>🏪</span>
               <span>Cafe &amp; Bakery Identity</span>
             </h3>
-            <p class="text-xs text-[#8A7B71]">Customize your cafe name, tagline, founding year, and general description</p>
+            <p class="text-xs text-[#8A7B71] font-poppins">Customize your cafe name, tagline, founding year, and general description</p>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-800 rounded-full border border-amber-200">Global Branding</span>
         </div>
@@ -322,11 +322,11 @@
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
         <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center gap-2">
               <span>✨</span>
               <span>Homepage Hero Banner &amp; Headline</span>
             </h3>
-            <p class="text-xs text-[#8A7B71]">Customize the main headline, subtitle badge, description, and button shown at the top of the homepage</p>
+            <p class="text-xs text-[#8A7B71] font-poppins">Customize the main headline, subtitle badge, description, and button shown at the top of the homepage</p>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 bg-rose-50 text-[#DE1B54] rounded-full border border-rose-200">Homepage Top</span>
         </div>
@@ -408,11 +408,11 @@
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
         <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center gap-2">
               <span>📖</span>
               <span>About Page &amp; Story Section</span>
             </h3>
-            <p class="text-xs text-[#8A7B71]">Customize the About section on the homepage and the full About Us page</p>
+            <p class="text-xs text-[#8A7B71] font-poppins">Customize the About section on the homepage and the full About Us page</p>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full border border-emerald-200">About View &amp; Section</span>
         </div>
@@ -526,11 +526,11 @@
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-5 sm:p-6 space-y-4">
         <div class="border-b border-[#EFE8DF] pb-3 flex items-center justify-between">
           <div>
-            <h3 class="font-bold text-sm sm:text-base text-[#2A1D15] flex items-center gap-2">
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center gap-2">
               <span>📍</span>
               <span>Contact Details, Working Hours &amp; GPS</span>
             </h3>
-            <p class="text-xs text-[#8A7B71]">Customer contact channels, physical coordinates, and social profiles</p>
+            <p class="text-xs text-[#8A7B71] font-poppins">Customer contact channels, physical coordinates, and social profiles</p>
           </div>
           <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-800 rounded-full border border-blue-200">Customer Reach</span>
         </div>
@@ -603,10 +603,10 @@
     <!-- TAB 3: Homepage Banners -->
     <div v-else-if="activeTab === 'banners'" class="space-y-5">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Active Hero Banners</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Active Hero Banners</h3>
         <button
           @click="openAddBannerModal"
-          class="px-4 py-2 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm transition flex items-center space-x-1.5 cursor-pointer"
+          class="px-4 py-2 text-xs font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg shadow-sm transition flex items-center space-x-1.5 cursor-pointer font-poppins"
         >
           <span>+ Add Banner</span>
         </button>
@@ -653,8 +653,8 @@
     <!-- TAB 4: Customer Reviews Moderation -->
     <div v-else-if="activeTab === 'reviews'" class="space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Customer Reviews</h3>
-        <span class="text-xs text-[#8A7B71]">{{ reviewsList.length }} total reviews</span>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Customer Reviews</h3>
+        <span class="text-xs text-[#8A7B71] font-poppins">{{ reviewsList.length }} total reviews</span>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
@@ -698,8 +698,8 @@
     <!-- TAB 5: Contact Messages -->
     <div v-else-if="activeTab === 'inquiries'" class="space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Incoming Contact Messages</h3>
-        <span class="text-xs text-[#8A7B71]">{{ inquiriesList.length }} messages</span>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Incoming Contact Messages</h3>
+        <span class="text-xs text-[#8A7B71] font-poppins">{{ inquiriesList.length }} messages</span>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
@@ -737,8 +737,8 @@
     <!-- TAB 6: Newsletter Subscribers -->
     <div v-else-if="activeTab === 'subscribers'" class="space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Newsletter Subscribers</h3>
-        <span class="text-xs text-[#8A7B71]">{{ subscribersList.length }} subscribers</span>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Newsletter Subscribers</h3>
+        <span class="text-xs text-[#8A7B71] font-poppins">{{ subscribersList.length }} subscribers</span>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">

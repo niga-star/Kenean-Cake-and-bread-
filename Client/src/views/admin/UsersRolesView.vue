@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Users and roles</h2>
@@ -130,7 +130,7 @@
     <div id="add-user-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       <!-- Add User Form -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Add new team member</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Add new team member</h3>
 
         <form @submit.prevent="submitAddUser" class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -204,7 +204,7 @@
 
       <!-- What Each Role Can Do (Permission Matrix) -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">What each role can do</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">What each role can do</h3>
 
         <div class="overflow-x-auto border border-[#EFE8DF] rounded-xl">
           <table class="w-full text-left text-xs">

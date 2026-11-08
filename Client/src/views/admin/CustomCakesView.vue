@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header with Branch Selector and Status Filters -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -78,7 +78,7 @@
       <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-2xl shadow-2xs overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-[#EFE8DF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center space-x-2">
-            <h3 class="font-semibold text-base text-[#2A1D15]">Requests</h3>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Requests</h3>
             <span class="text-xs text-[#8A7B71]">({{ filteredRequests.length }} records)</span>
           </div>
 

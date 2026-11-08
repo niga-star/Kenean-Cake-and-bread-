@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
@@ -79,7 +79,7 @@
 
       <!-- Right Side Card: Alert rules -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Alert rules</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Alert rules</h3>
 
         <form @submit.prevent="saveAlertRules" class="space-y-4">
           <div>

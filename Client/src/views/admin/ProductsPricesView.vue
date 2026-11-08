@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Products and prices</h2>
@@ -136,7 +136,7 @@
         <div class="flex items-center space-x-3">
           <img :src="selectedProduct.image_url || '/mockup/shop_chocolate_cake.jpg'" class="w-14 h-14 rounded-lg object-cover border border-[#DACDC0] shrink-0" />
           <div>
-            <h3 class="font-product font-bold text-base sm:text-lg text-[#2A1D15]">{{ selectedProduct.product_name }}</h3>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">{{ selectedProduct.product_name }}</h3>
             <span class="text-xs text-[#8A7B71]">ID: #{{ selectedProduct.product_id }} · {{ selectedProduct.category_name }}</span>
             <div class="mt-1">
               <label class="text-[11px] font-semibold text-[#BA5420] hover:underline cursor-pointer">
@@ -212,8 +212,8 @@
         <div class="pt-2 border-t border-[#EFE8DF] space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h4 class="font-bold text-xs text-[#2A1D15]">Branch price overrides</h4>
-              <p class="text-[11px] text-[#8C7D73]">Leave blank to use the standard base price (ETB {{ selectedProduct.base_price }}).</p>
+              <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1D15]">Branch price overrides</h4>
+              <p class="text-[11px] text-[#8C7D73] font-poppins">Leave blank to use the standard base price (ETB {{ selectedProduct.base_price }}).</p>
             </div>
             <span class="text-[11px] bg-[#FAF3EC] text-[#BA5420] px-2.5 py-0.5 rounded-full font-medium">
               Multi-branch pricing active

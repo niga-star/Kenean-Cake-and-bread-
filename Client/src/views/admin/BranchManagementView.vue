@@ -1,13 +1,21 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch management</h2>
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-[#FAF3EC] border border-[#E8DDD0] flex items-center justify-center text-xl shrink-0">
+          🏪
+        </div>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Management</h2>
+          <p class="text-xs text-[#7A6B60] mt-0.5 font-poppins">Manage your bakery branches efficiently</p>
+        </div>
+      </div>
       <button
         @click="openAddBranchModal"
-        class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer"
+        class="w-full sm:w-auto px-4 py-2 text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer font-poppins"
       >
-        <span>+ Add branch</span>
+        <span>+ Add Branch</span>
       </button>
     </div>
 
@@ -109,7 +117,10 @@
       <!-- Left: Branch Details (Col span 2) -->
       <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between border-b border-[#EFE8DF] pb-3">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Branch details</h3>
+          <div class="flex items-center space-x-2">
+            <span class="text-base">🏪</span>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Branch Details</h3>
+          </div>
           <span class="text-xs text-[#8A7B71]">Editing: <strong>{{ editingBranch.branch_name }}</strong></span>
         </div>
 
@@ -206,8 +217,8 @@
           <div class="p-4 bg-[#FAF7F2] border border-[#E8DDD0] rounded-xl space-y-2">
             <div class="flex items-center justify-between">
               <div>
-                <h4 class="text-xs font-bold text-[#2A1D15]">Branch Shopping Access Control</h4>
-                <p class="text-[11px] text-[#7D6E64]">Controls whether customers can view products, add items to cart, and place orders from this branch.</p>
+                <h4 class="font-serif font-bold text-xs sm:text-sm text-[#2A1D15]">Branch Shopping Access Control</h4>
+                <p class="text-[11px] text-[#7D6E64] font-poppins">Controls whether customers can view products, add items to cart, and place orders from this branch.</p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input
@@ -262,13 +273,16 @@
       <!-- Right: Delivery Zones -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-semibold text-base text-[#2A1D15]">Delivery zones</h3>
-            <p class="text-[11px] text-[#8C7D73]">Delivery coverage for {{ editingBranch.branch_name }}</p>
+          <div class="flex items-center space-x-2">
+            <span class="text-base">📍</span>
+            <div>
+              <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Delivery Zones</h3>
+              <p class="text-[11px] text-[#8C7D73] font-poppins">Delivery coverage for {{ editingBranch.branch_name }}</p>
+            </div>
           </div>
           <button
             @click="isAddZoneModalOpen = true"
-            class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314] px-2.5 py-1 bg-[#FAF3EC] border border-[#E0D2C2] rounded-lg transition"
+            class="text-xs font-semibold text-[#BA5420] hover:text-[#9E4314] px-2.5 py-1 bg-[#FAF3EC] border border-[#E0D2C2] rounded-lg transition font-poppins cursor-pointer"
           >
             + Add zone
           </button>

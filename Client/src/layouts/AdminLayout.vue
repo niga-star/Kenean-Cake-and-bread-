@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#F8F4EE] text-[#2D231D] font-poppins antialiased overflow-hidden relative">
+  <div class="flex h-screen bg-[#F8F4EE] text-[#2D231D] font-poppins antialiased overflow-hidden relative admin-dashboard">
     <!-- Mobile Backdrop Overlay (< lg screens) -->
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
@@ -19,7 +19,7 @@
 
     <!-- Dark Sidebar: Responsive Slide-Over Drawer on Mobile/Tablet (< lg), Static on Desktop (lg+) -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-[#1C130D] flex flex-col justify-between shrink-0 select-none border-r border-[#2A1D15] shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out lg:static lg:translate-x-0"
+      class="fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-[#1C130D] flex flex-col justify-between shrink-0 select-none border-r border-[#2A1D15] shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 font-poppins"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
       <div>
@@ -27,8 +27,9 @@
         <div class="px-5 sm:px-6 py-5 sm:py-6 border-b border-[#2C1F16]/60 flex items-center justify-between">
           <div class="flex items-center space-x-2.5">
             <span class="w-8 h-8 rounded-lg bg-[#DE1B54] text-white flex items-center justify-center font-bold text-lg shadow-sm">🧁</span>
-            <router-link :to="homePath" @click="sidebarOpen = false" class="block">
+            <router-link :to="homePath" @click="sidebarOpen = false" class="block leading-tight">
               <h1 class="text-2xl font-logo font-bold text-[#DE1B54] tracking-normal">Sweet<span class="text-[#FAF4ED]">Bakes</span></h1>
+              <p class="text-[10px] text-[#A69588] tracking-wider font-poppins font-medium mt-0.5">Bake Happiness</p>
             </router-link>
           </div>
           <!-- Close Button on Mobile (< lg) -->

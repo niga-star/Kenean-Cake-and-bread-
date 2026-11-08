@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Payments</h2>
@@ -43,7 +43,7 @@
       <!-- Transactions Table (Col span 2) -->
       <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
         <div class="p-5 border-b border-[#EFE8DF]">
-          <h3 class="font-semibold text-base text-[#2A1D15]">Transactions</h3>
+          <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Transactions</h3>
         </div>
 
         <div class="overflow-x-auto">
@@ -95,7 +95,7 @@
 
       <!-- Right Card: Refund Form -->
       <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
-        <h3 class="font-semibold text-base text-[#2A1D15]">Refund</h3>
+        <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Refund</h3>
 
         <form @submit.prevent="submitRefund" class="space-y-4">
           <div>
