@@ -45,15 +45,17 @@
             <template v-if="localeStore.isAmharic">
               <span>{{ heroTitle1 }}</span>
               <span class="inline-block font-logo text-[#DE1B54] dark:text-rose-400 font-normal italic ml-2 drop-shadow-sm">♡</span>
-              <span v-if="heroTitle2" class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {{ heroTitle2 }}
+              <span class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 min-h-[1.25em] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                <span>{{ typedText || heroTitle2 }}</span>
+                <span class="typewriter-cursor text-[#DE1B54] dark:text-rose-400 ml-1 font-mono font-light select-none">|</span>
               </span>
             </template>
             <template v-else>
               <span>{{ heroTitle1Parts.prefix }}</span>
               <span v-if="heroTitle1Parts.highlight" class="inline-block font-logo text-[#DE1B54] dark:text-rose-400 font-normal italic ml-2.5 text-[1.15em] drop-shadow-sm">{{ heroTitle1Parts.highlight }}</span>
-              <span v-if="heroTitle2" class="block text-fluid-hero-sub font-serif font-black text-[#1A0C06] dark:text-white mt-1 drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {{ heroTitle2 }}
+              <span class="block text-fluid-hero-sub font-serif font-black text-[#DE1B54] dark:text-rose-400 mt-1 min-h-[1.25em] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                <span>{{ typedText || heroTitle2 }}</span>
+                <span class="typewriter-cursor text-[#DE1B54] dark:text-rose-400 ml-1 font-mono font-light select-none">|</span>
               </span>
             </template>
           </h1>
@@ -671,6 +673,78 @@ const heroTitle2 = computed(() => {
   return localeStore.t('hero_title_2');
 });
 
+// Dynamic Luxury Typewriter Effect for Hero Headline
+const currentPhraseIndex = ref(0);
+const typedText = ref('');
+const isDeleting = ref(false);
+let typewriterTimeout = null;
+
+const englishPhrases = computed(() => [
+  heroTitle2.value || "Addis Ababa's Favorite 🍰",
+  "Dream Wedding Cakes 🎂",
+  "Artisanal Sourdough Loaves 🍞",
+  "Birthday Masterpieces 🎉",
+  "Handcrafted Daily with Love ✨",
+]);
+
+const amharicPhrases = computed(() => [
+  heroTitle2.value || "የአዲስ አበባ ተመራጭ 🍰",
+  "የህልም ሰርግ ኬኮች 🎂",
+  "ትኩስ የተፈጥሮ ዳቦ 🍞",
+  "የልደት ዋና ድንቅ ስራዎች 🎉",
+  "በፍቅር የተዘጋጀ ጣዕም ✨",
+]);
+
+const currentPhrases = computed(() => {
+  return localeStore.isAmharic ? amharicPhrases.value : englishPhrases.value;
+});
+
+function tickTypewriter() {
+  if (typeof window === 'undefined') return;
+  const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) {
+    typedText.value = currentPhrases.value[0] || heroTitle2.value || '';
+    return;
+  }
+
+  const phrases = currentPhrases.value;
+  if (!phrases || phrases.length === 0) return;
+
+  const fullText = phrases[currentPhraseIndex.value % phrases.length];
+
+  if (!isDeleting.value) {
+    typedText.value = fullText.slice(0, typedText.value.length + 1);
+
+    if (typedText.value === fullText) {
+      isDeleting.value = true;
+      typewriterTimeout = setTimeout(tickTypewriter, 2200);
+      return;
+    }
+    typewriterTimeout = setTimeout(tickTypewriter, 75);
+  } else {
+    typedText.value = fullText.slice(0, typedText.value.length - 1);
+
+    if (typedText.value === '') {
+      isDeleting.value = false;
+      currentPhraseIndex.value = (currentPhraseIndex.value + 1) % phrases.length;
+      typewriterTimeout = setTimeout(tickTypewriter, 450);
+      return;
+    }
+    typewriterTimeout = setTimeout(tickTypewriter, 40);
+  }
+}
+
+function startTypewriter() {
+  if (typewriterTimeout) clearTimeout(typewriterTimeout);
+  typedText.value = '';
+  isDeleting.value = false;
+  tickTypewriter();
+}
+
+watch(() => localeStore.isAmharic, () => {
+  startTypewriter();
+});
+
 const heroDesc = computed(() => {
   if (currentBanner.value) {
     const text = localeStore.isAmharic ? currentBanner.value.description_am : currentBanner.value.description_en;
@@ -877,10 +951,12 @@ onMounted(() => {
   fetchActivePromotion();
   wishlistStore.init();
   startReviewAutoplay();
+  startTypewriter();
 });
 
 onUnmounted(() => {
   pauseReviewAutoplay();
+  if (typewriterTimeout) clearTimeout(typewriterTimeout);
 });
 
 function goToProduct(id) {
