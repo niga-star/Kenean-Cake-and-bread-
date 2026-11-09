@@ -881,3 +881,4 @@ onMounted(async () => {
   await fetchPendingConsolidation();
 });
 </script>
+

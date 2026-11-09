@@ -49,3 +49,4 @@ class SellerReportCustomCake extends Model
         return $this->belongsTo(CustomCakeRequest::class, 'custom_cake_id', 'request_id');
     }
 }
+

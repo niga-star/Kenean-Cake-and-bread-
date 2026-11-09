@@ -175,3 +175,4 @@ class BranchConsolidatedReport extends Model
         return $this;
     }
 }
+

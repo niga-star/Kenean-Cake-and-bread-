@@ -113,3 +113,4 @@ class SellerDailyReport extends Model
         ]);
     }
 }
+

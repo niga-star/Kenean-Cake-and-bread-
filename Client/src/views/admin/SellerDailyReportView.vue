@@ -1020,3 +1020,4 @@ onMounted(async () => {
   await fetchReportsHistory();
 });
 </script>
+

@@ -382,12 +382,12 @@
           </button>
 
           <!-- 1. Super Admin Only: Persona Simulator -->
-          <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="flex flex-wrap items-center gap-2.5 text-sm min-w-0">
-            <span class="text-[#7D6E64] font-semibold text-xs sm:text-sm hidden sm:inline shrink-0">Simulate Role:</span>
+          <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
+            <span class="text-[#7D6E64] font-semibold text-xs hidden sm:inline shrink-0">Simulate Role:</span>
             <select
               :value="selectedRoleKey"
               @change="handleRoleChange($event.target.value)"
-              class="bg-[#FAF7F2] border border-[#E2D8CC] text-[#2B1810] text-xs sm:text-sm font-semibold rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer max-w-[180px] xs:max-w-[220px] sm:max-w-none shadow-2xs"
+              class="bg-[#FAF7F2] border border-[#E2D8CC] text-[#2B1810] text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer max-w-[160px] xs:max-w-[200px] sm:max-w-none shadow-2xs"
             >
               <option
                 v-for="(r, idx) in authStore.availableRoles"
@@ -401,45 +401,53 @@
             <!-- Simulating Indicator with Exit Button -->
             <span
               v-if="authStore.isSimulating"
-              class="text-xs sm:text-sm px-3 py-1 rounded-full font-bold bg-[#FEF7E6] text-[#B87A14] border border-[#FBEAC2] flex items-center space-x-1.5 shrink-0 shadow-2xs"
+              class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FEF7E6] text-[#B87A14] border border-[#FBEAC2] flex items-center space-x-1.5 shrink-0 shadow-2xs"
             >
               <span class="truncate max-w-[120px] sm:max-w-none">Simulating: {{ currentRole }}</span>
               <button
                 @click="handleExitSimulation"
-                class="text-[11px] bg-[#FBEAC2] hover:bg-[#F6DE9F] text-[#8C5D0C] font-bold px-2 py-0.5 rounded-md transition cursor-pointer ml-1"
+                class="text-[10px] bg-[#FBEAC2] hover:bg-[#F6DE9F] text-[#8C5D0C] font-bold px-1.5 py-0.5 rounded-md transition cursor-pointer ml-1"
                 title="Return to Super Admin"
               >
                 Exit ✕
               </button>
             </span>
-
-            <span
-              v-else
-              class="hidden md:inline-flex text-xs sm:text-sm px-3 py-1 rounded-full font-semibold border bg-[#FAF7F2] text-[#6B5A4E] border-[#E5DCD0] truncate"
-            >
-              Scope: {{ roleScope }}
-            </span>
           </div>
 
-          <!-- 2. Non-Super Admin: Strictly Read-Only Role & Scope Badge -->
-          <div v-else class="flex flex-wrap items-center gap-2.5 text-sm min-w-0">
-            <div class="flex items-center space-x-2 min-w-0">
-              <span class="text-xs sm:text-sm text-[#7D6E64] font-medium hidden sm:inline">Logged in as:</span>
-              <span class="text-sm font-bold text-[#2B1810] truncate max-w-[140px] sm:max-w-none">{{ authStore.user?.full_name || 'Staff' }}</span>
+          <!-- 2. Role, Branch, & Scope Badges (Exact Reference Design Standard) -->
+          <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
+            <!-- Logged in as: [AH] [Name] -->
+            <div class="flex items-center space-x-1.5 min-w-0">
+              <span class="text-xs text-[#7D6E64] font-medium hidden sm:inline">Logged in as:</span>
+              <span class="w-6 h-6 rounded-full bg-[#57392C] text-amber-200 text-[10px] font-serif font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                {{ userInitials }}
+              </span>
+              <span class="text-xs sm:text-sm font-bold text-[#2B1810] truncate max-w-[130px] sm:max-w-none">{{ authStore.user?.full_name || 'Staff' }}</span>
             </div>
 
+            <!-- Role Badge -->
             <span
-              class="text-xs sm:text-sm px-3 py-1 rounded-full font-bold border shrink-0 shadow-2xs"
+              class="text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0 shadow-2xs flex items-center space-x-1"
               :class="{
-                'bg-[#EEF4FD] text-[#2F6EB5] border-[#D2E4FA]': currentRole === 'Main Branch Manager',
-                'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]': currentRole === 'Branch Admin' || currentRole === 'Branch Manager',
-                'bg-[#FAF7F2] text-[#6B5A4E] border-[#E5DCD0]': !['Main Branch Manager', 'Branch Admin', 'Branch Manager'].includes(currentRole)
+                'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]': ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Manager'].includes(currentRole),
+                'bg-[#FFE4E6] text-[#9F1239] border-[#FECDD3]': ['Branch Seller', 'Branch Seller / Cashier', 'Cashier'].includes(currentRole),
+                'bg-[#FAF7F2] text-[#6B5A4E] border-[#E5DCD0]': !['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Manager', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier'].includes(currentRole)
               }"
             >
-              {{ displayRole }}
+              <span v-if="['Super Admin', 'Main Branch Manager'].includes(currentRole)">👑</span>
+              <span>{{ displayRole }}</span>
             </span>
 
-            <span class="hidden md:inline-flex text-xs sm:text-sm px-3 py-1 rounded-full font-medium bg-[#FAF7F2] text-[#6B5A4E] border border-[#E5DCD0] truncate">
+            <!-- Branch Badge (if branch assigned) -->
+            <span
+              v-if="authStore.user?.branch?.branch_name"
+              class="hidden md:inline-flex text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD] truncate"
+            >
+              📍 {{ authStore.user.branch.branch_name }}
+            </span>
+
+            <!-- Scope Badge -->
+            <span class="hidden lg:inline-flex text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#FAF7F2] text-[#6B5A4E] border border-[#E5DCD0] truncate">
               Scope: {{ roleScope }}
             </span>
           </div>
@@ -462,13 +470,14 @@
           <!-- SweetBakes Client Storefront Shortcut -->
           <router-link
             to="/"
-            class="inline-flex items-center space-x-2 text-xs sm:text-sm font-semibold text-[#3D251E] bg-[#FAF7F2] hover:bg-[#F2ECE3] border border-[#E2D8CC] px-3.5 py-2 rounded-xl transition shadow-xs group"
-            title="View Live Customer Bakery Storefront"
+            target="_blank"
+            class="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-[#8C4A28] bg-[#FAF0E6] hover:bg-[#F5E5D5] border border-[#EED7C5] px-3.5 py-2 rounded-xl transition shadow-2xs group cursor-pointer"
+            title="Open customer bakery store in new tab"
           >
-            <span>🧁</span>
+            <span class="text-sm">🍰</span>
             <span class="hidden sm:inline">View Bakery Store</span>
             <span class="sm:hidden">Store</span>
-            <svg class="w-4 h-4 text-[#7D6E64] group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 text-[#8C4A28] group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </router-link>
@@ -517,6 +526,15 @@ watch(() => route.path, () => {
 });
 
 const currentRole = computed(() => authStore.user?.role || 'Super Admin');
+
+const userInitials = computed(() => {
+  const name = authStore.user?.full_name;
+  if (!name) return 'SB';
+  const parts = name.trim().split(' ');
+  return parts.length > 1
+    ? (parts[0][0] + parts[1][0]).toUpperCase()
+    : parts[0].substring(0, 2).toUpperCase();
+});
 
 const displayRole = computed(() => {
   if (currentRole.value === 'Branch Admin') return 'Branch Manager';

@@ -145,3 +145,4 @@ return new class extends Migration
         Schema::dropIfExists('branch_consolidated_reports');
     }
 };
+
