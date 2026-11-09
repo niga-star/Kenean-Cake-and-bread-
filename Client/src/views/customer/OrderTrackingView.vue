@@ -109,7 +109,7 @@
         <h3 class="text-xs font-bold uppercase tracking-wider text-[#786B60] dark:text-[#A8988E]">{{ localeStore.t('bakes_in_order') }}</h3>
         <div class="divide-y divide-gray-100 dark:divide-[#382318]">
           <div
-            v-for="item in (order.items || mockItems)"
+            v-for="item in (order.items || [])"
             :key="item.order_item_id || item.product_name"
             class="py-2.5 flex justify-between text-xs"
           >

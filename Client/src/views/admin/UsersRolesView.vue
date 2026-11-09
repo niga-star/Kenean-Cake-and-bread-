@@ -555,45 +555,8 @@ import api from '../../api';
 
 const authStore = useAuthStore();
 
-// Default 24 sample staff members matching Image 2
-const defaultSampleUsers = [
-  { user_id: 1, full_name: 'Amir Hassan', email: 'amir@bakery.com', phone: '+251921894395', role: 'Branch Manager', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 2, full_name: 'Sara Ahmed', email: 'sara@bakery.com', phone: '+251911223344', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 3, full_name: 'Mohamed Khalid', email: 'mohamed@bakery.com', phone: '+251933445566', role: 'Seller', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 4, full_name: 'Fatima Ali', email: 'fatima@bakery.com', phone: '+251944556677', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
-  { user_id: 5, full_name: 'Daniel Yosef', email: 'daniel@bakery.com', phone: '+251955667788', role: 'Manager', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
-  { user_id: 6, full_name: 'Mekdes Tadesse', email: 'mekdes@bakery.com', phone: '+251966778899', role: 'Seller', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 7, full_name: 'Abel Tesfaye', email: 'abel@bakery.com', phone: '+251977889900', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
-  { user_id: 8, full_name: 'Dawit Haile', email: 'dawit@bakery.com', phone: '+251988990011', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
-  { user_id: 9, full_name: 'Helina Getachew', email: 'helina@bakery.com', phone: '+251999001122', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 10, full_name: 'Biniam Worku', email: 'biniam@bakery.com', phone: '+251910112233', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
-  { user_id: 11, full_name: 'Bethlehem Demisse', email: 'bethlehem@bakery.com', phone: '+251912233445', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
-  { user_id: 12, full_name: 'Kassahun Belay', email: 'kassahun@bakery.com', phone: '+251913344556', role: 'Staff', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
-  { user_id: 13, full_name: 'Rediet Solomon', email: 'rediet@bakery.com', phone: '+251914455667', role: 'Seller', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
-  { user_id: 14, full_name: 'Yared Assefa', email: 'yared@bakery.com', phone: '+251915566778', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
-  { user_id: 15, full_name: 'Almaz Kebede', email: 'almaz@bakery.com', phone: '+251916677889', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
-  { user_id: 16, full_name: 'Tewodros Girma', email: 'tewodros@bakery.com', phone: '+251917788990', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
-  { user_id: 17, full_name: 'Eyerusalem Melaku', email: 'eyerusalem@bakery.com', phone: '+251918899001', role: 'Seller', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
-  { user_id: 18, full_name: 'Henok Mulatu', email: 'henok@bakery.com', phone: '+251919900112', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-  { user_id: 19, full_name: 'Selamawit Fekadu', email: 'selamawit@bakery.com', phone: '+251920011223', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
-  { user_id: 20, full_name: 'Mesfin Wolde', email: 'mesfin@bakery.com', phone: '+251921122334', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
-  { user_id: 21, full_name: 'Lydia Negash', email: 'lydia@bakery.com', phone: '+251922233445', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
-  { user_id: 22, full_name: 'Ephrem Desta', email: 'ephrem@bakery.com', phone: '+251923344556', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
-  { user_id: 23, full_name: 'Tigist Berhanu', email: 'tigist@bakery.com', phone: '+251924455667', role: 'Staff', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
-  { user_id: 24, full_name: 'Samuel Kassa', email: 'samuel@bakery.com', phone: '+251925566778', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
-];
-
-const defaultBranches = [
-  { branch_id: 1, branch_name: 'Main Branch', branch_code: 'MB-01' },
-  { branch_id: 2, branch_name: 'East Branch', branch_code: 'EB-02' },
-  { branch_id: 3, branch_name: 'West Branch', branch_code: 'WB-03' },
-  { branch_id: 4, branch_name: 'Piassa Branch', branch_code: 'PB-04' },
-  { branch_id: 5, branch_name: 'Bole Branch', branch_code: 'BB-05' },
-  { branch_id: 6, branch_name: 'Dessie Branch', branch_code: 'DB-06' },
-];
-
-const users = ref([...defaultSampleUsers]);
-const branches = ref([...defaultBranches]);
+const users = ref([]);
+const branches = ref([]);
 const searchQuery = ref('');
 const roleFilterTab = ref('all');
 const selectedBranchFilter = ref('all');
@@ -607,13 +570,16 @@ const savingEdit = ref(false);
 
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
-// Stats matching Image 2 exactly
+// Live dynamic stats computed from loaded staff and branches
 const stats = computed(() => {
+  const total = users.value.length;
+  const managers = users.value.filter(u => ['Main Branch Manager', 'Branch Manager', 'Manager', 'Branch Admin'].includes(u.role)).length;
+  const staff = users.value.filter(u => !['Main Branch Manager', 'Branch Manager', 'Manager', 'Branch Admin', 'Super Admin'].includes(u.role)).length;
   return {
-    totalStaff: 24,
-    totalBranches: 6,
-    totalManagers: 3,
-    staffMembers: 21,
+    totalStaff: total,
+    totalBranches: branches.value.length,
+    totalManagers: managers,
+    staffMembers: staff,
   };
 });
 
@@ -728,12 +694,10 @@ async function fetchUsers() {
     const res = await api.get('/admin/users');
     if (res.data) {
       const fetched = Array.isArray(res.data) ? res.data : (res.data.data || []);
-      if (fetched.length >= 5) {
-        users.value = fetched;
-      }
+      users.value = fetched;
     }
   } catch (e) {
-    // Keep high-fidelity defaults matching Image 2
+    console.error('Failed to load users from API:', e);
   }
 }
 
@@ -742,15 +706,13 @@ async function fetchBranches() {
     const res = await api.get('/branches');
     if (res.data) {
       const fetched = Array.isArray(res.data) ? res.data : (res.data.data || []);
-      if (fetched.length > 0) {
-        branches.value = fetched;
-        if (!newUser.branch_id) {
-          newUser.branch_id = branches.value[0].branch_id;
-        }
+      branches.value = fetched;
+      if (branches.value.length > 0 && !newUser.branch_id) {
+        newUser.branch_id = branches.value[0].branch_id;
       }
     }
   } catch (e) {
-    // Keep high-fidelity default branches
+    console.error('Failed to load branches from API:', e);
   }
 }
 

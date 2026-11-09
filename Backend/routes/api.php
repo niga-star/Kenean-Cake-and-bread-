@@ -101,6 +101,9 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::delete('/users/{id}', [UserController::class, 'destroy'])->middleware('role:Super Admin');
     Route::get('/branches-quotas', [UserController::class, 'branchQuotas']);
 
+    // System Audit Logs (Super Admin, Main Branch Manager, Branch Manager)
+    Route::get('/audit-logs', [AuditLogController::class, 'index']);
+
     // Salary and Wage Management (Section 4)
     Route::get('/salaries', [SalaryController::class, 'index'])->middleware('role:Super Admin');
     Route::get('/salaries/my-account', [SalaryController::class, 'myAccount']);

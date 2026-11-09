@@ -87,7 +87,7 @@
           <div class="min-w-0 space-y-1.5">
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="text-lg sm:text-2xl font-serif font-black text-[#2B1810] truncate">
-                {{ userProfile.full_name || 'Amir Hassan' }}
+                {{ userProfile.full_name || authStore.user?.full_name || 'Staff Member' }}
               </h2>
               <span
                 class="px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0"
@@ -102,12 +102,12 @@
             <div class="flex flex-wrap items-center gap-2 text-xs text-[#7D6E64] font-medium">
               <span class="flex items-center space-x-1">
                 <span>✉️</span>
-                <span>{{ userProfile.email || 'amirhassan2026@gmail.com' }}</span>
+                <span>{{ userProfile.email || authStore.user?.email || '—' }}</span>
               </span>
               <span class="text-[#D8CDC5] hidden sm:inline">|</span>
               <span class="flex items-center space-x-1">
                 <span>📞</span>
-                <span>{{ userProfile.phone || '+251921894395' }}</span>
+                <span>{{ userProfile.phone || authStore.user?.phone || '—' }}</span>
               </span>
             </div>
 
@@ -149,14 +149,14 @@
             <div>
               <div class="text-[11px] font-medium text-[#7D6E64]">Employee ID</div>
               <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810] mt-0.5">
-                EMP-001
+                {{ userProfile.employee_id || ('EMP-' + String(userProfile.user_id || authStore.user?.user_id || 1).padStart(3, '0')) }}
               </div>
             </div>
             <div class="border-l border-[#EADFD4] pl-6 sm:pl-8">
               <div class="text-[11px] font-medium text-[#7D6E64]">Join Date</div>
               <div class="text-sm sm:text-base font-bold text-[#2B1810] flex items-center space-x-1.5 mt-0.5">
                 <span>📅</span>
-                <span>Jan 15, 2024</span>
+                <span>{{ formattedJoinDate }}</span>
               </div>
             </div>
           </div>
@@ -219,24 +219,24 @@
           <div class="space-y-3.5 text-xs">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
               <span class="text-[#7D6E64] font-medium">Full Name</span>
-              <span class="font-bold text-[#2B1810] text-sm">{{ userProfile.full_name || 'Amir Hassan' }}</span>
+              <span class="font-bold text-[#2B1810] text-sm">{{ userProfile.full_name || authStore.user?.full_name || 'Staff Member' }}</span>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
               <span class="text-[#7D6E64] font-medium">Email Address</span>
-              <span class="font-semibold text-[#2B1810]">{{ userProfile.email || 'amirhassan2026@gmail.com' }}</span>
+              <span class="font-semibold text-[#2B1810]">{{ userProfile.email || authStore.user?.email || '—' }}</span>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
               <span class="text-[#7D6E64] font-medium">Phone Number</span>
-              <span class="font-mono font-semibold text-[#2B1810]">{{ userProfile.phone || '+251921894395' }}</span>
+              <span class="font-mono font-semibold text-[#2B1810]">{{ userProfile.phone || authStore.user?.phone || '—' }}</span>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
               <span class="text-[#7D6E64] font-medium">Branch</span>
               <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD] flex items-center space-x-1">
                 <span>📍</span>
-                <span>{{ userProfile.branch?.branch_name || 'Main Branch' }}</span>
+                <span>{{ userProfile.branch?.branch_name || authStore.user?.branch?.branch_name || 'Main Branch - Dessie Piazza' }}</span>
               </span>
             </div>
 
@@ -369,54 +369,54 @@
     <!-- MODE B: MAIN BRANCH MANAGER VIEW (EXACT IMAGE 3)                          -->
     <!-- ========================================================================= -->
     <div v-else class="space-y-6">
-      <!-- Four KPI Stat Cards (Exact Image 3) -->
+      <!-- Four KPI Stat Cards (Dynamic Real Counts) -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
-        <!-- 24 Total Staff (+12%) -->
+        <!-- Total Staff -->
         <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-[#FFF5F2] text-rose-700 flex items-center justify-center text-lg font-bold">👥</div>
             <div>
-              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">24</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ managerStats.totalStaff }}</div>
               <div class="text-[11px] text-[#7D6E64] font-medium">Total Staff</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-emerald-700">↑ +12%</span>
+          <span class="text-[11px] font-bold text-emerald-700">Active</span>
         </div>
 
-        <!-- 1 Branch (+0%) -->
+        <!-- Branches -->
         <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
             <div>
-              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">1</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ managerStats.totalBranches }}</div>
               <div class="text-[11px] text-[#7D6E64] font-medium">Branch</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
+          <span class="text-[11px] font-bold text-[#7D6E64]">Active</span>
         </div>
 
-        <!-- 3 Managers (+0%) -->
+        <!-- Managers -->
         <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-[#F5F3FF] text-purple-700 flex items-center justify-center text-lg font-bold">🛡️</div>
             <div>
-              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">3</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ managerStats.totalManagers }}</div>
               <div class="text-[11px] text-[#7D6E64] font-medium">Managers</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
+          <span class="text-[11px] font-bold text-[#7D6E64]">Assigned</span>
         </div>
 
-        <!-- 21 Active Staff (+5%) -->
+        <!-- Active Staff -->
         <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] text-emerald-700 flex items-center justify-center text-lg font-bold">👤</div>
             <div>
-              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">21</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ managerStats.activeStaff }}</div>
               <div class="text-[11px] text-[#7D6E64] font-medium">Active Staff</div>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-emerald-700">↑ +5%</span>
+          <span class="text-[11px] font-bold text-emerald-700">Team</span>
         </div>
       </div>
 
@@ -593,45 +593,23 @@
             </div>
 
             <div class="space-y-3.5 text-xs">
-              <!-- Item 1: Report Approved -->
-              <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
-                  ✓
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-[#2B1810]">Report Approved</span>
-                    <span class="text-[10px] text-[#A6978B]">2 hours ago</span>
-                  </div>
-                  <div class="text-[11px] text-[#7D6E64] truncate">Daily sales report for Nov 9, 2026</div>
-                </div>
+              <div v-if="recentActivities.length === 0" class="py-6 text-center text-[#A6978B] text-xs">
+                No recent system activity recorded yet.
               </div>
-
-              <!-- Item 2: Staff Updated -->
-              <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
-                  ℹ
+              <div
+                v-for="(act, idx) in recentActivities"
+                :key="act.log_id || idx"
+                class="flex items-start space-x-3"
+              >
+                <div class="w-6 h-6 rounded-full bg-[#57392C]/10 text-[#57392C] text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
+                  {{ act.action ? act.action[0].toUpperCase() : '•' }}
                 </div>
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center justify-between">
-                    <span class="font-bold text-[#2B1810]">Staff Updated</span>
-                    <span class="text-[10px] text-[#A6978B]">3 hours ago</span>
+                    <span class="font-bold text-[#2B1810] capitalize">{{ act.action || 'Activity' }}</span>
+                    <span class="text-[10px] text-[#A6978B]">{{ formatActivityTime(act.created_at) }}</span>
                   </div>
-                  <div class="text-[11px] text-[#7D6E64] truncate">Sara Ahmed - Role updated to Staff</div>
-                </div>
-              </div>
-
-              <!-- Item 3: Profile Access -->
-              <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 rounded-full bg-[#57392C] text-amber-200 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
-                  👤
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-[#2B1810]">Profile Access</span>
-                    <span class="text-[10px] text-[#A6978B]">5 hours ago</span>
-                  </div>
-                  <div class="text-[11px] text-[#7D6E64] truncate">You logged in successfully</div>
+                  <div class="text-[11px] text-[#7D6E64] truncate">{{ act.record || act.new_value || act.action }}</div>
                 </div>
               </div>
             </div>
@@ -793,23 +771,78 @@ const successMsg = ref('');
 const managerActiveToggle = ref(true);
 
 const userProfile = reactive({
-  full_name: 'Amir Hassan',
-  email: 'amirhassan2026@gmail.com',
-  phone: '+251921894395',
-  role: 'Branch Seller / Cashier',
-  salary: 0,
-  employee_id: 'EMP-001',
-  hire_date: '2026-11-08',
-  status: 'Active',
-  branch: { branch_id: 1, branch_name: 'Main Branch' },
+  user_id: authStore.user?.user_id || null,
+  full_name: authStore.user?.full_name || '',
+  email: authStore.user?.email || '',
+  phone: authStore.user?.phone || '',
+  role: authStore.user?.role || 'Branch Seller / Cashier',
+  salary: authStore.user?.salary || 0,
+  employee_id: authStore.user?.employee_id || '',
+  hire_date: authStore.user?.hire_date || authStore.user?.created_at || '',
+  status: authStore.user?.status || 'Active',
+  branch: authStore.user?.branch || null,
   avatar: null,
 });
 
 const editForm = reactive({
-  full_name: 'Amir Hassan',
-  email: 'amirhassan2026@gmail.com',
-  phone: '+251921894395',
+  full_name: authStore.user?.full_name || '',
+  email: authStore.user?.email || '',
+  phone: authStore.user?.phone || '',
 });
+
+const managerStats = reactive({
+  totalStaff: 0,
+  totalBranches: 0,
+  totalManagers: 0,
+  activeStaff: 0,
+});
+
+const recentActivities = ref([]);
+
+function formatActivityTime(d) {
+  if (!d) return 'Just now';
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+async function loadManagerStats() {
+  try {
+    const [usersRes, branchesRes] = await Promise.all([
+      api.get('/admin/users').catch(() => null),
+      api.get('/branches').catch(() => null),
+    ]);
+    if (usersRes?.data) {
+      const uList = Array.isArray(usersRes.data) ? usersRes.data : (usersRes.data.data || []);
+      managerStats.totalStaff = uList.length;
+      managerStats.totalManagers = uList.filter(u => ['Main Branch Manager', 'Branch Manager', 'Manager', 'Branch Admin'].includes(u.role)).length;
+      managerStats.activeStaff = uList.filter(u => u.status === 'Active').length;
+    }
+    if (branchesRes?.data) {
+      const bList = Array.isArray(branchesRes.data) ? branchesRes.data : (branchesRes.data.data || []);
+      managerStats.totalBranches = bList.length;
+    }
+  } catch (e) {
+    console.error('Failed to load manager stats:', e);
+  }
+}
+
+async function loadRecentActivities() {
+  try {
+    const res = await api.get('/admin/audit-logs', { params: { limit: 5 } }).catch(() => null);
+    if (res?.data) {
+      const logs = res.data.logs || (Array.isArray(res.data) ? res.data : []);
+      recentActivities.value = logs.slice(0, 5);
+    }
+  } catch (e) {
+    recentActivities.value = [];
+  }
+}
 
 const form = reactive({
   requested_salary: null,
@@ -838,8 +871,8 @@ const currentDisplayMode = computed(() => {
 });
 
 const userInitials = computed(() => {
-  const name = userProfile.full_name;
-  if (!name) return 'AH';
+  const name = userProfile.full_name || authStore.user?.full_name;
+  if (!name) return 'SB';
   const parts = name.trim().split(' ');
   return parts.length > 1
     ? (parts[0][0] + parts[1][0]).toUpperCase()
@@ -847,7 +880,13 @@ const userInitials = computed(() => {
 });
 
 const formattedJoinDate = computed(() => {
-  return 'Jan 15, 2024';
+  const d = userProfile.hire_date || userProfile.created_at || authStore.user?.created_at;
+  if (!d) return 'Nov 2026';
+  try {
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch {
+    return 'Nov 2026';
+  }
 });
 
 async function loadProfile() {
@@ -863,9 +902,9 @@ async function loadProfile() {
 }
 
 function resetEditForm() {
-  editForm.full_name = userProfile.full_name || 'Amir Hassan';
-  editForm.email = userProfile.email || 'amirhassan2026@gmail.com';
-  editForm.phone = userProfile.phone || '+251921894395';
+  editForm.full_name = userProfile.full_name || authStore.user?.full_name || '';
+  editForm.email = userProfile.email || authStore.user?.email || '';
+  editForm.phone = userProfile.phone || authStore.user?.phone || '';
 }
 
 function openEditModal() {
@@ -922,5 +961,9 @@ async function submitRequest() {
 
 onMounted(async () => {
   await loadProfile();
+  await Promise.all([
+    loadManagerStats(),
+    loadRecentActivities(),
+  ]);
 });
 </script>
