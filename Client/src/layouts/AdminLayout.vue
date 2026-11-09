@@ -253,24 +253,6 @@
             </div>
           </div>
 
-          <!-- STAFF REPORTS Section (Direct for Branch Managers & Staff) -->
-          <div v-if="canAccess('staff-reports')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Staff &amp; Reports</div>
-            <div class="space-y-1">
-              <router-link
-                to="/admin/staff-reports"
-                @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
-                :class="$route.path.startsWith('/admin/staff-reports') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
-              >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span>Staff Reports</span>
-              </router-link>
-            </div>
-          </div>
-
           <!-- SYSTEM Section -->
           <div v-if="canAccess('notifications') || canAccess('settings') || canAccess('my-account')">
             <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Settings &amp; Account</div>
@@ -600,15 +582,15 @@ const roleScope = computed(() => {
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices, inventory, and staff reports; Sellers manage daily orders and counter sales)
 const permissions = {
   'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'manager-reports', 'notifications', 'settings'],
-  'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
-  'Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
-  'Branch Admin': ['overview', 'users', 'products', 'staff-reports', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
-  'Branch Seller / Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Seller': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Servant': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Delivery Staff': ['orders', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Staff': ['products', 'seller-reports', 'inventory', 'distribution', 'orders', 'custom-cakes', 'staff-reports', 'my-account', 'notifications'],
+  'Main Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
+  'Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
+  'Branch Admin': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
+  'Branch Seller / Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],
+  'Branch Seller': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],
+  'Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],
+  'Servant': ['orders', 'inventory', 'my-account', 'notifications'],
+  'Delivery Staff': ['orders', 'my-account', 'notifications'],
+  'Branch Staff': ['products', 'inventory', 'distribution', 'orders', 'custom-cakes', 'my-account', 'notifications'],
   'Customer': [],
 };
 

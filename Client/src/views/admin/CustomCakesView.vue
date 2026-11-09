@@ -28,14 +28,6 @@
           </option>
         </select>
 
-        <router-link
-          to="/admin/staff-reports"
-          class="dash-btn-secondary text-xs py-1.5 px-3"
-        >
-          <span>📋</span>
-          <span>Submit Cake Report</span>
-        </router-link>
-
         <select
           v-model="selectedStatusFilter"
           @change="loadRequests"

@@ -60,7 +60,7 @@ const routes = [
       { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin'] } },
       { path: 'users', component: UsersRolesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'salaries', component: SalariesView, meta: { roles: ['Super Admin'] } },
-      { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
+      { path: 'staff-reports', redirect: '/admin/seller-reports' },
       { path: 'my-account', component: MyAccountView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'products', component: ProductsPricesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier'] } },
       { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant'] } },

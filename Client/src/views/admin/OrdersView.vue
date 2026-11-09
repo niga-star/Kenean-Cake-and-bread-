@@ -14,13 +14,6 @@
         </span>
       </div>
       <div class="flex flex-wrap items-center gap-2.5">
-        <router-link
-          to="/admin/staff-reports"
-          class="dash-btn-secondary text-xs sm:text-sm"
-        >
-          <span>📋</span>
-          <span>Submit Order Report</span>
-        </router-link>
         <button
           @click="exportCSV"
           class="dash-btn-secondary text-xs sm:text-sm"
