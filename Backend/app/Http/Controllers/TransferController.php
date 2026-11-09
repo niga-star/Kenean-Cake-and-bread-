@@ -423,8 +423,8 @@ class TransferController extends Controller
         if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $transfer->destination_branch_id) {
             return response()->json(['message' => 'You can only confirm receipts for transfers sent to your assigned branch.'], 403);
         }
-        if ($user && $user->role === 'Main Branch Manager') {
-            return response()->json(['message' => 'Main Branch Manager cannot confirm receipts. Destination branch staff must count and confirm.'], 403);
+        if ($user && $user->role === 'Main Branch Manager' && $transfer->destination_branch_id != $user->branch_id) {
+            return response()->json(['message' => 'Main Branch Manager cannot confirm receipts for other branches. Destination branch staff must count and confirm.'], 403);
         }
 
         if (!in_array($transfer->status, ['Dispatched', 'In transit', 'Partially received'])) {

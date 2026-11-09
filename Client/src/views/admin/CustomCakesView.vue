@@ -300,8 +300,8 @@
         <div v-if="selectedRequest.status === 'Submitted'" class="pt-2 border-t border-[#EFE8DF] space-y-3">
           <div class="text-xs font-bold text-[#2A1D15]">Quotation &amp; Review</div>
 
-          <!-- Manager Quote Form -->
-          <form v-if="isManager" @submit.prevent="submitQuote" class="space-y-3">
+          <!-- Seller / Manager Quote Form -->
+          <form v-if="canQuote" @submit.prevent="submitQuote" class="space-y-3">
             <div>
               <label class="block text-xs font-medium text-[#65554B] mb-1">Quoted Price (ETB) *</label>
               <input
@@ -515,7 +515,17 @@ const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
 const userBranchId = computed(() => authStore.user?.branch_id || authStore.user?.branch?.branch_id);
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || 'My Branch');
-const isManager = computed(() => ['Branch Manager', 'Branch Admin', 'Main Branch Manager'].includes(authStore.user?.role));
+const canQuote = computed(() => [
+  'Super Admin',
+  'Main Branch Manager',
+  'Branch Manager',
+  'Branch Admin',
+  'Branch Seller',
+  'Branch Seller / Cashier',
+  'Cashier',
+  'Branch Staff'
+].includes(authStore.user?.role));
+const isManager = canQuote;
 
 const branches = ref([]);
 const selectedBranch = ref('all');

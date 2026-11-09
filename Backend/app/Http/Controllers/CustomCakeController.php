@@ -312,13 +312,13 @@ class CustomCakeController extends Controller
         $cakeReq = CustomCakeRequest::findOrFail($id);
         $user = $request->user();
 
-        if ($user && $user->role === 'Super Admin') {
-            return response()->json(['message' => 'Super Admin no longer directly quotes custom cakes. Branch Managers quote custom cakes independently for their assigned branch.'], 403);
+        // Retail quoting authorization: Branch Sellers / Cashiers and Managers for their branch
+        $allowedQuoteRoles = ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Branch Staff'];
+        if ($user && !in_array($user->role, $allowedQuoteRoles)) {
+            return response()->json(['message' => 'Access denied: You are not authorized to quote custom cakes.'], 403);
         }
-        if ($user && in_array($user->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'])) {
-            return response()->json(['message' => 'Branch staff are not permitted to quote custom cakes. Only Branch Managers can quote.'], 403);
-        }
-        if ($user && $user->branch_id && $user->branch_id != $cakeReq->branch_id) {
+
+        if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $cakeReq->branch_id) {
             return response()->json(['message' => 'Access denied: You can only quote custom cakes for your assigned branch.'], 403);
         }
 

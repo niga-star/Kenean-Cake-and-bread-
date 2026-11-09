@@ -172,10 +172,10 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (!$user && empty($request->input('customer_phone')) && empty($request->input('customer_name'))) {
             return response()->json([
-                'message' => 'Authentication required: Please sign in or create an account to place an order.'
-            ], 401);
+                'message' => 'Please provide your contact name and phone number or sign in to complete your order.'
+            ], 422);
         }
 
         $branchId = $request->input('branch_id');

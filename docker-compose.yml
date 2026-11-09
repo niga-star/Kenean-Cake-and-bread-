@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: sweetbakes_api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./Backend:/var/www/html
+      - ./Backend/storage:/var/www/html/storage
+    environment:
+      APP_NAME: "SweetBakes"
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: "http://localhost:8000"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: kenan_cake_db
+      DB_USERNAME: sweetbakes_user
+      DB_PASSWORD: sweetbakes_secure_pass
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sweetbakes_network
+
+  web:
+    image: nginx:alpine
+    container_name: sweetbakes_web
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./Backend:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - sweetbakes_network
+
+  db:
+    image: mysql:8.0
+    container_name: sweetbakes_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: kenan_cake_db
+      MYSQL_USER: sweetbakes_user
+      MYSQL_PASSWORD: sweetbakes_secure_pass
+      MYSQL_ROOT_PASSWORD: sweetbakes_root_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - sweetbakes_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psweetbakes_root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sweetbakes_network
+
+volumes:
+  sweetbakes_db_data:
+    driver: local
+
+networks:
+  sweetbakes_network:
+    driver: bridge
