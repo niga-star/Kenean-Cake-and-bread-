@@ -530,7 +530,15 @@
                 <tr v-for="c in verifyingReport.custom_cakes" :key="c.id">
                   <td class="p-2.5 font-mono font-bold">{{ c.cake_order_number }}</td>
                   <td class="p-2.5 font-semibold text-[#2B1810]">{{ c.customer_name }}</td>
-                  <td class="p-2.5">{{ c.cake_type_design }}</td>
+                  <td class="p-2.5">
+                    <div class="font-medium text-[#2B1810]">{{ c.cake_type_design }}</div>
+                    <div v-if="c.customization_details" class="text-[10px] text-[#7D6E64] italic truncate max-w-xs">&ldquo;{{ c.customization_details }}&rdquo;</div>
+                    <div v-if="c.system_custom_cake?.snapshot_url" class="mt-1">
+                      <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-[#DE1B54] border border-rose-200">
+                        <span>🎂 3D Design Attached</span>
+                      </span>
+                    </div>
+                  </td>
                   <td class="p-2.5">{{ c.size_weight }}</td>
                   <td class="p-2.5 text-right">ETB {{ Number(c.unit_price).toFixed(2) }}</td>
                   <td class="p-2.5 text-right font-bold">ETB {{ Number(c.total_price).toFixed(2) }}</td>

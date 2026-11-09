@@ -323,7 +323,7 @@ class OrderReportController extends Controller
             'seller:user_id,full_name,email',
             'manager:user_id,full_name',
             'orders',
-            'customCakes',
+            'customCakes.systemCustomCake.images',
             'consolidatedReport',
         ])->findOrFail($id);
 
@@ -1023,7 +1023,7 @@ class OrderReportController extends Controller
             'superAdmin:user_id,full_name,email',
             'sellerReports.seller:user_id,full_name,email',
             'sellerReports.orders',
-            'sellerReports.customCakes',
+            'sellerReports.customCakes.systemCustomCake.images',
         ])->findOrFail($id);
 
         if ($user->role !== 'Super Admin' && (int) $report->branch_id !== (int) $user->branch_id) {
