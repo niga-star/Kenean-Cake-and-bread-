@@ -27,15 +27,36 @@ class NotificationController extends Controller
             if ($user->role === 'Customer') {
                 $query->where('user_id', $user->user_id);
             } elseif ($user->role === 'Super Admin') {
+                // Rule 1: Remove all Order and Custom Order-related notifications from the Super Admin dashboard.
+                // These notifications belong exclusively to the relevant Branch Sellers.
+                $query->where(function ($q) {
+                    $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
+                      ->orWhereNull('category');
+                })
+                ->where(function ($q) {
+                    $q->where('link', 'not like', '%/admin/orders%')
+                      ->where('link', 'not like', '%/admin/custom-cakes%')
+                      ->orWhereNull('link');
+                });
+
                 if ($request->filled('branch_id') && $request->branch_id !== 'all') {
                     $query->where(function ($q) use ($request) {
                         $q->where('branch_id', $request->branch_id)->orWhereNull('branch_id');
                     });
                 }
             } elseif (in_array($user->role, ['Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
-                // Branch Managers:
-                // Order notifications and custom order notifications go strictly to Branch Staff, NOT to the Manager
-                $query->where('category', '!=', 'Orders');
+                // Rule 2: Branch Managers should only receive notifications relevant to branch management responsibilities
+                // (e.g. seller reports, stock/inventory alerts, branch transfer milestones).
+                // Operational order preparation and custom order notifications belong exclusively to Branch Sellers.
+                $query->where(function ($q) {
+                    $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
+                      ->orWhereNull('category');
+                })
+                ->where(function ($q) {
+                    $q->where('link', 'not like', '%/admin/orders%')
+                      ->where('link', 'not like', '%/admin/custom-cakes%')
+                      ->orWhereNull('link');
+                });
 
                 $scopedBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
                 if (!$scopedBranchId && $user->role === 'Main Branch Manager') {
@@ -50,18 +71,20 @@ class NotificationController extends Controller
                         })
                         ->orWhere('user_id', $user->user_id);
                     });
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             } else {
-                // Branch Staff & Sellers: receive relevant order notifications, custom orders for their branch, plus their direct notifications
+                // Rule 3: Each Branch Seller should receive notifications related ONLY to their own branch orders and custom orders.
                 $scopedBranchId = $user->branch_id;
                 if ($scopedBranchId) {
-                    $query->where(function ($q) use ($scopedBranchId, $user) {
-                        $q->where(function ($sub) use ($scopedBranchId) {
-                            $sub->where('branch_id', $scopedBranchId)
-                                ->whereNull('user_id');
-                        })
-                        ->orWhere('user_id', $user->user_id);
-                    });
+                    $query->where('branch_id', $scopedBranchId)
+                          ->where(function ($q) use ($user) {
+                              $q->whereNull('user_id')
+                                ->orWhere('user_id', $user->user_id);
+                          });
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             }
         }
@@ -114,24 +137,50 @@ class NotificationController extends Controller
         $query = Notification::where('is_read', false);
         if ($user && $user->role === 'Customer') {
             $query->where('user_id', $user->user_id);
+        } elseif ($user && $user->role === 'Super Admin') {
+            $query->where(function ($q) {
+                $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
+                  ->orWhereNull('category');
+            })
+            ->where(function ($q) {
+                $q->where('link', 'not like', '%/admin/orders%')
+                  ->where('link', 'not like', '%/admin/custom-cakes%')
+                  ->orWhereNull('link');
+            });
         } elseif ($user && in_array($user->role, ['Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
-            $query->where('category', '!=', 'Orders');
-            $branchId = $user->branch_id ?? ($user->role === 'Main Branch Manager' ? 1 : null);
-            if ($branchId) {
-                $query->where(function ($q) use ($branchId, $user) {
-                    $q->where(function ($sub) use ($branchId) {
-                        $sub->where('branch_id', $branchId)->whereNull('user_id');
+            $query->where(function ($q) {
+                $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
+                  ->orWhereNull('category');
+            })
+            ->where(function ($q) {
+                $q->where('link', 'not like', '%/admin/orders%')
+                  ->where('link', 'not like', '%/admin/custom-cakes%')
+                  ->orWhereNull('link');
+            });
+
+            $scopedBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$scopedBranchId && $user->role === 'Main Branch Manager') {
+                $scopedBranchId = 1;
+            }
+            if ($scopedBranchId) {
+                $query->where(function ($q) use ($scopedBranchId, $user) {
+                    $q->where(function ($sub) use ($scopedBranchId) {
+                        $sub->where('branch_id', $scopedBranchId)->whereNull('user_id');
                     })->orWhere('user_id', $user->user_id);
                 });
+            } else {
+                $query->whereRaw('1 = 0');
             }
         } elseif ($user && $user->role !== 'Super Admin') {
             $branchId = $user->branch_id;
             if ($branchId) {
-                $query->where(function ($q) use ($branchId, $user) {
-                    $q->where(function ($sub) use ($branchId) {
-                        $sub->where('branch_id', $branchId)->whereNull('user_id');
-                    })->orWhere('user_id', $user->user_id);
-                });
+                $query->where('branch_id', $branchId)
+                      ->where(function ($q) use ($user) {
+                          $q->whereNull('user_id')
+                            ->orWhere('user_id', $user->user_id);
+                      });
+            } else {
+                $query->whereRaw('1 = 0');
             }
         }
 

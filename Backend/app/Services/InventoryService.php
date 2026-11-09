@@ -160,13 +160,23 @@ class InventoryService
 
             if ($inventory->quantity_on_hand <= $inventory->reorder_level) {
                 $prodName = $inventory->product?->product_name ?? 'Product #' . $productId;
-                Notification::create([
-                    'user_id' => null,
-                    'category' => 'Stock',
-                    'title' => 'Low Stock Warning',
-                    'message' => "{$prodName} at {$branch->branch_name} is at {$inventory->quantity_on_hand} units (reorder level: {$inventory->reorder_level}).",
-                    'link' => '/admin/inventory',
-                ]);
+                $alreadyAlerted = Notification::where('branch_id', $branch->branch_id)
+                    ->where('category', 'Stock')
+                    ->where('title', 'like', '%Low Stock%')
+                    ->where('message', 'like', "%{$prodName}%")
+                    ->where('created_at', '>=', now()->subHours(6))
+                    ->exists();
+
+                if (!$alreadyAlerted) {
+                    Notification::create([
+                        'user_id' => null,
+                        'branch_id' => $branch->branch_id,
+                        'category' => 'Stock',
+                        'title' => 'Low Stock Warning',
+                        'message' => "{$prodName} at {$branch->branch_name} is at {$inventory->quantity_on_hand} units (reorder level: {$inventory->reorder_level}).",
+                        'link' => '/admin/inventory',
+                    ]);
+                }
             }
 
             return [

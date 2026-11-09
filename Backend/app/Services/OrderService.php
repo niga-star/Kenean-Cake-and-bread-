@@ -167,13 +167,22 @@ class OrderService
                 $inv->save();
 
                 if ($inv->available_quantity <= $inv->reorder_level) {
-                    Notification::create([
-                        'user_id' => null,
-                        'category' => 'Stock',
-                        'title' => 'Low stock',
-                        'message' => "{$branch->branch_name} has {$inv->available_quantity} {$product->product_name} left (at or below reorder level {$inv->reorder_level}).",
-                        'link' => '/admin/inventory',
-                    ]);
+                    $alreadyStockNotified = Notification::where('branch_id', $branch->branch_id)
+                        ->where('category', 'Stock')
+                        ->where('title', 'like', "%{$product->product_name}%")
+                        ->where('created_at', '>=', now()->subHours(6))
+                        ->exists();
+
+                    if (!$alreadyStockNotified) {
+                        Notification::create([
+                            'user_id' => null,
+                            'branch_id' => $branch->branch_id,
+                            'category' => 'Stock',
+                            'title' => "Low stock: {$product->product_name}",
+                            'message' => "{$branch->branch_name} has {$inv->available_quantity} {$product->product_name} left (at or below reorder level {$inv->reorder_level}).",
+                            'link' => '/admin/inventory',
+                        ]);
+                    }
                 }
 
                 $unitPrice = $product->getPriceForBranch($branch->branch_id);

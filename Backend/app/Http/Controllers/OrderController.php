@@ -496,13 +496,22 @@ class OrderController extends Controller
                 'created_at' => now(),
             ]);
 
-            Notification::create([
-                'user_id' => null,
-                'category' => 'Orders',
-                'title' => 'Order cancelled',
-                'message' => "Order {$order->order_number} for {$order->branch?->branch_name} was cancelled.",
-                'link' => '/admin/orders',
-            ]);
+            $alreadyCancelledNotif = Notification::where('branch_id', $order->branch_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$order->order_number}%")
+                ->where('title', 'like', '%cancelled%')
+                ->exists();
+
+            if (!$alreadyCancelledNotif) {
+                Notification::create([
+                    'user_id' => null,
+                    'branch_id' => $order->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Order {$order->order_number} Cancelled",
+                    'message' => "Order {$order->order_number} for {$order->branch?->branch_name} was cancelled.",
+                    'link' => '/admin/orders',
+                ]);
+            }
         });
 
         return response()->json([

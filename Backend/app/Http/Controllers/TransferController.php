@@ -104,6 +104,7 @@ class TransferController extends Controller
             if (!$existing) {
                 Notification::create([
                     'user_id' => null,
+                    'branch_id' => $overdue->to_branch_id,
                     'category' => 'Transfers',
                     'title' => 'Transfer not received',
                     'message' => "{$overdue->transfer_number} to {$overdue->destinationBranch?->branch_name} unreceived after {$unreceivedHours} hours.",
@@ -515,7 +516,8 @@ class TransferController extends Controller
             if ($hasDiscrepancy) {
                 Notification::create([
                     'user_id' => null,
-                    'category' => 'Discrepancies',
+                    'branch_id' => $transfer->to_branch_id,
+                    'category' => 'Transfers',
                     'title' => 'Transfer disputed',
                     'message' => "{$transfer->transfer_number}: Received with differences at {$transfer->destinationBranch?->branch_name}. Reason needed to resolve.",
                     'link' => '/admin/distribution',
@@ -692,6 +694,7 @@ class TransferController extends Controller
 
         Notification::create([
             'user_id' => null,
+            'branch_id' => $transfer->to_branch_id,
             'category' => 'Transfers',
             'title' => 'Transfer not received',
             'message' => "{$transfer->transfer_number} to {$transfer->destinationBranch?->branch_name} unreceived after 24 hours.",
@@ -750,6 +753,7 @@ class TransferController extends Controller
 
             Notification::create([
                 'user_id' => null,
+                'branch_id' => $validated['branch_id'],
                 'category' => 'Transfers',
                 'title' => 'New stock request',
                 'message' => "Branch #{$validated['branch_id']} submitted a stock request for {$req->items->sum('quantity_requested')} units.",

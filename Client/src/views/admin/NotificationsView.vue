@@ -19,8 +19,10 @@
         </div>
         <p class="text-xs sm:text-sm text-[#786960] dark:text-[#C5B7AF]">
           {{ isBranchSeller 
-            ? 'Real-time order milestone updates and branch alerts' 
-            : 'Operational notifications, order status changes, and pending updates' }}
+            ? 'Real-time order milestone updates and branch customer requests' 
+            : (isBranchManager 
+                ? 'Seller reports for review, inventory alerts, and branch transfers' 
+                : 'System health, inventory alerts, and branch transfer notifications') }}
         </p>
       </div>
 
@@ -184,8 +186,8 @@
 
             <!-- Navigate to relevant page -->
             <router-link
-              v-if="n.link"
-              :to="n.link"
+              v-if="getSafeLink(n)"
+              :to="getSafeLink(n)"
               class="px-3.5 py-1.5 text-xs font-bold bg-[#DE1B54] hover:bg-[#C51345] text-white rounded-xl transition shadow-2xs hover:shadow-xs inline-flex items-center space-x-1 cursor-pointer active:scale-95"
             >
               <span>{{ getActionLabel(n) }}</span>
@@ -280,9 +282,10 @@ const isMarkingAll = ref(false);
 const isSavingRules = ref(false);
 
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
+const isBranchManager = computed(() => ['Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(authStore.user?.role));
 const isBranchSeller = computed(() => {
   const role = authStore.user?.role;
-  return role === 'Branch Seller' || role === 'Branch Seller / Cashier' || role === 'Cashier';
+  return ['Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Branch Staff', 'Servant', 'Delivery Staff'].includes(role);
 });
 
 const alertRules = ref({
@@ -292,10 +295,16 @@ const alertRules = ref({
 });
 
 const availableCategories = computed(() => {
+  if (isSuperAdmin.value) {
+    return ['Stock', 'Transfers', 'System'];
+  }
+  if (isBranchManager.value) {
+    return ['Reports', 'Stock', 'Transfers'];
+  }
   if (isBranchSeller.value) {
     return ['Orders', 'Custom Cakes', 'Reports'];
   }
-  return ['Orders', 'Custom Cakes', 'Reports', 'Stock', 'Transfers'];
+  return ['All'];
 });
 
 const displayedNotifications = computed(() => {
@@ -429,7 +438,18 @@ const getActionLabel = (n) => {
   const text = `${n.title} ${n.message}`.toLowerCase();
   if (text.includes('custom') || n.category === 'Custom Cakes') return 'View Cake';
   if (text.includes('report') || n.category === 'Reports') return 'Review Report';
-  return 'View Order';
+  if (n.category === 'Stock' || text.includes('stock')) return 'View Inventory';
+  if (n.category === 'Transfers' || text.includes('transfer')) return 'View Transfer';
+  return 'View Details';
+};
+
+const getSafeLink = (n) => {
+  if (!n || !n.link) return null;
+  // If Super Admin, block order/custom-order links to maintain strict role separation
+  if (isSuperAdmin.value && (n.link.startsWith('/admin/orders') || n.link.startsWith('/admin/custom-cakes'))) {
+    return null;
+  }
+  return n.link;
 };
 
 onMounted(() => {

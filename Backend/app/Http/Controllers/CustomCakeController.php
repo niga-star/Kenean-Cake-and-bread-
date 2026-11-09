@@ -299,25 +299,39 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
-        // Real-time branch staff notification for new custom cake
-        Notification::create([
-            'user_id' => null,
-            'branch_id' => $cakeReq->branch_id,
-            'category' => 'Orders',
-            'title' => "Custom Cake Request: {$customerName}",
-            'message' => "New custom cake request {$cakeReq->request_number} from {$customerName} is waiting for an official quotation at {$cakeReq->branch?->branch_name}.",
-            'link' => '/admin/custom-cakes',
-        ]);
+        // Real-time branch staff notification for new custom cake (Protected against duplicate)
+        $alreadyStaffNotified = Notification::where('branch_id', $cakeReq->branch_id)
+            ->where('category', 'Orders')
+            ->where('title', 'like', "%{$cakeReq->request_number}%")
+            ->exists();
 
-        if ($cakeUserId) {
+        if (!$alreadyStaffNotified) {
             Notification::create([
-                'user_id' => $cakeUserId,
+                'user_id' => null,
                 'branch_id' => $cakeReq->branch_id,
                 'category' => 'Orders',
-                'title' => 'Custom Cake Request Received',
-                'message' => "Your custom cake request {$cakeReq->request_number} has been received. Our bakers will prepare an official quotation shortly.",
-                'link' => '/account?tab=custom-cakes',
+                'title' => "Custom Cake Request: {$customerName}",
+                'message' => "New custom cake request {$cakeReq->request_number} from {$customerName} is waiting for an official quotation at {$cakeReq->branch?->branch_name}.",
+                'link' => '/admin/custom-cakes',
             ]);
+        }
+
+        if ($cakeUserId) {
+            $alreadyCustomerNotified = Notification::where('user_id', $cakeUserId)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$cakeReq->request_number}%")
+                ->exists();
+
+            if (!$alreadyCustomerNotified) {
+                Notification::create([
+                    'user_id' => $cakeUserId,
+                    'branch_id' => $cakeReq->branch_id,
+                    'category' => 'Orders',
+                    'title' => 'Custom Cake Request Received',
+                    'message' => "Your custom cake request {$cakeReq->request_number} has been received. Our bakers will prepare an official quotation shortly.",
+                    'link' => '/account?tab=custom-cakes',
+                ]);
+            }
         }
 
         return response()->json($cakeReq->load(['branch', 'images']), 201);
@@ -407,26 +421,42 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
-        // Real-time branch staff notification
-        Notification::create([
-            'user_id' => null,
-            'branch_id' => $cakeReq->branch_id,
-            'category' => 'Orders',
-            'title' => "Official Quote Sent: {$cakeReq->request_number}",
-            'message' => "Official quote of ETB " . number_format($validated['quoted_price'], 0) . " sent to {$cakeReq->customer_name} for {$cakeReq->request_number}.",
-            'link' => '/admin/custom-cakes',
-        ]);
+        // Real-time branch staff notification (Duplicate protected)
+        $alreadyQuoteNotified = Notification::where('branch_id', $cakeReq->branch_id)
+            ->where('category', 'Orders')
+            ->where('title', 'like', "%{$cakeReq->request_number}%")
+            ->where('title', 'like', '%Official Quote Sent%')
+            ->exists();
+
+        if (!$alreadyQuoteNotified) {
+            Notification::create([
+                'user_id' => null,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => "Official Quote Sent: {$cakeReq->request_number}",
+                'message' => "Official quote of ETB " . number_format($validated['quoted_price'], 0) . " sent to {$cakeReq->customer_name} for {$cakeReq->request_number}.",
+                'link' => '/admin/custom-cakes',
+            ]);
+        }
 
         // Customer notification
         if ($cakeReq->user_id) {
-            Notification::create([
-                'user_id' => $cakeReq->user_id,
-                'branch_id' => $cakeReq->branch_id,
-                'category' => 'Orders',
-                'title' => "Official Quotation: {$cakeReq->request_number}",
-                'message' => "{$cakeReq->branch?->branch_name} has prepared an official quote of ETB " . number_format($validated['quoted_price'], 0) . " for your cake. Review details and confirm.",
-                'link' => '/account?tab=custom-cakes',
-            ]);
+            $alreadyCustQuote = Notification::where('user_id', $cakeReq->user_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$cakeReq->request_number}%")
+                ->where('title', 'like', '%Official Quotation%')
+                ->exists();
+
+            if (!$alreadyCustQuote) {
+                Notification::create([
+                    'user_id' => $cakeReq->user_id,
+                    'branch_id' => $cakeReq->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Official Quotation: {$cakeReq->request_number}",
+                    'message' => "{$cakeReq->branch?->branch_name} has prepared an official quote of ETB " . number_format($validated['quoted_price'], 0) . " for your cake. Review details and confirm.",
+                    'link' => '/account?tab=custom-cakes',
+                ]);
+            }
         }
 
         return response()->json($cakeReq);
@@ -571,26 +601,42 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
-        // Branch staff notification
-        Notification::create([
-            'user_id' => null,
-            'branch_id' => $cakeReq->branch_id,
-            'category' => 'Orders',
-            'title' => "Quote Accepted: {$cakeReq->customer_name}",
-            'message' => "Customer {$cakeReq->customer_name} accepted the quote for {$cakeReq->request_number} (ETB " . number_format($amountPaid, 0) . " paid). Ready for preparation in kitchen.",
-            'link' => '/admin/custom-cakes',
-        ]);
+        // Branch staff notification (Duplicate protected)
+        $alreadyAcceptedNotif = Notification::where('branch_id', $cakeReq->branch_id)
+            ->where('category', 'Orders')
+            ->where('title', 'like', "%{$cakeReq->request_number}%")
+            ->where('title', 'like', '%Quote Accepted%')
+            ->exists();
+
+        if (!$alreadyAcceptedNotif) {
+            Notification::create([
+                'user_id' => null,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => "Quote Accepted: {$cakeReq->customer_name}",
+                'message' => "Customer {$cakeReq->customer_name} accepted quote for {$cakeReq->request_number} (ETB " . number_format($amountPaid, 0) . " paid). Ready for preparation in kitchen.",
+                'link' => '/admin/custom-cakes',
+            ]);
+        }
 
         // Customer confirmation notification
         if ($cakeReq->user_id) {
-            Notification::create([
-                'user_id' => $cakeReq->user_id,
-                'branch_id' => $cakeReq->branch_id,
-                'category' => 'Orders',
-                'title' => 'Custom Cake Confirmed',
-                'message' => "Your payment of ETB " . number_format($amountPaid, 0) . " is received. Kitchen baking will begin shortly.",
-                'link' => '/account?tab=custom-cakes',
-            ]);
+            $alreadyCustAccepted = Notification::where('user_id', $cakeReq->user_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$cakeReq->request_number}%")
+                ->where('title', 'like', '%Custom Cake Confirmed%')
+                ->exists();
+
+            if (!$alreadyCustAccepted) {
+                Notification::create([
+                    'user_id' => $cakeReq->user_id,
+                    'branch_id' => $cakeReq->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Custom Cake Confirmed: {$cakeReq->request_number}",
+                    'message' => "Your payment of ETB " . number_format($amountPaid, 0) . " is received. Kitchen baking will begin shortly.",
+                    'link' => '/account?tab=custom-cakes',
+                ]);
+            }
         }
 
         return response()->json([
@@ -650,6 +696,24 @@ class CustomCakeController extends Controller
             'new_value' => "Cancelled (Refund rule: {$refundEligible})",
             'created_at' => now(),
         ]);
+
+        // Branch staff notification (Duplicate protected)
+        $alreadyCancelledCake = Notification::where('branch_id', $cakeReq->branch_id)
+            ->where('category', 'Orders')
+            ->where('title', 'like', "%{$cakeReq->request_number}%")
+            ->where('title', 'like', '%Cancelled%')
+            ->exists();
+
+        if (!$alreadyCancelledCake) {
+            Notification::create([
+                'user_id' => null,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => "Custom Cake Cancelled: {$cakeReq->request_number}",
+                'message' => "Custom cake request {$cakeReq->request_number} was cancelled by {$user?->full_name}. Policy: {$refundEligible}.",
+                'link' => '/admin/custom-cakes',
+            ]);
+        }
 
         return response()->json([
             'message' => 'Custom cake request cancelled.',

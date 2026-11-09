@@ -939,7 +939,8 @@ class DatabaseSeeder extends Seeder
             'created_at' => Carbon::now()->subHours(3),
         ]);
         Notification::create([
-            'user_id' => $superAdmin->user_id,
+            'user_id' => null,
+            'branch_id' => 1,
             'category' => 'Orders',
             'title' => 'Custom cake request',
             'message' => 'CC-0112 at Bole is waiting for a quote.',

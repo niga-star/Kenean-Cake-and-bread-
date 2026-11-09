@@ -164,13 +164,22 @@ class PaymentController extends Controller
                 'created_at' => now(),
             ]);
 
-            Notification::create([
-                'user_id' => null,
-                'category' => 'Orders',
-                'title' => 'Refund issued',
-                'message' => "Order {$order->order_number} refunded ETB " . number_format($validated['amount'], 0) . ". Reason: {$validated['reason']}",
-                'link' => '/admin/orders',
-            ]);
+            $alreadyRefundNotified = Notification::where('branch_id', $order->branch_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$order->order_number}%")
+                ->where('title', 'like', '%Refund%')
+                ->exists();
+
+            if (!$alreadyRefundNotified) {
+                Notification::create([
+                    'user_id' => null,
+                    'branch_id' => $order->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Refund Issued: {$order->order_number}",
+                    'message' => "Order {$order->order_number} refunded ETB " . number_format($validated['amount'], 0) . ". Reason: {$validated['reason']}",
+                    'link' => '/admin/orders',
+                ]);
+            }
         });
 
         return response()->json([
@@ -261,13 +270,22 @@ class PaymentController extends Controller
                         'created_at' => now(),
                     ]);
 
-                    Notification::create([
-                        'user_id' => null,
-                        'category' => 'Orders',
-                        'title' => "Payment confirmed for {$order->order_number}",
-                        'message' => "Order {$order->order_number} confirmed via {$payment->payment_method} (ETB " . number_format($payment->amount, 0) . ")",
-                        'link' => '/admin/orders',
-                    ]);
+                    $alreadyConfirmedNotified = Notification::where('branch_id', $order->branch_id)
+                        ->where('category', 'Orders')
+                        ->where('title', 'like', "%{$order->order_number}%")
+                        ->where('title', 'like', '%Payment confirmed%')
+                        ->exists();
+
+                    if (!$alreadyConfirmedNotified) {
+                        Notification::create([
+                            'user_id' => null,
+                            'branch_id' => $order->branch_id,
+                            'category' => 'Orders',
+                            'title' => "Payment confirmed for {$order->order_number}",
+                            'message' => "Order {$order->order_number} confirmed via {$payment->payment_method} (ETB " . number_format($payment->amount, 0) . ")",
+                            'link' => '/admin/orders',
+                        ]);
+                    }
                 }
             } elseif (in_array(strtolower($status), ['failed', 'cancelled'])) {
                 $payment->payment_status = 'Failed';
