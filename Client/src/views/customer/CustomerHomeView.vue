@@ -364,102 +364,80 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Showcase -->
+    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner -->
     <!-- ========================================================= -->
     <section class="sweetbakes-container" v-reveal>
-      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#27160E] via-[#381F14] to-[#1E0F08] text-white p-6 sm:p-10 lg:p-12 border border-[#522F20] shadow-2xl group">
-        <!-- Background Ambient Confectionery Glows -->
-        <div class="absolute -right-20 -top-20 w-80 h-80 bg-[#DE1B54]/25 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-[#FFF7F6] via-[#FAF3F0] to-[#FDE8EE] dark:from-[#20120D] dark:via-[#1A0E0A] dark:to-[#2B141C] border border-[#F6E1DC] dark:border-[#3E231A] shadow-md hover:shadow-2xl transition-all duration-500 p-6 sm:p-10 lg:p-12 xl:p-14 group">
+        <!-- Soft Ambient Pink Glows in Background -->
+        <div class="absolute -right-12 -bottom-16 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F9B4C4]/40 dark:bg-[#DE1B54]/15 blur-2xl pointer-events-none"></div>
+        <div class="absolute right-36 -top-10 w-64 h-64 rounded-full bg-[#FBCFE8]/30 dark:bg-rose-950/20 blur-xl pointer-events-none"></div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-          <!-- Left Column: 3D Studio Features (lg:col-span-7) -->
-          <div class="lg:col-span-7 space-y-5 text-center lg:text-left">
-            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#DE1B54]/20 border border-[#DE1B54]/40 text-[#F687B3] text-xs font-bold uppercase tracking-wider">
-              <span>✨</span>
-              <span>{{ localeStore.isAmharic ? 'የእውነተኛ 3D ኬክ ስቱዲዮ' : 'Interactive 3D Cake Studio' }}</span>
+          <!-- Left Column: Typography & Launch Button (lg:col-span-7) -->
+          <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
+            <!-- Pill Badge: 🍰 Cake Studio -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#FDE7EC] dark:bg-[#381B26] text-[#2C1810] dark:text-[#FAF3EE] font-bold text-xs sm:text-sm shadow-2xs">
+              <span class="text-base">🍰</span>
+              <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
             </div>
 
-            <h2 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black tracking-tight leading-tight">
-              {{ localeStore.isAmharic ? 'የህልምዎን ኬክ በ3D ንድፍ ይመልከቱ' : 'Create Your Dream Masterpiece in 3D' }}
+            <!-- Big Bold Title with Radiating Sparkle Lines on "Dream Masterpiece" -->
+            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-sans font-black text-[#26150F] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+              <template v-if="localeStore.isAmharic">
+                <span>የህልምዎን ኬክ</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  በ3D ይንደፉ
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>በቀላሉ ያዘጋጁ</span>
+              </template>
+              <template v-else>
+                <span>Create Your</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  Dream Masterpiece
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>in 3D</span>
+              </template>
             </h2>
 
-            <p class="text-sm sm:text-base text-gray-300 max-w-xl leading-relaxed">
+            <!-- Clean Subtitle Paragraph -->
+            <p class="text-sm sm:text-base md:text-lg text-[#6E5C54] dark:text-[#C5B7AF] font-medium leading-snug max-w-md mx-auto lg:mx-0 whitespace-pre-line">
               {{ localeStore.isAmharic
-                ? 'በእኛ ዘመናዊ የ3D ስቱዲዮ ውስጥ የኬክ መጠን፣ ጣዕም፣ የቀለም ቅንብርና የልደት ጽሁፍ በቅጽበት እየተመለከቱ ይንደፉ። ቀጥታ ዋጋና ትክክለኛ የቅርንጫፍ ጥቅስ ይቀበሉ።'
-                : 'Experience the magic of 360° customization. Choose tiers, frosting swirls, filling layers, 24K edible gold accents, and personalized plaque messages with instant official branch quotes.'
+                ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ።\nሃሳብዎን ወደ እውነት ይለውጡ!'
+                : 'Design stunning cakes with ease.\nMake your ideas come to life!'
               }}
             </p>
 
-            <!-- 4 Studio Highlights Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left">
-              <div class="flex items-start space-x-3 bg-white/5 backdrop-blur-xs p-3 rounded-2xl border border-white/10">
-                <span class="text-xl shrink-0">🔄</span>
-                <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-white">{{ localeStore.isAmharic ? '360° ሙሉ እይታ' : '360° WebGL Canvas' }}</h4>
-                  <p class="text-[11px] text-gray-400">{{ localeStore.isAmharic ? 'በማንኛውም አቅጣጫ አሽከርክረው ይመልከቱ' : 'Rotate and inspect every tier from all angles' }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-3 bg-white/5 backdrop-blur-xs p-3 rounded-2xl border border-white/10">
-                <span class="text-xl shrink-0">🍓</span>
-                <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-white">{{ localeStore.isAmharic ? 'ፕሪሚየም ጣዕሞች' : 'Artisan Flavors & Drips' }}</h4>
-                  <p class="text-[11px] text-gray-400">{{ localeStore.isAmharic ? 'የቸኮሌት፣ ቫኒላና እንጆሪ ምርጫዎች' : 'Belgian chocolate, raspberry & Swiss buttercream' }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-3 bg-white/5 backdrop-blur-xs p-3 rounded-2xl border border-white/10">
-                <span class="text-xl shrink-0">✍️</span>
-                <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-white">{{ localeStore.isAmharic ? 'የግል መልዕክት ጽሁፍ' : 'Edible Plaque Inscription' }}</h4>
-                  <p class="text-[11px] text-gray-400">{{ localeStore.isAmharic ? 'የእንኳን አደረሳችሁ መልዕክት በኬኩ ላይ' : 'Personalized greetings engraved in 3D' }}</p>
-                </div>
-              </div>
-
-              <div class="flex items-start space-x-3 bg-white/5 backdrop-blur-xs p-3 rounded-2xl border border-white/10">
-                <span class="text-xl shrink-0">⚡</span>
-                <div>
-                  <h4 class="text-xs sm:text-sm font-bold text-white">{{ localeStore.isAmharic ? 'ፈጣን የዋጋ ጥቅስ' : 'Direct Branch Quotation' }}</h4>
-                  <p class="text-[11px] text-gray-400">{{ localeStore.isAmharic ? 'ከሻጮቻችን ፈጣን ይሁንታና ዝግጅት' : 'Instant price calculation & real-time updates' }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Launch Studio CTA Button -->
-            <div class="pt-3 flex justify-center lg:justify-start">
+            <!-- Rocket Launch CTA Button -->
+            <div class="pt-2 flex justify-center lg:justify-start">
               <router-link
                 to="/custom-cake"
-                class="px-9 py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base tracking-wide rounded-full shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all inline-flex items-center space-x-2.5 cursor-pointer"
+                class="inline-flex items-center space-x-2.5 px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group/btn"
               >
-                <span>🎂</span>
+                <span class="text-base sm:text-lg">🚀</span>
                 <span>{{ localeStore.isAmharic ? 'የ3D ኬክ ስቱዲዮውን ይክፈቱ' : 'Launch 3D Cake Studio' }}</span>
-                <span class="text-lg">&rarr;</span>
+                <span class="text-lg group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
               </router-link>
             </div>
           </div>
 
-          <!-- Right Column: Visual Teaser Card (lg:col-span-5) -->
-          <div class="lg:col-span-5 flex justify-center">
-            <div class="relative w-full max-w-sm rounded-3xl overflow-hidden border-2 border-white/15 shadow-2xl bg-gradient-to-b from-white/10 to-transparent p-4 flex flex-col items-center text-center group-hover:border-[#DE1B54]/50 transition-colors">
-              <div class="w-full aspect-square rounded-2xl overflow-hidden relative bg-[#2A160F]">
-                <img
-                  src="/mockup/detail_main_cake.jpg"
-                  alt="3D Cake Design Studio Preview"
-                  class="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
-                  loading="lazy"
-                />
-                <!-- Interactive Tag -->
-                <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-xs text-[10px] font-bold text-rose-300 flex items-center space-x-1.5 border border-white/15">
-                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>WebGL 3D Studio Live</span>
-                </div>
-              </div>
-              <div class="pt-3 w-full flex items-center justify-between text-xs text-gray-300">
-                <span class="font-serif font-bold">{{ localeStore.isAmharic ? 'የሰርግና ልደት ጋላ' : 'Grand Gala Tier' }}</span>
-                <span class="text-[#DE1B54] font-black">ETB 1,850+</span>
-              </div>
-            </div>
+          <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal (lg:col-span-5) -->
+          <div class="lg:col-span-5 flex justify-center items-center relative">
+            <img
+              src="/mockup/custom_studio_cake_pure.png"
+              alt="SweetBakes 3D Cake Studio Masterpiece"
+              class="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-none h-auto object-contain drop-shadow-xl group-hover:scale-104 group-hover:-translate-y-2 transition-transform duration-500"
+              loading="lazy"
+            />
           </div>
         </div>
       </div>
