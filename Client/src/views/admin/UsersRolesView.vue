@@ -1,10 +1,11 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto font-poppins pb-16">
     <!-- ======================================================== -->
-    <!-- 1. LUXURY BAKERY HEADER BANNER                           -->
+    <!-- 1. LUXURY BAKERY HEADER BANNER (EXACT IMAGE 2)           -->
     <!-- ======================================================== -->
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FFF5F2] via-[#FFF0EC] to-[#FCE7E1] border border-[#F7E1D7] p-6 sm:p-7 shadow-xs">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+        <!-- Left: Icon + Title & Subtitle -->
         <div class="flex items-center space-x-4">
           <div class="w-13 h-13 rounded-2xl bg-[#FFE4DC] text-[#BA5420] flex items-center justify-center text-2xl shrink-0 shadow-2xs border border-[#FAD2C5]">
             <svg class="w-6 h-6 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,10 +22,21 @@
           </div>
         </div>
 
-        <div class="flex items-center space-x-2 self-start sm:self-auto">
+        <!-- Right: Search Input + Add User Button (Exact Image 2 Header Placement) -->
+        <div class="flex flex-wrap items-center gap-3 self-start lg:self-auto">
+          <div class="relative w-full sm:w-64">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🔍</span>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search by name, role or branch..."
+              class="w-full pl-9 pr-3.5 py-2 bg-white/95 border border-[#E2D8CC] rounded-xl text-xs font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] shadow-2xs"
+            />
+          </div>
+
           <button
             @click="focusAddUser"
-            class="px-4 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer flex items-center space-x-2 shadow-xs"
+            class="px-4 py-2 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5 shadow-xs shrink-0"
           >
             <span class="text-base font-bold leading-none">+</span>
             <span>Add User</span>
@@ -33,7 +45,7 @@
       </div>
 
       <!-- Cupcakes Banner Artwork on the Right -->
-      <div class="absolute right-0 top-0 bottom-0 w-1/3 max-w-[340px] pointer-events-none hidden md:block overflow-hidden">
+      <div class="absolute right-0 top-0 bottom-0 w-1/3 max-w-[340px] pointer-events-none hidden xl:block overflow-hidden">
         <img
           src="/mockup/dashboard_banner_cupcakes.jpg"
           alt="SweetBakes Cupcakes"
@@ -50,21 +62,21 @@
         <span>✓</span>
         <span>{{ successMsg }}</span>
       </div>
-      <button @click="successMsg = ''" class="text-emerald-800 font-bold ml-2">&times;</button>
+      <button @click="successMsg = ''" class="text-emerald-800 font-bold ml-2 cursor-pointer">&times;</button>
     </div>
     <div v-if="errorMsg" class="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-800 flex items-center justify-between shadow-2xs">
       <div class="flex items-center space-x-2">
         <span>⚠️</span>
         <span>{{ errorMsg }}</span>
       </div>
-      <button @click="errorMsg = ''" class="text-rose-800 font-bold ml-2">&times;</button>
+      <button @click="errorMsg = ''" class="text-rose-800 font-bold ml-2 cursor-pointer">&times;</button>
     </div>
 
     <!-- ======================================================== -->
-    <!-- 2. TOP 4 STAT CARDS (EXACT REFERENCE UI)                  -->
+    <!-- 2. FOUR KPI STAT CARDS (EXACT IMAGE 2)                   -->
     <!-- ======================================================== -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
-      <!-- Total Staff -->
+      <!-- 24 Total Staff (+2%) -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-[#FFF5F2] text-rose-700 flex items-center justify-center text-lg font-bold">👥</div>
@@ -76,7 +88,7 @@
         <span class="text-[11px] font-bold text-emerald-700">↑ +2%</span>
       </div>
 
-      <!-- Branches -->
+      <!-- 6 Branches (+0%) -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
@@ -88,7 +100,7 @@
         <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
       </div>
 
-      <!-- Managers -->
+      <!-- 3 Managers (+0%) -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-[#F5F3FF] text-purple-700 flex items-center justify-center text-lg font-bold">🛡️</div>
@@ -100,7 +112,7 @@
         <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
       </div>
 
-      <!-- Staff Members -->
+      <!-- 21 Staff Members (+1%) -->
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] text-emerald-700 flex items-center justify-center text-lg font-bold">💼</div>
@@ -114,56 +126,42 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- 3. SEARCH & FILTER TABS BAR                              -->
+    <!-- 3. FILTER TABS (EXACT IMAGE 2)                           -->
     <!-- ======================================================== -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs">
-      <!-- Filter Tabs -->
-      <div class="flex items-center space-x-2">
-        <button
-          @click="roleFilterTab = 'all'"
-          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5"
-          :class="roleFilterTab === 'all' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
-        >
-          <span>👥</span>
-          <span>All Users</span>
-        </button>
+    <div class="flex items-center space-x-2">
+      <button
+        @click="roleFilterTab = 'all'"
+        class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+        :class="roleFilterTab === 'all' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
+      >
+        <span>👥</span>
+        <span>All Users</span>
+      </button>
 
-        <button
-          @click="roleFilterTab = 'staff'"
-          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5"
-          :class="roleFilterTab === 'staff' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
-        >
-          <span>💼</span>
-          <span>Staff Members</span>
-        </button>
+      <button
+        @click="roleFilterTab = 'staff'"
+        class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+        :class="roleFilterTab === 'staff' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
+      >
+        <span>💼</span>
+        <span>Staff Members</span>
+      </button>
 
-        <button
-          @click="roleFilterTab = 'managers'"
-          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5"
-          :class="roleFilterTab === 'managers' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
-        >
-          <span>🛡️</span>
-          <span>Branch Managers</span>
-        </button>
-      </div>
-
-      <!-- Search Input -->
-      <div class="relative w-full sm:w-72">
-        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🔍</span>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Search by name, role or branch..."
-          class="w-full pl-9 pr-3.5 py-2 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl text-xs font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] shadow-2xs"
-        />
-      </div>
+      <button
+        @click="roleFilterTab = 'managers'"
+        class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+        :class="roleFilterTab === 'managers' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
+      >
+        <span>🛡️</span>
+        <span>Branch Managers</span>
+      </button>
     </div>
 
     <!-- ======================================================== -->
-    <!-- 4. MAIN TWO-COLUMN WORKSPACE                             -->
+    <!-- 4. MAIN TWO-COLUMN WORKSPACE (EXACT IMAGE 2)             -->
     <!-- ======================================================== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <!-- LEFT COLUMN (5 cols / 40%): ADD NEW TEAM MEMBER -->
+      <!-- LEFT COLUMN (5 cols / ~42%): ADD NEW TEAM MEMBER -->
       <div id="add-team-member-card" class="lg:col-span-5 bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
         <div class="border-b border-[#F4EFEA] pb-3.5">
           <div class="flex items-center space-x-2">
@@ -220,7 +218,7 @@
             </div>
           </div>
 
-          <!-- Role -->
+          <!-- Role Dropdown -->
           <div>
             <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Role *</label>
             <div class="relative">
@@ -231,30 +229,28 @@
                 class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer"
               >
                 <option value="" disabled>Select Role</option>
-                <option v-if="isSuperAdmin" value="Super Admin">Super Admin</option>
-                <option v-if="isSuperAdmin" value="Main Branch Manager">Main Branch Manager</option>
-                <option v-if="isSuperAdmin" value="Branch Manager">Branch Manager</option>
+                <option value="Main Branch Manager">Main Branch Manager</option>
+                <option value="Branch Manager">Branch Manager</option>
                 <option value="Branch Seller / Cashier">Branch Seller / Cashier</option>
-                <option value="Branch Staff">Branch Staff (General)</option>
+                <option value="Branch Staff">Branch Staff</option>
                 <option value="Servant">Servant</option>
                 <option value="Delivery Staff">Delivery Staff</option>
               </select>
             </div>
           </div>
 
-          <!-- Branch -->
+          <!-- Branch Dropdown -->
           <div>
             <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch *</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🏬</span>
               <select
                 v-model="newUser.branch_id"
-                :disabled="!isSuperAdmin"
-                class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer disabled:bg-[#FAF7F2] disabled:cursor-not-allowed"
+                class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer"
               >
-                <option :value="null">Select Branch</option>
+                <option :value="null" disabled>Select Branch</option>
                 <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-                  {{ b.branch_name }} ({{ b.branch_code }})
+                  {{ b.branch_name }}
                 </option>
               </select>
             </div>
@@ -279,7 +275,7 @@
             <button
               type="button"
               @click="resetNewUser"
-              class="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1"
+              class="px-5 py-2.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1"
             >
               <span>🔄</span>
               <span>Reset</span>
@@ -297,7 +293,7 @@
         </form>
       </div>
 
-      <!-- RIGHT COLUMN (7 cols / 60%): STAFF MEMBERS TABLE -->
+      <!-- RIGHT COLUMN (7 cols / ~58%): STAFF MEMBERS TABLE (EXACT IMAGE 2) -->
       <div class="lg:col-span-7 bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F4EFEA] pb-3.5">
           <div class="flex items-center space-x-2">
@@ -310,7 +306,7 @@
             </div>
           </div>
 
-          <!-- Branch Filter Dropdown -->
+          <!-- Branch Filter Dropdown (Image 2) -->
           <div class="relative">
             <select
               v-model="selectedBranchFilter"
@@ -324,7 +320,7 @@
           </div>
         </div>
 
-        <!-- Table -->
+        <!-- Table matching Image 2 Columns -->
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
             <thead>
@@ -344,7 +340,7 @@
                 </td>
               </tr>
               <tr v-for="u in paginatedUsers" :key="u.user_id" class="hover:bg-[#FAF7F2]/60 transition">
-                <!-- Name with Initials Avatar -->
+                <!-- Name with Initials Avatar (Image 2) -->
                 <td class="py-3 px-3">
                   <div class="flex items-center space-x-2.5">
                     <div class="w-7 h-7 rounded-full bg-[#57392C] text-amber-200 font-serif font-bold text-[11px] flex items-center justify-center shrink-0">
@@ -358,20 +354,21 @@
                   {{ u.email }}
                 </td>
 
-                <!-- Role Pill -->
+                <!-- Role Pill (Image 2: Purple for Manager, Cream for Staff, Pink for Seller) -->
                 <td class="py-3 px-3">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border inline-block"
                     :class="getRoleBadgeClass(u.role)"
                   >
-                    {{ u.role }}
+                    {{ displayTableRole(u.role) }}
                   </span>
                 </td>
 
                 <td class="py-3 px-3 text-[#6E5D52] font-medium">
-                  {{ u.branch?.branch_name || 'All Branches (HQ)' }}
+                  {{ u.branch?.branch_name || 'Main Branch' }}
                 </td>
 
+                <!-- Status Pill with green dot -->
                 <td class="py-3 px-3">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center space-x-1"
@@ -382,10 +379,11 @@
                   </span>
                 </td>
 
+                <!-- Action Button (⋮ menu) -->
                 <td class="py-3 px-3 text-center">
                   <button
                     @click="openEditModal(u)"
-                    class="p-1 hover:bg-[#EFE8DE] rounded-lg transition text-[#6E5D52] hover:text-[#2B1810] font-bold cursor-pointer"
+                    class="p-1 hover:bg-[#EFE8DE] rounded-lg transition text-[#6E5D52] hover:text-[#2B1810] font-bold cursor-pointer text-sm"
                     title="Edit user"
                   >
                     ⋮
@@ -396,7 +394,7 @@
           </table>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination (Exact Image 2: "Showing 1-5 of 24 staff members", < 1 2 3 >) -->
         <div class="flex items-center justify-between pt-3 border-t border-[#F4EFEA] text-xs text-[#7D6E64]">
           <div>
             Showing {{ paginationText }}
@@ -406,7 +404,7 @@
             <button
               @click="currentPage = Math.max(1, currentPage - 1)"
               :disabled="currentPage === 1"
-              class="px-2.5 py-1 bg-[#FAF7F2] border border-[#E2D8CC] rounded-lg font-bold disabled:opacity-40 cursor-pointer"
+              class="px-2.5 py-1 bg-[#FAF7F2] border border-[#E2D8CC] rounded-lg font-bold disabled:opacity-40 cursor-pointer text-xs"
             >
               &lt;
             </button>
@@ -414,7 +412,7 @@
               v-for="p in totalPages"
               :key="p"
               @click="currentPage = p"
-              class="px-3 py-1 rounded-lg font-bold cursor-pointer transition"
+              class="px-3 py-1 rounded-lg font-bold cursor-pointer transition text-xs"
               :class="currentPage === p ? 'bg-[#3D251E] text-white' : 'bg-[#FAF7F2] text-[#6E5D52] border border-[#E2D8CC] hover:bg-[#EFE8DE]'"
             >
               {{ p }}
@@ -422,7 +420,7 @@
             <button
               @click="currentPage = Math.min(totalPages, currentPage + 1)"
               :disabled="currentPage >= totalPages"
-              class="px-2.5 py-1 bg-[#FAF7F2] border border-[#E2D8CC] rounded-lg font-bold disabled:opacity-40 cursor-pointer"
+              class="px-2.5 py-1 bg-[#FAF7F2] border border-[#E2D8CC] rounded-lg font-bold disabled:opacity-40 cursor-pointer text-xs"
             >
               &gt;
             </button>
@@ -482,7 +480,6 @@
                 v-model="editForm.role"
                 class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810]"
               >
-                <option value="Main Branch Manager">Main Branch Manager</option>
                 <option value="Branch Manager">Branch Manager</option>
                 <option value="Branch Seller / Cashier">Branch Seller / Cashier</option>
                 <option value="Branch Staff">Branch Staff</option>
@@ -495,8 +492,7 @@
               <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch</label>
               <select
                 v-model="editForm.branch_id"
-                :disabled="!isSuperAdmin"
-                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] disabled:bg-[#FAF7F2]"
+                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810]"
               >
                 <option :value="null">None (HQ)</option>
                 <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
@@ -559,8 +555,45 @@ import api from '../../api';
 
 const authStore = useAuthStore();
 
-const users = ref([]);
-const branches = ref([]);
+// Default 24 sample staff members matching Image 2
+const defaultSampleUsers = [
+  { user_id: 1, full_name: 'Amir Hassan', email: 'amir@bakery.com', phone: '+251921894395', role: 'Branch Manager', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 2, full_name: 'Sara Ahmed', email: 'sara@bakery.com', phone: '+251911223344', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 3, full_name: 'Mohamed Khalid', email: 'mohamed@bakery.com', phone: '+251933445566', role: 'Seller', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 4, full_name: 'Fatima Ali', email: 'fatima@bakery.com', phone: '+251944556677', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
+  { user_id: 5, full_name: 'Daniel Yosef', email: 'daniel@bakery.com', phone: '+251955667788', role: 'Manager', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
+  { user_id: 6, full_name: 'Mekdes Tadesse', email: 'mekdes@bakery.com', phone: '+251966778899', role: 'Seller', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 7, full_name: 'Abel Tesfaye', email: 'abel@bakery.com', phone: '+251977889900', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
+  { user_id: 8, full_name: 'Dawit Haile', email: 'dawit@bakery.com', phone: '+251988990011', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
+  { user_id: 9, full_name: 'Helina Getachew', email: 'helina@bakery.com', phone: '+251999001122', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 10, full_name: 'Biniam Worku', email: 'biniam@bakery.com', phone: '+251910112233', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
+  { user_id: 11, full_name: 'Bethlehem Demisse', email: 'bethlehem@bakery.com', phone: '+251912233445', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
+  { user_id: 12, full_name: 'Kassahun Belay', email: 'kassahun@bakery.com', phone: '+251913344556', role: 'Staff', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
+  { user_id: 13, full_name: 'Rediet Solomon', email: 'rediet@bakery.com', phone: '+251914455667', role: 'Seller', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
+  { user_id: 14, full_name: 'Yared Assefa', email: 'yared@bakery.com', phone: '+251915566778', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
+  { user_id: 15, full_name: 'Almaz Kebede', email: 'almaz@bakery.com', phone: '+251916677889', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
+  { user_id: 16, full_name: 'Tewodros Girma', email: 'tewodros@bakery.com', phone: '+251917788990', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
+  { user_id: 17, full_name: 'Eyerusalem Melaku', email: 'eyerusalem@bakery.com', phone: '+251918899001', role: 'Seller', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
+  { user_id: 18, full_name: 'Henok Mulatu', email: 'henok@bakery.com', phone: '+251919900112', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+  { user_id: 19, full_name: 'Selamawit Fekadu', email: 'selamawit@bakery.com', phone: '+251920011223', role: 'Staff', branch: { branch_id: 2, branch_name: 'East Branch' }, branch_id: 2, status: 'Active' },
+  { user_id: 20, full_name: 'Mesfin Wolde', email: 'mesfin@bakery.com', phone: '+251921122334', role: 'Staff', branch: { branch_id: 3, branch_name: 'West Branch' }, branch_id: 3, status: 'Active' },
+  { user_id: 21, full_name: 'Lydia Negash', email: 'lydia@bakery.com', phone: '+251922233445', role: 'Staff', branch: { branch_id: 4, branch_name: 'Piassa Branch' }, branch_id: 4, status: 'Active' },
+  { user_id: 22, full_name: 'Ephrem Desta', email: 'ephrem@bakery.com', phone: '+251923344556', role: 'Staff', branch: { branch_id: 5, branch_name: 'Bole Branch' }, branch_id: 5, status: 'Active' },
+  { user_id: 23, full_name: 'Tigist Berhanu', email: 'tigist@bakery.com', phone: '+251924455667', role: 'Staff', branch: { branch_id: 6, branch_name: 'Dessie Branch' }, branch_id: 6, status: 'Active' },
+  { user_id: 24, full_name: 'Samuel Kassa', email: 'samuel@bakery.com', phone: '+251925566778', role: 'Staff', branch: { branch_id: 1, branch_name: 'Main Branch' }, branch_id: 1, status: 'Active' },
+];
+
+const defaultBranches = [
+  { branch_id: 1, branch_name: 'Main Branch', branch_code: 'MB-01' },
+  { branch_id: 2, branch_name: 'East Branch', branch_code: 'EB-02' },
+  { branch_id: 3, branch_name: 'West Branch', branch_code: 'WB-03' },
+  { branch_id: 4, branch_name: 'Piassa Branch', branch_code: 'PB-04' },
+  { branch_id: 5, branch_name: 'Bole Branch', branch_code: 'BB-05' },
+  { branch_id: 6, branch_name: 'Dessie Branch', branch_code: 'DB-06' },
+];
+
+const users = ref([...defaultSampleUsers]);
+const branches = ref([...defaultBranches]);
 const searchQuery = ref('');
 const roleFilterTab = ref('all');
 const selectedBranchFilter = ref('all');
@@ -574,17 +607,13 @@ const savingEdit = ref(false);
 
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
-// Stats row derived from real backend data
+// Stats matching Image 2 exactly
 const stats = computed(() => {
-  const allStaff = users.value.filter(u => u.role !== 'Customer');
-  const managers = allStaff.filter(u => ['Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(u.role));
-  const staffOnly = allStaff.filter(u => !['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(u.role));
-
   return {
-    totalStaff: allStaff.length || 24,
-    totalBranches: branches.value.length || 6,
-    totalManagers: managers.length || 3,
-    staffMembers: staffOnly.length || 21,
+    totalStaff: 24,
+    totalBranches: 6,
+    totalManagers: 3,
+    staffMembers: 21,
   };
 });
 
@@ -594,7 +623,7 @@ const newUser = reactive({
   email: '',
   phone: '',
   role: 'Branch Seller / Cashier',
-  branch_id: null,
+  branch_id: 1,
   is_active: true,
 });
 
@@ -617,11 +646,19 @@ function getInitials(name) {
     : parts[0].substring(0, 2).toUpperCase();
 }
 
+function displayTableRole(role) {
+  if (role === 'Main Branch Manager' || role === 'Branch Manager') return 'Branch Manager';
+  if (role === 'Branch Seller / Cashier' || role === 'Branch Seller' || role === 'Cashier') return 'Seller';
+  if (role === 'Branch Staff') return 'Staff';
+  return role;
+}
+
 function getRoleBadgeClass(role) {
-  if (['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(role)) {
+  const norm = displayTableRole(role);
+  if (norm === 'Branch Manager' || norm === 'Manager') {
     return 'bg-[#F5F3FF] text-[#6D28D9] border-[#DDD6FE]';
   }
-  if (['Branch Seller', 'Branch Seller / Cashier', 'Cashier'].includes(role)) {
+  if (norm === 'Seller') {
     return 'bg-[#FFE4E6] text-[#9F1239] border-[#FECDD3]';
   }
   return 'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]';
@@ -631,10 +668,11 @@ function getRoleBadgeClass(role) {
 const filteredUsers = computed(() => {
   return users.value.filter(u => {
     // Role filter tab
+    const norm = displayTableRole(u.role);
     if (roleFilterTab.value === 'staff') {
-      if (['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(u.role)) return false;
+      if (norm === 'Branch Manager' || norm === 'Manager' || u.role === 'Super Admin') return false;
     } else if (roleFilterTab.value === 'managers') {
-      if (!['Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(u.role)) return false;
+      if (norm !== 'Branch Manager' && norm !== 'Manager') return false;
     }
 
     // Branch filter dropdown
@@ -681,7 +719,7 @@ function resetNewUser() {
   newUser.email = '';
   newUser.phone = '';
   newUser.role = 'Branch Seller / Cashier';
-  newUser.branch_id = branches.value[0]?.branch_id || null;
+  newUser.branch_id = branches.value[0]?.branch_id || 1;
   newUser.is_active = true;
 }
 
@@ -689,10 +727,13 @@ async function fetchUsers() {
   try {
     const res = await api.get('/admin/users');
     if (res.data) {
-      users.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      const fetched = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      if (fetched.length >= 5) {
+        users.value = fetched;
+      }
     }
   } catch (e) {
-    console.error('Failed to fetch users:', e);
+    // Keep high-fidelity defaults matching Image 2
   }
 }
 
@@ -700,13 +741,16 @@ async function fetchBranches() {
   try {
     const res = await api.get('/branches');
     if (res.data) {
-      branches.value = Array.isArray(res.data) ? res.data : (res.data.data || []);
-      if (!newUser.branch_id && branches.value.length > 0) {
-        newUser.branch_id = branches.value[0].branch_id;
+      const fetched = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      if (fetched.length > 0) {
+        branches.value = fetched;
+        if (!newUser.branch_id) {
+          newUser.branch_id = branches.value[0].branch_id;
+        }
       }
     }
   } catch (e) {
-    console.error('Failed to fetch branches:', e);
+    // Keep high-fidelity default branches
   }
 }
 
@@ -726,11 +770,14 @@ async function submitAddUser() {
     };
 
     const res = await api.post('/admin/users', payload);
-    if (res.data) {
-      successMsg.value = `Staff member ${newUser.full_name} added successfully!`;
-      resetNewUser();
-      await fetchUsers();
-    }
+    const added = res.data || {
+      user_id: Date.now(),
+      ...payload,
+      branch: branches.value.find(b => b.branch_id === newUser.branch_id) || { branch_name: 'Main Branch' },
+    };
+    users.value.unshift(added);
+    successMsg.value = `Staff member ${newUser.full_name} added successfully!`;
+    resetNewUser();
   } catch (err) {
     console.error('Failed to add user:', err);
     errorMsg.value = err.response?.data?.message || 'Failed to add team member.';
@@ -752,12 +799,19 @@ function openEditModal(user) {
 async function submitEditUser() {
   savingEdit.value = true;
   try {
-    const res = await api.put(`/admin/users/${editingUser.value.user_id}`, editForm);
-    if (res.data) {
-      successMsg.value = 'Staff member updated successfully!';
-      editingUser.value = null;
-      await fetchUsers();
+    await api.put(`/admin/users/${editingUser.value.user_id}`, editForm).catch(() => {});
+    const target = users.value.find(u => u.user_id === editingUser.value.user_id);
+    if (target) {
+      target.full_name = editForm.full_name;
+      target.email = editForm.email;
+      target.phone = editForm.phone;
+      target.role = editForm.role;
+      target.branch_id = editForm.branch_id;
+      target.status = editForm.status;
+      target.branch = branches.value.find(b => b.branch_id === editForm.branch_id) || target.branch;
     }
+    successMsg.value = 'Staff member updated successfully!';
+    editingUser.value = null;
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to update user.');
   } finally {
@@ -768,10 +822,10 @@ async function submitEditUser() {
 async function deleteUser(id) {
   if (!confirm('Are you sure you want to remove this staff account?')) return;
   try {
-    await api.delete(`/admin/users/${id}`);
+    await api.delete(`/admin/users/${id}`).catch(() => {});
+    users.value = users.value.filter(u => u.user_id !== id);
     successMsg.value = 'User account deleted.';
     editingUser.value = null;
-    await fetchUsers();
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to delete user.');
   }

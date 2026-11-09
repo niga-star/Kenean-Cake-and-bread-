@@ -484,7 +484,7 @@ class OrderReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $isSubmit ? 'Daily sales report submitted to Branch Manager successfully.' : 'Daily sales report saved as draft.',
+                'message' => $isSubmit ? 'Daily sales report submitted to Super Admin for verification successfully.' : 'Daily sales report saved as draft.',
                 'report' => $report->load(['orders', 'customCakes', 'branch']),
             ], 201);
         } catch (\Throwable $e) {
@@ -617,7 +617,7 @@ class OrderReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $isSubmit ? 'Report re-submitted to Branch Manager.' : 'Draft updated successfully.',
+                'message' => $isSubmit ? 'Report re-submitted to Super Admin for verification.' : 'Draft updated successfully.',
                 'report' => $report->fresh(['orders', 'customCakes', 'branch']),
             ]);
         } catch (\Throwable $e) {

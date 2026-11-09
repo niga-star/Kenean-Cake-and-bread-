@@ -264,7 +264,7 @@ class CustomCakeController extends Controller
             'flavor' => $validated['flavor'],
             'design' => $validated['design'] ?? null,
             'design_config' => $request->input('design_config'),
-            'snapshot_url' => $request->input('snapshot_url'),
+            'snapshot_url' => $this->saveBase64Image($request->input('snapshot_url')),
             'message' => $validated['message'] ?? null,
             'needed_by' => $validated['needed_by'],
             'deposit_required_percentage' => 50.00,
@@ -274,9 +274,10 @@ class CustomCakeController extends Controller
         if (!empty($validated['image_urls'])) {
             foreach ($validated['image_urls'] as $url) {
                 if ($url) {
+                    $savedUrl = $this->saveBase64Image($url, 'custom_cakes/references');
                     CustomCakeImage::create([
                         'request_id' => $cakeReq->request_id,
-                        'image_url' => $url,
+                        'image_url' => $savedUrl,
                     ]);
                 }
             }
@@ -546,5 +547,32 @@ class CustomCakeController extends Controller
             'filename' => $fileName,
             'size_kb' => round($file->getSize() / 1024),
         ], 201);
+    }
+
+    /**
+     * Converts a base64 data-URI snapshot to a disk file and returns its storage URL.
+     */
+    private function saveBase64Image($dataUrl, $subdir = 'custom_cakes/snapshots')
+    {
+        if (!$dataUrl || !str_starts_with($dataUrl, 'data:image')) {
+            return $dataUrl;
+        }
+
+        if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+            $data = substr($dataUrl, strpos($dataUrl, ',') + 1);
+            $data = base64_decode($data);
+            if ($data !== false) {
+                $ext = strtolower($type[1]);
+                if ($ext === 'jpeg') $ext = 'jpg';
+                if (!in_array($ext, ['jpg', 'png', 'webp'])) {
+                    $ext = 'jpg';
+                }
+                $filename = 'snap_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                \Illuminate\Support\Facades\Storage::disk('public')->put($subdir . '/' . $filename, $data);
+                return '/storage/' . $subdir . '/' . $filename;
+            }
+        }
+
+        return $dataUrl;
     }
 }

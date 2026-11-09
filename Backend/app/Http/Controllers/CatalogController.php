@@ -699,6 +699,20 @@ class CatalogController extends Controller
             'created_at' => now(),
         ]);
 
+        // Section 6: Every price change is logged and a notification is sent to the Super Admin automatically
+        $superAdmins = \App\Models\User::where('role', 'Super Admin')->get();
+        $branchLabel = $priceRecord->branch ? $priceRecord->branch->branch_name : "Branch #{$validated['branch_id']}";
+        foreach ($superAdmins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->user_id,
+                'category' => 'Price Update',
+                'title' => "Price Override: {$product->product_name}",
+                'message' => "{$user->full_name} updated price of {$product->product_name} at {$branchLabel} from ETB " . number_format($oldPrice, 0) . " to ETB " . number_format($validated['price'], 0),
+                'link' => '/admin/products',
+                'is_read' => false,
+            ]);
+        }
+
         return response()->json($priceRecord);
     }
 

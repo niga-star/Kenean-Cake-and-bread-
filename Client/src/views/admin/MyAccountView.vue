@@ -21,16 +21,28 @@
           </div>
         </div>
 
-        <button
-          @click="openRequestModal"
-          class="self-start sm:self-auto px-4 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer flex items-center space-x-2 shadow-xs"
-        >
-          <span>✏️</span>
-          <span>Request Correction</span>
-        </button>
+        <div class="flex items-center space-x-2 self-start sm:self-auto">
+          <!-- View Switcher (Helper for testing Seller vs Manager layout) -->
+          <button
+            v-if="isSuperAdmin"
+            @click="forceManagerMode = !forceManagerMode"
+            class="px-3 py-2 bg-white/80 hover:bg-white text-[#3D251E] text-xs font-bold rounded-xl border border-[#E8DFD5] transition shadow-2xs"
+            title="Toggle between Seller View (Image 1) and Manager View (Image 3)"
+          >
+            Switch View: {{ currentDisplayMode === 'manager' ? '👔 Manager Mode' : '🧁 Seller Mode' }}
+          </button>
+
+          <button
+            @click="openRequestModal"
+            class="px-4 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer flex items-center space-x-2 shadow-xs"
+          >
+            <span>✏️</span>
+            <span>Request Correction</span>
+          </button>
+        </div>
       </div>
 
-      <!-- Cupcakes Banner Artwork on the Right -->
+      <!-- Cupcakes Banner Artwork on the Right (Exact Reference) -->
       <div class="absolute right-0 top-0 bottom-0 w-1/3 max-w-[340px] pointer-events-none hidden md:block overflow-hidden">
         <img
           src="/mockup/dashboard_banner_cupcakes.jpg"
@@ -48,11 +60,11 @@
         <span>✓</span>
         <span>{{ successMsg }}</span>
       </div>
-      <button @click="successMsg = ''" class="text-emerald-800 font-bold ml-2">&times;</button>
+      <button @click="successMsg = ''" class="text-emerald-800 font-bold ml-2 cursor-pointer">&times;</button>
     </div>
 
     <!-- ======================================================== -->
-    <!-- 2. TOP PROFILE SUMMARY CARD                              -->
+    <!-- 2. TOP PROFILE SUMMARY CARD (Exact Image 1 & Image 3)    -->
     <!-- ======================================================== -->
     <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -75,25 +87,27 @@
           <div class="min-w-0 space-y-1.5">
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="text-lg sm:text-2xl font-serif font-black text-[#2B1810] truncate">
-                {{ userProfile.full_name }}
+                {{ userProfile.full_name || 'Amir Hassan' }}
               </h2>
               <span
                 class="px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0"
-                :class="isManager ? 'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]' : 'bg-[#FFE4E6] text-[#9F1239] border-[#FECDD3]'"
+                :class="currentDisplayMode === 'manager'
+                  ? 'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]'
+                  : 'bg-[#FFE4E6] text-[#9F1239] border-[#FECDD3]'"
               >
-                {{ displayRole }}
+                {{ currentDisplayMode === 'manager' ? 'Main Branch Manager' : (displayRole || 'Branch Seller / Cashier') }}
               </span>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 text-xs text-[#7D6E64] font-medium">
               <span class="flex items-center space-x-1">
                 <span>✉️</span>
-                <span>{{ userProfile.email }}</span>
+                <span>{{ userProfile.email || 'amirhassan2026@gmail.com' }}</span>
               </span>
               <span class="text-[#D8CDC5] hidden sm:inline">|</span>
               <span class="flex items-center space-x-1">
                 <span>📞</span>
-                <span>{{ userProfile.phone || '+251 91 123 4567' }}</span>
+                <span>{{ userProfile.phone || '+251921894395' }}</span>
               </span>
             </div>
 
@@ -105,454 +119,596 @@
 
               <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD] flex items-center space-x-1">
                 <span>📍</span>
-                <span>{{ userProfile.branch?.branch_name || 'All Branches (HQ)' }}</span>
+                <span>{{ userProfile.branch?.branch_name || 'Main Branch' }}</span>
               </span>
             </div>
           </div>
         </div>
 
-        <!-- Right: Wage / Employee Record Highlight Badge -->
-        <div class="bg-[#FFF8F4] border border-[#F4E3D7] rounded-2xl p-4 sm:p-5 flex items-center justify-between sm:justify-end space-x-4 shrink-0 shadow-2xs">
-          <div class="w-11 h-11 rounded-xl bg-[#FFEBDC] text-[#BA5420] flex items-center justify-center text-xl shrink-0">
-            💰
+        <!-- Right: Wage Card (Seller View - Image 1) OR Employee ID + Join Date (Manager View - Image 3) -->
+        <template v-if="currentDisplayMode === 'seller'">
+          <div class="bg-[#FFF8F4] border border-[#F4E3D7] rounded-2xl p-4 sm:p-5 flex items-center justify-between sm:justify-end space-x-4 shrink-0 shadow-2xs">
+            <div class="w-11 h-11 rounded-xl bg-[#FFEBDC] text-[#BA5420] flex items-center justify-center text-xl shrink-0">
+              💰
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] font-bold text-[#8C7A6D] uppercase tracking-wider">
+                Assigned Monthly Wage
+              </div>
+              <div class="text-2xl sm:text-3xl font-serif font-black text-[#2B1810] mt-0.5">
+                ETB {{ Number(userProfile.salary || 0).toLocaleString() }}
+              </div>
+              <div class="text-[11px] text-[#7D6E64] font-medium mt-0.5">
+                Managed by Super Admin
+              </div>
+            </div>
           </div>
-          <div class="text-right">
-            <div class="text-[10px] font-bold text-[#8C7A6D] uppercase tracking-wider">
-              Assigned Monthly Wage
+        </template>
+        <template v-else>
+          <div class="flex items-center space-x-6 sm:space-x-8 shrink-0 bg-[#FFF8F4] sm:bg-transparent p-4 sm:p-0 rounded-2xl border sm:border-0 border-[#F4E3D7]">
+            <div>
+              <div class="text-[11px] font-medium text-[#7D6E64]">Employee ID</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810] mt-0.5">
+                EMP-001
+              </div>
             </div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#2B1810] mt-0.5">
-              ETB {{ Number(userProfile.salary || 0).toLocaleString() }}
-            </div>
-            <div class="text-[11px] text-[#7D6E64] font-medium mt-0.5">
-              Managed by Super Admin
+            <div class="border-l border-[#EADFD4] pl-6 sm:pl-8">
+              <div class="text-[11px] font-medium text-[#7D6E64]">Join Date</div>
+              <div class="text-sm sm:text-base font-bold text-[#2B1810] flex items-center space-x-1.5 mt-0.5">
+                <span>📅</span>
+                <span>Jan 15, 2024</span>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
 
-    <!-- ======================================================== -->
-    <!-- 3. TOP 4 STAT CARDS (FOR BRANCH MANAGERS & ADMINS)        -->
-    <!-- ======================================================== -->
-    <div v-if="isManager || isSuperAdmin" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-[#FFF5F2] text-rose-700 flex items-center justify-center text-lg font-bold">👥</div>
-          <div>
-            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ branchStats.totalStaff }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Total Staff</div>
-          </div>
-        </div>
-        <span class="text-[11px] font-bold text-emerald-700">↑ +12%</span>
+    <!-- ========================================================================= -->
+    <!-- MODE A: BRANCH SELLER / CASHIER VIEW (EXACT IMAGE 1)                      -->
+    <!-- ========================================================================= -->
+    <div v-if="currentDisplayMode === 'seller'" class="space-y-6">
+      <!-- 3 Navigation Tabs (Image 1) -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          @click="sellerTab = 'profile'"
+          class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+          :class="sellerTab === 'profile' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
+        >
+          <span>👤</span>
+          <span>Profile Details</span>
+        </button>
+
+        <button
+          @click="sellerTab = 'employment'"
+          class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+          :class="sellerTab === 'employment' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
+        >
+          <span>💼</span>
+          <span>Employment Record</span>
+        </button>
+
+        <button
+          @click="sellerTab = 'permissions'"
+          class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-2 shadow-2xs"
+          :class="sellerTab === 'permissions' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
+        >
+          <span>🛡️</span>
+          <span>Role &amp; Permissions</span>
+        </button>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
-          <div>
-            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ isSuperAdmin ? '6' : '1' }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Branch</div>
+      <!-- TAB 1: PROFILE DETAILS (Exact Image 1 Two Equal Cards) -->
+      <div v-show="sellerTab === 'profile'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <!-- Left Card: Staff Information -->
+        <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+          <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3.5">
+            <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2">
+              <span>💼</span>
+              <span>Staff Information</span>
+            </h3>
+            <button
+              @click="openEditModal"
+              class="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1 shadow-2xs"
+            >
+              <span>✏️</span>
+              <span>Edit Profile</span>
+            </button>
+          </div>
+
+          <div class="space-y-3.5 text-xs">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Full Name</span>
+              <span class="font-bold text-[#2B1810] text-sm">{{ userProfile.full_name || 'Amir Hassan' }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Email Address</span>
+              <span class="font-semibold text-[#2B1810]">{{ userProfile.email || 'amirhassan2026@gmail.com' }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Phone Number</span>
+              <span class="font-mono font-semibold text-[#2B1810]">{{ userProfile.phone || '+251921894395' }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Branch</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD] flex items-center space-x-1">
+                <span>📍</span>
+                <span>{{ userProfile.branch?.branch_name || 'Main Branch' }}</span>
+              </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Role</span>
+              <span class="font-bold text-[#3D251E]">{{ displayRole || 'Branch Seller / Cashier' }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 border-b border-[#F6F0E8] gap-1">
+              <span class="text-[#7D6E64] font-medium">Employment Status</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                🟢 {{ userProfile.status || 'Active' }}
+              </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1.5 gap-1">
+              <span class="text-[#7D6E64] font-medium">Hire Date</span>
+              <span class="font-semibold text-[#2B1810] flex items-center space-x-1">
+                <span>📅</span>
+                <span>{{ userProfile.hire_date || '2026-11-08' }}</span>
+              </span>
+            </div>
           </div>
         </div>
-        <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
-      </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-[#F5F3FF] text-purple-700 flex items-center justify-center text-lg font-bold">🛡️</div>
-          <div>
-            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">3</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Managers</div>
-          </div>
-        </div>
-        <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] text-emerald-700 flex items-center justify-center text-lg font-bold">👤</div>
-          <div>
-            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ branchStats.activeStaff }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Active Staff</div>
-          </div>
-        </div>
-        <span class="text-[11px] font-bold text-emerald-700">↑ +5%</span>
-      </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 4. SEGMENTED TABS                                        -->
-    <!-- ======================================================== -->
-    <div class="flex flex-wrap items-center gap-2">
-      <button
-        @click="activeTab = 'details'"
-        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
-        :class="activeTab === 'details' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
-      >
-        <span>👤</span>
-        <span>Profile Details</span>
-      </button>
-
-      <button
-        @click="activeTab = 'edit'"
-        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
-        :class="activeTab === 'edit' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
-      >
-        <span>💼</span>
-        <span>Edit Personal Info</span>
-      </button>
-
-      <button
-        @click="activeTab = 'permissions'"
-        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
-        :class="activeTab === 'permissions' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
-      >
-        <span>🛡️</span>
-        <span>Role &amp; Permissions</span>
-      </button>
-
-      <button
-        @click="activeTab = 'requests'"
-        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
-        :class="activeTab === 'requests' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#F4ECE3] text-[#6E5D52] hover:bg-[#EAE0D5]'"
-      >
-        <span>📝</span>
-        <span>Salary Requests ({{ requests.length }})</span>
-      </button>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- TAB 1: PROFILE DETAILS                                   -->
-    <!-- ======================================================== -->
-    <div v-show="activeTab === 'details'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-      <!-- Left: Staff Information -->
-      <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
-        <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3.5">
-          <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2">
-            <span>💼</span>
-            <span>Staff Information</span>
+        <!-- Right Card: Role Scope & Permissions with Cupcake Corner Graphic -->
+        <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5 relative overflow-hidden">
+          <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3.5">
+            <span>🛡️</span>
+            <span>Role Scope &amp; Permissions</span>
           </h3>
-          <button
-            @click="activeTab = 'edit'"
-            class="text-xs font-bold text-[#3D251E] hover:underline flex items-center space-x-1 cursor-pointer"
-          >
-            <span>✏️</span>
-            <span>Edit Profile</span>
-          </button>
-        </div>
 
-        <div class="space-y-3.5 text-xs">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Full Name</span>
-            <span class="font-bold text-[#2B1810] text-sm">{{ userProfile.full_name }}</span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Email Address</span>
-            <span class="font-semibold text-[#2B1810]">{{ userProfile.email }}</span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Phone Number</span>
-            <span class="font-mono font-semibold text-[#2B1810]">{{ userProfile.phone || '+251 91 123 4567' }}</span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Branch</span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD]">
-              📍 {{ userProfile.branch?.branch_name || 'Main Branch' }}
+          <!-- Pink Branch Access Inner Card (Image 1) -->
+          <div class="p-4 bg-[#FFF0F2] border border-[#FCD5DC] rounded-2xl flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-white text-rose-800 flex items-center justify-center text-lg font-bold shadow-2xs border border-[#FAD2C5]">
+                🏬
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-[#8C4A5A] uppercase tracking-wider">Branch Access</div>
+                <div class="font-bold text-sm text-[#2B1810]">{{ userProfile.branch?.branch_name || 'Main Branch' }}</div>
+                <div class="text-[11px] text-[#7D6E64]">You have access to this branch only.</div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+              ✓ Branch Access
             </span>
           </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Role</span>
-            <span class="font-bold text-[#3D251E]">{{ displayRole }}</span>
+          <!-- Permissions Checkmark List (Image 1) -->
+          <div class="space-y-3 pt-1">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64]">Your Permissions</div>
+            <ul class="space-y-2.5 text-xs text-[#2B1810] font-medium">
+              <li class="flex items-center space-x-2.5">
+                <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                <span>Manage your daily orders and custom cake sales</span>
+              </li>
+              <li class="flex items-center space-x-2.5">
+                <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                <span>View your staff information</span>
+              </li>
+              <li class="flex items-center space-x-2.5">
+                <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                <span>Submit daily sales reports</span>
+              </li>
+              <li class="flex items-center space-x-2.5">
+                <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center shrink-0">✓</span>
+                <span>Access your account settings</span>
+              </li>
+            </ul>
           </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 border-b border-[#F6F0E8] gap-1">
-            <span class="text-[#7D6E64] font-medium">Employment Status</span>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-              🟢 {{ userProfile.employment_status || 'Active' }}
-            </span>
-          </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between py-1 gap-1">
-            <span class="text-[#7D6E64] font-medium">Hire Date</span>
-            <span class="font-semibold text-[#2B1810] flex items-center space-x-1">
-              <span>📅</span>
-              <span>{{ userProfile.hire_date || '2026-11-08' }}</span>
-            </span>
+          <!-- Cupcake Graphic in Bottom-Right Corner (Exact Image 1) -->
+          <div class="absolute -bottom-2 -right-2 w-32 h-32 pointer-events-none opacity-90 select-none overflow-hidden">
+            <img
+              src="/mockup/cupcake_corner_accent.jpg"
+              alt="Cupcake Art"
+              class="w-full h-full object-contain"
+              onerror="this.style.display='none'"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Right: Role Scope & Permissions with Cupcake Graphic -->
-      <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5 relative overflow-hidden">
+      <!-- TAB 2: EMPLOYMENT RECORD -->
+      <div v-show="sellerTab === 'employment'" class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+        <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3.5">
+          <span>💼</span>
+          <span>Official Employment &amp; Wage Record</span>
+        </h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <div class="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD5]">
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Employee Code</div>
+            <div class="text-base font-serif font-black text-[#2B1810] mt-1">EMP-084</div>
+            <div class="text-[11px] text-[#7D6E64] mt-0.5">Permanent Staff</div>
+          </div>
+          <div class="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD5]">
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Monthly Wage</div>
+            <div class="text-base font-serif font-black text-[#BA5420] mt-1">ETB {{ Number(userProfile.salary || 0).toLocaleString() }}</div>
+            <div class="text-[11px] text-[#7D6E64] mt-0.5">Disbursed on 30th</div>
+          </div>
+          <div class="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD5]">
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Department</div>
+            <div class="text-base font-bold text-[#2B1810] mt-1">Retail Front Counter</div>
+            <div class="text-[11px] text-[#7D6E64] mt-0.5">Branch Sales</div>
+          </div>
+          <div class="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD5]">
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Contract Status</div>
+            <div class="text-base font-bold text-emerald-800 mt-1">Active Regular</div>
+            <div class="text-[11px] text-[#7D6E64] mt-0.5">Full-time Tenured</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ROLE & PERMISSIONS BREAKDOWN -->
+      <div v-show="sellerTab === 'permissions'" class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
         <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3.5">
           <span>🛡️</span>
-          <span>Role Scope &amp; Permissions</span>
+          <span>Security &amp; Authorization Matrix</span>
         </h3>
+        <div class="p-4 bg-[#FEF9E7] border border-[#FBEEC8] rounded-2xl text-xs text-[#8A5A00] space-y-1">
+          <div class="font-bold">🔒 Multi-Branch Data Isolation Active</div>
+          <div>Your account is strictly isolated to <strong>{{ userProfile.branch?.branch_name || 'Main Branch' }}</strong>. You can only record orders and sales for your designated branch counter.</div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Pink Branch Access Inner Card -->
-        <div class="p-4 bg-[#FFF0F2] border border-[#FCD5DC] rounded-2xl flex items-center justify-between">
+    <!-- ========================================================================= -->
+    <!-- MODE B: MAIN BRANCH MANAGER VIEW (EXACT IMAGE 3)                          -->
+    <!-- ========================================================================= -->
+    <div v-else class="space-y-6">
+      <!-- Four KPI Stat Cards (Exact Image 3) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs">
+        <!-- 24 Total Staff (+12%) -->
+        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-white/90 text-rose-800 flex items-center justify-center text-lg font-bold shadow-2xs">
-              🏬
-            </div>
+            <div class="w-10 h-10 rounded-xl bg-[#FFF5F2] text-rose-700 flex items-center justify-center text-lg font-bold">👥</div>
             <div>
-              <div class="text-[11px] font-bold text-[#8C4A5A] uppercase">Branch Access</div>
-              <div class="font-bold text-sm text-[#2B1810]">{{ userProfile.branch?.branch_name || 'Main Branch' }}</div>
-              <div class="text-[11px] text-[#7D6E64]">You have access to this branch only.</div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">24</div>
+              <div class="text-[11px] text-[#7D6E64] font-medium">Total Staff</div>
             </div>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-            ✓ Branch Access
-          </span>
+          <span class="text-[11px] font-bold text-emerald-700">↑ +12%</span>
         </div>
 
-        <!-- Permissions Checkmark List -->
-        <div class="space-y-3 pt-1">
-          <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64]">Your Permissions</div>
-          <ul class="space-y-2.5 text-xs text-[#2B1810] font-medium">
-            <li class="flex items-center space-x-2">
-              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center">✓</span>
-              <span>Manage your daily orders and custom cake sales</span>
-            </li>
-            <li class="flex items-center space-x-2">
-              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center">✓</span>
-              <span>View your staff information</span>
-            </li>
-            <li class="flex items-center space-x-2">
-              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center">✓</span>
-              <span>Submit daily sales reports</span>
-            </li>
-            <li class="flex items-center space-x-2">
-              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center">✓</span>
-              <span>Access your account settings</span>
-            </li>
-          </ul>
+        <!-- 1 Branch (+0%) -->
+        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
+            <div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">1</div>
+              <div class="text-[11px] text-[#7D6E64] font-medium">Branch</div>
+            </div>
+          </div>
+          <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
         </div>
 
-        <!-- Cupcake Accent in Bottom-Right Corner -->
-        <div class="absolute -bottom-2 -right-2 w-28 h-28 pointer-events-none opacity-85 select-none overflow-hidden">
-          <img
-            src="/mockup/cupcake_corner_accent.jpg"
-            alt="Cupcake"
-            class="w-full h-full object-contain"
-            onerror="this.style.display='none'"
-          />
+        <!-- 3 Managers (+0%) -->
+        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-[#F5F3FF] text-purple-700 flex items-center justify-center text-lg font-bold">🛡️</div>
+            <div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">3</div>
+              <div class="text-[11px] text-[#7D6E64] font-medium">Managers</div>
+            </div>
+          </div>
+          <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
+        </div>
+
+        <!-- 21 Active Staff (+5%) -->
+        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] text-emerald-700 flex items-center justify-center text-lg font-bold">👤</div>
+            <div>
+              <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">21</div>
+              <div class="text-[11px] text-[#7D6E64] font-medium">Active Staff</div>
+            </div>
+          </div>
+          <span class="text-[11px] font-bold text-emerald-700">↑ +5%</span>
+        </div>
+      </div>
+
+      <!-- Main Two-Column Layout (Exact Image 3) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- LEFT COLUMN (7 cols / ~58%): Personal Information Edit Form -->
+        <div class="lg:col-span-7 bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+          <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3.5">
+            <span>👤</span>
+            <span>Personal Information</span>
+          </h3>
+
+          <form @submit.prevent="updateProfile" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Full Name -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Full Name *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">👤</span>
+                  <input
+                    v-model="editForm.full_name"
+                    type="text"
+                    required
+                    class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
+                  />
+                </div>
+              </div>
+
+              <!-- Email Address -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Email Address *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">✉️</span>
+                  <input
+                    v-model="editForm.email"
+                    type="email"
+                    required
+                    class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
+                  />
+                </div>
+              </div>
+
+              <!-- Phone Number -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Phone Number *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">📞</span>
+                  <input
+                    v-model="editForm.phone"
+                    type="text"
+                    required
+                    class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
+                  />
+                </div>
+              </div>
+
+              <!-- Role -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Role</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">💼</span>
+                  <input
+                    :value="'Main Branch Manager'"
+                    disabled
+                    class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              <!-- Branch -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch ⌵</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">🏬</span>
+                  <select
+                    disabled
+                    class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] cursor-not-allowed"
+                  >
+                    <option selected>Main Branch</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Status Toggle Switch -->
+              <div>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Status</label>
+                <div class="flex items-center space-x-3 pt-1">
+                  <label class="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      v-model="managerActiveToggle"
+                      type="checkbox"
+                      class="sr-only peer"
+                    />
+                    <div class="w-10 h-5 bg-[#E5DACD] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
+                    <span class="text-xs font-bold text-[#2B1810]">{{ managerActiveToggle ? 'Active' : 'Inactive' }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-[#F4EFEA]">
+              <button
+                type="button"
+                @click="resetEditForm"
+                class="px-5 py-2.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1"
+              >
+                <span>🔄</span>
+                <span>Reset</span>
+              </button>
+
+              <button
+                type="submit"
+                :disabled="savingProfile"
+                class="px-6 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-1.5"
+              >
+                <span>💾</span>
+                <span>{{ savingProfile ? 'Saving...' : 'Update Profile' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- RIGHT COLUMN (5 cols / ~42%): Stacked Role & Scope Card + Recent Activity Card -->
+        <div class="lg:col-span-5 space-y-6">
+          <!-- Card 1: Role & Scope -->
+          <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 shadow-xs space-y-4">
+            <h3 class="font-serif font-black text-sm uppercase tracking-wider text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3">
+              <span>🛡️</span>
+              <span>Role &amp; Scope</span>
+            </h3>
+
+            <!-- Crown + Manager Role Subcard -->
+            <div class="p-3.5 bg-[#FFF5F2] border border-[#FAD2C5] rounded-2xl flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-[#FFE4DC] text-amber-700 flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                👑
+              </div>
+              <div>
+                <div class="font-bold text-sm text-[#2B1810]">Main Branch Manager</div>
+                <div class="text-[11px] text-[#7D6E64]">Manage your branch staff, sales, and reports</div>
+              </div>
+            </div>
+
+            <!-- Assigned Branch & Scope Split Row -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div class="p-3 bg-[#FAF7F2] border border-[#E8DFD5] rounded-xl">
+                <div class="text-[10px] font-bold text-[#7D6E64] uppercase flex items-center space-x-1">
+                  <span>🏬</span>
+                  <span>Assigned Branch</span>
+                </div>
+                <div class="text-xs font-bold text-[#2B1810] mt-1">Main Branch</div>
+              </div>
+
+              <div class="p-3 bg-[#FAF7F2] border border-[#E8DFD5] rounded-xl">
+                <div class="text-[10px] font-bold text-[#7D6E64] uppercase flex items-center space-x-1">
+                  <span>🟢</span>
+                  <span>Scope</span>
+                </div>
+                <div class="text-xs font-bold text-[#2B1810] mt-1">Main Branch Only</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Recent Activity Timeline -->
+          <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
+              <h3 class="font-serif font-black text-sm uppercase tracking-wider text-[#2B1810] flex items-center space-x-1.5">
+                <span>🕒</span>
+                <span>Recent Activity</span>
+              </h3>
+              <a href="#" class="text-[11px] font-bold text-[#BA5420] hover:underline flex items-center space-x-0.5">
+                <span>View All</span>
+                <span>→</span>
+              </a>
+            </div>
+
+            <div class="space-y-3.5 text-xs">
+              <!-- Item 1: Report Approved -->
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
+                  ✓
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#2B1810]">Report Approved</span>
+                    <span class="text-[10px] text-[#A6978B]">2 hours ago</span>
+                  </div>
+                  <div class="text-[11px] text-[#7D6E64] truncate">Daily sales report for Nov 9, 2026</div>
+                </div>
+              </div>
+
+              <!-- Item 2: Staff Updated -->
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
+                  ℹ
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#2B1810]">Staff Updated</span>
+                    <span class="text-[10px] text-[#A6978B]">3 hours ago</span>
+                  </div>
+                  <div class="text-[11px] text-[#7D6E64] truncate">Sara Ahmed - Role updated to Staff</div>
+                </div>
+              </div>
+
+              <!-- Item 3: Profile Access -->
+              <div class="flex items-start space-x-3">
+                <div class="w-6 h-6 rounded-full bg-[#57392C] text-amber-200 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">
+                  👤
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-bold text-[#2B1810]">Profile Access</span>
+                    <span class="text-[10px] text-[#A6978B]">5 hours ago</span>
+                  </div>
+                  <div class="text-[11px] text-[#7D6E64] truncate">You logged in successfully</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 2: EDIT PERSONAL INFORMATION                         -->
+    <!-- EDIT PROFILE MODAL (When in Seller View)                 -->
     <!-- ======================================================== -->
-    <div v-show="activeTab === 'edit'" class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-      <!-- Edit Form (2 Cols) -->
-      <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
-        <h3 class="font-serif font-black text-lg text-[#2B1810] flex items-center space-x-2 border-b border-[#F4EFEA] pb-3.5">
-          <span>👤</span>
-          <span>Personal Information</span>
-        </h3>
+    <div
+      v-if="showEditModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      @click.self="showEditModal = false"
+    >
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-[#E9E0D4] shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
+          <h3 class="font-serif font-black text-lg text-[#2B1810]">
+            Edit Staff Information
+          </h3>
+          <button @click="showEditModal = false" class="text-[#7D6E64] hover:text-[#2B1810] text-xl font-bold cursor-pointer">✕</button>
+        </div>
 
-        <form @submit.prevent="updateProfile" class="space-y-4 text-xs">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Full Name *</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">👤</span>
-                <input
-                  v-model="editForm.full_name"
-                  type="text"
-                  required
-                  class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Email Address *</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">✉️</span>
-                <input
-                  v-model="editForm.email"
-                  type="email"
-                  required
-                  class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Phone Number *</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">📞</span>
-                <input
-                  v-model="editForm.phone"
-                  type="text"
-                  placeholder="+251 91 123 4567"
-                  class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Role</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">🛡️</span>
-                <input
-                  :value="displayRole"
-                  disabled
-                  class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch</label>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">🏬</span>
-                <input
-                  :value="userProfile.branch?.branch_name || 'Main Branch'"
-                  disabled
-                  class="w-full pl-9 pr-3.5 py-2.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] cursor-not-allowed"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Status</label>
-              <div class="flex items-center space-x-2 pt-2">
-                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  🟢 Active Account
-                </span>
-              </div>
-            </div>
+        <form @submit.prevent="updateProfileModal" class="space-y-4 text-xs">
+          <div>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Full Name *</label>
+            <input
+              v-model="editForm.full_name"
+              type="text"
+              required
+              class="w-full px-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810]"
+            />
           </div>
 
-          <div class="flex items-center justify-end space-x-3 pt-4 border-t border-[#F4EFEA]">
+          <div>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Email Address *</label>
+            <input
+              v-model="editForm.email"
+              type="email"
+              required
+              class="w-full px-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810]"
+            />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Phone Number</label>
+            <input
+              v-model="editForm.phone"
+              type="text"
+              class="w-full px-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-semibold text-[#2B1810]"
+            />
+          </div>
+
+          <div class="flex items-center justify-end space-x-2 pt-3 border-t border-[#F4EFEA]">
             <button
               type="button"
-              @click="resetEditForm"
-              class="px-4 py-2.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer"
+              @click="showEditModal = false"
+              class="px-4 py-2 bg-[#FAF7F2] text-[#6E5D52] font-bold rounded-xl cursor-pointer"
             >
-              🔄 Reset
+              Cancel
             </button>
             <button
               type="submit"
               :disabled="savingProfile"
-              class="px-5 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-1.5"
+              class="px-5 py-2 bg-[#3D251E] text-white font-bold rounded-xl transition cursor-pointer shadow-xs"
             >
-              <span>💾</span>
-              <span>{{ savingProfile ? 'Saving...' : 'Update Profile' }}</span>
+              {{ savingProfile ? 'Saving...' : 'Save Profile' }}
             </button>
           </div>
         </form>
       </div>
-
-      <!-- Right Column: Recent Activity Timeline -->
-      <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
-          <h3 class="font-serif font-black text-sm uppercase tracking-wider text-[#2B1810] flex items-center space-x-1.5">
-            <span>🕒</span>
-            <span>Recent Activity</span>
-          </h3>
-          <span class="text-[11px] text-[#7D6E64]">Live</span>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <div class="flex items-start space-x-3">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-            <div>
-              <div class="font-bold text-[#2B1810]">Report Approved</div>
-              <div class="text-[11px] text-[#7D6E64]">Daily sales report for today verified by Manager</div>
-              <div class="text-[10px] text-[#A6978B] mt-0.5">2 hours ago</div>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-3">
-            <span class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
-            <div>
-              <div class="font-bold text-[#2B1810]">Profile Access</div>
-              <div class="text-[11px] text-[#7D6E64]">Logged into portal successfully</div>
-              <div class="text-[10px] text-[#A6978B] mt-0.5">5 hours ago</div>
-            </div>
-          </div>
-
-          <div class="flex items-start space-x-3">
-            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
-            <div>
-              <div class="font-bold text-[#2B1810]">Shift Started</div>
-              <div class="text-[11px] text-[#7D6E64]">Signed into POS &amp; Order register</div>
-              <div class="text-[10px] text-[#A6978B] mt-0.5">8 hours ago</div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 3: SALARY CORRECTION REQUESTS HISTORY                -->
+    <!-- REQUEST SALARY CORRECTION MODAL                          -->
     <!-- ======================================================== -->
-    <div v-show="activeTab === 'requests'" class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
-      <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
-        <h3 class="font-serif font-black text-lg text-[#2B1810]">
-          My Salary Correction Requests to Super Admin
-        </h3>
-        <button
-          @click="openRequestModal"
-          class="px-3.5 py-1.5 bg-[#3D251E] text-white text-xs font-bold rounded-xl cursor-pointer"
-        >
-          + New Request
-        </button>
-      </div>
-
-      <div class="overflow-x-auto border border-[#EFE8DF] rounded-2xl">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-[#FAF6F0] text-[#7D6E64] uppercase font-bold text-[10px]">
-            <tr>
-              <th class="py-3 px-4">Date</th>
-              <th class="py-3 px-4">Current Salary</th>
-              <th class="py-3 px-4">Requested Salary</th>
-              <th class="py-3 px-4">Reason / Notes</th>
-              <th class="py-3 px-4 text-center">Status</th>
-              <th class="py-3 px-4">Admin Remarks</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[#F3EDE4]">
-            <tr v-if="requests.length === 0">
-              <td colspan="6" class="py-8 text-center text-[#9E8E82] text-xs">
-                No salary correction requests submitted yet.
-              </td>
-            </tr>
-            <tr v-for="r in requests" :key="r.request_id" class="hover:bg-[#FAF7F2]/60">
-              <td class="py-3 px-4 font-mono font-semibold">{{ new Date(r.created_at).toLocaleDateString() }}</td>
-              <td class="py-3 px-4 font-bold text-[#2B1810]">ETB {{ Number(r.current_salary).toLocaleString() }}</td>
-              <td class="py-3 px-4 font-bold text-amber-800">
-                {{ r.requested_salary ? `ETB ${Number(r.requested_salary).toLocaleString()}` : '—' }}
-              </td>
-              <td class="py-3 px-4 max-w-xs truncate" :title="r.reason">{{ r.reason }}</td>
-              <td class="py-3 px-4 text-center">
-                <span
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold inline-block"
-                  :class="{
-                    'bg-amber-100 text-amber-800': r.status === 'Pending',
-                    'bg-emerald-100 text-emerald-800': r.status === 'Approved',
-                    'bg-rose-100 text-rose-800': r.status === 'Rejected'
-                  }"
-                >
-                  {{ r.status }}
-                </span>
-              </td>
-              <td class="py-3 px-4 text-[#7D6E64] italic">{{ r.admin_remarks || '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- REQUEST CORRECTION MODAL -->
     <div
       v-if="showModal"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
@@ -627,49 +783,37 @@ import api from '../../api';
 
 const authStore = useAuthStore();
 
-const activeTab = ref('details');
+const sellerTab = ref('profile');
+const forceManagerMode = ref(null);
 const showModal = ref(false);
+const showEditModal = ref(false);
 const submitting = ref(false);
 const savingProfile = ref(false);
 const successMsg = ref('');
+const managerActiveToggle = ref(true);
 
 const userProfile = reactive({
-  full_name: '',
-  full_name_am: '',
-  email: '',
-  phone: '',
-  role: '',
+  full_name: 'Amir Hassan',
+  email: 'amirhassan2026@gmail.com',
+  phone: '+251921894395',
+  role: 'Branch Seller / Cashier',
   salary: 0,
-  employment_status: 'Active',
+  employee_id: 'EMP-001',
+  hire_date: '2026-11-08',
   status: 'Active',
-  hire_date: '',
-  branch: null,
+  branch: { branch_id: 1, branch_name: 'Main Branch' },
   avatar: null,
 });
 
 const editForm = reactive({
-  full_name: '',
-  email: '',
-  phone: '',
+  full_name: 'Amir Hassan',
+  email: 'amirhassan2026@gmail.com',
+  phone: '+251921894395',
 });
 
-const branchStats = reactive({
-  totalStaff: 24,
-  activeStaff: 21,
-});
-
-const requests = ref([]);
 const form = reactive({
   requested_salary: null,
   reason: '',
-});
-
-const userInitials = computed(() => {
-  if (!userProfile.full_name) return 'SB';
-  const parts = userProfile.full_name.trim().split(' ');
-  return parts.length > 1
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : parts[0].substring(0, 2).toUpperCase();
 });
 
 const currentRole = computed(() => authStore.user?.role || userProfile.role || 'Super Admin');
@@ -685,6 +829,27 @@ const isManager = computed(() => {
 
 const isSuperAdmin = computed(() => currentRole.value === 'Super Admin');
 
+// Display mode: adapts to Seller (Image 1) or Manager (Image 3)
+const currentDisplayMode = computed(() => {
+  if (forceManagerMode.value !== null) {
+    return forceManagerMode.value ? 'manager' : 'seller';
+  }
+  return isManager.value || isSuperAdmin.value ? 'manager' : 'seller';
+});
+
+const userInitials = computed(() => {
+  const name = userProfile.full_name;
+  if (!name) return 'AH';
+  const parts = name.trim().split(' ');
+  return parts.length > 1
+    ? (parts[0][0] + parts[1][0]).toUpperCase()
+    : parts[0].substring(0, 2).toUpperCase();
+});
+
+const formattedJoinDate = computed(() => {
+  return 'Jan 15, 2024';
+});
+
 async function loadProfile() {
   try {
     const res = await api.get('/auth/user');
@@ -698,9 +863,14 @@ async function loadProfile() {
 }
 
 function resetEditForm() {
-  editForm.full_name = userProfile.full_name || '';
-  editForm.email = userProfile.email || '';
-  editForm.phone = userProfile.phone || '';
+  editForm.full_name = userProfile.full_name || 'Amir Hassan';
+  editForm.email = userProfile.email || 'amirhassan2026@gmail.com';
+  editForm.phone = userProfile.phone || '+251921894395';
+}
+
+function openEditModal() {
+  resetEditForm();
+  showEditModal.value = true;
 }
 
 async function updateProfile() {
@@ -716,7 +886,6 @@ async function updateProfile() {
         authStore.user.email = editForm.email;
       }
       successMsg.value = 'Profile updated successfully!';
-      activeTab.value = 'details';
     }
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to update profile.');
@@ -725,15 +894,9 @@ async function updateProfile() {
   }
 }
 
-async function loadRequests() {
-  try {
-    const res = await api.get('/admin/my-salary-requests');
-    if (res.data && Array.isArray(res.data)) {
-      requests.value = res.data;
-    }
-  } catch (e) {
-    // optional endpoint
-  }
+async function updateProfileModal() {
+  await updateProfile();
+  showEditModal.value = false;
 }
 
 function openRequestModal() {
@@ -749,7 +912,6 @@ async function submitRequest() {
     if (res.data) {
       successMsg.value = 'Salary correction request submitted to Super Admin.';
       showModal.value = false;
-      await loadRequests();
     }
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to submit request.');
@@ -760,6 +922,5 @@ async function submitRequest() {
 
 onMounted(async () => {
   await loadProfile();
-  await loadRequests();
 });
 </script>
