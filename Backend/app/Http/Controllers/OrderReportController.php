@@ -859,6 +859,44 @@ class OrderReportController extends Controller
         ]);
     }
 
+    /**
+     * Re-submit a consolidated report that was returned by Super Admin for clarification
+     */
+    public function managerConsolidatedResubmit(Request $request, $id)
+    {
+        $manager = $this->checkManagerAccess($request);
+        $report = BranchConsolidatedReport::findOrFail($id);
+
+        if ($manager->role !== 'Super Admin' && (int) $report->branch_id !== (int) $manager->branch_id) {
+            abort(403, 'Access denied.');
+        }
+
+        if ($report->status !== 'Returned for Clarification') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only reports with status "Returned for Clarification" can be re-submitted.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'manager_notes' => 'required|string|max:2000',
+            'confirmed_accuracy' => 'required|accepted',
+        ]);
+
+        $report->manager_notes = $validated['manager_notes'];
+        $report->confirmed_accuracy = true;
+        $report->status = 'Submitted to Super Admin';
+        $report->is_locked = true;
+        $report->submitted_at = now();
+        $report->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consolidated branch report updated and re-submitted to Super Admin for verification.',
+            'report' => $report->load(['branch', 'manager']),
+        ]);
+    }
+
     // =========================================================================
     // LEVEL 3: SUPER ADMIN ENDPOINTS (CENTRALIZED MONITORING & APPROVAL)
     // =========================================================================

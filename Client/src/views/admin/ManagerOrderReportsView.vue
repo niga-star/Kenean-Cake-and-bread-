@@ -533,10 +533,14 @@
                   <td class="p-2.5">
                     <div class="font-medium text-[#2B1810]">{{ c.cake_type_design }}</div>
                     <div v-if="c.customization_details" class="text-[10px] text-[#7D6E64] italic truncate max-w-xs">&ldquo;{{ c.customization_details }}&rdquo;</div>
-                    <div v-if="c.system_custom_cake?.snapshot_url" class="mt-1">
-                      <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-50 text-[#DE1B54] border border-rose-200">
-                        <span>🎂 3D Design Attached</span>
-                      </span>
+                    <div v-if="c.system_custom_cake?.snapshot_url || c.system_custom_cake?.images?.length" class="mt-1">
+                      <button
+                        type="button"
+                        @click.stop="previewCakeModal = c.system_custom_cake"
+                        class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[9px] font-bold bg-rose-50 hover:bg-rose-100 text-[#DE1B54] border border-rose-200 cursor-pointer shadow-2xs transition"
+                      >
+                        <span>🎂 View 3D Snapshot &amp; Photos</span>
+                      </button>
                     </div>
                   </td>
                   <td class="p-2.5">{{ c.size_weight }}</td>
@@ -614,11 +618,60 @@
           <button @click="inspectingReport = null" class="text-[#7D6E64] hover:text-[#2B1810] text-xl font-bold cursor-pointer">✕</button>
         </div>
 
-        <div v-if="inspectingReport.super_admin_notes" class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900">
-          <strong>Super Admin Feedback:</strong> {{ inspectingReport.super_admin_notes }}
+        <div v-if="inspectingReport.super_admin_notes" class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 space-y-1">
+          <div class="font-bold flex items-center space-x-1.5 text-rose-800">
+            <span>🛡️ Super Admin Review Feedback:</span>
+          </div>
+          <p class="leading-relaxed">{{ inspectingReport.super_admin_notes }}</p>
         </div>
 
-        <div v-if="inspectingReport.manager_notes" class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-xs text-[#2B1810]">
+        <!-- Manager Clarification & Re-Submission Box (Active when returned by Super Admin) -->
+        <div
+          v-if="inspectingReport.status === 'Returned for Clarification'"
+          class="p-4 bg-amber-50/80 border-2 border-amber-300 rounded-2xl space-y-3"
+        >
+          <div class="flex items-center space-x-2 text-amber-900">
+            <span class="text-base">⚠️</span>
+            <div class="font-bold text-xs uppercase tracking-wider">Action Required: Clarification Requested by Super Admin</div>
+          </div>
+          <p class="text-xs text-amber-800 leading-relaxed">
+            Please address Super Admin's concerns noted above and record your clarification response. Once re-submitted, this report returns directly to the Super Admin's verification queue.
+          </p>
+
+          <div>
+            <label class="block text-[11px] font-bold text-[#3D251E] uppercase mb-1">
+              Manager Clarification &amp; Resolution Remarks *
+            </label>
+            <textarea
+              v-model="resubmitNotes"
+              rows="3"
+              placeholder="e.g. Verified with cashier: the advance payment of ETB 1,500 was confirmed on CBE bank reference TXN-9982. Re-audited and attached."
+              class="w-full px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
+            ></textarea>
+          </div>
+
+          <label class="flex items-start space-x-2.5 cursor-pointer text-xs font-semibold text-[#2B1810] pt-1">
+            <input
+              type="checkbox"
+              v-model="resubmitConfirm"
+              class="mt-0.5 rounded text-[#3D251E] focus:ring-[#3D251E]"
+            />
+            <span>I confirm that the clarifications provided above are accurate and ready for re-verification.</span>
+          </label>
+
+          <div class="pt-2">
+            <button
+              @click="submitResubmission(inspectingReport.id)"
+              :disabled="resubmitting || !resubmitConfirm"
+              class="w-full sm:w-auto px-5 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center space-x-1.5"
+            >
+              <span v-if="resubmitting">Submitting...</span>
+              <span v-else>📤 Re-Submit to Super Admin</span>
+            </button>
+          </div>
+        </div>
+
+        <div v-if="inspectingReport.manager_notes && inspectingReport.status !== 'Returned for Clarification'" class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-xs text-[#2B1810]">
           <strong>Manager Note:</strong> {{ inspectingReport.manager_notes }}
         </div>
 
@@ -686,6 +739,128 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL: 3D CAKE SNAPSHOT & DESIGN SPECIFICATION PREVIEW -->
+    <div
+      v-if="previewCakeModal"
+      class="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      @click.self="previewCakeModal = null"
+    >
+      <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-5 border border-[#E9E0D4] shadow-2xl">
+        <!-- Header -->
+        <div class="flex items-start justify-between border-b border-[#F2ECE4] pb-4">
+          <div>
+            <div class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FAF7F2] text-[#3D251E] border border-[#E9E0D4] mb-1">
+              <span>🎂 Custom Cake Design Verification</span>
+            </div>
+            <h3 class="font-serif font-black text-xl text-[#2B1810]">
+              {{ previewCakeModal.cake_type || previewCakeModal.cake_type_design || 'Custom 3D Cake Design' }}
+            </h3>
+            <p class="text-xs text-[#7D6E64]">
+              Customer: <strong>{{ previewCakeModal.customer_name }}</strong>
+              <span v-if="previewCakeModal.customer_phone"> &bull; {{ previewCakeModal.customer_phone }}</span>
+            </p>
+          </div>
+          <button
+            @click="previewCakeModal = null"
+            class="w-8 h-8 rounded-full bg-[#FAF7F2] hover:bg-[#F2ECE4] text-[#7D6E64] hover:text-[#2B1810] flex items-center justify-center font-bold text-lg cursor-pointer transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 3D Snapshot Display -->
+        <div v-if="previewCakeModal.snapshot_url" class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#2B1810] flex items-center space-x-1">
+              <span>✨ 3D Studio Snapshot</span>
+            </span>
+            <span class="text-[10px] font-medium text-[#7D6E64]">Captured from Customer 3D Cake Builder</span>
+          </div>
+          <div class="relative rounded-2xl overflow-hidden border border-[#E9E0D4] bg-gradient-to-b from-[#FFF5F2] to-[#FAF7F2] flex items-center justify-center p-4 shadow-inner">
+            <img
+              :src="previewCakeModal.snapshot_url"
+              alt="3D Cake Design Snapshot"
+              class="max-h-72 w-auto object-contain rounded-xl drop-shadow-lg"
+            />
+          </div>
+        </div>
+
+        <!-- Reference Photos Uploaded by Customer -->
+        <div v-if="previewCakeModal.images && previewCakeModal.images.length" class="space-y-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-[#2B1810] flex items-center space-x-1">
+            <span>📸 Customer Reference Photos ({{ previewCakeModal.images.length }})</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div
+              v-for="(img, idx) in previewCakeModal.images"
+              :key="idx"
+              class="aspect-square rounded-xl overflow-hidden border border-[#E9E0D4] bg-[#FAF7F2] group relative cursor-pointer"
+              @click="openFullImage(img.image_url || img.image_path)"
+              title="Click to view full image in new tab"
+            >
+              <img
+                :src="img.image_url || img.image_path"
+                :alt="'Reference ' + (idx + 1)"
+                class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Specifications Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 bg-[#FAF7F2] p-4 rounded-2xl border border-[#E9E0D4] text-xs">
+          <div>
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Tiers / Size</div>
+            <div class="font-bold text-[#2B1810] mt-0.5">
+              {{ previewCakeModal.tiers ? previewCakeModal.tiers + ' Tier(s)' : previewCakeModal.size_weight || 'Standard' }}
+            </div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Flavor</div>
+            <div class="font-bold text-[#2B1810] mt-0.5">{{ previewCakeModal.flavor || 'Custom Choice' }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Frosting / Finish</div>
+            <div class="font-bold text-[#2B1810] mt-0.5">{{ previewCakeModal.frosting || 'Vanilla Buttercream' }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-[#7D6E64] uppercase">Total Agreed Price</div>
+            <div class="font-bold text-[#2B1810] mt-0.5">ETB {{ Number(previewCakeModal.total_price || previewCakeModal.price || 0).toFixed(2) }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-emerald-800 uppercase">Advance Deposit</div>
+            <div class="font-bold text-emerald-700 mt-0.5">ETB {{ Number(previewCakeModal.advance_payment || 0).toFixed(2) }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-amber-800 uppercase">Balance Due</div>
+            <div class="font-bold text-amber-700 mt-0.5">ETB {{ Number(previewCakeModal.remaining_balance || 0).toFixed(2) }}</div>
+          </div>
+        </div>
+
+        <!-- Dedication & Special Instructions -->
+        <div v-if="previewCakeModal.dedication_text || previewCakeModal.special_instructions" class="space-y-2 text-xs">
+          <div v-if="previewCakeModal.dedication_text" class="p-3 bg-amber-50/60 border border-amber-200/60 rounded-xl">
+            <span class="font-bold text-amber-900 block mb-0.5">🎂 Inscription / Plaque Text:</span>
+            <span class="italic text-amber-950 font-serif text-sm">&ldquo;{{ previewCakeModal.dedication_text }}&rdquo;</span>
+          </div>
+          <div v-if="previewCakeModal.special_instructions" class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-[#2B1810]">
+            <strong class="text-[#7D6E64] block mb-0.5">Customer Instructions:</strong>
+            <p>{{ previewCakeModal.special_instructions }}</p>
+          </div>
+        </div>
+
+        <!-- Close button -->
+        <div class="flex justify-end pt-2 border-t border-[#F2ECE4]">
+          <button
+            @click="previewCakeModal = null"
+            class="px-5 py-2 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs font-bold rounded-xl cursor-pointer transition shadow-xs"
+          >
+            Close Preview
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -722,6 +897,17 @@ const pendingData = ref(null);
 
 // Inspection modal
 const inspectingReport = ref(null);
+const resubmitNotes = ref('');
+const resubmitConfirm = ref(false);
+const resubmitting = ref(false);
+
+// 3D Cake Design Preview modal
+const previewCakeModal = ref(null);
+
+function openFullImage(url) {
+  if (!url) return;
+  window.open(url, '_blank');
+}
 
 const pendingCount = computed(() => {
   return sellerReports.value.filter(r => r.status === 'Pending Verification').length;
@@ -877,9 +1063,43 @@ async function inspectConsolidated(id) {
     const res = await api.get(`/admin/reports/super-admin/consolidated/${id}`);
     if (res.data && res.data.success) {
       inspectingReport.value = res.data.report;
+      resubmitNotes.value = inspectingReport.value.manager_notes || '';
+      resubmitConfirm.value = false;
     }
   } catch (e) {
     alert('Failed to load consolidated report details.');
+  }
+}
+
+// Re-submit consolidated report returned for clarification
+async function submitResubmission(id) {
+  if (!resubmitNotes.value.trim()) {
+    alert('Please enter your clarification response before re-submitting.');
+    return;
+  }
+  if (!resubmitConfirm.value) {
+    alert('Please check the confirmation box verifying the corrected report accuracy.');
+    return;
+  }
+
+  resubmitting.value = true;
+  try {
+    const res = await api.post(`/admin/reports/manager/consolidated-reports/${id}/resubmit`, {
+      manager_notes: resubmitNotes.value,
+      confirmed_accuracy: true,
+    });
+    if (res.data && res.data.success) {
+      alert(res.data.message || 'Report re-submitted to Super Admin successfully!');
+      inspectingReport.value = null;
+      resubmitNotes.value = '';
+      resubmitConfirm.value = false;
+      await fetchBranchSubmissions();
+    }
+  } catch (err) {
+    console.error('Re-submission failed:', err);
+    alert(err.response?.data?.message || 'Failed to re-submit report.');
+  } finally {
+    resubmitting.value = false;
   }
 }
 

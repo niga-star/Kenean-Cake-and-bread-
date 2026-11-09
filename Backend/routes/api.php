@@ -172,6 +172,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
         ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports', [OrderReportController::class, 'managerConsolidatedReports'])
         ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+    Route::post('/reports/manager/consolidated-reports/{id}/resubmit', [OrderReportController::class, 'managerConsolidatedResubmit'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
 
     // Level 3: Super Admin (Centralized Monitoring & Approval)
     Route::get('/reports/super-admin/overview', [OrderReportController::class, 'superAdminOverview'])
