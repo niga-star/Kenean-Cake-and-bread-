@@ -608,7 +608,7 @@ const permissions = {
   'Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Servant': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Delivery Staff': ['orders', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Staff': ['products', 'seller-reports', 'inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Staff': ['products', 'seller-reports', 'inventory', 'distribution', 'orders', 'custom-cakes', 'staff-reports', 'my-account', 'notifications'],
   'Customer': [],
 };
 

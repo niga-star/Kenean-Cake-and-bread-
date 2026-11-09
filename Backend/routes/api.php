@@ -158,7 +158,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
     Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
     Route::match(['patch', 'put'], '/custom-cakes/{id}/quote', [CustomCakeController::class, 'quote'])
-        ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager');
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
     Route::match(['patch', 'put'], '/custom-cakes/{id}/status', [CustomCakeController::class, 'updateStatus'])
         ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
 

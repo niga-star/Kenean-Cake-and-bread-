@@ -594,7 +594,7 @@
                   :class="{
                     'bg-amber-50 text-amber-800 border-amber-200': rep.status === 'Pending Verification',
                     'bg-emerald-50 text-emerald-800 border-emerald-200': rep.status === 'Approved',
-                    'bg-rose-50 text-rose-800 border-rose-200': rep.status === 'Returned for Correction',
+                    'bg-rose-50 text-rose-800 border-rose-200': ['Returned for Correction', 'Rejected'].includes(rep.status),
                     'bg-stone-100 text-stone-700 border-stone-200': rep.status === 'Draft'
                   }"
                 >
@@ -615,7 +615,7 @@
                   View Details
                 </button>
                 <button
-                  v-if="['Draft', 'Returned for Correction'].includes(rep.status)"
+                  v-if="['Draft', 'Returned for Correction', 'Rejected'].includes(rep.status)"
                   @click="editReport(rep.id)"
                   class="text-xs text-amber-700 font-bold hover:underline cursor-pointer"
                 >
