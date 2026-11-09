@@ -77,8 +77,8 @@ The system enforces strict Role-Based Access Control (RBAC) at both the backend 
 |---|---|---|---|
 | **Super Admin** | Whole Business (All Branches) | Admin Portal | Branch management, system settings, salary controls, multi-branch revenue oversight, and final report verification. |
 | **Main Branch Manager** | Main Branch & Distribution | Admin Portal | Main branch stock, transfer creation and dispatches, staff management, and local pricing. |
-| **Branch Manager / Branch Admin** | Assigned Branch Only | Admin Portal | Branch staff management, local inventory & adjustments, branch pricing, seller report verification, and branch report consolidation. |
-| **Branch Seller / Cashier** | Assigned Branch Only | Admin Portal | In-store order recording, custom cake booking, customer deposits, and submitting Daily Sales Reports. |
+| **Branch Manager / Branch Admin** | Assigned Branch Only | Admin Portal | Simplified branch operations: staff management, local inventory & stock adjustments, branch-specific pricing, and reviewing staff shift reports. (Orders and daily sales reporting removed for simplicity). |
+| **Branch Seller / Cashier** | Assigned Branch Only | Admin Portal | In-store customer order recording, custom cake booking, customer advance deposits, and submitting Daily Sales Reports. |
 | **Branch Staff / Servant** | Assigned Branch Only | Admin Portal | Order preparation, kitchen fulfillment, inventory viewing, and staff shift reports. |
 | **Customer** | Public Storefront | Storefront | Catalog browsing, custom cake builder, cart, checkout, delivery tracking, and order history. |
 
@@ -178,52 +178,41 @@ flowchart LR
 
 ---
 
-## 6. Branch Manager: Verification, Pricing, Inventory & Consolidation
+## 6. Branch Manager: Simplified Operational Leadership (Staff, Pricing & Inventory)
 
-The Branch Manager portal acts as the quality and financial checkpoint between branch sellers and corporate headquarters:
+To ensure the highest operational efficiency, the Branch Manager dashboard has been simplified to eliminate clutter:
+- **Orders & Custom Cake Queues:** Removed from managers. In-store retail orders and custom cake bookings are handled exclusively by Branch Sellers and Cashiers.
+- **Daily Counter Sales Reports:** Handled directly by Branch Sellers.
+- **Order Reports & Verification:** Removed from manager navigation; corporate sales consolidation is handled at the Super Admin governance level.
+
+### Branch Manager Core Dashboard Architecture:
 
 ```mermaid
 flowchart TD
-    subgraph SellerSubmissions["Seller Submissions"]
-        SR1["Seller Report A"]
-        SR2["Seller Report B"]
+    subgraph ManagerCore["Branch Manager Dashboard (/admin/overview)"]
+        Dashboard["📊 Branch Daily Metrics\n(Units Sold, Daily Revenue, Inventory Health)"]
+        Users["👥 Users & Staff Management\n(/admin/users)\n(Recruit, manage shifts, and monitor staff)"]
+        Pricing["🏷️ Products & Prices\n(/admin/products)\n(Set local selling prices for assigned branch)"]
+        Stock["📦 Stock & Inventory\n(/admin/inventory, /admin/distribution)\n(Track on-hand stock, physical counts & deliveries)"]
+        StaffReports["📝 Staff Reports\n(/admin/staff-reports)\n(Review shift reports submitted by branch staff)"]
     end
-
-    subgraph ManagerActions["Branch Manager Actions (/admin/manager-reports)"]
-        Verify["Audit & Verify Line Items"]
-        Decision{"Is Report Accurate?"}
-        Return["↩️ Return for Correction\n(With Manager Notes)"]
-        Approve["✅ Approve Report"]
-        Consolidate["📑 Consolidate Approved Reports\n(Select Period: Daily, Weekly, Custom)"]
-        ConfirmAcc["☑️ Check Accuracy Confirmation"]
-        SubmitAdmin["🚀 Submit Verified Branch Report\n(To Super Admin)"]
-    end
-
-    SellerSubmissions --> Verify
-    Verify --> Decision
-    Decision -->|Discrepancy| Return
-    Decision -->|Verified| Approve
-    Approve --> Consolidate
-    Consolidate --> ConfirmAcc
-    ConfirmAcc --> SubmitAdmin
 ```
 
-### Key Capabilities in [`ManagerOrderReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ManagerOrderReportsView.vue):
-1. **Verify Seller Reports Tab:**
-   - Displays all seller reports exclusively for the manager's assigned branch.
-   - Filter pills: `All`, `Pending Verification`, `Approved`, `Returned for Correction`.
-   - **Verification Audit Modal:** Cross-checks regular item quantities, prices, custom cake designs, deposits, and balances.
-   - **Actions:**
-     - `✅ Approve Report`: Marks report as `Approved`, records `manager_id` and timestamp.
-     - `↩️ Return for Correction`: Requires a correction explanation note and sends report back to seller.
-2. **Submit Verified Branch Sales Report Tab:**
-   - **Automated Period Consolidation:** Select period (`Daily`, `Weekly`, `Monthly`, `Custom`) and date range.
-   - **1-Click Gathering:** Pulls all approved seller reports that have not yet been attached to a consolidated report.
-   - **No Duplicate Data Entry:** Summarizes all regular orders, custom cakes, revenues, advance deposits, and balances automatically.
-   - **Mandatory Accuracy Checkbox:** Requires the manager to certify that all line items and receipts were cross-checked.
-   - **Submission:** Submits locked report (`BCR-BR{id}-YYYYMMDD-{RAND}`) to Super Admin with status `Submitted to Super Admin`.
-3. **Branch Submissions History Tab:**
-   - Tracks all submissions to Super Admin and displays any HQ feedback or clarification requests.
+### Key Capabilities in the Simplified Branch Manager Dashboard:
+1. **Users & Staff Management ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue)):**
+   - View, recruit, and manage team members assigned to their branch.
+   - Filter by active staff, roles, and employment records.
+2. **Products & Independent Branch Pricing ([`ProductsPricesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ProductsPricesView.vue)):**
+   - Set and update branch-specific selling prices without altering other branches or corporate standard base prices.
+   - Real-time monitoring of Daily Units Sold, Weekly Units Sold, Daily Branch Revenue, and Weekly Branch Revenue.
+   - One-click price change notification sent to corporate headquarters.
+3. **Branch Inventory & Stock Control ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue)):**
+   - Autonomous physical stock adjustments with required audit reason codes (`Production batch received`, `Shelf life inspection write-off`, `Bakery restock`).
+   - Deliveries and Stock Receiving tracking ([`DistributionView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/DistributionView.vue)) to confirm incoming bakery batches.
+4. **Staff Shift Reports ([`StaffReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/StaffReportsView.vue)):**
+   - Direct review of shift reports, incident notes, and handover logs submitted by branch employees.
+5. **Clean Navigation System:**
+   - The entire `Orders & Sales` sidebar menu is omitted for managers, guaranteeing zero dead links, empty spaces, or permission errors.
 
 ---
 
@@ -481,4 +470,12 @@ php Backend/artisan migrate
   - Full Vite build completed with 0 errors (`dist/` production assets generated).
   - All 22 database migrations active and consistent.
   - End-to-end API pipeline verified with collision-free sequential references and draft deletion safeguards.
+
+### 13.6 Dashboard Simplification: Streamlined Branch Manager Role
+- **Omission of Retail Queues for Managers:**
+  - Orders (`/admin/orders`), Custom Cake Queues (`/admin/custom-cakes`), Daily Sales Reports (`/admin/seller-reports`), and Order Verification (`/admin/manager-reports`) have been removed from Branch Manager roles (`Main Branch Manager`, `Branch Manager`, `Branch Admin`).
+  - The entire `Orders & Sales` sidebar block is omitted when logged in as a Manager, leaving zero blank spaces or broken links.
+  - Retail customer counter sales and custom cake orders belong exclusively to **Branch Sellers and Cashiers**.
+- **Manager Focus on High-Value Leadership:**
+  - Branch Managers now focus purely on Staff Leadership ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue)), Local Pricing Autonomy ([`ProductsPricesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ProductsPricesView.vue)), Physical Stock & Transfers ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue)), and Shift Reports ([`StaffReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/StaffReportsView.vue)).
 
