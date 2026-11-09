@@ -379,23 +379,31 @@
                   {{ u.branch?.branch_name || 'Main Branch' }}
                 </td>
 
-                <!-- Status Pill with green dot -->
+                <!-- Status Pill with colored dot -->
                 <td class="py-3 px-3">
                   <span
                     class="px-2.5 py-0.5 rounded-full text-[11px] font-bold inline-flex items-center space-x-1"
-                    :class="u.status === 'Active' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'"
+                    :class="getStatusBadgeClass(u.status)"
                   >
-                    <span class="w-1.5 h-1.5 rounded-full inline-block" :class="u.status === 'Active' ? 'bg-emerald-600' : 'bg-rose-600'"></span>
+                    <span class="w-1.5 h-1.5 rounded-full inline-block" :class="getStatusDotClass(u.status)"></span>
                     <span>{{ u.status || 'Active' }}</span>
                   </span>
                 </td>
 
-                <!-- Action Button (⋮ menu) -->
+                <!-- Action Button (⋮ menu or Super Admin only lock for managers) -->
                 <td class="py-3 px-3 text-center">
+                  <span
+                    v-if="isBranchScoped && isManagerUser(u)"
+                    class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold text-stone-500 bg-stone-100 border border-stone-200 cursor-not-allowed select-none"
+                    title="Only Super Admin can manage Branch Manager accounts and statuses"
+                  >
+                    🔒 Super Admin only
+                  </span>
                   <button
+                    v-else
                     @click="openEditModal(u)"
                     class="p-1 hover:bg-[#EFE8DE] rounded-lg transition text-[#6E5D52] hover:text-[#2B1810] font-bold cursor-pointer text-sm"
-                    title="Edit user"
+                    :title="isSuperAdmin ? 'Edit account & status' : 'Manage branch staff member'"
                   >
                     ⋮
                   </button>
@@ -519,25 +527,34 @@
           </div>
 
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Status</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-[11px] font-bold text-[#7D6E64] uppercase">Account Status *</label>
+              <span v-if="isBranchScoped && isManagerUser(editingUser)" class="text-[10px] text-amber-700 font-bold">
+                🔒 Super Admin Controlled
+              </span>
+            </div>
             <select
               v-model="editForm.status"
-              class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810]"
+              :disabled="isBranchScoped && isManagerUser(editingUser)"
+              class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] disabled:bg-stone-100 disabled:text-stone-500 disabled:cursor-not-allowed cursor-pointer"
             >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Suspended">Suspended</option>
+              <option value="Active">Active (Full access)</option>
+              <option value="Inactive">Inactive (Deactivated)</option>
+              <option value="Suspended">Suspended (Restricted / Blocked)</option>
             </select>
+            <p v-if="isBranchScoped && isManagerUser(editingUser)" class="text-[10px] text-stone-500 mt-1">
+              Branch Managers cannot change their own account status. Only the Super Admin can manage manager statuses.
+            </p>
           </div>
 
           <div class="flex items-center justify-between pt-3 border-t border-[#F4EFEA]">
             <button
-              v-if="(isSuperAdmin || isBranchScoped) && editingUser.role !== 'Super Admin' && !['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(editingUser.role)"
+              v-if="(isSuperAdmin || (isBranchScoped && !isManagerUser(editingUser))) && editingUser.user_id !== authStore.user?.user_id"
               type="button"
               @click="deleteUser(editingUser.user_id)"
               class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold rounded-xl cursor-pointer"
             >
-              Delete User
+              Delete Staff
             </button>
             <div v-else></div>
 
@@ -551,8 +568,8 @@
               </button>
               <button
                 type="submit"
-                :disabled="savingEdit"
-                class="px-5 py-2 bg-[#3D251E] text-white font-bold rounded-xl transition cursor-pointer shadow-xs"
+                :disabled="savingEdit || (isBranchScoped && isManagerUser(editingUser))"
+                class="px-5 py-2 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold rounded-xl transition cursor-pointer shadow-xs disabled:bg-stone-300 disabled:cursor-not-allowed"
               >
                 {{ savingEdit ? 'Saving...' : 'Save Changes' }}
               </button>
@@ -634,6 +651,29 @@ function displayTableRole(role) {
   if (role === 'Branch Seller / Cashier' || role === 'Branch Seller' || role === 'Cashier') return 'Seller';
   if (role === 'Branch Staff') return 'Staff';
   return role;
+}
+
+function isManagerUser(user) {
+  if (!user) return false;
+  if (user.user_id === authStore.user?.user_id) return true;
+  const role = user.original_role || user.role;
+  return ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Manager'].includes(role);
+}
+
+function getStatusBadgeClass(status) {
+  if (status === 'Active') {
+    return 'bg-emerald-50 text-emerald-800 border border-emerald-200';
+  }
+  if (status === 'Suspended') {
+    return 'bg-amber-50 text-amber-800 border border-amber-200';
+  }
+  return 'bg-rose-50 text-rose-800 border border-rose-200';
+}
+
+function getStatusDotClass(status) {
+  if (status === 'Active') return 'bg-emerald-600';
+  if (status === 'Suspended') return 'bg-amber-600';
+  return 'bg-rose-600';
 }
 
 function getRoleBadgeClass(role) {
@@ -772,44 +812,62 @@ async function submitAddUser() {
 }
 
 function openEditModal(user) {
+  if (isBranchScoped.value && isManagerUser(user)) {
+    errorMsg.value = 'Branch Managers cannot modify manager accounts. Only the Super Admin can manage and change Branch Manager account statuses.';
+    return;
+  }
   editingUser.value = user;
   editForm.full_name = user.full_name;
   editForm.email = user.email;
   editForm.phone = user.phone || '';
-  editForm.role = user.role;
+  editForm.role = user.original_role || user.role;
   editForm.branch_id = user.branch_id;
   editForm.status = user.status || 'Active';
 }
 
 async function submitEditUser() {
+  if (isBranchScoped.value && isManagerUser(editingUser.value)) {
+    errorMsg.value = 'Access denied: Only the Super Admin can manage Branch Manager accounts and statuses.';
+    editingUser.value = null;
+    return;
+  }
   savingEdit.value = true;
+  errorMsg.value = '';
+  successMsg.value = '';
   try {
-    await api.put(`/admin/users/${editingUser.value.user_id}`, editForm).catch(() => {});
+    const res = await api.put(`/admin/users/${editingUser.value.user_id}`, editForm);
+    const updated = res.data;
     const target = users.value.find(u => u.user_id === editingUser.value.user_id);
     if (target) {
-      target.full_name = editForm.full_name;
-      target.email = editForm.email;
-      target.phone = editForm.phone;
-      target.role = editForm.role;
-      target.branch_id = editForm.branch_id;
-      target.status = editForm.status;
-      target.branch = branches.value.find(b => b.branch_id === editForm.branch_id) || target.branch;
+      target.full_name = updated.full_name || editForm.full_name;
+      target.email = updated.email || editForm.email;
+      target.phone = updated.phone || editForm.phone;
+      target.role = updated.role || editForm.role;
+      target.branch_id = updated.branch_id || editForm.branch_id;
+      target.status = updated.status || editForm.status;
+      target.branch = updated.branch || branches.value.find(b => b.branch_id === editForm.branch_id) || target.branch;
     }
-    successMsg.value = 'Staff member updated successfully!';
+    successMsg.value = `Staff account ${editForm.full_name} updated successfully! Status: ${editForm.status}`;
     editingUser.value = null;
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update user.');
+    console.error('Failed to update user:', err);
+    errorMsg.value = err.response?.data?.message || 'Failed to update user account.';
   } finally {
     savingEdit.value = false;
   }
 }
 
 async function deleteUser(id) {
+  const target = users.value.find(u => u.user_id === id);
+  if (isBranchScoped.value && isManagerUser(target)) {
+    errorMsg.value = 'Access denied: Only the Super Admin can delete or remove Branch Manager accounts.';
+    return;
+  }
   if (!confirm('Are you sure you want to remove this staff account?')) return;
   try {
-    await api.delete(`/admin/users/${id}`).catch(() => {});
+    await api.delete(`/admin/users/${id}`);
     users.value = users.value.filter(u => u.user_id !== id);
-    successMsg.value = 'User account deleted.';
+    successMsg.value = 'Staff account deleted successfully.';
     editingUser.value = null;
   } catch (err) {
     alert(err.response?.data?.message || 'Failed to delete user.');

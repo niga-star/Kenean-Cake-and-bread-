@@ -35,6 +35,13 @@ class RoleAuthorizationMiddleware
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
+        // Check if user account is deactivated or suspended
+        if ($user->status !== 'Active') {
+            return response()->json([
+                'message' => 'Access denied: Your account is currently ' . strtolower($user->status) . '. Please contact the Super Admin.'
+            ], 403);
+        }
+
         // Check if customer is attempting to access admin endpoints
         if ($user->role === 'Customer' && $request->is('api/admin*')) {
             return response()->json([

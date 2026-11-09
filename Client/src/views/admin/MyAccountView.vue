@@ -500,19 +500,20 @@
                 </div>
               </div>
 
-              <!-- Status Toggle Switch -->
+              <!-- Account Status (Controlled exclusively by Super Admin) -->
               <div>
-                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Status</label>
-                <div class="flex items-center space-x-3 pt-1">
-                  <label class="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      v-model="managerActiveToggle"
-                      type="checkbox"
-                      class="sr-only peer"
-                    />
-                    <div class="w-10 h-5 bg-[#E5DACD] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
-                    <span class="text-xs font-bold text-[#2B1810]">{{ managerActiveToggle ? 'Active' : 'Inactive' }}</span>
-                  </label>
+                <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Account Status</label>
+                <div class="flex items-center space-x-2 pt-1.5">
+                  <span
+                    class="px-3 py-1 rounded-xl text-xs font-bold inline-flex items-center space-x-1.5"
+                    :class="userProfile.status === 'Active' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full inline-block" :class="userProfile.status === 'Active' ? 'bg-emerald-600' : 'bg-rose-600'"></span>
+                    <span>{{ userProfile.status || 'Active' }}</span>
+                  </span>
+                  <span class="text-[10px] text-stone-400 font-medium select-none" title="Only the Super Admin can change a Branch Manager's account status">
+                    🔒 Managed by Super Admin
+                  </span>
                 </div>
               </div>
             </div>

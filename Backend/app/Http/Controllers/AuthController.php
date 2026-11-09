@@ -121,7 +121,14 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        return response()->json($request->user()->load('branch'));
+        $user = $request->user();
+        if ($user && $user->status !== 'Active') {
+            if (method_exists($user, 'currentAccessToken') && $user->currentAccessToken()) {
+                $user->currentAccessToken()->delete();
+            }
+            return response()->json(['message' => 'Account is inactive or suspended. Please contact the Super Admin.'], 403);
+        }
+        return response()->json($user ? $user->load('branch') : null);
     }
 
     public function logout(Request $request)
@@ -143,6 +150,15 @@ class AuthController extends Controller
         $user = $request->user();
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Branch Managers and users cannot change their account status or role via profile endpoint
+        if ($request->has('status') || $request->has('employment_status') || $request->has('role')) {
+            if ($user->role !== 'Super Admin') {
+                return response()->json([
+                    'message' => 'Access denied: You cannot modify account status or role via profile update. Account status is controlled by administrators.'
+                ], 403);
+            }
         }
 
         $validated = $request->validate([

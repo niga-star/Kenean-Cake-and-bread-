@@ -121,6 +121,7 @@ class UserController extends Controller
             'role' => 'required|string',
             'branch_id' => 'nullable|exists:branches,branch_id',
             'salary' => 'nullable|numeric|min:0',
+            'status' => 'nullable|in:Active,Inactive,Suspended',
             'employment_status' => 'nullable|in:Active,On Leave,Inactive,Suspended,Terminated',
             'hire_date' => 'nullable|date',
         ]);
@@ -220,8 +221,8 @@ class UserController extends Controller
             'role' => $role,
             'branch_id' => $branchId,
             'salary' => $salary,
-            'employment_status' => $validated['employment_status'] ?? 'Active',
-            'status' => 'Active',
+            'employment_status' => $validated['employment_status'] ?? ($validated['status'] ?? 'Active'),
+            'status' => $validated['status'] ?? 'Active',
             'hire_date' => $validated['hire_date'] ?? now()->toDateString(),
             'password' => Hash::make('password123'),
         ]);
@@ -254,22 +255,51 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $currentUser = $request->user();
-        if ($currentUser && in_array($currentUser->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff', 'Customer'])) {
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (in_array($currentUser->role, ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff', 'Customer'])) {
             return response()->json(['message' => 'Staff members are not authorized to update users.'], 403);
         }
 
         $user = User::findOrFail($id);
-        $userBranchId = $currentUser?->branch_id ?? ($currentUser ? Branch::where('manager_id', $currentUser->user_id)->value('branch_id') : null);
+        $isSuperAdmin = ($currentUser->role === 'Super Admin');
+        $managerRoles = ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'];
+        $targetIsManager = in_array($user->role, $managerRoles);
 
-        // Branch Manager permission checks
-        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
-            // Cannot modify users from other branches
-            if ($user->branch_id != $userBranchId) {
-                return response()->json(['message' => 'Access denied: You can only manage staff within your assigned branch.'], 403);
+        // Security & RBAC Enforcement:
+        // 1. Branch Manager Account: Branch Managers must not be able to change their own account status (Active, Inactive, Suspended).
+        // 2. Branch Staff Management: Branch Managers can activate, deactivate, or restrict staff members belonging to their own branch only.
+        // 3. Security: Prevent Branch Managers from changing their own status through frontend, API, or direct requests.
+        // 4. Branch Isolation: Branch Managers must never be able to modify staff accounts belonging to other branches.
+        if (!$isSuperAdmin) {
+            // Cannot modify own account status or details through management API
+            if ($user->user_id === $currentUser->user_id) {
+                return response()->json([
+                    'message' => 'Access denied: Branch Managers cannot change their own account status. Only the Super Admin can manage and change a Branch Manager account status.'
+                ], 403);
             }
-            // Cannot modify another manager or super admin
-            if (in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
-                return response()->json(['message' => 'Access denied: You cannot modify manager or administrator accounts.'], 403);
+
+            // Cannot modify any other manager or super admin account
+            if ($targetIsManager) {
+                return response()->json([
+                    'message' => 'Access denied: Only the Super Admin can manage Branch Manager accounts and account statuses.'
+                ], 403);
+            }
+
+            // Strictly restricted to staff belonging to the manager's assigned branch
+            $userBranchId = $currentUser->branch_id ?? Branch::where('manager_id', $currentUser->user_id)->value('branch_id');
+            if (!$userBranchId || (int) $user->branch_id !== (int) $userBranchId) {
+                return response()->json([
+                    'message' => 'Access denied: You can only manage staff belonging to your assigned branch.'
+                ], 403);
+            }
+
+            if ($user->role === 'Customer') {
+                return response()->json([
+                    'message' => 'Access denied: Branch Managers cannot modify customer accounts.'
+                ], 403);
             }
         }
 
@@ -281,16 +311,28 @@ class UserController extends Controller
             'branch_id' => 'nullable|exists:branches,branch_id',
             'salary' => 'nullable|numeric|min:0',
             'employment_status' => 'sometimes|in:Active,On Leave,Inactive,Suspended,Terminated',
-            'status' => 'sometimes|in:Active,Inactive',
+            'status' => 'sometimes|in:Active,Inactive,Suspended',
             'hire_date' => 'nullable|date',
         ]);
 
-        // Branch Managers CANNOT edit salary or change branch
-        if ($currentUser && $currentUser->role !== 'Super Admin') {
+        // Branch Managers CANNOT edit salary, change branch, or assign manager roles
+        if (!$isSuperAdmin) {
             unset($validated['salary']);
             unset($validated['branch_id']);
-            if (isset($validated['role']) && in_array($validated['role'], ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
-                unset($validated['role']);
+            if (isset($validated['role'])) {
+                $allowedStaffRoles = [
+                    'Branch Seller',
+                    'Branch Seller / Cashier',
+                    'Cashier',
+                    'Servant',
+                    'Delivery Staff',
+                    'Branch Staff',
+                ];
+                if (!in_array($validated['role'], $allowedStaffRoles)) {
+                    return response()->json([
+                        'message' => 'Access denied: Branch Managers can only assign branch staff roles (Sellers, Servants, Delivery Staff).'
+                    ], 403);
+                }
             }
         }
 
@@ -303,19 +345,50 @@ class UserController extends Controller
             }
         }
 
+        // Synchronize status and employment_status seamlessly
+        if (isset($validated['status']) && !isset($validated['employment_status'])) {
+            if ($validated['status'] === 'Suspended') {
+                $validated['employment_status'] = 'Suspended';
+            } elseif ($validated['status'] === 'Inactive') {
+                $validated['employment_status'] = 'Inactive';
+            } elseif ($validated['status'] === 'Active') {
+                $validated['employment_status'] = 'Active';
+            }
+        } elseif (isset($validated['employment_status']) && !isset($validated['status'])) {
+            if (in_array($validated['employment_status'], ['Inactive', 'Suspended', 'Terminated'])) {
+                $validated['status'] = $validated['employment_status'] === 'Suspended' ? 'Suspended' : 'Inactive';
+            } else {
+                $validated['status'] = 'Active';
+            }
+        }
+
+        $oldStatus = $user->status;
         $oldVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · Salary: ETB {$user->salary} · {$user->status}";
 
         $oldSalary = (float) $user->salary;
         $user->update($validated);
         $user->load('branch');
 
+        // Immediately revoke active sessions if account is deactivated or suspended
+        if (isset($validated['status']) && in_array($validated['status'], ['Inactive', 'Suspended'])) {
+            $user->tokens()->delete();
+        }
+
         $newVal = "{$user->role} · " . ($user->branch ? $user->branch->branch_name : 'All branches') . " · Salary: ETB {$user->salary} · {$user->status}";
 
+        // Audit log for status modification or user update
+        $action = 'User updated';
+        if (isset($validated['status']) && $validated['status'] !== $oldStatus) {
+            $action = $targetIsManager 
+                ? "Branch Manager account status updated ({$oldStatus} -> {$validated['status']})"
+                : "Staff account status updated ({$oldStatus} -> {$validated['status']})";
+        }
+
         AuditLog::create([
-            'user_id' => $currentUser?->user_id,
-            'user_name' => $currentUser?->full_name ?? 'Super Admin',
-            'action' => 'User updated',
-            'record' => $user->full_name,
+            'user_id' => $currentUser->user_id,
+            'user_name' => $currentUser->full_name . ' (' . $currentUser->role . ')',
+            'action' => $action,
+            'record' => $user->full_name . ($user->branch ? " · {$user->branch->branch_name}" : ""),
             'entity_type' => 'User',
             'entity_id' => (string) $user->user_id,
             'old_value' => $oldVal,
@@ -323,11 +396,11 @@ class UserController extends Controller
             'created_at' => now(),
         ]);
 
-        // Log salary change separately if modified
+        // Log salary change separately if modified by Super Admin
         if (isset($validated['salary']) && (float) $validated['salary'] !== $oldSalary) {
             AuditLog::create([
-                'user_id' => $currentUser?->user_id,
-                'user_name' => $currentUser?->full_name ?? 'Super Admin',
+                'user_id' => $currentUser->user_id,
+                'user_name' => $currentUser->full_name . ' (' . $currentUser->role . ')',
                 'action' => 'Salary updated',
                 'record' => $user->full_name,
                 'entity_type' => 'Salary',
@@ -411,11 +484,11 @@ class UserController extends Controller
         $userBranchId = $currentUser->branch_id ?? Branch::where('manager_id', $currentUser->user_id)->value('branch_id');
 
         if ($isBranchManager) {
-            if ($targetUser->branch_id != $userBranchId) {
+            if (!$userBranchId || (int) $targetUser->branch_id !== (int) $userBranchId) {
                 return response()->json(['message' => 'Access denied: You can only delete staff from your own assigned branch.'], 403);
             }
             if (in_array($targetUser->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
-                return response()->json(['message' => 'Access denied: You cannot delete manager or administrator accounts.'], 403);
+                return response()->json(['message' => 'Access denied: Only the Super Admin can manage or remove Branch Manager accounts.'], 403);
             }
         }
 
