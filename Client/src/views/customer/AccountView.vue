@@ -630,10 +630,22 @@
 
               <!-- Baker Quote Section (When Quoted) -->
               <div v-else-if="cake.status === 'Quoted'" class="p-4 bg-white dark:bg-[#1E120B] rounded-2xl border-2 border-[#DE1B54]/40 space-y-3">
+                <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-2">
+                  <div class="flex items-center space-x-1.5">
+                    <span class="text-base">📜</span>
+                    <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] uppercase tracking-wider">
+                      {{ localeStore.isAmharic ? 'ይፋዊ የዋጋ ግምት' : 'Official Baker Quotation' }}
+                    </span>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                    QT-{{ cake.request_number }}
+                  </span>
+                </div>
+
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <div class="text-xs text-[#786B60] dark:text-[#C5B7AF] font-medium">{{ localeStore.isAmharic ? 'የዋና ዳቦ ጋጋሪው የዋጋ ግምት:' : "Head Baker's Quotation:" }}</div>
-                    <div class="text-xl font-black text-[#DE1B54]">
+                    <div class="text-2xl font-black text-[#DE1B54]">
                       {{ localeStore.formatPrice(cake.quoted_price) }}
                     </div>
                     <div class="text-[11px] text-[#387A54] font-bold mt-0.5">
@@ -642,6 +654,14 @@
                   </div>
 
                   <div class="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      @click="openQuotationModal(cake)"
+                      class="px-3.5 py-2.5 min-h-[40px] bg-white dark:bg-[#25150E] border border-[#BA5420] text-[#BA5420] hover:bg-orange-50 dark:hover:bg-[#341822] text-xs font-bold rounded-xl shadow-xs transition cursor-pointer flex items-center space-x-1"
+                    >
+                      <span>📄</span>
+                      <span>{{ localeStore.isAmharic ? 'ይፋዊ ደረሰኝ እይ' : 'View Official Quote Slip' }}</span>
+                    </button>
                     <button
                       @click="acceptQuote(cake, 'deposit')"
                       class="px-4 py-2.5 min-h-[40px] bg-rose-50 dark:bg-[#341822] border border-[#DE1B54] text-[#DE1B54] hover:bg-rose-100 text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
@@ -1097,6 +1117,212 @@
       </div>
     </div>
 
+    <!-- Customer Official Quotation Slip Modal -->
+    <div
+      v-if="showQuotationModal && activeQuotationCake"
+      class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+      @click.self="showQuotationModal = false"
+    >
+      <div class="relative max-w-2xl w-full bg-[#FAF7F2] dark:bg-[#1E120B] rounded-3xl shadow-2xl border border-[#E9E0D4] dark:border-[#382318] overflow-hidden my-8 print:m-0 print:border-none print:shadow-none print:w-full">
+        <!-- Top bar -->
+        <div class="bg-[#3D251E] text-white px-6 py-4 flex items-center justify-between print:hidden">
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🧁</span>
+            <span class="font-serif font-bold text-base tracking-wide">SweetBakes Official Quotation</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              type="button"
+              @click="printQuotation"
+              class="px-3 py-1.5 bg-[#BA5420] hover:bg-[#9E4314] text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center space-x-1"
+            >
+              <span>🖨️</span>
+              <span>Print / Save PDF</span>
+            </button>
+            <button
+              type="button"
+              @click="showQuotationModal = false"
+              class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold flex items-center justify-center cursor-pointer transition"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Document Body -->
+        <div class="p-6 sm:p-8 space-y-6 text-[#2D231D] dark:text-[#FAF3EE]">
+          <!-- Document Header -->
+          <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b-2 border-[#3D251E]/20 dark:border-[#FAF3EE]/20 pb-5">
+            <div>
+              <div class="font-serif text-2xl font-black text-[#3D251E] dark:text-[#FAF3EE] tracking-tight">SweetBakes Bakery</div>
+              <div class="text-xs text-[#7A6B60] dark:text-[#C5B7AF] mt-0.5 font-medium">Artisan Patisserie &amp; Bespoke Celebration Cakes</div>
+              <div class="text-xs text-[#5A4B41] dark:text-[#D1C2BA] mt-1">
+                📍 {{ activeQuotationCake.branch?.branch_name || 'Bole Main Branch' }}, Dessie &amp; Addis Ababa
+              </div>
+              <div class="text-xs text-[#5A4B41] dark:text-[#D1C2BA]">
+                📞 +251 921 894 395 &middot; info@sweetbakes.et
+              </div>
+            </div>
+
+            <div class="sm:text-right bg-white dark:bg-[#2A1810] p-3.5 rounded-2xl border border-[#E9E0D4] dark:border-[#382318] shadow-2xs">
+              <div class="text-[10px] font-bold text-[#8A7B71] dark:text-[#A8988E] uppercase tracking-wider">Official Quotation</div>
+              <div class="text-lg font-mono font-black text-[#BA5420] mt-0.5">
+                QT-{{ activeQuotationCake.request_number }}
+              </div>
+              <div class="text-xs text-[#7A6B60] dark:text-[#C5B7AF] mt-1">
+                Date: <strong class="text-[#2D231D] dark:text-[#FAF3EE]">{{ new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) }}</strong>
+              </div>
+              <div class="text-xs text-[#7A6B60] dark:text-[#C5B7AF]">
+                Valid for: <strong class="text-[#2D231D] dark:text-[#FAF3EE]">7 Days</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer & Order Overview -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white dark:bg-[#2A1810] p-4 rounded-2xl border border-[#E9E0D4] dark:border-[#382318]">
+            <div class="space-y-1 text-xs">
+              <div class="text-[10px] font-bold text-[#8A7B71] dark:text-[#A8988E] uppercase tracking-wider">Customer Information</div>
+              <div class="text-sm font-bold text-[#2D231D] dark:text-[#FAF3EE]">
+                {{ authStore.user?.full_name || activeQuotationCake.customer_name || 'Valued Customer' }}
+              </div>
+              <div class="text-[#5A4B41] dark:text-[#D1C2BA]">
+                Phone: {{ authStore.user?.phone || activeQuotationCake.customer_phone || 'N/A' }}
+              </div>
+              <div class="text-[#5A4B41] dark:text-[#D1C2BA]" v-if="authStore.user?.email">
+                Email: {{ authStore.user.email }}
+              </div>
+            </div>
+
+            <div class="space-y-1 text-xs sm:text-right">
+              <div class="text-[10px] font-bold text-[#8A7B71] dark:text-[#A8988E] uppercase tracking-wider">Fulfillment Details</div>
+              <div class="text-sm font-bold text-[#BA5420]">
+                Due Date: {{ activeQuotationCake.needed_by }}
+              </div>
+              <div class="text-[#5A4B41] dark:text-[#D1C2BA]">
+                Branch: {{ activeQuotationCake.branch?.branch_name || 'Bole Main Branch' }}
+              </div>
+              <div class="text-[#5A4B41] dark:text-[#D1C2BA]">
+                Occasion: {{ activeQuotationCake.occasion || 'Celebration' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Specifications -->
+          <div class="space-y-2">
+            <div class="text-xs font-bold text-[#3D251E] dark:text-[#FAF3EE] uppercase tracking-wider">Cake Specifications</div>
+            <div class="bg-white dark:bg-[#2A1810] rounded-2xl border border-[#E9E0D4] dark:border-[#382318] p-4 text-xs space-y-2">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div>
+                  <span class="text-[#8A7B71] dark:text-[#A8988E] block text-[11px]">Size &amp; Tiers</span>
+                  <strong class="text-[#2D231D] dark:text-[#FAF3EE]">{{ activeQuotationCake.cake_size }}</strong>
+                </div>
+                <div>
+                  <span class="text-[#8A7B71] dark:text-[#A8988E] block text-[11px]">Flavor Sponge</span>
+                  <strong class="text-[#2D231D] dark:text-[#FAF3EE]">{{ activeQuotationCake.flavor }}</strong>
+                </div>
+                <div>
+                  <span class="text-[#8A7B71] dark:text-[#A8988E] block text-[11px]">Dietary</span>
+                  <strong class="text-[#2D231D] dark:text-[#FAF3EE]">{{ activeQuotationCake.is_fasting ? 'Fasting (Tsome)' : 'Standard Dairy' }}</strong>
+                </div>
+              </div>
+              <div v-if="activeQuotationCake.message || activeQuotationCake.inscription" class="pt-2 border-t border-[#F0EAE1] dark:border-[#382318]">
+                <span class="text-[#8A7B71] dark:text-[#A8988E] block text-[11px]">Inscription:</span>
+                <span class="font-serif italic text-sm text-[#BA5420] font-bold">"{{ activeQuotationCake.message || activeQuotationCake.inscription }}"</span>
+              </div>
+              <div v-if="activeQuotationCake.design" class="pt-2 border-t border-[#F0EAE1] dark:border-[#382318]">
+                <span class="text-[#8A7B71] dark:text-[#A8988E] block text-[11px]">Design Brief:</span>
+                <p class="text-[#5A4B41] dark:text-[#D1C2BA] italic mt-0.5">{{ activeQuotationCake.design }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Itemized Financial Breakdown Table -->
+          <div class="space-y-2">
+            <div class="text-xs font-bold text-[#3D251E] dark:text-[#FAF3EE] uppercase tracking-wider">Itemized Costing</div>
+            <div class="bg-white dark:bg-[#2A1810] rounded-2xl border border-[#E9E0D4] dark:border-[#382318] overflow-hidden">
+              <table class="w-full text-xs">
+                <thead class="bg-[#FAF7F2] dark:bg-[#25150E] border-b border-[#E9E0D4] dark:border-[#382318] text-[#65554B] dark:text-[#C5B7AF]">
+                  <tr>
+                    <th class="py-2.5 px-4 text-left font-bold">Item Description</th>
+                    <th class="py-2.5 px-4 text-right font-bold">Amount (ETB)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#F0EAE1] dark:divide-[#382318]">
+                  <tr>
+                    <td class="py-2.5 px-4">
+                      <div class="font-bold text-[#2D231D] dark:text-[#FAF3EE]">Artisan Sponge Cake ({{ activeQuotationCake.cake_size }})</div>
+                      <div class="text-[11px] text-[#8A7B71] dark:text-[#A8988E]">Freshly baked {{ activeQuotationCake.flavor }} tiers with premium buttercream layers</div>
+                    </td>
+                    <td class="py-2.5 px-4 text-right font-bold text-[#2D231D] dark:text-[#FAF3EE]">
+                      ETB {{ Number(activeQuotationCake.design_config?.official_quote?.base_sponge_price || Math.round(Number(activeQuotationCake.quoted_price || 0) * 0.6)).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="py-2.5 px-4">
+                      <div class="font-bold text-[#2D231D] dark:text-[#FAF3EE]">Handmade Fondant &amp; Specialty Decorating</div>
+                      <div class="text-[11px] text-[#8A7B71] dark:text-[#A8988E]">Artisan sculpting, custom piping, color palette matching</div>
+                    </td>
+                    <td class="py-2.5 px-4 text-right font-bold text-[#2D231D] dark:text-[#FAF3EE]">
+                      ETB {{ Number(activeQuotationCake.design_config?.official_quote?.artistry_price || Math.round(Number(activeQuotationCake.quoted_price || 0) * 0.3)).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr v-if="Number(activeQuotationCake.design_config?.official_quote?.topper_price) > 0 || !activeQuotationCake.design_config?.official_quote">
+                    <td class="py-2.5 px-4">
+                      <div class="font-bold text-[#2D231D] dark:text-[#FAF3EE]">Occasion Topper &amp; Decorative Elements</div>
+                      <div class="text-[11px] text-[#8A7B71] dark:text-[#A8988E]">Celebration topper, sugar floral accents</div>
+                    </td>
+                    <td class="py-2.5 px-4 text-right font-bold text-[#2D231D] dark:text-[#FAF3EE]">
+                      ETB {{ Number(activeQuotationCake.design_config?.official_quote?.topper_price || Math.round(Number(activeQuotationCake.quoted_price || 0) * 0.1)).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="bg-[#FAF7F2] dark:bg-[#25150E] border-t-2 border-[#E9E0D4] dark:border-[#382318]">
+                  <tr>
+                    <td class="py-3 px-4 font-black text-sm text-[#3D251E] dark:text-[#FAF3EE]">Total Quoted Price</td>
+                    <td class="py-3 px-4 text-right font-black text-base text-[#BA5420]">
+                      ETB {{ Number(activeQuotationCake.quoted_price || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr class="text-[11px]">
+                    <td class="py-2 px-4 text-[#387A54] dark:text-emerald-400 font-bold">
+                      Advance Deposit Required to Confirm ({{ activeQuotationCake.deposit_required_percentage || 50 }}%)
+                    </td>
+                    <td class="py-2 px-4 text-right text-[#387A54] dark:text-emerald-400 font-black">
+                      ETB {{ Math.round((Number(activeQuotationCake.quoted_price || 0) * (Number(activeQuotationCake.deposit_required_percentage || 50))) / 100).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr class="text-[11px]">
+                    <td class="py-2 px-4 text-[#7A6B60] dark:text-[#C5B7AF]">
+                      Remaining Balance Due on Handover
+                    </td>
+                    <td class="py-2 px-4 text-right text-[#2D231D] dark:text-[#FAF3EE] font-bold">
+                      ETB {{ Math.round(Number(activeQuotationCake.quoted_price || 0) - ((Number(activeQuotationCake.quoted_price || 0) * (Number(activeQuotationCake.deposit_required_percentage || 50))) / 100)).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Special Notes -->
+          <div v-if="activeQuotationCake.design_config?.official_quote?.quote_notes" class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs space-y-1">
+            <span class="font-bold text-amber-900 dark:text-amber-300 block">Chef &amp; Baker Notes:</span>
+            <p class="text-amber-800 dark:text-amber-200 leading-snug">{{ activeQuotationCake.design_config.official_quote.quote_notes }}</p>
+          </div>
+
+          <!-- Bakery Terms -->
+          <div class="text-[11px] text-[#7A6B60] dark:text-[#C5B7AF] space-y-1 pt-3 border-t border-[#E9E0D4] dark:border-[#382318]">
+            <div class="font-bold text-[#3D251E] dark:text-[#FAF3EE]">SweetBakes Terms &amp; Policies:</div>
+            <ul class="list-disc list-inside space-y-0.5">
+              <li>Quotation is valid for 7 calendar days from issuance.</li>
+              <li>A 50% deposit confirms kitchen scheduling and oven reservation.</li>
+              <li>Hand-crafted with fresh, premium ingredients at the selected branch bakehouse.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Reference Photo Zoom Modal -->
     <div
       v-if="zoomImage"
@@ -1147,6 +1373,17 @@ const orders = ref([]);
 const customCakes = ref([]);
 const addresses = ref([]);
 const zoomImage = ref(null);
+const showQuotationModal = ref(false);
+const activeQuotationCake = ref(null);
+
+function openQuotationModal(cake) {
+  activeQuotationCake.value = cake;
+  showQuotationModal.value = true;
+}
+
+function printQuotation() {
+  window.print();
+}
 
 const editName = ref('');
 const editPhone = ref(authStore.user?.phone || '');

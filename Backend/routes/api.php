@@ -85,12 +85,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-read', [NotificationController::class, 'markAllRead']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });
 
 // Admin & Branch Scoped Endpoints - Protected with RoleAuthorizationMiddleware
 Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Overview (Super Admin, Main Branch Manager, Branch Admin)
     Route::get('/overview', [OverviewController::class, 'index']);
+
+    // Notifications (All Admin & Staff Roles)
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-read', [NotificationController::class, 'markAllRead']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/alert-rules', [NotificationController::class, 'saveAlertRules']);
 
     // Users and Roles (Super Admin full, Main Branch Manager limited to Main Branch)
     Route::get('/users', [UserController::class, 'index']);

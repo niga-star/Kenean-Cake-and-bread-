@@ -347,6 +347,28 @@ class OrderController extends Controller
                 'new_value' => $newStatus,
                 'created_at' => now(),
             ]);
+
+            // Real-time branch staff notification
+            Notification::create([
+                'user_id' => null,
+                'branch_id' => $order->branch_id,
+                'category' => 'Orders',
+                'title' => "Order {$order->order_number} is {$newStatus}",
+                'message' => "Order {$order->order_number} ({$order->customer_name}) status updated from {$oldStatus} to {$newStatus}.",
+                'link' => '/admin/orders',
+            ]);
+
+            // Customer notification
+            if ($order->user_id) {
+                Notification::create([
+                    'user_id' => $order->user_id,
+                    'branch_id' => $order->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Your Order {$order->order_number} is {$newStatus}",
+                    'message' => "Your order {$order->order_number} status is now {$newStatus}.",
+                    'link' => "/orders/{$order->order_number}",
+                ]);
+            }
         });
 
         return response()->json($order->load(['items.product', 'payment', 'statusHistory']));

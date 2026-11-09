@@ -779,32 +779,12 @@ const bestSellingList = computed(() => {
   return fallbackPastries;
 });
 
-const fallbackAlerts = [
-  { name: 'All-Purpose Flour', status: 'Low stock', remaining: '5 kg left', icon: 'flour' },
-  { name: 'Unsalted Butter', status: 'Low stock', remaining: '1.2 kg left', icon: 'butter' },
-  { name: 'Fresh Milk', status: 'Running low', remaining: '2 L left', icon: 'milk' },
-  { name: 'Dark Chocolate', status: 'Out of stock', remaining: '0 kg left', icon: 'chocolate' },
-];
-
 const inventoryAlertsList = computed(() => {
-  if (data.value.inventory_alerts && data.value.inventory_alerts.length > 0) {
-    return data.value.inventory_alerts;
-  }
-  return fallbackAlerts;
+  return data.value.inventory_alerts || [];
 });
 
-const fallbackRecentOrders = [
-  { order_id: 1, order_number: '#SC24121', customer: 'Sara Mengistu', items_count: '3 items', total: 42.50, status: 'Out for delivery', time: '09:15 AM' },
-  { order_id: 2, order_number: '#SC24120', customer: 'Dawit Bekele', items_count: '2 items', total: 28.00, status: 'Preparing', time: '08:49 AM' },
-  { order_id: 3, order_number: '#SC24119', customer: 'Hellen Tadesse', items_count: '4 items', total: 56.75, status: 'Pending', time: '08:30 AM' },
-  { order_id: 4, order_number: '#SC24118', customer: 'Yared Hailu', items_count: '1 item', total: 18.00, status: 'Completed', time: 'Yesterday' },
-];
-
 const recentOrdersList = computed(() => {
-  if (data.value.recent_orders && data.value.recent_orders.length > 0) {
-    return data.value.recent_orders;
-  }
-  return fallbackRecentOrders;
+  return data.value.recent_orders || [];
 });
 
 const loadOverview = async () => {

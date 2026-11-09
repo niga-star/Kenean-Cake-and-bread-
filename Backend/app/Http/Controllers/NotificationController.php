@@ -5,27 +5,70 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Notification;
 use App\Models\AppSetting;
+use App\Models\Branch;
 
 class NotificationController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        if (!$user) {
+            $tokenString = $request->bearerToken();
+            if ($tokenString) {
+                $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                $user = $token?->tokenable;
+            }
+        }
+
         $category = $request->query('category');
-        $query = Notification::latest('created_at');
+        $query = Notification::with('branch')->latest('created_at');
+
+        if ($user) {
+            if ($user->role === 'Customer') {
+                $query->where('user_id', $user->user_id);
+            } elseif ($user->role === 'Super Admin') {
+                if ($request->filled('branch_id') && $request->branch_id !== 'all') {
+                    $query->where(function ($q) use ($request) {
+                        $q->where('branch_id', $request->branch_id)->orWhereNull('branch_id');
+                    });
+                }
+            } else {
+                // Branch Managers & Branch Staff are strictly scoped to their assigned branch
+                $scopedBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+                if (!$scopedBranchId && $user->role === 'Main Branch Manager') {
+                    $scopedBranchId = 1;
+                }
+
+                if ($scopedBranchId) {
+                    $query->where(function ($q) use ($scopedBranchId, $user) {
+                        $q->where(function ($sub) use ($scopedBranchId) {
+                            $sub->where('branch_id', $scopedBranchId)
+                                ->whereNull('user_id');
+                        })
+                        ->orWhere('user_id', $user->user_id);
+                    });
+                }
+            }
+        }
 
         if ($category && $category !== 'All') {
             $query->where('category', $category);
         }
 
-        $notifications = $query->get()->map(function ($n) {
+        $unreadCount = (clone $query)->where('is_read', false)->count();
+
+        $notifications = $query->take(50)->get()->map(function ($n) {
             return [
                 'notification_id' => $n->notification_id,
                 'category' => $n->category,
                 'title' => $n->title,
                 'message' => $n->message,
                 'link' => $n->link,
+                'branch_id' => $n->branch_id,
+                'branch_name' => $n->branch?->branch_name,
                 'is_read' => (bool) $n->is_read,
-                'time_ago' => $n->created_at->diffForHumans(null, true) . ' ago',
+                'time_ago' => $n->created_at ? ($n->created_at->diffForHumans(null, true) . ' ago') : 'Just now',
+                'created_at' => $n->created_at ? $n->created_at->toIso8601String() : null,
             ];
         });
 
@@ -37,15 +80,46 @@ class NotificationController extends Controller
 
         return response()->json([
             'notifications' => $notifications,
-            'unread_count' => Notification::where('is_read', false)->count(),
+            'unread_count' => $unreadCount,
             'alert_rules' => $alertRules,
         ]);
     }
 
     public function markAllRead(Request $request)
     {
-        Notification::where('is_read', false)->update(['is_read' => true]);
+        $user = $request->user();
+        if (!$user) {
+            $tokenString = $request->bearerToken();
+            if ($tokenString) {
+                $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                $user = $token?->tokenable;
+            }
+        }
+
+        $query = Notification::where('is_read', false);
+        if ($user && $user->role === 'Customer') {
+            $query->where('user_id', $user->user_id);
+        } elseif ($user && $user->role !== 'Super Admin') {
+            $branchId = $user->branch_id ?? ($user->role === 'Main Branch Manager' ? 1 : null);
+            if ($branchId) {
+                $query->where(function ($q) use ($branchId, $user) {
+                    $q->where(function ($sub) use ($branchId) {
+                        $sub->where('branch_id', $branchId)->whereNull('user_id');
+                    })->orWhere('user_id', $user->user_id);
+                });
+            }
+        }
+
+        $query->update(['is_read' => true]);
         return response()->json(['message' => 'All notifications marked as read']);
+    }
+
+    public function markAsRead(Request $request, $id)
+    {
+        $n = Notification::findOrFail($id);
+        $n->is_read = true;
+        $n->save();
+        return response()->json(['message' => 'Notification marked as read', 'notification' => $n]);
     }
 
     public function saveAlertRules(Request $request)

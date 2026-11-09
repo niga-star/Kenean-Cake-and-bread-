@@ -1459,8 +1459,16 @@ function restoreDraftFromStorage() {
       if (draft.neededBy) neededBy.value = draft.neededBy;
       if (draft.message !== undefined) message.value = draft.message;
       if (draft.description !== undefined) description.value = draft.description;
-      if (draft.customerName) customerName.value = draft.customerName;
-      if (draft.customerPhone) customerPhone.value = draft.customerPhone;
+      if (authStore.user?.full_name) {
+        customerName.value = authStore.user.full_name;
+      } else if (draft.customerName) {
+        customerName.value = draft.customerName;
+      }
+      if (authStore.user?.phone) {
+        customerPhone.value = authStore.user.phone;
+      } else if (draft.customerPhone) {
+        customerPhone.value = draft.customerPhone;
+      }
       if (Array.isArray(draft.referenceSamples) && draft.referenceSamples.length > 0) {
         referenceSamples.value = draft.referenceSamples;
       }
@@ -1513,8 +1521,8 @@ onMounted(async () => {
   hasRestoredDraft.value = restored;
 
   if (authStore.user) {
-    if (!customerName.value) customerName.value = authStore.user.full_name || '';
-    if (!customerPhone.value) customerPhone.value = authStore.user.phone || '';
+    if (authStore.user.full_name) customerName.value = authStore.user.full_name;
+    if (authStore.user.phone) customerPhone.value = authStore.user.phone;
   }
 
   if (!restored && branchStore.selectedBranchId) {

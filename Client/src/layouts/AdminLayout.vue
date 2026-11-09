@@ -498,7 +498,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import api from '../api';
@@ -507,18 +507,32 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const unreadCount = ref(0);
+let notificationPollInterval = null;
 
-onMounted(async () => {
-  if (authStore.canSimulatePersona) {
-    await authStore.fetchAvailableRoles();
-  }
+const fetchUnreadNotifications = async () => {
+  if (!authStore.isAuthenticated) return;
   try {
     const res = await api.get('/admin/notifications?limit=1');
     if (res.data && typeof res.data.unread_count === 'number') {
       unreadCount.value = res.data.unread_count;
     }
   } catch (e) {
-    unreadCount.value = 0;
+    // Silent fail on polling errors
+  }
+};
+
+onMounted(async () => {
+  if (authStore.canSimulatePersona) {
+    await authStore.fetchAvailableRoles();
+  }
+  await fetchUnreadNotifications();
+  // Real-time polling every 12 seconds for staff and managers
+  notificationPollInterval = setInterval(fetchUnreadNotifications, 12000);
+});
+
+onBeforeUnmount(() => {
+  if (notificationPollInterval) {
+    clearInterval(notificationPollInterval);
   }
 });
 

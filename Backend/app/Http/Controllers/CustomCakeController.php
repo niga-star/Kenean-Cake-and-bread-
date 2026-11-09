@@ -200,22 +200,17 @@ class CustomCakeController extends Controller
         $cakeUserId = null;
         if ($user && $user->role === 'Customer') {
             $cakeUserId = $user->user_id;
-            if (empty($customerName)) {
-                $customerName = $user->full_name;
-            }
-            if (empty($customerPhone)) {
-                $customerPhone = $user->phone;
-            }
+            // Registered customer's full name is authoritative; discard stale demo names like 'Abebe Kebede'
+            $customerName = (!empty($customerName) && strcasecmp($customerName, 'Abebe Kebede') !== 0) ? $customerName : ($user->full_name ?: 'Customer');
+            $customerPhone = (!empty($customerPhone) && !str_contains($customerPhone, '100 0001')) ? $customerPhone : ($user->phone ?: null);
         } elseif (!empty($customerPhone)) {
             $existingCustomer = \App\Models\User::where('phone', $customerPhone)->first();
             if ($existingCustomer) {
                 $cakeUserId = $existingCustomer->user_id;
-                if (empty($customerName)) {
-                    $customerName = $existingCustomer->full_name;
-                }
+                $customerName = (!empty($customerName) && strcasecmp($customerName, 'Abebe Kebede') !== 0) ? $customerName : $existingCustomer->full_name;
             } else {
                 $realCustomer = \App\Models\User::create([
-                    'full_name' => $customerName ?: 'Customer',
+                    'full_name' => (!empty($customerName) && strcasecmp($customerName, 'Abebe Kebede') !== 0) ? $customerName : 'Customer',
                     'email' => 'cake_cust_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
                     'phone' => $customerPhone,
                     'password' => \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16))),
@@ -226,15 +221,11 @@ class CustomCakeController extends Controller
             }
         } elseif ($user) {
             $cakeUserId = $user->user_id;
-            if (empty($customerName)) {
-                $customerName = $user->full_name;
-            }
-            if (empty($customerPhone)) {
-                $customerPhone = $user->phone;
-            }
+            $customerName = (!empty($customerName) && strcasecmp($customerName, 'Abebe Kebede') !== 0) ? $customerName : ($user->full_name ?: 'Customer');
+            $customerPhone = (!empty($customerPhone) && !str_contains($customerPhone, '100 0001')) ? $customerPhone : ($user->phone ?: null);
         } else {
             $guestCustomer = \App\Models\User::create([
-                'full_name' => $customerName ?: 'Guest Customer',
+                'full_name' => (!empty($customerName) && strcasecmp($customerName, 'Abebe Kebede') !== 0) ? $customerName : 'Guest Customer',
                 'email' => 'cake_guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
                 'phone' => null,
                 'password' => \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16))),
@@ -296,13 +287,26 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
+        // Real-time branch staff notification for new custom cake
         Notification::create([
             'user_id' => null,
+            'branch_id' => $cakeReq->branch_id,
             'category' => 'Orders',
-            'title' => 'Custom cake request',
-            'message' => "{$cakeReq->request_number} at {$cakeReq->branch?->branch_name} is waiting for a quote.",
+            'title' => "Custom Cake Request: {$customerName}",
+            'message' => "New custom cake request {$cakeReq->request_number} from {$customerName} is waiting for an official quotation at {$cakeReq->branch?->branch_name}.",
             'link' => '/admin/custom-cakes',
         ]);
+
+        if ($cakeUserId) {
+            Notification::create([
+                'user_id' => $cakeUserId,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => 'Custom Cake Request Received',
+                'message' => "Your custom cake request {$cakeReq->request_number} has been received. Our bakers will prepare an official quotation shortly.",
+                'link' => '/account?tab=custom-cakes',
+            ]);
+        }
 
         return response()->json($cakeReq->load(['branch', 'images']), 201);
     }
@@ -338,17 +342,45 @@ class CustomCakeController extends Controller
         $validated = $request->validate([
             'quoted_price' => 'required|numeric|min:1',
             'deposit_required_percentage' => 'required|numeric|min:0|max:100',
+            'quote_notes' => 'nullable|string|max:1000',
+            'base_sponge_price' => 'nullable|numeric|min:0',
+            'artistry_price' => 'nullable|numeric|min:0',
+            'topper_price' => 'nullable|numeric|min:0',
+            'valid_until' => 'nullable|string',
         ]);
 
+        $designConfig = is_array($cakeReq->design_config) 
+            ? $cakeReq->design_config 
+            : (json_decode($cakeReq->design_config, true) ?? []);
+
+        $depositAmount = round((float) ($validated['quoted_price'] * ($validated['deposit_required_percentage'] / 100)), 2);
+        $remainingBalance = round((float) ($validated['quoted_price'] - $depositAmount), 2);
+
+        $designConfig['official_quote'] = [
+            'quote_number' => 'QT-' . $cakeReq->request_number,
+            'quoted_at' => now()->toIso8601String(),
+            'quoted_by' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Branch Seller',
+            'total_price' => (float) $validated['quoted_price'],
+            'deposit_percentage' => (float) $validated['deposit_required_percentage'],
+            'deposit_amount' => $depositAmount,
+            'remaining_balance' => $remainingBalance,
+            'base_sponge_price' => (float) ($validated['base_sponge_price'] ?? ($validated['quoted_price'] * 0.6)),
+            'artistry_price' => (float) ($validated['artistry_price'] ?? ($validated['quoted_price'] * 0.3)),
+            'topper_price' => (float) ($validated['topper_price'] ?? ($validated['quoted_price'] * 0.1)),
+            'quote_notes' => $validated['quote_notes'] ?? 'Artisan baking according to custom specification. Fresh delivery/pickup guaranteed.',
+            'valid_until' => $validated['valid_until'] ?? now()->addDays(7)->format('M d, Y'),
+        ];
+
+        $cakeReq->design_config = $designConfig;
         $cakeReq->quoted_price = $validated['quoted_price'];
         $cakeReq->deposit_required_percentage = $validated['deposit_required_percentage'];
         $cakeReq->status = 'Quoted';
         $cakeReq->save();
 
-        $cakeReq->loadMissing('branch');
+        $cakeReq->loadMissing(['branch', 'user']);
         AuditLog::create([
             'user_id' => $request->user()?->user_id,
-            'user_name' => $request->user()?->full_name ?? 'Branch Manager',
+            'user_name' => $request->user()?->full_name ?? 'Branch Seller',
             'action' => 'Custom cake quoted',
             'record' => $cakeReq->request_number . ($cakeReq->branch ? " · {$cakeReq->branch->branch_name}" : ""),
             'entity_type' => 'CustomCakeRequest',
@@ -357,6 +389,28 @@ class CustomCakeController extends Controller
             'new_value' => 'Quoted (ETB ' . number_format($validated['quoted_price'], 0) . ')',
             'created_at' => now(),
         ]);
+
+        // Real-time branch staff notification
+        Notification::create([
+            'user_id' => null,
+            'branch_id' => $cakeReq->branch_id,
+            'category' => 'Orders',
+            'title' => "Official Quote Sent: {$cakeReq->request_number}",
+            'message' => "Official quote of ETB " . number_format($validated['quoted_price'], 0) . " sent to {$cakeReq->customer_name} for {$cakeReq->request_number}.",
+            'link' => '/admin/custom-cakes',
+        ]);
+
+        // Customer notification
+        if ($cakeReq->user_id) {
+            Notification::create([
+                'user_id' => $cakeReq->user_id,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => "Official Quotation: {$cakeReq->request_number}",
+                'message' => "{$cakeReq->branch?->branch_name} has prepared an official quote of ETB " . number_format($validated['quoted_price'], 0) . " for your cake. Review details and confirm.",
+                'link' => '/account?tab=custom-cakes',
+            ]);
+        }
 
         return response()->json($cakeReq);
     }
@@ -386,7 +440,7 @@ class CustomCakeController extends Controller
         }
         $cakeReq->save();
 
-        $cakeReq->loadMissing('branch');
+        $cakeReq->loadMissing(['branch', 'user']);
         AuditLog::create([
             'user_id' => $request->user()?->user_id,
             'user_name' => $request->user()?->full_name ?? 'Branch Staff',
@@ -398,6 +452,28 @@ class CustomCakeController extends Controller
             'new_value' => $validated['status'],
             'created_at' => now(),
         ]);
+
+        // Real-time branch staff notification
+        Notification::create([
+            'user_id' => null,
+            'branch_id' => $cakeReq->branch_id,
+            'category' => 'Orders',
+            'title' => "Custom Cake {$cakeReq->request_number} is {$validated['status']}",
+            'message' => "Custom cake for {$cakeReq->customer_name} is now {$validated['status']}.",
+            'link' => '/admin/custom-cakes',
+        ]);
+
+        // Customer notification
+        if ($cakeReq->user_id) {
+            Notification::create([
+                'user_id' => $cakeReq->user_id,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => "Your Custom Cake is {$validated['status']}",
+                'message' => "Your custom cake order {$cakeReq->request_number} is now {$validated['status']}.",
+                'link' => '/account?tab=custom-cakes',
+            ]);
+        }
 
         return response()->json($cakeReq);
     }
@@ -428,7 +504,7 @@ class CustomCakeController extends Controller
         $cakeReq->deposit_paid = $amountPaid;
         $cakeReq->save();
 
-        $cakeReq->loadMissing('branch');
+        $cakeReq->loadMissing(['branch', 'user']);
         AuditLog::create([
             'user_id' => $user?->user_id,
             'user_name' => $user ? ($user->full_name . ' (' . $user->role . ')') : 'Customer',
@@ -441,13 +517,27 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
+        // Branch staff notification
         Notification::create([
             'user_id' => null,
+            'branch_id' => $cakeReq->branch_id,
             'category' => 'Orders',
-            'title' => 'Custom cake quote accepted',
-            'message' => "Customer accepted quote for {$cakeReq->request_number} at {$cakeReq->branch?->branch_name}. Ready for preparation.",
+            'title' => "Quote Accepted: {$cakeReq->customer_name}",
+            'message' => "Customer {$cakeReq->customer_name} accepted the quote for {$cakeReq->request_number} (ETB " . number_format($amountPaid, 0) . " paid). Ready for preparation in kitchen.",
             'link' => '/admin/custom-cakes',
         ]);
+
+        // Customer confirmation notification
+        if ($cakeReq->user_id) {
+            Notification::create([
+                'user_id' => $cakeReq->user_id,
+                'branch_id' => $cakeReq->branch_id,
+                'category' => 'Orders',
+                'title' => 'Custom Cake Confirmed',
+                'message' => "Your payment of ETB " . number_format($amountPaid, 0) . " is received. Kitchen baking will begin shortly.",
+                'link' => '/account?tab=custom-cakes',
+            ]);
+        }
 
         return response()->json([
             'message' => 'Custom cake quote accepted and status confirmed.',

@@ -289,11 +289,23 @@ class OrderService
 
             Notification::create([
                 'user_id' => null,
+                'branch_id' => $branch->branch_id,
                 'category' => 'Orders',
-                'title' => 'New Order Received',
+                'title' => "New Order: {$customerName}",
                 'message' => "Order {$order->order_number} placed at {$branch->branch_name} for ETB " . number_format($totalAmount, 0),
                 'link' => '/admin/orders',
             ]);
+
+            if ($orderUserId) {
+                Notification::create([
+                    'user_id' => $orderUserId,
+                    'branch_id' => $branch->branch_id,
+                    'category' => 'Orders',
+                    'title' => 'Order Placed Successfully',
+                    'message' => "Your order {$order->order_number} has been received by {$branch->branch_name} and is being prepared.",
+                    'link' => "/orders/{$order->order_number}",
+                ]);
+            }
 
             return $order;
         }, 3);

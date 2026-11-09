@@ -193,8 +193,8 @@
                 <td class="dash-td font-mono font-bold text-[#2B1810]">{{ ord.order_number }}</td>
                 <td class="dash-td text-[#4A3A30]">{{ ord.branch?.branch_name }}</td>
                 <td class="dash-td">
-                  <div class="font-bold text-[#2B1810]">{{ ord.customer_name || ord.user?.full_name || 'Customer' }}</div>
-                  <div v-if="ord.customer_phone || ord.user?.phone" class="text-[11px] text-[#7D6E64]">{{ ord.customer_phone || ord.user?.phone }}</div>
+                  <div class="font-bold text-[#2B1810]">{{ getCustomerDisplayName(ord) }}</div>
+                  <div v-if="getCustomerPhone(ord)" class="text-[11px] text-[#7D6E64]">{{ getCustomerPhone(ord) }}</div>
                 </td>
                 <td class="dash-td text-[#4A3A30]">{{ ord.fulfillment_method }}</td>
                 <td class="dash-td text-[#4A3A30]">
@@ -231,10 +231,10 @@
         <div class="flex items-start justify-between">
           <div>
             <h3 class="dash-section-title text-base sm:text-lg">
-              {{ selectedOrder.order_number }} · {{ selectedOrder.branch?.branch_name }}
+              {{ getCustomerDisplayName(selectedOrder) }} – Order {{ selectedOrder.order_number }}
             </h3>
             <p class="text-[11px] text-[#8A7B71] leading-relaxed mt-1">
-              {{ selectedOrder.fulfillment_method }} · {{ selectedOrder.payment?.payment_method }} · {{ selectedOrder.payment?.payment_status }}
+              {{ selectedOrder.branch?.branch_name }} · {{ selectedOrder.fulfillment_method }} · {{ selectedOrder.payment?.payment_method }} · {{ selectedOrder.payment?.payment_status }}
             </p>
           </div>
 
@@ -255,10 +255,13 @@
             <span class="text-[10px] px-2 py-0.2 bg-[#387A54]/10 text-[#387A54] rounded font-bold">Verified Order</span>
           </div>
           <div class="font-bold text-[#2A1D15]">
-            👤 {{ selectedOrder.customer_name || selectedOrder.user?.full_name || 'Customer' }}
+            👤 {{ getCustomerDisplayName(selectedOrder) }}
           </div>
-          <div v-if="selectedOrder.customer_phone || selectedOrder.user?.phone" class="text-[#6A5A50] text-[11px]">
-            📞 {{ selectedOrder.customer_phone || selectedOrder.user?.phone }}
+          <div v-if="getCustomerPhone(selectedOrder)" class="text-[#6A5A50] text-[11px]">
+            📞 {{ getCustomerPhone(selectedOrder) }}
+          </div>
+          <div v-if="selectedOrder.user?.email" class="text-[#7D6E64] text-[11px]">
+            ✉️ {{ selectedOrder.user.email }}
           </div>
           <div v-if="selectedOrder.address?.street || selectedOrder.delivery_address" class="text-[#6A5A50] text-[11px]">
             📍 {{ selectedOrder.address?.street || selectedOrder.delivery_address }}
@@ -465,6 +468,23 @@ const filters = ref({
   start_date: '',
   end_date: '',
 });
+
+function getCustomerDisplayName(ord) {
+  if (!ord) return 'Customer';
+  if (ord.user && ord.user.role === 'Customer' && ord.user.full_name) {
+    return ord.user.full_name;
+  }
+  const name = ord.customer_name || ord.user?.full_name;
+  if (name && !name.toLowerCase().includes('abebe')) {
+    return name;
+  }
+  return ord.user?.full_name || ord.customer_name || 'Customer';
+}
+
+function getCustomerPhone(ord) {
+  if (!ord) return '';
+  return ord.customer_phone || ord.user?.phone || '';
+}
 
 const clearCustomDates = () => {
   filters.value.start_date = '';

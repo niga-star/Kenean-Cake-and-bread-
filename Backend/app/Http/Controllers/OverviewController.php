@@ -409,7 +409,7 @@ class OverviewController extends Controller
                 return [
                     'order_id' => $o->order_id,
                     'order_number' => $o->order_number,
-                    'customer' => $o->user?->full_name ?? 'Customer',
+                    'customer' => ($o->user && $o->user->role === 'Customer' ? $o->user->full_name : ($o->customer_name ?: ($o->user?->full_name ?: 'Customer'))),
                     'method' => $o->fulfillment_method,
                     'total' => (float) $o->total_amount,
                     'status' => $o->order_status,
@@ -672,7 +672,7 @@ class OverviewController extends Controller
                 return [
                     'order_id' => $o->order_id,
                     'order_number' => $o->order_number,
-                    'customer' => $o->user?->full_name ?? ($o->customer_name ?? 'Walk-in Customer'),
+                    'customer' => ($o->user && $o->user->role === 'Customer' ? $o->user->full_name : ($o->customer_name ?: ($o->user?->full_name ?: 'Walk-in Customer'))),
                     'items_count' => $itemsCount > 0 ? "{$itemsCount} items" : "1 item",
                     'total' => (float) $o->total_amount,
                     'status' => $o->order_status,
