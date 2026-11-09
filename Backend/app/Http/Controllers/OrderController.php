@@ -51,12 +51,14 @@ class OrderController extends Controller
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
-        // Scoping rule: Branch Managers and Staff strictly see ONLY their assigned branch.
+        // Scoping rule: Super Admin does not manage branch operational orders; these belong exclusively to Branch Sellers and Branch Managers.
         if ($user && $user->role !== 'Customer') {
             if ($user->role === 'Super Admin') {
-                if ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
-                    $query->where('branch_id', $request->branch_id);
-                }
+                return response()->json([
+                    'orders' => [],
+                    'pending_count' => 0,
+                    'message' => 'Operational orders belong exclusively to Branch Sellers and Branch Managers.',
+                ]);
             } elseif ($userBranchId) {
                 // Non-super-admin is strictly scoped to own branch; cannot query other branches
                 $query->where('branch_id', $userBranchId);
@@ -150,8 +152,11 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $user = request()->user();
+        if ($user && $user->role === 'Super Admin') {
+            return response()->json(['message' => 'Operational order management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
+        }
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Customer' && $user->role !== 'Super Admin' && (!$userBranchId || $order->branch_id != $userBranchId)) {
+        if ($user && $user->role !== 'Customer' && (!$userBranchId || $order->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
@@ -216,9 +221,16 @@ class OrderController extends Controller
         $order = Order::with(['items', 'payment', 'branch'])->findOrFail($id);
         $user = $request->user();
 
-        // Branch scoping: Branch Managers and staff can only update their assigned branch; Super Admin has full management access across all branches
+        // Operational order management belongs exclusively to Branch Sellers and Branch Managers
+        if ($user && $user->role === 'Super Admin') {
+            return response()->json([
+                'message' => 'Super Admin does not manage branch operational orders. Order management belongs exclusively to Branch Sellers and Branch Managers.',
+            ], 403);
+        }
+
+        // Branch scoping: Branch Managers and staff can only update their assigned branch
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Super Admin' && (!$userBranchId || $order->branch_id != $userBranchId)) {
+        if (!$userBranchId || $order->branch_id != $userBranchId) {
             return response()->json(['message' => 'Access denied: You can only manage orders for your assigned branch.'], 403);
         }
 

@@ -10,7 +10,7 @@
           </h1>
         </div>
         <p class="text-sm text-[#7D6E64] mt-1">
-          Review &amp; approve branch seller daily sales reports, and consolidate verified submissions for the Super Admin.
+          Review &amp; approve branch seller daily sales reports, and finalize branch sales reports for your branch.
         </p>
       </div>
 
@@ -31,14 +31,14 @@
           class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer"
           :class="activeTab === 'consolidate' ? 'bg-[#3D251E] text-white shadow-xs' : 'text-[#6E5D52] hover:text-[#2B1810]'"
         >
-          📑 Submit Branch Report
+          📑 Finalize Branch Report
         </button>
         <button
           @click="activeTab = 'submissions'"
           class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer"
           :class="activeTab === 'submissions' ? 'bg-[#3D251E] text-white shadow-xs' : 'text-[#6E5D52] hover:text-[#2B1810]'"
         >
-          🏛️ Branch Submissions ({{ branchSubmissions.length }})
+          🏛️ Branch Sales Reports ({{ branchSubmissions.length }})
         </button>
       </div>
     </div>
@@ -163,10 +163,10 @@
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-2xs space-y-5">
         <div class="border-b border-[#F4EFEA] pb-4">
           <h2 class="font-serif font-black text-xl text-[#2B1810]">
-            Consolidate &amp; Submit Branch Sales Report
+            Consolidate &amp; Finalize Branch Sales Report
           </h2>
           <p class="text-xs text-[#7D6E64] mt-1">
-            This tool automatically consolidates all approved seller sales reports for the selected period without manual re-entry. Once submitted to the Super Admin, the report is locked.
+            This tool automatically consolidates all approved seller sales reports for the selected period. As Branch Manager, you have complete authority to manage and review all sales reports within your branch.
           </p>
         </div>
 
@@ -298,7 +298,7 @@
                 class="mt-0.5 rounded text-[#3D251E] focus:ring-[#3D251E] w-4 h-4 cursor-pointer"
               />
               <span class="text-xs text-[#92400E] font-medium leading-relaxed">
-                <strong>Accuracy Confirmation:</strong> I confirm that I have cross-checked product quantities, selling prices, and payments across all approved seller reports for this period. This consolidated report is complete, accurate, and ready for official Super Admin audit.
+                <strong>Accuracy Confirmation:</strong> I confirm that I have cross-checked product quantities, selling prices, and payments across all approved seller reports for this period. This consolidated branch sales report is complete, accurate, and finalized.
               </span>
             </label>
 
@@ -309,8 +309,8 @@
                 :disabled="submittingConsolidation || !consolidationForm.confirmed_accuracy"
                 class="px-6 py-3 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold text-sm rounded-xl transition cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
               >
-                <span>🚀</span>
-                <span>{{ submittingConsolidation ? 'Submitting to Super Admin...' : 'Submit Verified Branch Sales Report to Super Admin' }}</span>
+                <span>✅</span>
+                <span>{{ submittingConsolidation ? 'Saving...' : 'Finalize &amp; Save Branch Sales Report' }}</span>
               </button>
             </div>
           </div>
@@ -325,9 +325,9 @@
       <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
         <div>
           <h2 class="text-sm font-bold uppercase tracking-wider text-[#2B1810]">
-            Branch Consolidated Reports to Super Admin
+            Finalized Branch Sales Reports
           </h2>
-          <p class="text-xs text-[#7D6E64]">Historical submissions to headquarters and verification feedback.</p>
+          <p class="text-xs text-[#7D6E64]">Historical consolidated sales reports managed and verified within your branch.</p>
         </div>
         <button
           @click="fetchBranchSubmissions"
@@ -349,14 +349,14 @@
               <th class="py-3 px-3 text-right">Custom Cake Rev</th>
               <th class="py-3 px-3 text-right">Total Revenue</th>
               <th class="py-3 px-3">Status</th>
-              <th class="py-3 px-3">HQ Notes</th>
+              <th class="py-3 px-3">Manager Notes</th>
               <th class="py-3 px-3 text-center">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#F2ECE4]">
             <tr v-if="branchSubmissions.length === 0">
               <td colspan="10" class="py-8 text-center text-[#9E8E82] text-xs">
-                No consolidated branch reports submitted yet.
+                No finalized branch reports saved yet.
               </td>
             </tr>
             <tr v-for="bRep in branchSubmissions" :key="bRep.id" class="hover:bg-[#FAF7F2]/60 transition">
@@ -383,19 +383,14 @@
               </td>
               <td class="py-3 px-3">
                 <span
-                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block"
-                  :class="{
-                    'bg-emerald-50 text-emerald-800 border-emerald-200': bRep.status === 'Verified by Super Admin',
-                    'bg-blue-50 text-blue-800 border-blue-200': bRep.status === 'Submitted to Super Admin',
-                    'bg-rose-50 text-rose-800 border-rose-200': bRep.status === 'Returned for Clarification',
-                  }"
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block bg-emerald-50 text-emerald-800 border-emerald-200"
                 >
-                  {{ bRep.status }}
+                  {{ ['Finalized', 'Approved', 'Verified by Super Admin'].includes(bRep.status) ? 'Finalized' : bRep.status }}
                 </span>
               </td>
-              <td class="py-3 px-3 text-xs max-w-xs truncate" :title="bRep.super_admin_notes">
-                <span v-if="bRep.super_admin_notes" class="text-rose-700 font-medium">
-                  "{{ bRep.super_admin_notes }}"
+              <td class="py-3 px-3 text-xs max-w-xs truncate" :title="bRep.manager_notes">
+                <span v-if="bRep.manager_notes" class="text-[#6E5D52] font-medium">
+                  "{{ bRep.manager_notes }}"
                 </span>
                 <span v-else class="text-[#B29E91] italic">—</span>
               </td>
@@ -620,61 +615,8 @@
           <button @click="inspectingReport = null" class="text-[#7D6E64] hover:text-[#2B1810] text-xl font-bold cursor-pointer">✕</button>
         </div>
 
-        <div v-if="inspectingReport.super_admin_notes" class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 space-y-1">
-          <div class="font-bold flex items-center space-x-1.5 text-rose-800">
-            <span>🛡️ Super Admin Review Feedback:</span>
-          </div>
-          <p class="leading-relaxed">{{ inspectingReport.super_admin_notes }}</p>
-        </div>
-
-        <!-- Manager Clarification & Re-Submission Box (Active when returned by Super Admin) -->
-        <div
-          v-if="inspectingReport.status === 'Returned for Clarification'"
-          class="p-4 bg-amber-50/80 border-2 border-amber-300 rounded-2xl space-y-3"
-        >
-          <div class="flex items-center space-x-2 text-amber-900">
-            <span class="text-base">⚠️</span>
-            <div class="font-bold text-xs uppercase tracking-wider">Action Required: Clarification Requested by Super Admin</div>
-          </div>
-          <p class="text-xs text-amber-800 leading-relaxed">
-            Please address Super Admin's concerns noted above and record your clarification response. Once re-submitted, this report returns directly to the Super Admin's verification queue.
-          </p>
-
-          <div>
-            <label class="block text-[11px] font-bold text-[#3D251E] uppercase mb-1">
-              Manager Clarification &amp; Resolution Remarks *
-            </label>
-            <textarea
-              v-model="resubmitNotes"
-              rows="3"
-              placeholder="e.g. Verified with cashier: the advance payment of ETB 1,500 was confirmed on CBE bank reference TXN-9982. Re-audited and attached."
-              class="w-full px-3 py-2 bg-white border border-amber-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
-            ></textarea>
-          </div>
-
-          <label class="flex items-start space-x-2.5 cursor-pointer text-xs font-semibold text-[#2B1810] pt-1">
-            <input
-              type="checkbox"
-              v-model="resubmitConfirm"
-              class="mt-0.5 rounded text-[#3D251E] focus:ring-[#3D251E]"
-            />
-            <span>I confirm that the clarifications provided above are accurate and ready for re-verification.</span>
-          </label>
-
-          <div class="pt-2">
-            <button
-              @click="submitResubmission(inspectingReport.id)"
-              :disabled="resubmitting || !resubmitConfirm"
-              class="w-full sm:w-auto px-5 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] disabled:opacity-50 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center space-x-1.5"
-            >
-              <span v-if="resubmitting">Submitting...</span>
-              <span v-else>📤 Re-Submit to Super Admin</span>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="inspectingReport.manager_notes && inspectingReport.status !== 'Returned for Clarification'" class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-xs text-[#2B1810]">
-          <strong>Manager Note:</strong> {{ inspectingReport.manager_notes }}
+        <div v-if="inspectingReport.manager_notes" class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-xs text-[#2B1810]">
+          <strong>Manager Remarks:</strong> {{ inspectingReport.manager_notes }}
         </div>
 
         <!-- Breakdown Tables -->
@@ -899,9 +841,6 @@ const pendingData = ref(null);
 
 // Inspection modal
 const inspectingReport = ref(null);
-const resubmitNotes = ref('');
-const resubmitConfirm = ref(false);
-const resubmitting = ref(false);
 
 // 3D Cake Design Preview modal
 const previewCakeModal = ref(null);
@@ -1015,7 +954,7 @@ async function submitConsolidatedReport() {
     return;
   }
 
-  const confirmMsg = `Submit consolidated branch report with ${count} seller report(s) totaling ETB ${Number(pendingData.value.summary.total_branch_revenue).toFixed(2)} to Super Admin? This action locks the report.`;
+  const confirmMsg = `Finalize consolidated branch sales report with ${count} seller report(s) totaling ETB ${Number(pendingData.value.summary.total_branch_revenue).toFixed(2)}? This action finalizes the report for your branch.`;
   if (!confirm(confirmMsg)) return;
 
   submittingConsolidation.value = true;
@@ -1031,7 +970,7 @@ async function submitConsolidatedReport() {
 
     const res = await api.post('/admin/reports/manager/consolidate-and-submit', payload);
     if (res.data && res.data.success) {
-      alert(res.data.message || 'Consolidated branch report submitted to Super Admin successfully!');
+      alert(res.data.message || 'Branch sales report finalized successfully!');
       pendingData.value = null;
       consolidationForm.confirmed_accuracy = false;
       consolidationForm.manager_notes = '';
@@ -1062,46 +1001,12 @@ async function fetchBranchSubmissions() {
 // Inspect consolidated report
 async function inspectConsolidated(id) {
   try {
-    const res = await api.get(`/admin/reports/super-admin/consolidated/${id}`);
+    const res = await api.get(`/reports/manager/consolidated-reports/${id}`);
     if (res.data && res.data.success) {
       inspectingReport.value = res.data.report;
-      resubmitNotes.value = inspectingReport.value.manager_notes || '';
-      resubmitConfirm.value = false;
     }
   } catch (e) {
     alert('Failed to load consolidated report details.');
-  }
-}
-
-// Re-submit consolidated report returned for clarification
-async function submitResubmission(id) {
-  if (!resubmitNotes.value.trim()) {
-    alert('Please enter your clarification response before re-submitting.');
-    return;
-  }
-  if (!resubmitConfirm.value) {
-    alert('Please check the confirmation box verifying the corrected report accuracy.');
-    return;
-  }
-
-  resubmitting.value = true;
-  try {
-    const res = await api.post(`/admin/reports/manager/consolidated-reports/${id}/resubmit`, {
-      manager_notes: resubmitNotes.value,
-      confirmed_accuracy: true,
-    });
-    if (res.data && res.data.success) {
-      alert(res.data.message || 'Report re-submitted to Super Admin successfully!');
-      inspectingReport.value = null;
-      resubmitNotes.value = '';
-      resubmitConfirm.value = false;
-      await fetchBranchSubmissions();
-    }
-  } catch (err) {
-    console.error('Re-submission failed:', err);
-    alert(err.response?.data?.message || 'Failed to re-submit report.');
-  } finally {
-    resubmitting.value = false;
   }
 }
 

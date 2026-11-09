@@ -49,13 +49,17 @@ class OrderReportController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
-        $managerRoles = ['Branch Manager', 'Main Branch Manager', 'Branch Admin', 'Super Admin'];
+        $managerRoles = ['Branch Manager', 'Main Branch Manager', 'Branch Admin'];
         if (!in_array($user->role, $managerRoles)) {
-            abort(403, 'Only Branch Managers and Admins can verify and consolidate reports.');
+            abort(403, 'Only Branch Managers can view, review, and manage branch sales reports.');
         }
 
         if (!$user->branch_id) {
             $user->branch_id = Branch::where('manager_id', $user->user_id)->value('branch_id');
+        }
+
+        if (!$user->branch_id) {
+            abort(403, 'Manager must be assigned to an active branch.');
         }
 
         return $user;
@@ -290,13 +294,17 @@ class OrderReportController extends Controller
             ->orderBy('report_date', 'desc')
             ->orderBy('id', 'desc');
 
-        // Scoping
+        // Scoping: Only Branch Managers view reports for their branch. Sellers see own. Super Admin does not view seller reports.
         if ($user->role === 'Super Admin') {
-            if ($request->query('branch_id')) {
-                $query->where('branch_id', $request->query('branch_id'));
-            }
-        } elseif (in_array($user->role, ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])) {
-            $query->where('branch_id', $user->branch_id);
+            return response()->json([
+                'success' => false,
+                'message' => 'Seller reports are managed exclusively by Branch Managers for their assigned branch.',
+            ], 403);
+        }
+
+        $userBranchId = $user->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if (in_array($user->role, ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])) {
+            $query->where('branch_id', $userBranchId ?: -1);
         } else {
             // Seller/Cashier sees only their own reports
             $query->where('seller_id', $user->user_id);
@@ -336,16 +344,19 @@ class OrderReportController extends Controller
             'consolidatedReport',
         ])->findOrFail($id);
 
-        // Security check
-        if ($user->role !== 'Super Admin') {
-            if (in_array($user->role, ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])) {
-                if ((int) $report->branch_id !== (int) $user->branch_id) {
-                    abort(403, 'Access denied: You can only view reports for your assigned branch.');
-                }
-            } else {
-                if ((int) $report->seller_id !== (int) $user->user_id) {
-                    abort(403, 'Access denied: You can only view your own reports.');
-                }
+        // Security check: Only Branch Managers view reports for their branch; sellers view own. Super Admin does not view seller reports.
+        if ($user->role === 'Super Admin') {
+            abort(403, 'Seller reports are managed exclusively by Branch Managers for their assigned branch.');
+        }
+
+        $userBranchId = $user->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if (in_array($user->role, ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])) {
+            if ((int) $report->branch_id !== (int) $userBranchId) {
+                abort(403, 'Access denied: You can only view reports for your assigned branch.');
+            }
+        } else {
+            if ((int) $report->seller_id !== (int) $user->user_id) {
+                abort(403, 'Access denied: You can only view your own reports.');
             }
         }
 
@@ -880,7 +891,7 @@ class OrderReportController extends Controller
             $consolidated->period_type = $validated['period_type'];
             $consolidated->period_start = $start;
             $consolidated->period_end = $end;
-            $consolidated->status = 'Submitted to Super Admin';
+            $consolidated->status = 'Finalized';
             $consolidated->confirmed_accuracy = true;
             $consolidated->manager_notes = $validated['manager_notes'] ?? null;
             $consolidated->submitted_at = now();
@@ -899,7 +910,7 @@ class OrderReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Verified Branch Sales Report submitted to Super Admin successfully.',
+                'message' => 'Branch sales report consolidated and finalized successfully.',
                 'consolidated_report' => $consolidated->load(['branch', 'manager']),
             ], 201);
         } catch (\Throwable $e) {
@@ -921,15 +932,18 @@ class OrderReportController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
-        $query = BranchConsolidatedReport::with(['branch', 'manager:user_id,full_name,email', 'superAdmin:user_id,full_name'])
+        if ($user->role === 'Super Admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers manage and review all sales reports directly within their branch.',
+            ], 403);
+        }
+
+        $userBranchId = $user->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        $query = BranchConsolidatedReport::with(['branch', 'manager:user_id,full_name,email'])
+            ->where('branch_id', $userBranchId ?: -1)
             ->orderBy('period_end', 'desc')
             ->orderBy('id', 'desc');
-
-        if ($user->role !== 'Super Admin') {
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($request->query('branch_id')) {
-            $query->where('branch_id', $request->query('branch_id'));
-        }
 
         if ($request->query('status')) {
             $query->where('status', $request->query('status'));
@@ -940,6 +954,30 @@ class OrderReportController extends Controller
         return response()->json([
             'success' => true,
             'data' => $reports,
+        ]);
+    }
+
+    /**
+     * Inspect a consolidated report for the manager's branch
+     */
+    public function managerConsolidatedShow(Request $request, $id)
+    {
+        $manager = $this->checkManagerAccess($request);
+        $report = BranchConsolidatedReport::with([
+            'branch',
+            'manager:user_id,full_name,email,phone',
+            'sellerReports.seller:user_id,full_name,email',
+            'sellerReports.orders',
+            'sellerReports.customCakes.systemCustomCake.images',
+        ])->findOrFail($id);
+
+        if ((int) $report->branch_id !== (int) $manager->branch_id) {
+            abort(403, 'Access denied: You can only view reports for your assigned branch.');
+        }
+
+        return response()->json([
+            'success' => true,
+            'report' => $report,
         ]);
     }
 
@@ -982,111 +1020,18 @@ class OrderReportController extends Controller
     }
 
     // =========================================================================
-    // LEVEL 3: SUPER ADMIN ENDPOINTS (CENTRALIZED MONITORING & APPROVAL)
+    // LEVEL 3: SUPER ADMIN ENDPOINTS (DEPRECATED: Branch sales reports are managed at branch level)
     // =========================================================================
 
     /**
-     * Super Admin Multi-Branch Sales & Order Reports Overview
+     * Super Admin Multi-Branch Sales & Order Reports Overview (Deprecated: Branch sales reports are managed at branch level)
      */
     public function superAdminOverview(Request $request)
     {
-        $this->checkSuperAdminAccess($request);
-
-        $fromDate = $request->query('from_date');
-        $toDate = $request->query('to_date');
-        $branchFilter = $request->query('branch_id');
-
-        $branches = Branch::with('manager:user_id,full_name,email,phone')->where('status', 'Active')->get();
-
-        // Query consolidated branch reports
-        $reportsQuery = BranchConsolidatedReport::with(['branch', 'manager']);
-
-        if ($fromDate) {
-            $reportsQuery->whereDate('period_start', '>=', $fromDate);
-        }
-        if ($toDate) {
-            $reportsQuery->whereDate('period_end', '<=', $toDate);
-        }
-        if ($branchFilter && $branchFilter !== 'all') {
-            $reportsQuery->where('branch_id', $branchFilter);
-        }
-
-        $consolidatedReports = $reportsQuery->orderBy('id', 'desc')->get();
-
-        // Overview KPI metrics
-        $totalBranches = $branches->count();
-        $totalSubmittedReports = $consolidatedReports->count();
-        $awaitingReviewReports = $consolidatedReports->where('status', 'Submitted to Super Admin');
-        $awaitingReviewCount = $awaitingReviewReports->count();
-        $verifiedReports = $consolidatedReports->where('status', 'Verified by Super Admin');
-        $verifiedReportsCount = $verifiedReports->count();
-
-        // Financial Verification Rule:
-        // Verified revenue: strictly from reports officially verified by Super Admin
-        // Pending verification: reports submitted by managers awaiting Super Admin review
-        $verifiedRevenue = (float) $verifiedReports->sum('total_branch_revenue');
-        $pendingRevenue = (float) $awaitingReviewReports->sum('total_branch_revenue');
-        $totalCombinedRevenue = (float) $consolidatedReports->sum('total_branch_revenue');
-
-        $totalRegularOrders = (int) $consolidatedReports->sum('total_regular_orders');
-        $totalCustomCakes = (int) $consolidatedReports->sum('total_custom_cake_orders');
-        $totalAdvancePayments = (float) $consolidatedReports->sum('total_advance_payments');
-        $totalOutstandingBalances = (float) $consolidatedReports->sum('total_outstanding_balances');
-        $totalPaymentsReceived = (float) $consolidatedReports->sum('total_payments_received');
-
-        // Branch-by-Branch Performance Table
-        $branchPerformance = [];
-        foreach ($branches as $branch) {
-            $bReports = $consolidatedReports->where('branch_id', $branch->branch_id);
-            $latestReport = $bReports->first();
-
-            $regOrders = (int) $bReports->sum('total_regular_orders');
-            $customCakes = (int) $bReports->sum('total_custom_cake_orders');
-            
-            $bVerifiedRev = (float) $bReports->where('status', 'Verified by Super Admin')->sum('total_branch_revenue');
-            $bPendingRev = (float) $bReports->where('status', 'Submitted to Super Admin')->sum('total_branch_revenue');
-            $bTotalRev = (float) $bReports->sum('total_branch_revenue');
-
-            $status = $latestReport ? $latestReport->status : 'No Submissions';
-
-            $branchPerformance[] = [
-                'branch_id' => $branch->branch_id,
-                'branch_name' => $branch->branch_name,
-                'branch_code' => $branch->branch_code,
-                'city' => $branch->city,
-                'manager_name' => $branch->manager?->full_name ?? 'Unassigned',
-                'regular_orders' => $regOrders,
-                'custom_cakes' => $customCakes,
-                'total_revenue' => $bVerifiedRev, // OFFICIAL RULE: official branch revenue is verified
-                'pending_revenue' => $bPendingRev,
-                'combined_revenue' => $bTotalRev,
-                'latest_report_status' => $status,
-                'latest_report_id' => $latestReport?->id,
-                'reports_count' => $bReports->count(),
-            ];
-        }
-
         return response()->json([
-            'success' => true,
-            'kpis' => [
-                'total_branches' => $totalBranches,
-                'total_submitted_reports' => $totalSubmittedReports,
-                'awaiting_review_count' => $awaitingReviewCount,
-                'verified_reports_count' => $verifiedReportsCount,
-                'total_regular_orders' => $totalRegularOrders,
-                'total_custom_cakes' => $totalCustomCakes,
-                'total_revenue' => $verifiedRevenue, // OFFICIAL REVENUE RULE: only verified counts as official
-                'verified_revenue' => $verifiedRevenue,
-                'pending_verification_revenue' => $pendingRevenue,
-                'total_combined_revenue' => $totalCombinedRevenue,
-                'total_advance_payments' => $totalAdvancePayments,
-                'total_outstanding_balances' => $totalOutstandingBalances,
-                'total_payments_received' => $totalPaymentsReceived,
-            ],
-            'branch_performance' => $branchPerformance,
-            'recent_reports' => $consolidatedReports->take(20)->values(),
-            'branches' => $branches->map(fn($b) => ['id' => $b->branch_id, 'name' => $b->branch_name]),
-        ]);
+            'success' => false,
+            'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers are responsible for managing and reviewing all sales reports within their branch.',
+        ], 403);
     }
 
     /**
@@ -1134,77 +1079,21 @@ class OrderReportController extends Controller
      */
     public function superAdminConsolidatedShow(Request $request, $id)
     {
-        $user = $request->user();
-        if (!$user) {
-            abort(401, 'Unauthenticated.');
-        }
-
-        $report = BranchConsolidatedReport::with([
-            'branch',
-            'manager:user_id,full_name,email,phone',
-            'superAdmin:user_id,full_name,email',
-            'sellerReports.seller:user_id,full_name,email',
-            'sellerReports.orders',
-            'sellerReports.customCakes.systemCustomCake.images',
-        ])->findOrFail($id);
-
-        if ($user->role !== 'Super Admin' && (int) $report->branch_id !== (int) $user->branch_id) {
-            abort(403, 'Access denied.');
-        }
-
         return response()->json([
-            'success' => true,
-            'report' => $report,
-        ]);
+            'success' => false,
+            'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers are responsible for managing and reviewing all sales reports within their branch.',
+        ], 403);
     }
 
     /**
-     * Super Admin Action: Verify or Return for Clarification
+     * Super Admin Action: Verify or Return for Clarification (Deprecated)
      */
     public function superAdminVerify(Request $request, $id)
     {
-        $superAdmin = $this->checkSuperAdminAccess($request);
-        $report = BranchConsolidatedReport::with('branch')->findOrFail($id);
-
-        $validated = $request->validate([
-            'action' => 'required|in:verify,return',
-            'super_admin_notes' => 'nullable|string|max:2000',
-        ]);
-
-        if ($validated['action'] === 'return') {
-            if (empty($validated['super_admin_notes'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please provide clarification notes for the Branch Manager.',
-                ], 422);
-            }
-
-            $report->status = 'Returned for Clarification';
-            $report->super_admin_id = $superAdmin->user_id;
-            $report->super_admin_notes = $validated['super_admin_notes'];
-            $report->is_locked = false; // Allow manager to adjust
-            $report->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Report returned to Branch Manager for clarification.',
-                'report' => $report,
-            ]);
-        }
-
-        // Action == 'verify'
-        $report->status = 'Verified by Super Admin';
-        $report->super_admin_id = $superAdmin->user_id;
-        $report->super_admin_notes = $validated['super_admin_notes'] ?? null;
-        $report->verified_at = now();
-        $report->is_locked = true;
-        $report->save();
-
         return response()->json([
-            'success' => true,
-            'message' => 'Branch report officially verified by Super Admin.',
-            'report' => $report,
-        ]);
+            'success' => false,
+            'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers are responsible for managing and reviewing all sales reports within their branch.',
+        ], 403);
     }
 }
 

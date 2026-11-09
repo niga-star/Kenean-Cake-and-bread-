@@ -175,17 +175,19 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::put('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportUpdate']);
     Route::delete('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportDestroy']);
 
-    // Level 2: Branch Manager (Verification & Consolidation)
+    // Level 2: Branch Manager (Verification & Consolidation - Exclusively for Branch Managers)
     Route::post('/reports/manager/verify/{id}', [OrderReportController::class, 'managerVerifyReport'])
-        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/pending-consolidation', [OrderReportController::class, 'managerPendingConsolidation'])
-        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/reports/manager/consolidate-and-submit', [OrderReportController::class, 'managerConsolidateAndSubmit'])
-        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports', [OrderReportController::class, 'managerConsolidatedReports'])
-        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+    Route::get('/reports/manager/consolidated-reports/{id}', [OrderReportController::class, 'managerConsolidatedShow'])
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/reports/manager/consolidated-reports/{id}/resubmit', [OrderReportController::class, 'managerConsolidatedResubmit'])
-        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
 
     // Level 3: Super Admin (Centralized Monitoring & Approval)
     Route::get('/reports/super-admin/overview', [OrderReportController::class, 'superAdminOverview'])

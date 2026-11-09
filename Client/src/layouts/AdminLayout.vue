@@ -234,21 +234,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Review Seller Reports</span>
-              </router-link>
-
-              <!-- Super Admin: Centralized Branch Sales & Order Reports -->
-              <router-link
-                v-if="canAccess('reports')"
-                to="/admin/reports"
-                @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
-                :class="$route.path === '/admin/reports' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
-              >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span>Branch Sales Reports</span>
+                <span>Branch Sales &amp; Seller Reports</span>
               </router-link>
             </div>
           </div>
@@ -581,7 +567,7 @@ const roleScope = computed(() => {
 
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices, inventory, and staff reports; Sellers manage daily orders and counter sales)
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'manager-reports', 'notifications', 'settings'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'notifications', 'settings'],
   'Main Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
   'Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
   'Branch Admin': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
