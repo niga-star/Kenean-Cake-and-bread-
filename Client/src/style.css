@@ -778,26 +778,73 @@ html.dark .shimmer-wave::after {
 
 .reveal-init {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(24px);
   transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
+.reveal-init.reveal-text {
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .reveal-init.reveal-fade-left {
-  transform: translateX(-32px);
+  transform: translateX(-28px);
 }
 
 .reveal-init.reveal-fade-right {
-  transform: translateX(32px);
+  transform: translateX(28px);
 }
 
 .reveal-init.reveal-scale {
-  transform: scale(0.94);
+  transform: scale(0.95);
 }
 
 .reveal-visible {
   opacity: 1 !important;
   transform: translateY(0) translateX(0) scale(1) !important;
+}
+
+/* Modern Homepage Hero Text Entrance Animations (Staggered Load) */
+@keyframes sweetTextSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-badge {
+  animation: sweetTextSlideUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+  will-change: opacity, transform;
+}
+
+.animate-hero-title {
+  animation: sweetTextSlideUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+  will-change: opacity, transform;
+}
+
+.animate-hero-desc {
+  animation: sweetTextSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.36s both;
+  will-change: opacity, transform;
+}
+
+.animate-hero-cta {
+  animation: sweetTextSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  will-change: opacity, transform;
+}
+
+.animate-hero-chips {
+  animation: sweetTextSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.64s both;
+  will-change: opacity, transform;
+}
+
+.animate-hero-stamp {
+  animation: sweetTextSlideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.75s both;
+  will-change: opacity, transform;
 }
 
 /* Cart Badge Pop Animation */
@@ -840,6 +887,13 @@ html.dark .shimmer-wave::after {
   .reveal-init.reveal-fade-left,
   .reveal-init.reveal-fade-right,
   .reveal-init.reveal-scale,
+  .reveal-init.reveal-text,
+  .animate-hero-badge,
+  .animate-hero-title,
+  .animate-hero-desc,
+  .animate-hero-cta,
+  .animate-hero-chips,
+  .animate-hero-stamp,
   .animate-fade-in-up,
   .animate-cart-pop,
   .btn-sweet-primary {

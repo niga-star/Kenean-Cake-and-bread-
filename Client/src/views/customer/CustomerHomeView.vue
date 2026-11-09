@@ -19,7 +19,7 @@
         <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/75 via-45% to-transparent dark:from-[#170E0A]/95 dark:via-[#170E0A]/75 dark:via-45% dark:to-transparent pointer-events-none"></div>
 
         <!-- Floating Luxury Artisan Stamp Badge on Image (Desktop) -->
-        <div class="hidden xl:flex absolute bottom-12 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto z-10">
+        <div class="animate-hero-stamp hidden xl:flex absolute bottom-12 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto z-10">
           <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-[#331A24] text-[#DE1B54] flex items-center justify-center text-xl shrink-0">
             🍰
           </div>
@@ -34,14 +34,14 @@
       <div class="sweetbakes-container py-12 sm:py-16 lg:py-24 relative z-10">
         <div class="max-w-xl xl:max-w-2xl space-y-4 sm:space-y-5 text-center lg:text-left">
           <!-- Compact Artisan Pill Badge with Amber Star and Red Heart -->
-          <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-300/80 dark:border-[#58263A] text-[#DE1B54] text-xs sm:text-sm font-bold tracking-wide shadow-xs">
+          <div class="animate-hero-badge inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-300/80 dark:border-[#58263A] text-[#DE1B54] text-xs sm:text-sm font-bold tracking-wide shadow-xs">
             <span class="text-amber-500 font-black">★</span>
             <span class="font-bold tracking-wide">{{ heroSubtitle }}</span>
             <span class="text-[#DE1B54] font-black">♥</span>
           </div>
 
           <!-- Large Bold Serif Title with Hand-script "Love ♡" in Signature SweetBakes Red -->
-          <h1 class="text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.14] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+          <h1 class="animate-hero-title text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.14] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
             <template v-if="localeStore.isAmharic">
               <span>{{ heroTitle1 }}</span>
               <span class="inline-block font-logo text-[#DE1B54] dark:text-rose-400 font-normal italic ml-2 drop-shadow-sm">♡</span>
@@ -59,12 +59,12 @@
           </h1>
 
           <!-- Body Description: Bold, Crisp, Clean & Impactful -->
-          <p class="text-base sm:text-lg md:text-xl text-[#1C0F0A] dark:text-[#F3EDE6] font-medium leading-relaxed max-w-lg lg:max-w-xl mx-auto lg:mx-0 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
+          <p class="animate-hero-desc text-base sm:text-lg md:text-xl text-[#1C0F0A] dark:text-[#F3EDE6] font-medium leading-relaxed max-w-lg lg:max-w-xl mx-auto lg:mx-0 drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)] dark:drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
             {{ heroDesc }}
           </p>
 
           <!-- CTA Buttons: Primary Button in Signature SweetBakes Red (#DE1B54) with Cart Icon -->
-          <div class="flex flex-col xs:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 w-full xs:w-auto">
+          <div class="animate-hero-cta flex flex-col xs:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 w-full xs:w-auto">
             <!-- Order Online: Signature SweetBakes Red Pill Button -->
             <router-link
               :to="currentBanner?.link_url || businessInfo?.hero_button_link || '/shop'"
@@ -88,7 +88,7 @@
           </div>
 
           <!-- Micro Trust Chips -->
-          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-[#1C0F0A] dark:text-[#FAF3EE]">
+          <div class="animate-hero-chips pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-[#1C0F0A] dark:text-[#FAF3EE]">
             <span class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-stone-200/90 dark:border-[#382318] shadow-xs">
               <span>🚚</span>
               <span class="font-bold text-[#1C0F0A] dark:text-[#F0E6DE]">{{ localeStore.isAmharic ? 'ፈጣን ማድረሻ' : 'Fast Delivery' }}</span>
@@ -175,19 +175,19 @@
             <!-- Header Row with Stamp in Top Right -->
             <div class="flex items-start justify-between gap-4">
               <div>
-                <div class="flex items-center space-x-2 text-[#DE1B54] font-script text-xl sm:text-2xl lg:text-3xl mb-1">
+                <div v-reveal:text="80" class="flex items-center space-x-2 text-[#DE1B54] font-script text-xl sm:text-2xl lg:text-3xl mb-1">
                   <span>🧁</span>
                   <span>{{ (localeStore.isAmharic ? businessInfo?.about_tag_am : businessInfo?.about_tag_en) || localeStore.t('about_tag') }}</span>
                 </div>
 
                 <!-- Headline -->
-                <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
+                <h3 v-reveal:text="150" class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
                   {{ (localeStore.isAmharic ? businessInfo?.about_title_am : businessInfo?.about_title_en) || localeStore.t('about_title') }}
                 </h3>
               </div>
 
               <!-- Scalloped Stamp / Seal: "SINCE 2015 ♡" -->
-              <div class="shrink-0">
+              <div v-reveal:scale="200" class="shrink-0">
                 <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-rose-50/95 dark:bg-[#341822]/95 border-2 border-dashed border-[#DE1B54] flex flex-col items-center justify-center text-center p-1 sm:p-1.5 shadow-xs text-[#DE1B54] rotate-6 hover:rotate-12 transition-transform duration-300 cursor-pointer select-none">
                   <span class="text-[8px] sm:text-[9px] font-bold tracking-wider uppercase font-serif">{{ localeStore.isAmharic ? 'ከ' : 'SINCE' }}</span>
                   <span class="text-sm sm:text-base lg:text-lg font-black font-serif leading-none">{{ businessInfo?.since_year || '2015' }}</span>
@@ -198,32 +198,32 @@
             </div>
 
             <!-- Body Paragraph -->
-            <p class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#EAE1DA] leading-relaxed max-w-lg">
+            <p v-reveal:text="220" class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#EAE1DA] leading-relaxed max-w-lg">
               {{ (localeStore.isAmharic ? businessInfo?.about_story_am : businessInfo?.about_story_en) || localeStore.t('about_desc') }}
             </p>
 
             <!-- 4 Bullets with Dark Circular Checkmarks -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm sm:text-base font-bold text-[#1C0F0A] dark:text-[#FAF3EE]">
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+              <div v-reveal:text="260" class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
                 <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_1_am : businessInfo?.about_bullet_1_en) || localeStore.t('premium_quality') }}</span>
               </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+              <div v-reveal:text="300" class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
                 <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_2_am : businessInfo?.about_bullet_2_en) || localeStore.t('fresh_ingredients') }}</span>
               </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+              <div v-reveal:text="340" class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
                 <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_3_am : businessInfo?.about_bullet_3_en) || localeStore.t('custom_orders') }}</span>
               </div>
-              <div class="flex items-center space-x-2.5 p-1 rounded-xl">
+              <div v-reveal:text="380" class="flex items-center space-x-2.5 p-1 rounded-xl">
                 <span class="w-5 h-5 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow-2xs">✓</span>
                 <span>{{ (localeStore.isAmharic ? businessInfo?.about_bullet_4_am : businessInfo?.about_bullet_4_en) || localeStore.t('multibranch_service') }}</span>
               </div>
             </div>
 
             <!-- Action & Experience Stats Row -->
-            <div class="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#F0E6DD] dark:border-[#382318]">
+            <div v-reveal:text="420" class="pt-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#F0E6DD] dark:border-[#382318]">
               <!-- Discover More Button -->
               <router-link
                 to="/branches"
@@ -265,7 +265,7 @@
     <section id="popular-products" class="sweetbakes-container" v-reveal>
       <!-- Section Header with Cake Icon & Dashes -->
       <div class="text-center space-y-1.5 mb-6 sm:mb-8">
-        <div class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-gray-300">
+        <div v-reveal:text="80" class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-gray-300">
           <span class="hidden xs:block h-px w-8 sm:w-16 bg-[#D8CDC5] dark:bg-[#3D261B]"></span>
           <span class="text-xl sm:text-2xl text-[#DE1B54]">🎂</span>
           <h2 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
@@ -273,13 +273,13 @@
           </h2>
           <span class="hidden xs:block h-px w-8 sm:w-16 bg-[#D8CDC5] dark:bg-[#3D261B]"></span>
         </div>
-        <p class="text-sm sm:text-base font-bold text-[#553C2E] dark:text-[#D4C5BB]">
+        <p v-reveal:text="160" class="text-sm sm:text-base font-bold text-[#553C2E] dark:text-[#D4C5BB]">
           {{ localeStore.t('popular_sub') }}
         </p>
       </div>
 
       <!-- Category Filter Pills (Exact Match to Uploaded Image) -->
-      <div class="flex flex-wrap items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 mb-8">
+      <div v-reveal:text="240" class="flex flex-wrap items-center justify-center gap-1.5 xs:gap-2 sm:gap-2.5 mb-8">
         <button
           v-for="cat in categoryItems"
           :key="cat.key"
@@ -405,7 +405,7 @@
       </div>
 
       <!-- Centered "Explore All Products →" Rounded Pill Button -->
-      <div class="mt-8 sm:mt-10 text-center">
+      <div v-reveal:text="100" class="mt-8 sm:mt-10 text-center">
         <router-link
           to="/shop"
           class="px-8 py-3 min-h-[44px] rounded-full border-2 border-[#DE1B54] text-[#DE1B54] hover:bg-[#DE1B54] hover:text-white font-bold text-xs sm:text-sm transition-all duration-300 shadow-2xs hover:shadow-md cursor-pointer inline-flex items-center space-x-2 group"
@@ -423,7 +423,7 @@
 
       <!-- Section Header with Cupcake & Delicate Pink Divider Lines -->
       <div class="text-center space-y-1.5 mb-8 sm:mb-10">
-        <div class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-rose-200 dark:text-[#58263A]">
+        <div v-reveal:text="80" class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-rose-200 dark:text-[#58263A]">
           <span class="hidden xs:block h-px w-8 sm:w-24 bg-rose-200 dark:bg-[#58263A]"></span>
           <span class="text-xl sm:text-2xl text-[#DE1B54]">🧁</span>
           <h2 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
@@ -431,7 +431,7 @@
           </h2>
           <span class="hidden xs:block h-px w-8 sm:w-24 bg-rose-200 dark:bg-[#58263A]"></span>
         </div>
-        <p class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
+        <p v-reveal:text="150" class="text-xs sm:text-sm text-[#786B60] dark:text-[#C5B7AF]">
           {{ localeStore.t('reviews_sub') }}
         </p>
       </div>
@@ -546,19 +546,19 @@
       <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#FFF0F4] via-[#FDE4EE] to-[#FCE4EC] dark:from-[#341822] dark:via-[#29121B] dark:to-[#381A25] border border-[#F6C5D6] dark:border-[#552438] p-5 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-sm group">
         <!-- Left Column: Special Offer Text & Call to Action -->
         <div class="space-y-3 sm:space-y-4 text-center md:text-left z-10 max-w-xl w-full">
-          <span class="inline-block px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#DE1B54] text-white shadow-2xs">
+          <span v-reveal:text="80" class="inline-block px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#DE1B54] text-white shadow-2xs">
             {{ localeStore.t('special_offer') }}
           </span>
-          <h3 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
+          <h3 v-reveal:text="150" class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
             {{ localeStore.t('offer_title_1') }} <span class="text-[#DE1B54] font-script italic">{{ localeStore.t('offer_title_2') }}</span>
           </h3>
-          <p class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed">
+          <p v-reveal:text="220" class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed">
             {{ localeStore.t('offer_desc') }}
           </p>
         </div>
 
         <!-- Right Column: Dynamic Discount Badge, Action Button, and Featured Celebration Cake -->
-        <div class="flex items-center justify-center md:justify-end gap-3 sm:gap-4 z-10 w-full md:w-auto">
+        <div v-reveal:text="280" class="flex items-center justify-center md:justify-end gap-3 sm:gap-4 z-10 w-full md:w-auto">
           <!-- Discount Badge (from Database) -->
           <div class="px-5 py-3 rounded-full bg-[#DE1B54] text-white font-black text-sm sm:text-base tracking-wide shadow-md whitespace-nowrap animate-pulse">
             {{ activePromotion ? `${activePromotion.discount_value}% OFF` : localeStore.t('discount_label') }}
