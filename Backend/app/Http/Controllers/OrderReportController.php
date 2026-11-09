@@ -703,15 +703,24 @@ class OrderReportController extends Controller
             $report->returned_at = now();
             $report->save();
 
-            // Dispatch notification directly to the seller
-            Notification::create([
-                'user_id' => $report->seller_id,
-                'branch_id' => $report->branch_id,
-                'category' => 'Reports',
-                'title' => "Daily Report Rejected: {$report->report_reference}",
-                'message' => "Your daily sales report was rejected by Branch Manager {$manager->full_name}: {$validated['manager_notes']}. Please review and update.",
-                'link' => '/admin/seller-reports',
-            ]);
+            // Dispatch notification directly to the seller (Strictly once)
+            $alreadyRejected = Notification::where('user_id', $report->seller_id)
+                ->where('category', 'Reports')
+                ->where('title', 'like', "%{$report->report_reference}%")
+                ->where('title', 'like', '%Rejected%')
+                ->where('created_at', '>=', now()->subHours(12))
+                ->exists();
+
+            if (!$alreadyRejected) {
+                Notification::create([
+                    'user_id' => $report->seller_id,
+                    'branch_id' => $report->branch_id,
+                    'category' => 'Reports',
+                    'title' => "Report Rejected: {$report->report_reference}",
+                    'message' => "Manager note: {$validated['manager_notes']}",
+                    'link' => '/admin/seller-reports',
+                ]);
+            }
 
             return response()->json([
                 'success' => true,
@@ -727,15 +736,24 @@ class OrderReportController extends Controller
         $report->verified_at = now();
         $report->save();
 
-        // Dispatch notification directly to the seller
-        Notification::create([
-            'user_id' => $report->seller_id,
-            'branch_id' => $report->branch_id,
-            'category' => 'Reports',
-            'title' => "Daily Report Approved: {$report->report_reference}",
-            'message' => "Your daily sales report {$report->report_reference} was verified and approved by Branch Manager {$manager->full_name}.",
-            'link' => '/admin/seller-reports',
-        ]);
+        // Dispatch notification directly to the seller (Strictly once)
+        $alreadyApproved = Notification::where('user_id', $report->seller_id)
+            ->where('category', 'Reports')
+            ->where('title', 'like', "%{$report->report_reference}%")
+            ->where('title', 'like', '%Approved%')
+            ->where('created_at', '>=', now()->subHours(12))
+            ->exists();
+
+        if (!$alreadyApproved) {
+            Notification::create([
+                'user_id' => $report->seller_id,
+                'branch_id' => $report->branch_id,
+                'category' => 'Reports',
+                'title' => "Report Approved: {$report->report_reference}",
+                'message' => "Your daily sales report was verified and approved by {$manager->full_name}.",
+                'link' => '/admin/seller-reports',
+            ]);
+        }
 
         return response()->json([
             'success' => true,

@@ -348,26 +348,58 @@ class OrderController extends Controller
                 'created_at' => now(),
             ]);
 
-            // Real-time branch staff notification
-            Notification::create([
-                'user_id' => null,
-                'branch_id' => $order->branch_id,
-                'category' => 'Orders',
-                'title' => "Order {$order->order_number} is {$newStatus}",
-                'message' => "Order {$order->order_number} ({$order->customer_name}) status updated from {$oldStatus} to {$newStatus}.",
-                'link' => '/admin/orders',
-            ]);
+            // Branch Seller / Staff Notifications (Strictly important status changes, sent only once per status change)
+            $importantStaffStatuses = ['Preparing', 'Out for delivery', 'Ready'];
+            if (in_array($newStatus, $importantStaffStatuses) && $oldStatus !== $newStatus) {
+                $alreadySentStaff = Notification::where('branch_id', $order->branch_id)
+                    ->where('category', 'Orders')
+                    ->where('title', 'like', "%{$order->order_number}%")
+                    ->where('title', 'like', "%{$newStatus}%")
+                    ->exists();
 
-            // Customer notification
-            if ($order->user_id) {
-                Notification::create([
-                    'user_id' => $order->user_id,
-                    'branch_id' => $order->branch_id,
-                    'category' => 'Orders',
-                    'title' => "Your Order {$order->order_number} is {$newStatus}",
-                    'message' => "Your order {$order->order_number} status is now {$newStatus}.",
-                    'link' => "/orders/{$order->order_number}",
-                ]);
+                if (!$alreadySentStaff) {
+                    $staffTitle = match ($newStatus) {
+                        'Preparing' => "Preparation Started: {$order->order_number}",
+                        'Out for delivery' => "Out for Delivery: {$order->order_number}",
+                        'Ready' => "Ready for Pickup: {$order->order_number}",
+                        default => "Order {$order->order_number} is {$newStatus}",
+                    };
+
+                    $staffMessage = match ($newStatus) {
+                        'Preparing' => "Kitchen has started preparing {$order->order_number} ({$order->customer_name}).",
+                        'Out for delivery' => "{$order->order_number} is dispatched and on the way to {$order->customer_name}.",
+                        'Ready' => "{$order->order_number} is packed and ready for customer pickup.",
+                        default => "Status updated to {$newStatus}.",
+                    };
+
+                    Notification::create([
+                        'user_id' => null,
+                        'branch_id' => $order->branch_id,
+                        'category' => 'Orders',
+                        'title' => $staffTitle,
+                        'message' => $staffMessage,
+                        'link' => '/admin/orders',
+                    ]);
+                }
+            }
+
+            // Customer notification (Only sent once per status change)
+            if ($order->user_id && $oldStatus !== $newStatus) {
+                $alreadySentCust = Notification::where('user_id', $order->user_id)
+                    ->where('title', 'like', "%{$order->order_number}%")
+                    ->where('title', 'like', "%{$newStatus}%")
+                    ->exists();
+
+                if (!$alreadySentCust) {
+                    Notification::create([
+                        'user_id' => $order->user_id,
+                        'branch_id' => $order->branch_id,
+                        'category' => 'Orders',
+                        'title' => "Order {$order->order_number}: {$newStatus}",
+                        'message' => "Your order status is now {$newStatus}.",
+                        'link' => "/orders/{$order->order_number}",
+                    ]);
+                }
             }
         });
 

@@ -418,7 +418,86 @@
       </div>
     </section>
 
-    <!-- 4. "WHAT OUR CUSTOMERS SAY" (REVIEWS) SECTION: With Flanking Navigation Arrows -->
+    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner (Matching Reference Image) -->
+    <section class="sweetbakes-container" v-reveal>
+      <div class="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-[#FFF7F6] via-[#FAF3F0] to-[#FDE8EE] dark:from-[#20120D] dark:via-[#1A0E0A] dark:to-[#2B141C] border border-[#F6E1DC] dark:border-[#3E231A] shadow-md hover:shadow-2xl transition-all duration-500 p-6 sm:p-10 lg:p-12 xl:p-14 group">
+        <!-- Soft Ambient Pink Glows in Background -->
+        <div class="absolute -right-12 -bottom-16 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F9B4C4]/40 dark:bg-[#DE1B54]/15 blur-2xl pointer-events-none"></div>
+        <div class="absolute right-36 -top-10 w-64 h-64 rounded-full bg-[#FBCFE8]/30 dark:bg-rose-950/20 blur-xl pointer-events-none"></div>
+        <div class="absolute right-0 bottom-0 w-72 h-36 rounded-tl-[100%] bg-[#F59EB5]/25 dark:bg-[#DE1B54]/15 pointer-events-none"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <!-- Left Column: Typography & Launch Button (lg:col-span-7) -->
+          <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
+            <!-- Pill Badge: 🍰 Cake Studio -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#FDE7EC] dark:bg-[#381B26] text-[#2C1810] dark:text-[#FAF3EE] font-bold text-xs sm:text-sm shadow-2xs">
+              <span class="text-base">🍰</span>
+              <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
+            </div>
+
+            <!-- Big Bold Title with Radiating Sparkle Lines on "Dream Masterpiece" -->
+            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-sans font-black text-[#26150F] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+              <template v-if="localeStore.isAmharic">
+                <span>የህልምዎን ኬክ</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  በ3D ይንደፉ
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>በቀላሉ ያዘጋጁ</span>
+              </template>
+              <template v-else>
+                <span>Create Your</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  Dream Masterpiece
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>in 3D</span>
+              </template>
+            </h2>
+
+            <!-- Clean Subtitle Paragraph -->
+            <p class="text-sm sm:text-base md:text-lg text-[#6E5C54] dark:text-[#C5B7AF] font-medium leading-snug max-w-md mx-auto lg:mx-0 whitespace-pre-line">
+              {{ localeStore.isAmharic
+                ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ።\nሃሳብዎን ወደ እውነት ይለውጡ!'
+                : 'Design stunning cakes with ease.\nMake your ideas come to life!'
+              }}
+            </p>
+
+            <!-- Rocket Launch CTA Button -->
+            <div class="pt-2 flex justify-center lg:justify-start">
+              <router-link
+                to="/custom-cake"
+                class="inline-flex items-center space-x-2.5 px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group/btn"
+              >
+                <span class="text-base sm:text-lg">🚀</span>
+                <span>{{ localeStore.isAmharic ? 'የ3D ኬክ ስቱዲዮውን ይክፈቱ' : 'Launch 3D Cake Studio' }}</span>
+                <span class="text-lg group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal (lg:col-span-5) -->
+          <div class="lg:col-span-5 flex justify-center items-center relative">
+            <img
+              src="/mockup/custom_studio_cake_pure.png"
+              alt="SweetBakes 3D Cake Studio Masterpiece"
+              class="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-none h-auto object-contain drop-shadow-xl group-hover:scale-104 group-hover:-translate-y-2 transition-transform duration-500"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. "WHAT OUR CUSTOMERS SAY" (REVIEWS) SECTION: With Flanking Navigation Arrows -->
     <section id="reviews" class="sweetbakes-container relative" v-reveal>
       <!-- Symmetrical Centered Ambient Blush Cloud (Locked to Center, Never Distorts on Zoom) -->
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-72 bg-rose-100/40 dark:bg-rose-950/15 rounded-full blur-3xl pointer-events-none -z-10"></div>

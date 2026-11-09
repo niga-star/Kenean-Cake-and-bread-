@@ -287,14 +287,21 @@ class OrderService
                 'created_at' => now(),
             ]);
 
-            Notification::create([
-                'user_id' => null,
-                'branch_id' => $branch->branch_id,
-                'category' => 'Orders',
-                'title' => "New Order: {$customerName}",
-                'message' => "Order {$order->order_number} placed at {$branch->branch_name} for ETB " . number_format($totalAmount, 0),
-                'link' => '/admin/orders',
-            ]);
+            $alreadyNotifiedOrder = Notification::where('branch_id', $branch->branch_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$order->order_number}%")
+                ->exists();
+
+            if (!$alreadyNotifiedOrder) {
+                Notification::create([
+                    'user_id' => null,
+                    'branch_id' => $branch->branch_id,
+                    'category' => 'Orders',
+                    'title' => "New Order: {$order->order_number}",
+                    'message' => "Order from {$customerName} (ETB " . number_format($totalAmount, 0) . ")",
+                    'link' => '/admin/orders',
+                ]);
+            }
 
             if ($orderUserId) {
                 Notification::create([

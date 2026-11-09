@@ -453,26 +453,58 @@ class CustomCakeController extends Controller
             'created_at' => now(),
         ]);
 
-        // Real-time branch staff notification
-        Notification::create([
-            'user_id' => null,
-            'branch_id' => $cakeReq->branch_id,
-            'category' => 'Orders',
-            'title' => "Custom Cake {$cakeReq->request_number} is {$validated['status']}",
-            'message' => "Custom cake for {$cakeReq->customer_name} is now {$validated['status']}.",
-            'link' => '/admin/custom-cakes',
-        ]);
+        // Branch Seller / Staff Notifications (Strictly important custom cake milestones, sent only once per status change)
+        $importantCakeStatuses = ['Preparing', 'Ready', 'Delivered', 'Picked up'];
+        if (in_array($validated['status'], $importantCakeStatuses) && $oldStatus !== $validated['status']) {
+            $alreadySentStaff = Notification::where('branch_id', $cakeReq->branch_id)
+                ->where('category', 'Orders')
+                ->where('title', 'like', "%{$cakeReq->request_number}%")
+                ->where('title', 'like', "%{$validated['status']}%")
+                ->exists();
 
-        // Customer notification
-        if ($cakeReq->user_id) {
-            Notification::create([
-                'user_id' => $cakeReq->user_id,
-                'branch_id' => $cakeReq->branch_id,
-                'category' => 'Orders',
-                'title' => "Your Custom Cake is {$validated['status']}",
-                'message' => "Your custom cake order {$cakeReq->request_number} is now {$validated['status']}.",
-                'link' => '/account?tab=custom-cakes',
-            ]);
+            if (!$alreadySentStaff) {
+                $staffTitle = match ($validated['status']) {
+                    'Preparing' => "Cake Baking Started: {$cakeReq->request_number}",
+                    'Ready' => "Cake Ready for Pickup: {$cakeReq->request_number}",
+                    'Delivered', 'Picked up' => "Cake Handed Over: {$cakeReq->request_number}",
+                    default => "Custom Cake {$cakeReq->request_number}: {$validated['status']}",
+                };
+
+                $staffMsg = match ($validated['status']) {
+                    'Preparing' => "Kitchen has started crafting custom cake for {$cakeReq->customer_name}.",
+                    'Ready' => "Custom cake for {$cakeReq->customer_name} is finished, chilled, and ready for pickup.",
+                    'Delivered', 'Picked up' => "Custom cake for {$cakeReq->customer_name} has been successfully collected/delivered.",
+                    default => "Custom cake status updated to {$validated['status']}.",
+                };
+
+                Notification::create([
+                    'user_id' => null,
+                    'branch_id' => $cakeReq->branch_id,
+                    'category' => 'Orders',
+                    'title' => $staffTitle,
+                    'message' => $staffMsg,
+                    'link' => '/admin/custom-cakes',
+                ]);
+            }
+        }
+
+        // Customer notification (Only sent once per status change)
+        if ($cakeReq->user_id && $oldStatus !== $validated['status']) {
+            $alreadySentCust = Notification::where('user_id', $cakeReq->user_id)
+                ->where('title', 'like', "%{$cakeReq->request_number}%")
+                ->where('title', 'like', "%{$validated['status']}%")
+                ->exists();
+
+            if (!$alreadySentCust) {
+                Notification::create([
+                    'user_id' => $cakeReq->user_id,
+                    'branch_id' => $cakeReq->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Custom Cake: {$validated['status']}",
+                    'message' => "Your custom cake {$cakeReq->request_number} is now {$validated['status']}.",
+                    'link' => '/account?tab=custom-cakes',
+                ]);
+            }
         }
 
         return response()->json($cakeReq);

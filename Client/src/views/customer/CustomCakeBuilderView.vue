@@ -1,34 +1,69 @@
 <template>
   <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
-    <!-- 1. HERO BANNER -->
-    <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[180px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
-      <div class="absolute right-0 top-0 bottom-0 w-full lg:w-[55%] overflow-hidden pointer-events-none">
-        <img
-          src="/mockup/shop_banner_right.jpg"
-          alt="SweetBakes Custom Cake Studio"
-          class="w-full h-full object-cover object-center lg:object-left"
-          loading="eager"
-        />
-        <div class="absolute inset-y-0 left-0 w-32 sm:w-48 bg-gradient-to-r from-[#FDF3EE] via-[#FDF3EE]/80 to-transparent hidden lg:block dark:from-[#170E0A] dark:via-[#170E0A]/80"></div>
-        <div class="absolute inset-0 bg-[#FFF5F2]/80 sm:bg-[#FFF5F2]/75 dark:bg-[#170E0A]/85 lg:hidden"></div>
+    <!-- 1. HERO BANNER: 3D Cake Studio Luxury Landing (Matching Reference) -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-[#FFF8F7] via-[#FFF3F5] to-[#FCE8EE] dark:from-[#20120D] dark:via-[#1A0E0A] dark:to-[#2B141C] border-b border-[#F6DFE5] dark:border-[#382318] py-8 sm:py-10">
+      <!-- Soft Ambient Organic Pink Curves in Background -->
+      <div class="absolute right-0 top-0 bottom-0 w-full sm:w-[50%] lg:w-[48%] overflow-hidden pointer-events-none">
+        <div class="absolute -right-10 -bottom-10 w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] rounded-full bg-gradient-to-tr from-[#F8B6C7]/45 to-[#FCE3EB]/55 dark:from-[#DE1B54]/20 dark:to-[#DE1B54]/5 blur-xs"></div>
+        <div class="absolute -right-20 -bottom-24 w-[360px] h-[220px] rounded-[100%] bg-[#F59EB5]/35 dark:bg-[#DE1B54]/20"></div>
       </div>
 
-      <div class="sweetbakes-container w-full py-8 relative z-10">
-        <div class="max-w-xl space-y-2 text-center lg:text-left">
-          <div class="flex items-center justify-center lg:justify-start space-x-2 font-script text-2xl sm:text-3xl text-[#DE1B54]">
-            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
-            <span>{{ localeStore.t('custom_cake') }}</span>
-            <span class="text-gray-300 dark:text-gray-600 select-none">&mdash;</span>
+      <div class="sweetbakes-container relative z-10 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <!-- Left Column: Typography & Launch Pill -->
+          <div class="lg:col-span-7 space-y-3 sm:space-y-4 text-center lg:text-left">
+            <!-- Pill Badge: 🍰 Cake Studio -->
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#FDE7EC] dark:bg-[#381B26] text-[#2C1810] dark:text-[#FAF3EE] font-bold text-xs sm:text-sm shadow-2xs">
+              <span class="text-base">🍰</span>
+              <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
+            </div>
+
+            <!-- Big Bold Title with Radiating Sparkle Lines -->
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-sans font-black text-[#26150F] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+              <template v-if="localeStore.isAmharic">
+                <span>የህልምዎን ኬክ</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  በ3D ይንደፉ
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>በቀላሉ ያዘጋጁ</span>
+              </template>
+              <template v-else>
+                <span>Create Your</span><br />
+                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                  Dream Masterpiece
+                  <svg class="absolute -top-3.5 -right-7 sm:-top-4.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M6 18L10 14" />
+                    <path d="M14 11L17 5" />
+                    <path d="M22 15L27 12" />
+                  </svg>
+                </span><br />
+                <span>in 3D</span>
+              </template>
+            </h1>
+
+            <!-- Clean Subtitle Paragraph -->
+            <p class="text-sm sm:text-base text-[#6E5C54] dark:text-[#C5B7AF] font-medium leading-relaxed max-w-md mx-auto lg:mx-0">
+              {{ localeStore.isAmharic
+                ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ። ሃሳብዎን ወደ እውነት ይለውጡ!'
+                : 'Design stunning cakes with ease. Make your ideas come to life!'
+              }}
+            </p>
           </div>
 
-          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight leading-tight">
-            {{ localeStore.isAmharic ? 'የህልምዎን ኬክ ይንደፉ' : 'Design Your Dream Cake' }}
-          </h1>
-
-          <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] flex items-center justify-center lg:justify-start space-x-1.5">
-            <span>{{ localeStore.isAmharic ? 'ለየት ያሉ የክብረ በዓል ኬኮች በፍቅር በእጅ የተዘጋጁ!' : 'Bespoke celebration centerpieces handcrafted with love!' }}</span>
-            <span class="text-[#DE1B54] text-base font-bold font-script">♡</span>
-          </p>
+          <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal -->
+          <div class="lg:col-span-5 flex justify-center items-center relative">
+            <img
+              src="/mockup/custom_studio_cake_pure.png"
+              alt="SweetBakes 3D Cake Studio Masterpiece"
+              class="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] h-auto object-contain drop-shadow-xl hover:scale-103 transition-transform duration-500"
+              loading="eager"
+            />
+          </div>
         </div>
       </div>
     </section>
