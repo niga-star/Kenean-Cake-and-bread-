@@ -7,6 +7,7 @@ use App\Models\StaffReport;
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\AuditLog;
+use App\Models\Notification;
 use Carbon\Carbon;
 
 class StaffReportController extends Controller
@@ -148,6 +149,17 @@ class StaffReportController extends Controller
             'created_at' => now(),
         ]);
 
+        if ($submittedToId) {
+            Notification::create([
+                'user_id' => $submittedToId,
+                'branch_id' => $branchId ?: 1,
+                'category' => 'Staff Reports',
+                'title' => "New Staff Report: {$report->title}",
+                'message' => "Staff member {$currentUser->full_name} submitted a {$report->report_type} for review.",
+                'link' => '/admin/staff-reports',
+            ]);
+        }
+
         return response()->json([
             'message' => 'Report submitted successfully.',
             'report' => $report->load(['user', 'branch', 'submittedTo']),
@@ -211,6 +223,17 @@ class StaffReportController extends Controller
             'new_value' => $report->status . ($report->manager_notes ? " - {$report->manager_notes}" : ''),
             'created_at' => now(),
         ]);
+
+        if ($report->user_id) {
+            Notification::create([
+                'user_id' => $report->user_id,
+                'branch_id' => $report->branch_id,
+                'category' => 'Staff Reports',
+                'title' => "Staff Report {$report->status}",
+                'message' => "Your report '{$report->title}' was reviewed by {$currentUser->full_name} ({$report->status}).",
+                'link' => '/admin/staff-reports',
+            ]);
+        }
 
         return response()->json([
             'message' => 'Report review status updated successfully.',

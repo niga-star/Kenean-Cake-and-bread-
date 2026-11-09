@@ -10,7 +10,7 @@
           </h1>
         </div>
         <p class="text-sm text-[#7D6E64] mt-1">
-          Branch Seller order &amp; custom cake sales recording. Submit completed reports to Super Admin for verification.
+          Branch Seller order &amp; custom cake sales recording. Submit completed reports to your Branch Manager for review and approval.
         </p>
       </div>
 
@@ -40,11 +40,11 @@
     >
       <span class="text-xl">⚠️</span>
       <div class="space-y-1">
-        <div class="text-sm font-bold">This report was returned by Super Admin for correction</div>
+        <div class="text-sm font-bold">This report was rejected by your Branch Manager</div>
         <div class="text-xs bg-white/70 p-2.5 rounded-xl border border-rose-200 font-medium">
           <strong>Review Note:</strong> {{ currentManagerNotes || 'Please double check product quantities and payment amounts.' }}
         </div>
-        <div class="text-xs text-rose-700">Please review the indicated items below, make necessary adjustments, and click "Submit to Super Admin".</div>
+        <div class="text-xs text-rose-700">Please review the indicated items below, make necessary adjustments, and click "Submit to Branch Manager".</div>
       </div>
     </div>
 
@@ -505,7 +505,7 @@
       <!-- SECTION E: SELLER SUBMISSION ACTIONS -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
         <div class="text-xs text-[#7D6E64]">
-          <span class="font-bold text-[#2B1810]">Reporting Policy:</span> Once submitted, the report is securely transferred to Super Admin for verification and cannot be modified unless returned with notes.
+          <span class="font-bold text-[#2B1810]">Reporting Policy:</span> Once submitted, the report is securely transferred to your Branch Manager for verification and cannot be modified unless returned with notes.
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -524,7 +524,7 @@
             :disabled="saving"
             class="px-6 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold text-xs sm:text-sm rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-2"
           >
-            <span>{{ saving && submitAction === 'submit' ? 'Submitting...' : '📤 Submit to Super Admin' }}</span>
+            <span>{{ saving && submitAction === 'submit' ? 'Submitting...' : '📤 Submit to Branch Manager' }}</span>
           </button>
         </div>
       </div>
@@ -934,7 +934,7 @@ async function saveReport(action) {
   }
 
   if (action === 'submit') {
-    const confirmMsg = `Submit Daily Sales Report for ETB ${summaryTotals.value.combinedDailyRevenue.toFixed(2)} to Super Admin for verification?`;
+    const confirmMsg = `Submit Daily Sales Report for ETB ${summaryTotals.value.combinedDailyRevenue.toFixed(2)} to your Branch Manager for verification?`;
     if (!confirm(confirmMsg)) return;
   }
 
@@ -958,7 +958,7 @@ async function saveReport(action) {
     }
 
     if (res.data && res.data.success) {
-      alert(res.data.message || (action === 'submit' ? 'Submitted to Super Admin for verification successfully!' : 'Draft saved.'));
+      alert(res.data.message || (action === 'submit' ? 'Submitted to your Branch Manager for verification successfully!' : 'Draft saved.'));
       await fetchReportsHistory();
 
       // Reset form if submitted
@@ -1009,7 +1009,7 @@ async function editReport(id) {
     if (res.data && res.data.success) {
       const rep = res.data.report;
       editingReportId.value = rep.id;
-      isReturned.value = rep.status === 'Returned for Correction';
+      isReturned.value = rep.status === 'Returned for Correction' || rep.status === 'Rejected';
       currentManagerNotes.value = rep.manager_notes || '';
       form.report_date = rep.report_date?.substring(0, 10) || new Date().toISOString().substring(0, 10);
       form.report_reference = rep.report_reference;

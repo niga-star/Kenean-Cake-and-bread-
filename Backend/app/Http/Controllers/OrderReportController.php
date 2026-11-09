@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\SellerDailyReport;
 use App\Models\SellerReportCustomCake;
 use App\Models\SellerReportOrder;
+use App\Models\Notification;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -391,7 +392,7 @@ class OrderReportController extends Controller
 
         $reportDate = Carbon::parse($validated['report_date'])->toDateString();
         // Sequential reference with collision protection
-        $ref = $validated['report_reference'] ?: $this->generateDsrReference($branchId, $reportDate);
+        $ref = !empty($validated['report_reference']) ? $validated['report_reference'] : $this->generateDsrReference($branchId, $reportDate);
 
         // Status determination
         $isSubmit = $validated['action'] === 'submit';
@@ -480,11 +481,30 @@ class OrderReportController extends Controller
             // Recalculate summary totals accurately on backend
             $report->recalculateTotals();
 
+            if ($isSubmit) {
+                // Find assigned Branch Manager for this branch
+                $branch = Branch::find($branchId);
+                $managerId = $branch?->manager_id ?: User::where('branch_id', $branchId)
+                    ->whereIn('role', ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])
+                    ->value('user_id');
+
+                if ($managerId) {
+                    Notification::create([
+                        'user_id' => $managerId,
+                        'branch_id' => $branchId,
+                        'category' => 'Reports',
+                        'title' => "New Daily Sales Report: {$ref}",
+                        'message' => "Seller {$user->full_name} submitted daily sales report {$ref} (ETB " . number_format($report->combined_daily_revenue, 2) . ") for your review.",
+                        'link' => '/admin/manager-reports',
+                    ]);
+                }
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => $isSubmit ? 'Daily sales report submitted to Super Admin for verification successfully.' : 'Daily sales report saved as draft.',
+                'message' => $isSubmit ? 'Daily sales report submitted to your Branch Manager for review and approval successfully.' : 'Daily sales report saved as draft.',
                 'report' => $report->load(['orders', 'customCakes', 'branch']),
             ], 201);
         } catch (\Throwable $e) {
@@ -512,7 +532,7 @@ class OrderReportController extends Controller
             abort(403, 'Access denied: You can only update reports for your assigned branch.');
         }
 
-        if (!in_array($report->status, ['Draft', 'Returned for Correction'])) {
+        if (!in_array($report->status, ['Draft', 'Returned for Correction', 'Rejected'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'This report cannot be edited because it is ' . $report->status . '.',
@@ -613,11 +633,29 @@ class OrderReportController extends Controller
 
             $report->recalculateTotals();
 
+            if ($isSubmit) {
+                $branch = Branch::find($report->branch_id);
+                $managerId = $branch?->manager_id ?: User::where('branch_id', $report->branch_id)
+                    ->whereIn('role', ['Branch Manager', 'Main Branch Manager', 'Branch Admin'])
+                    ->value('user_id');
+
+                if ($managerId) {
+                    Notification::create([
+                        'user_id' => $managerId,
+                        'branch_id' => $report->branch_id,
+                        'category' => 'Reports',
+                        'title' => "Re-submitted Daily Sales Report: {$report->report_reference}",
+                        'message' => "Seller {$user->full_name} has re-submitted daily sales report {$report->report_reference} (ETB " . number_format($report->combined_daily_revenue, 2) . ") for your review.",
+                        'link' => '/admin/manager-reports',
+                    ]);
+                }
+            }
+
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => $isSubmit ? 'Report re-submitted to Super Admin for verification.' : 'Draft updated successfully.',
+                'message' => $isSubmit ? 'Report re-submitted to your Branch Manager for review and approval.' : 'Draft updated successfully.',
                 'report' => $report->fresh(['orders', 'customCakes', 'branch']),
             ]);
         } catch (\Throwable $e) {
@@ -634,7 +672,7 @@ class OrderReportController extends Controller
     // =========================================================================
 
     /**
-     * Branch Manager reviews a seller report: Approve or Return for Correction
+     * Branch Manager reviews a seller report: Approve directly or Reject with reason
      */
     public function managerVerifyReport(Request $request, $id)
     {
@@ -647,27 +685,37 @@ class OrderReportController extends Controller
         }
 
         $validated = $request->validate([
-            'action' => 'required|in:approve,return',
+            'action' => 'required|in:approve,return,reject',
             'manager_notes' => 'nullable|string|max:1000',
         ]);
 
-        if ($validated['action'] === 'return') {
+        if ($validated['action'] === 'return' || $validated['action'] === 'reject') {
             if (empty($validated['manager_notes'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Please provide a correction note explaining what needs to be fixed.',
+                    'message' => 'Please provide a reason / correction note explaining what needs to be fixed.',
                 ], 422);
             }
 
-            $report->status = 'Returned for Correction';
+            $report->status = 'Rejected';
             $report->manager_id = $manager->user_id;
             $report->manager_notes = $validated['manager_notes'];
             $report->returned_at = now();
             $report->save();
 
+            // Dispatch notification directly to the seller
+            Notification::create([
+                'user_id' => $report->seller_id,
+                'branch_id' => $report->branch_id,
+                'category' => 'Reports',
+                'title' => "Daily Report Rejected: {$report->report_reference}",
+                'message' => "Your daily sales report was rejected by Branch Manager {$manager->full_name}: {$validated['manager_notes']}. Please review and update.",
+                'link' => '/admin/seller-reports',
+            ]);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Report has been returned to seller for correction with notes.',
+                'message' => 'Report has been rejected and returned to seller with your reason.',
                 'report' => $report,
             ]);
         }
@@ -678,6 +726,16 @@ class OrderReportController extends Controller
         $report->manager_notes = $validated['manager_notes'] ?? null;
         $report->verified_at = now();
         $report->save();
+
+        // Dispatch notification directly to the seller
+        Notification::create([
+            'user_id' => $report->seller_id,
+            'branch_id' => $report->branch_id,
+            'category' => 'Reports',
+            'title' => "Daily Report Approved: {$report->report_reference}",
+            'message' => "Your daily sales report {$report->report_reference} was verified and approved by Branch Manager {$manager->full_name}.",
+            'link' => '/admin/seller-reports',
+        ]);
 
         return response()->json([
             'success' => true,

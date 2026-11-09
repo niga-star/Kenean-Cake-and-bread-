@@ -63,7 +63,7 @@
         <div class="flex items-center space-x-2">
           <span class="text-xs font-bold text-[#7D6E64] uppercase">Status Filter:</span>
           <button
-            v-for="st in ['All', 'Pending Verification', 'Approved', 'Returned for Correction']"
+            v-for="st in ['All', 'Pending Verification', 'Approved', 'Rejected', 'Returned for Correction']"
             :key="st"
             @click="filterStatus = st; fetchSellerReports()"
             class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
@@ -134,7 +134,7 @@
                     :class="{
                       'bg-amber-50 text-amber-800 border-amber-200': rep.status === 'Pending Verification',
                       'bg-emerald-50 text-emerald-800 border-emerald-200': rep.status === 'Approved',
-                      'bg-rose-50 text-rose-800 border-rose-200': rep.status === 'Returned for Correction',
+                      'bg-rose-50 text-rose-800 border-rose-200': rep.status === 'Returned for Correction' || rep.status === 'Rejected',
                       'bg-stone-100 text-stone-700 border-stone-200': rep.status === 'Draft'
                     }"
                   >
@@ -580,19 +580,21 @@
 
           <div class="flex items-center space-x-3">
             <button
-              @click="submitVerification('return')"
+              @click="submitVerification('reject')"
               :disabled="verifyingSubmitting"
-              class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl transition cursor-pointer"
+              class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl transition cursor-pointer flex items-center space-x-1"
             >
-              ↩️ Return for Correction
+              <span>❌</span>
+              <span>Reject with Reason</span>
             </button>
 
             <button
               @click="submitVerification('approve')"
               :disabled="verifyingSubmitting"
-              class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs"
+              class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-1"
             >
-              ✅ Approve Seller Report
+              <span>✅</span>
+              <span>Approve Directly</span>
             </button>
           </div>
         </div>
@@ -951,16 +953,16 @@ async function openVerificationModal(id) {
   }
 }
 
-// Submit manager decision (approve or return)
+// Submit manager decision (approve or reject)
 async function submitVerification(action) {
-  if (action === 'return' && !reviewNotes.value.trim()) {
-    alert('Please enter a note explaining what needs correction before returning this report.');
+  if ((action === 'return' || action === 'reject') && !reviewNotes.value.trim()) {
+    alert('Please enter a note explaining the reason / what needs correction before rejecting this report.');
     return;
   }
 
   const confirmMsg = action === 'approve'
-    ? 'Confirm approval of this seller daily report?'
-    : 'Return this report to the seller with correction notes?';
+    ? 'Confirm direct approval of this seller daily sales report?'
+    : 'Reject and return this report to the seller with your reason note?';
 
   if (!confirm(confirmMsg)) return;
 
