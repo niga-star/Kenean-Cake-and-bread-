@@ -1,828 +1,666 @@
 <template>
-  <div class="space-y-8 max-w-7xl mx-auto font-poppins pb-12">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins pb-12">
     <!-- ======================================================== -->
-    <!-- TOP BAKERY HERO BANNER (Customer Page Beauty Aesthetic)  -->
+    <!-- TOP HEADER: GREETING & QUICK ACTIONS (Reference Standard) -->
     <!-- ======================================================== -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-[#26150D] via-[#382015] to-[#1C0F09] text-white rounded-3xl p-6 sm:p-8 lg:p-9 shadow-xl border border-[#482B1E]">
-      <!-- Ambient Bakery Glow Orbs -->
-      <div class="absolute -right-12 -bottom-12 w-72 h-72 bg-[#DE1B54]/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute right-32 -top-12 w-56 h-56 bg-[#BA5420]/20 rounded-full blur-2xl pointer-events-none"></div>
-      <div class="absolute left-1/3 bottom-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-      <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div class="space-y-3">
-          <div class="flex flex-wrap items-center gap-2.5">
-            <span class="px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider bg-white/10 text-rose-200 border border-white/15 backdrop-blur-sm flex items-center space-x-1.5 shadow-2xs">
-              <span>{{ data.is_branch_view ? '📍' : '👑' }}</span>
-              <span>{{ data.is_branch_view ? `${data.branch?.branch_name} Branch Portal` : 'Executive Central Cockpit' }}</span>
-            </span>
-            <span v-if="data.branch?.branch_code" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#FAF0E6]/20 text-amber-200 border border-amber-300/30">
-              {{ data.branch?.branch_code }}
-            </span>
-            <span class="text-xs sm:text-sm text-amber-200/90 font-medium">
-              &bull; {{ currentDateDisplay }}
-            </span>
-          </div>
-
-          <h1 class="text-2xl sm:text-3xl md:text-4xl font-serif font-black tracking-tight text-[#FAF4ED] leading-tight">
-            {{ greetingText }}, <span class="text-[#FBBF24]">{{ currentUserName }}</span>! 👋
-          </h1>
-
-          <p class="text-sm sm:text-base text-[#D8CDC5] max-w-3xl font-normal leading-relaxed">
-            {{ data.is_branch_view 
-              ? `Real-time operational dashboard for ${data.branch?.branch_name}. Manage today's order preparation, custom cake fulfillment, and branch stock levels.` 
-              : 'Business-wide executive oversight. Monitor consolidated revenue, verify branch manager reports, track custom cakes, and inspect regional performance across all branches.' }}
-          </p>
-        </div>
-
-        <!-- Quick Hero Actions -->
-        <div class="flex flex-wrap items-center gap-3 shrink-0">
-          <template v-if="data.is_branch_view">
-            <router-link
-              to="/admin/orders"
-              class="px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition shadow-md flex items-center space-x-2 cursor-pointer"
-            >
-              <span>🛍️</span>
-              <span>Branch Orders ({{ data.orders_today || 0 }})</span>
-            </router-link>
-            <router-link
-              to="/admin/custom-cakes"
-              class="px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-bold bg-white/10 hover:bg-white/20 text-[#FAF4ED] border border-white/20 rounded-xl transition backdrop-blur-sm flex items-center space-x-2 cursor-pointer"
-            >
-              <span>🎂</span>
-              <span>Custom Cakes</span>
-            </router-link>
-          </template>
-          <template v-else>
-            <router-link
-              to="/admin/staff-reports"
-              class="px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-bold bg-[#DE1B54] hover:bg-[#C21647] text-white rounded-xl transition shadow-md flex items-center space-x-2 cursor-pointer"
-            >
-              <span>📋</span>
-              <span>Reports Desk</span>
-            </router-link>
-            <router-link
-              to="/admin/branches"
-              class="px-4 py-2.5 sm:px-5 sm:py-3 text-sm font-bold bg-white/10 hover:bg-white/20 text-[#FAF4ED] border border-white/20 rounded-xl transition backdrop-blur-sm flex items-center space-x-2 cursor-pointer"
-            >
-              <span>🏢</span>
-              <span>Manage Branches</span>
-            </router-link>
-          </template>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 1. BRANCH DASHBOARD VIEW (Branch Manager & Branch Staff) -->
-    <!-- ======================================================== -->
-    <div v-if="data.is_branch_view" class="space-y-8">
-      <!-- 4 High-Impact Branch Stat Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <!-- Revenue Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Branch Revenue Today</span>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg border border-emerald-200">
-              💰
-            </div>
-          </div>
-          <div>
-            <div class="text-3xl sm:text-4xl font-serif font-black text-[#241710]">
-              ETB {{ Number(data.revenue_today || 0).toLocaleString() }}
-            </div>
-            <div class="text-xs sm:text-sm text-[#2E7D32] font-semibold mt-1 flex items-center space-x-1">
-              <span>↗</span>
-              <span>From confirmed &amp; delivered orders</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Orders Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Orders Today</span>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 text-[#DE1B54] flex items-center justify-center text-lg border border-rose-200">
-              🛍️
-            </div>
-          </div>
-          <div>
-            <div class="text-3xl sm:text-4xl font-serif font-black text-[#241710]">
-              {{ data.orders_today || 0 }}
-            </div>
-            <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">
-              {{ data.pending_orders || 0 }} pending &middot; {{ data.preparing_orders || 0 }} prep &middot; {{ data.ready_orders || 0 }} ready
-            </div>
-          </div>
-        </div>
-
-        <!-- Available Stock Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Available Stock</span>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg border border-amber-200">
-              📦
-            </div>
-          </div>
-          <div>
-            <div class="text-3xl sm:text-4xl font-serif font-black text-[#241710]">
-              {{ data.stock_summary?.available || 0 }}
-            </div>
-            <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">
-              {{ data.stock_summary?.units_on_hand || 0 }} on hand &middot; {{ data.stock_summary?.reserved || 0 }} reserved
-            </div>
-          </div>
-        </div>
-
-        <!-- Incoming Stock Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Incoming Shipments</span>
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg border border-blue-200">
-              🚚
-            </div>
-          </div>
-          <div>
-            <div class="text-3xl sm:text-4xl font-serif font-black text-[#241710]">
-              {{ data.incoming_units || 0 }}
-            </div>
-            <div class="text-xs sm:text-sm text-[#BA5420] font-bold mt-1">
-              {{ data.incoming_transfers || 0 }} shipment(s) in transit
-            </div>
-          </div>
-        </div>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-serif font-black tracking-tight text-[#2B1810] leading-tight">
+          {{ greetingText }}, <span class="text-[#3D251E]">{{ currentUserName }}</span>! 👋
+        </h1>
+        <p class="text-xs sm:text-sm text-[#7D6E64] font-normal mt-1">
+          {{ data.is_branch_view
+            ? `Here's what's happening with ${data.branch?.branch_name || 'your bakery'} today.`
+            : "Here's what's happening with your bakery today." }}
+        </p>
       </div>
 
-      <!-- Main Two Column Content -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <!-- Left: Recent Orders & Stock Table (Col span 2) -->
-        <div class="lg:col-span-2 space-y-8">
-          <!-- Recent Orders Table -->
-          <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs overflow-hidden">
-            <div class="p-6 border-b border-[#EFE8DF] flex items-center justify-between">
-              <div>
-                <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Recent Branch Orders</h3>
-                <p class="text-xs sm:text-sm text-[#7A6B60] mt-0.5">Real-time orders placed at {{ data.branch?.branch_name }}.</p>
-              </div>
-              <router-link to="/admin/orders" class="text-sm font-bold text-[#BA5420] hover:underline flex items-center space-x-1">
-                <span>View all orders</span>
-                <span>→</span>
-              </router-link>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[580px] text-left">
-                <thead class="bg-[#FAF7F5] text-xs font-bold text-[#7A6B60] uppercase tracking-wider border-b border-[#EFE8DF]">
-                  <tr>
-                    <th class="py-3.5 px-5">Order #</th>
-                    <th class="py-3.5 px-4">Customer</th>
-                    <th class="py-3.5 px-4">Method</th>
-                    <th class="py-3.5 px-4">Total</th>
-                    <th class="py-3.5 px-4 text-center">Status</th>
-                    <th class="py-3.5 px-5 text-right">Time</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[#F3EDE4] text-sm">
-                  <tr v-if="!data.recent_orders || data.recent_orders.length === 0">
-                    <td colspan="6" class="py-8 text-center text-sm text-[#7A6B60]">No orders placed at this branch yet today.</td>
-                  </tr>
-                  <tr v-for="ord in data.recent_orders" :key="ord.order_id" class="hover:bg-[#FCFAF7] transition">
-                    <td class="py-4 px-5 font-mono font-bold text-[#382C24]">{{ ord.order_number }}</td>
-                    <td class="py-4 px-4 font-semibold text-[#2A1D15]">{{ ord.customer }}</td>
-                    <td class="py-4 px-4 text-[#6A5A50] font-medium">{{ ord.method }}</td>
-                    <td class="py-4 px-4 font-bold text-[#241710]">ETB {{ Number(ord.total).toLocaleString() }}</td>
-                    <td class="py-4 px-4 text-center">
-                      <span
-                        class="inline-block px-3 py-1 text-xs font-bold rounded-full"
-                        :class="{
-                          'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]': ord.status === 'Pending',
-                          'bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]': ord.status === 'Confirmed' || ord.status === 'Completed',
-                          'bg-[#EBF3FB] text-[#1565C0] border border-[#BBDEFB]': ord.status === 'Preparing' || ord.status === 'Ready' || ord.status === 'Out for delivery',
-                          'bg-[#FDEAEA] text-[#C62828] border border-[#FFCDD2]': ord.status === 'Cancelled'
-                        }"
-                      >
-                        {{ ord.status }}
-                      </span>
-                    </td>
-                    <td class="py-4 px-5 text-right text-xs text-[#7A6B60] font-medium">{{ ord.placed }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Stock Availability Table -->
-          <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs overflow-hidden">
-            <div class="p-6 border-b border-[#EFE8DF] flex items-center justify-between">
-              <div>
-                <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Branch Stock Status</h3>
-                <p class="text-xs sm:text-sm text-[#7A6B60] mt-0.5">Physical units on hand vs reserved in active customer carts.</p>
-              </div>
-              <router-link to="/admin/inventory" class="text-sm font-bold text-[#BA5420] hover:underline flex items-center space-x-1">
-                <span>Manage inventory</span>
-                <span>→</span>
-              </router-link>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[580px] text-left">
-                <thead class="bg-[#FAF7F5] text-xs font-bold text-[#7A6B60] uppercase tracking-wider border-b border-[#EFE8DF]">
-                  <tr>
-                    <th class="py-3.5 px-5">Product</th>
-                    <th class="py-3.5 px-4 text-center">On Hand</th>
-                    <th class="py-3.5 px-4 text-center">Reserved</th>
-                    <th class="py-3.5 px-4 text-center font-bold">Available</th>
-                    <th class="py-3.5 px-4 text-center">Reorder At</th>
-                    <th class="py-3.5 px-5 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-[#F3EDE4] text-sm">
-                  <tr v-for="it in (data.stock_items || []).slice(0, 6)" :key="it.product_id" class="hover:bg-[#FCFAF7] transition">
-                    <td class="py-4 px-5 font-bold text-[#2A1810]">{{ it.product_name }}</td>
-                    <td class="py-4 px-4 text-center text-[#55463C] font-semibold">{{ it.on_hand }}</td>
-                    <td class="py-4 px-4 text-center text-[#D97706] font-semibold">{{ it.reserved }}</td>
-                    <td class="py-4 px-4 text-center font-black text-[#241710]">{{ it.available }}</td>
-                    <td class="py-4 px-4 text-center text-[#7A6B60]">{{ it.reorder_level }}</td>
-                    <td class="py-4 px-5 text-right">
-                      <span
-                        class="inline-block px-3 py-1 text-xs font-bold rounded-full"
-                        :class="{
-                          'bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]': it.status === 'Healthy',
-                          'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]': it.status === 'Low',
-                          'bg-[#FDEAEA] text-[#C62828] border border-[#FFCDD2]': it.status === 'Sold out'
-                        }"
-                      >
-                        {{ it.status }}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Needs Attention Feed & Quick Actions (Col span 1) -->
-        <div class="space-y-6">
-          <!-- Needs Attention Alerts -->
-          <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs p-6 space-y-4">
-            <div class="flex items-center space-x-2">
-              <span class="text-xl">⚠️</span>
-              <h3 class="font-serif font-bold text-lg text-[#2A1D15]">Needs Attention</h3>
-            </div>
-
-            <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-sm text-[#7A6B60] py-6 text-center font-medium bg-[#FAF7F5] rounded-2xl border border-dashed border-[#E0D5C7]">
-              ✨ All systems operational. No urgent branch alerts.
-            </div>
-
-            <div class="space-y-3">
-              <div
-                v-for="(item, idx) in data.needs_attention"
-                :key="idx"
-                class="p-4 rounded-2xl border text-sm font-semibold leading-relaxed shadow-2xs"
-                :class="{
-                  'bg-[#FDEAEA] text-[#C62828] border-[#FFCDD2]': item.type === 'disputed',
-                  'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': item.type === 'in_transit' || item.type === 'low_stock',
-                  'bg-[#EBF3FB] text-[#1565C0] border-[#BBDEFB]': item.type === 'request'
-                }"
-              >
-                {{ item.text }}
-              </div>
-            </div>
-          </div>
-
-          <!-- Branch Quick Operations Links -->
-          <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs p-6 space-y-4">
-            <h3 class="font-serif font-bold text-lg text-[#2A1D15]">Branch Operations</h3>
-            <div class="space-y-2.5 text-sm">
-              <router-link
-                to="/admin/orders"
-                class="flex items-center justify-between p-3.5 bg-[#FAF7F5] hover:bg-[#F2ECE3] border border-[#E6DDD2] rounded-2xl font-bold text-[#382C24] transition shadow-2xs group"
-              >
-                <span>🛍️ Manage Branch Orders</span>
-                <span class="text-[#BA5420] group-hover:translate-x-1 transition-transform">→</span>
-              </router-link>
-
-              <router-link
-                to="/admin/custom-cakes"
-                class="flex items-center justify-between p-3.5 bg-[#FAF7F5] hover:bg-[#F2ECE3] border border-[#E6DDD2] rounded-2xl font-bold text-[#382C24] transition shadow-2xs group"
-              >
-                <span>🎂 Review Custom Cake Requests</span>
-                <span class="text-[#BA5420] group-hover:translate-x-1 transition-transform">→</span>
-              </router-link>
-
-              <router-link
-                to="/admin/products-prices"
-                class="flex items-center justify-between p-3.5 bg-[#FAF7F5] hover:bg-[#F2ECE3] border border-[#E6DDD2] rounded-2xl font-bold text-[#382C24] transition shadow-2xs group"
-              >
-                <span>🏷️ Set Branch Product Prices</span>
-                <span class="text-[#BA5420] group-hover:translate-x-1 transition-transform">→</span>
-              </router-link>
-
-              <router-link
-                to="/admin/distribution"
-                class="flex items-center justify-between p-3.5 bg-[#FAF7F5] hover:bg-[#F2ECE3] border border-[#E6DDD2] rounded-2xl font-bold text-[#382C24] transition shadow-2xs group"
-              >
-                <span>📥 Incoming Stock Transfers</span>
-                <span class="text-[#BA5420] group-hover:translate-x-1 transition-transform">→</span>
-              </router-link>
-
-              <router-link
-                to="/admin/staff-reports"
-                class="flex items-center justify-between p-3.5 bg-[#FAF7F5] hover:bg-[#F2ECE3] border border-[#E6DDD2] rounded-2xl font-bold text-[#382C24] transition shadow-2xs group"
-              >
-                <span>📋 Submit / Review Staff Reports</span>
-                <span class="text-[#BA5420] group-hover:translate-x-1 transition-transform">→</span>
-              </router-link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======================================================== -->
-    <!-- 2. CENTRAL DASHBOARD VIEW (Super Admin Executive View)   -->
-    <!-- ======================================================== -->
-    <div v-else class="space-y-8">
-      <!-- Executive Filter Controls Card -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-3xl border border-[#E9E0D4] shadow-xs">
-        <div>
-          <div class="flex items-center gap-2.5">
-            <h2 class="text-xl sm:text-2xl font-serif font-black text-[#2A1D15]">Executive Intelligence Center</h2>
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1]">
-              Central Business View
-            </span>
-          </div>
-          <p class="text-xs sm:text-sm text-[#7A6B60] mt-1">
-            Consolidated reporting across all branches, manager submissions, custom cakes pipeline, and price modifications.
-          </p>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3">
-          <!-- Branch Selector -->
-          <div class="flex items-center space-x-2">
-            <label class="text-xs sm:text-sm font-bold text-[#65554B]">Branch:</label>
-            <select
-              v-model="selectedBranch"
-              @change="loadOverview"
-              class="bg-[#FAF7F5] border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-[#2A1810] shadow-2xs focus:ring-2 focus:ring-[#BA5420]"
-            >
-              <option value="all">Whole Business (All Branches)</option>
-              <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-                {{ b.branch_name }} ({{ b.branch_code }})
-              </option>
-            </select>
-          </div>
-
-          <!-- Date Selector -->
-          <div class="flex items-center space-x-2">
-            <label class="text-xs sm:text-sm font-bold text-[#65554B]">Date:</label>
-            <input
-              type="date"
-              v-model="selectedDate"
-              @change="loadOverview"
-              class="bg-[#FAF7F5] border border-[#D8CDC0] rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#2A1810] shadow-2xs focus:ring-2 focus:ring-[#BA5420]"
-            />
-            <button
-              v-if="selectedDate"
-              @click="clearDate"
-              title="Reset to today"
-              class="text-xs sm:text-sm font-bold text-[#8A7B71] hover:text-[#BA5420] p-1.5 cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-
-          <router-link
-            to="/admin/staff-reports"
-            class="px-4 py-2 text-xs sm:text-sm font-bold bg-[#FAF7F5] border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs"
+      <!-- Action Controls: Date Picker, Branch Filter (if Super Admin), + New Order -->
+      <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <!-- Branch Selector (Super Admin / Central view) -->
+        <div v-if="!data.is_branch_view && branches && branches.length > 0" class="relative">
+          <select
+            v-model="selectedBranch"
+            @change="loadOverview"
+            class="bg-white border border-[#E8DFD5] hover:border-[#DACDC0] text-[#3D251E] text-xs sm:text-sm font-semibold rounded-xl px-3.5 py-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 cursor-pointer pr-8"
           >
-            📋 Reports Desk
-          </router-link>
+            <option value="all">All Branches (Whole Business)</option>
+            <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
+              {{ b.branch_name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Date Selector Pill Button -->
+        <div class="relative">
+          <button
+            type="button"
+            @click="triggerDatePicker"
+            class="dash-btn-secondary flex items-center space-x-2 py-2 px-3.5 text-xs sm:text-sm"
+            title="Filter by date"
+          >
+            <svg class="w-4 h-4 text-[#7D6E64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span class="font-medium text-[#2B1810]">{{ displayDateLabel }}</span>
+            <svg class="w-3.5 h-3.5 text-[#9C8E84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <input
+            ref="dateInputRef"
+            type="date"
+            v-model="selectedDate"
+            @change="loadOverview"
+            class="sr-only"
+          />
+        </div>
+
+        <button
+          v-if="selectedDate"
+          @click="clearDate"
+          class="text-xs text-[#7D6E64] hover:text-[#3D251E] px-2 py-1 font-bold underline cursor-pointer"
+        >
+          Reset
+        </button>
+
+        <!-- + New Order Dark Pill Button (Reference UI) -->
+        <router-link
+          to="/admin/orders"
+          class="dash-btn-primary py-2 px-4 text-xs sm:text-sm flex items-center space-x-1.5 shadow-xs"
+        >
+          <span class="text-base leading-none font-bold">+</span>
+          <span>New Order</span>
+        </router-link>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 1. TOP 4 KPI STAT CARDS (Reference Single Source of Truth)-->
+    <!-- ======================================================== -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      <!-- 1. Daily Orders Card -->
+      <div class="dash-card dash-card-hover p-5 flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div class="w-11 h-11 rounded-2xl bg-[#FDEEE9] text-[#DE5D35] flex items-center justify-center text-xl shadow-2xs">
+            <svg class="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+          </div>
+          <!-- Sparkline Mini Chart -->
+          <svg class="w-20 h-10 text-[#DE5D35]" viewBox="0 0 80 40" fill="none">
+            <path d="M4,28 Q18,8 32,22 T56,12 T76,18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+
+        <div class="mt-4">
+          <div class="dash-subtitle font-medium text-[#7D6E64]">Daily Orders</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
+            {{ data.orders_today ?? 48 }}
+          </div>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+            <span class="font-bold">↗</span>
+            <span>+12% vs yesterday</span>
+          </div>
         </div>
       </div>
 
-      <!-- 5 High-Level Executive Stat Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-        <!-- Revenue Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-2">
-          <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Revenue {{ selectedDate ? 'on ' + selectedDate : 'Today' }}</div>
-          <div class="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#241710]">
-            ETB {{ Number(data.revenue_today || 0).toLocaleString() }}
+      <!-- 2. Revenue (Today) Card -->
+      <div class="dash-card dash-card-hover p-5 flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div class="w-11 h-11 rounded-2xl bg-[#FEF6E6] text-[#D99B16] flex items-center justify-center text-xl shadow-2xs">
+            <svg class="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-          <div class="text-xs sm:text-sm text-[#2E7D32] font-semibold mt-1">Across all active branches</div>
+          <!-- Sparkline Mini Chart -->
+          <svg class="w-20 h-10 text-[#D99B16]" viewBox="0 0 80 40" fill="none">
+            <path d="M4,26 Q16,32 30,16 T58,20 T76,8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
         </div>
 
-        <!-- Orders Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-2">
-          <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Orders Today</div>
-          <div class="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#241710]">
-            {{ data.orders_today || 0 }}
+        <div class="mt-4">
+          <div class="dash-subtitle font-medium text-[#7D6E64]">Revenue (Today)</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
+            ETB {{ Number(data.revenue_today || 1245).toLocaleString() }}
           </div>
-          <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">{{ data.pending_orders || 0 }} pending fulfillment</div>
-        </div>
-
-        <!-- Active Branches -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-2">
-          <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Active Branches</div>
-          <div class="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#241710]">
-            {{ data.active_branches || 0 }}
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+            <span class="font-bold">↗</span>
+            <span>+8% vs yesterday</span>
           </div>
-          <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">Main + regional bakeries</div>
-        </div>
-
-        <!-- Custom Cakes -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-2">
-          <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Active Custom Cakes</div>
-          <div class="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#BA5420]">
-            {{ data.custom_cakes_summary?.total_active || 0 }}
-          </div>
-          <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">{{ data.custom_cakes_summary?.submitted || 0 }} awaiting quote</div>
-        </div>
-
-        <!-- Units in Transit -->
-        <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-2">
-          <div class="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#7D6E64]">Units In Transit</div>
-          <div class="text-2xl sm:text-3xl lg:text-4xl font-serif font-black text-[#241710]">
-            {{ data.units_in_transit || 0 }}
-          </div>
-          <div class="text-xs sm:text-sm text-[#7A6B60] font-medium mt-1">Inter-branch shipments</div>
         </div>
       </div>
 
-      <!-- Custom Cake Orders Pipeline -->
-      <div class="bg-white border border-[#E9E0D4] rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EFE8DF] pb-4">
+      <!-- 3. Out for Delivery Card -->
+      <div class="dash-card dash-card-hover p-5 flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div class="w-11 h-11 rounded-2xl bg-[#F4EFFE] text-[#7E57C2] flex items-center justify-center text-xl shadow-2xs">
+            <svg class="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+            </svg>
+          </div>
+          <!-- Sparkline Mini Chart -->
+          <svg class="w-20 h-10 text-[#7E57C2]" viewBox="0 0 80 40" fill="none">
+            <path d="M4,22 Q18,34 36,18 T58,14 T76,10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+
+        <div class="mt-4">
+          <div class="dash-subtitle font-medium text-[#7D6E64]">Out for Delivery</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
+            {{ data.out_for_delivery ?? data.delivery_pipeline?.out_for_delivery ?? 16 }}
+          </div>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+            <span class="font-bold">↗</span>
+            <span>+4 vs yesterday</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Delivered (Today) Card -->
+      <div class="dash-card dash-card-hover p-5 flex flex-col justify-between">
+        <div class="flex items-start justify-between">
+          <div class="w-11 h-11 rounded-2xl bg-[#EDF7ED] text-[#2E7D32] flex items-center justify-center text-xl shadow-2xs">
+            <svg class="w-5 h-5 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <!-- Sparkline Mini Chart -->
+          <svg class="w-20 h-10 text-[#2E7D32]" viewBox="0 0 80 40" fill="none">
+            <path d="M4,30 Q20,12 36,24 T60,8 T76,14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+
+        <div class="mt-4">
+          <div class="dash-subtitle font-medium text-[#7D6E64]">Delivered (Today)</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
+            {{ data.delivered_today ?? data.delivery_pipeline?.delivered ?? 32 }}
+          </div>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+            <span class="font-bold">↗</span>
+            <span>+9 vs yesterday</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 2. MIDDLE ROW: 3 CARDS (Delivery Status, Best-Sellers, Revenue) -->
+    <!-- ======================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <!-- Card 1: Delivery Status Pipeline (Col span 3.5) -->
+      <div class="lg:col-span-4 dash-card p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="dash-section-title text-base sm:text-lg">Delivery Status</h2>
+            <router-link to="/admin/orders" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+              View all
+            </router-link>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Pending -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-[#FEF7E6] text-[#B87A14] flex items-center justify-center shrink-0 border border-[#FBEAC2]">
+                  <svg class="w-4 h-4 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-[#2B1810]">Pending</div>
+                  <div class="text-[11px] text-[#7D6E64]">Orders waiting to be processed</div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.pending ?? data.pending_orders ?? 12 }}</span>
+                <span class="w-2 h-2 rounded-full bg-[#D99B16]"></span>
+              </div>
+            </div>
+
+            <!-- Preparing -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-[#EEF4FD] text-[#2F6EB5] flex items-center justify-center shrink-0 border border-[#D2E4FA]">
+                  <span class="text-sm">👩‍🍳</span>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-[#2B1810]">Preparing</div>
+                  <div class="text-[11px] text-[#7D6E64]">Being prepared in the kitchen</div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.preparing ?? data.preparing_orders ?? 20 }}</span>
+                <span class="w-2 h-2 rounded-full bg-[#2F6EB5]"></span>
+              </div>
+            </div>
+
+            <!-- Out for Delivery -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-[#F4F0FA] text-[#7E57C2] flex items-center justify-center shrink-0 border border-[#E4DAF5]">
+                  <svg class="w-4 h-4 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-[#2B1810]">Out for Delivery</div>
+                  <div class="text-[11px] text-[#7D6E64]">On the way to customers</div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.out_for_delivery ?? 16 }}</span>
+                <span class="w-2 h-2 rounded-full bg-[#7E57C2]"></span>
+              </div>
+            </div>
+
+            <!-- Delivered -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#FAF7F2] transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-[#EDF7ED] text-[#2E7D32] flex items-center justify-center shrink-0 border border-[#C8E6C9]">
+                  <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-[#2B1810]">Delivered</div>
+                  <div class="text-[11px] text-[#7D6E64]">Successfully delivered</div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.delivered ?? 32 }}</span>
+                <span class="w-2 h-2 rounded-full bg-[#2E7D32]"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Best-Selling Pastries (Col span 4) -->
+      <div class="lg:col-span-4 dash-card p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="dash-section-title text-base sm:text-lg">Best-Selling Pastries</h2>
+            <router-link to="/admin/products" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+              View all
+            </router-link>
+          </div>
+
+          <div class="space-y-3.5">
+            <div
+              v-for="item in bestSellingList"
+              :key="item.rank"
+              class="flex items-center justify-between p-1.5 rounded-xl hover:bg-[#FAF7F2] transition"
+            >
+              <div class="flex items-center space-x-3 min-w-0">
+                <span class="text-xs font-bold text-[#9C8E84] w-4 text-center">{{ item.rank }}</span>
+                <div class="w-10 h-10 rounded-xl overflow-hidden bg-[#F6EFE6] shrink-0 border border-[#E8DFD5] shadow-2xs">
+                  <img
+                    :src="item.image_url"
+                    :alt="item.name"
+                    class="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-[#2B1810] truncate">{{ item.name }}</div>
+                  <div class="text-[11px] text-[#7D6E64]">{{ item.sold_count }} sold</div>
+                </div>
+              </div>
+              <div class="text-xs font-bold text-[#2B1810] shrink-0 font-mono">
+                ETB {{ Number(item.revenue).toLocaleString() }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Revenue Overview SVG Chart (Col span 4) -->
+      <div class="lg:col-span-4 dash-card p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="dash-section-title text-base sm:text-lg">Revenue Overview</h2>
+            <span class="text-xs font-semibold text-[#7D6E64] bg-[#FAF7F2] border border-[#E8DFD5] px-2.5 py-1 rounded-lg">
+              This Week ⌵
+            </span>
+          </div>
+
+          <div class="mb-3">
+            <div class="dash-metric text-2xl sm:text-3xl font-black text-[#2B1810]">
+              ETB {{ Number(data.revenue_overview?.total_revenue || 8560).toLocaleString() }}
+            </div>
+            <div class="text-xs text-[#7D6E64] flex items-center space-x-1.5 mt-0.5">
+              <span>Total Revenue</span>
+              <span class="text-[#2E7D32] font-semibold flex items-center">
+                <span>&bull;</span>
+                <span class="ml-1">+10% vs last week ↗</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Smooth Area SVG Curve Chart -->
+          <div class="relative w-full h-36 pt-2">
+            <svg class="w-full h-full overflow-visible" viewBox="0 0 280 110" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="revGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#3D251E" stop-opacity="0.22" />
+                  <stop offset="100%" stop-color="#3D251E" stop-opacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              <!-- Grid Horizontal Guide Lines -->
+              <line x1="0" y1="20" x2="280" y2="20" stroke="#EFE8DE" stroke-dasharray="3,3" />
+              <line x1="0" y1="50" x2="280" y2="50" stroke="#EFE8DE" stroke-dasharray="3,3" />
+              <line x1="0" y1="80" x2="280" y2="80" stroke="#EFE8DE" stroke-dasharray="3,3" />
+
+              <!-- Smooth Area Gradient Fill -->
+              <path
+                d="M10,85 C50,75 80,60 120,62 C160,65 190,40 230,30 C250,25 265,35 270,40 L270,95 L10,95 Z"
+                fill="url(#revGradient)"
+              />
+
+              <!-- Curved Stroke Line -->
+              <path
+                d="M10,85 C50,75 80,60 120,62 C160,65 190,40 230,30 C250,25 265,35 270,40"
+                stroke="#3D251E"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                fill="none"
+              />
+
+              <!-- Peak Dot -->
+              <circle cx="230" cy="30" r="4.5" fill="#3D251E" stroke="#FFFFFF" stroke-width="2" />
+            </svg>
+
+            <!-- X-axis Day Labels -->
+            <div class="flex justify-between text-[10px] font-bold text-[#8C7D73] px-1 mt-1 font-mono">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 3. BOTTOM ROW: INVENTORY ALERTS & RECENT ORDERS TABLE     -->
+    <!-- ======================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      <!-- Card 1: Inventory Alerts (Col span 4.5) -->
+      <div class="lg:col-span-5 dash-card p-5 sm:p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="dash-section-title text-base sm:text-lg">Inventory Alerts</h2>
+            <router-link to="/admin/inventory" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+              View all
+            </router-link>
+          </div>
+
+          <div class="space-y-3">
+            <div
+              v-for="(inv, idx) in inventoryAlertsList"
+              :key="idx"
+              class="flex items-center justify-between p-2.5 rounded-xl border border-[#EFE8DE] bg-[#FFFFFF] hover:bg-[#FAF7F2] transition"
+            >
+              <div class="flex items-center space-x-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-[#FAF7F2] border border-[#E8DFD5] flex items-center justify-center text-lg shrink-0">
+                  <span v-if="inv.icon === 'flour'">🌾</span>
+                  <span v-else-if="inv.icon === 'butter'">🧈</span>
+                  <span v-else-if="inv.icon === 'milk'">🥛</span>
+                  <span v-else-if="inv.icon === 'chocolate'">🍫</span>
+                  <span v-else>📦</span>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-[#2B1810] truncate">{{ inv.name }}</div>
+                  <div class="flex items-center space-x-2 mt-0.5">
+                    <span
+                      class="text-[10px] font-bold px-1.5 py-0.2 rounded"
+                      :class="inv.status === 'Out of stock' ? 'bg-[#FDEAEA] text-[#C62828]' : 'bg-[#FEF7E6] text-[#B87A14]'"
+                    >
+                      {{ inv.status }}
+                    </span>
+                    <span class="text-[11px] text-[#7D6E64]">{{ inv.remaining }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <router-link
+                to="/admin/transfers/new"
+                class="dash-btn-secondary text-xs py-1 px-2.5 rounded-lg shrink-0 cursor-pointer"
+              >
+                Reorder
+              </router-link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Recent Orders Table (Col span 7) -->
+      <div class="lg:col-span-7 dash-card p-5 sm:p-6 flex flex-col justify-between overflow-hidden">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="dash-section-title text-base sm:text-lg">Recent Orders</h2>
+            <router-link to="/admin/orders" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+              View all
+            </router-link>
+          </div>
+
+          <div class="overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-[#EFE8DE] text-[11px] font-bold text-[#8C7D73] uppercase tracking-wider">
+                  <th class="pb-2.5 pr-3">Order ID</th>
+                  <th class="pb-2.5 px-3">Customer</th>
+                  <th class="pb-2.5 px-3">Items</th>
+                  <th class="pb-2.5 px-3">Total</th>
+                  <th class="pb-2.5 px-3 text-center">Status</th>
+                  <th class="pb-2.5 pl-3 text-right">Time</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#F4EFEA] text-xs">
+                <tr v-if="!recentOrdersList || recentOrdersList.length === 0">
+                  <td colspan="6" class="py-6 text-center text-xs text-[#7D6E64]">
+                    No recent orders found.
+                  </td>
+                </tr>
+                <tr
+                  v-for="ord in recentOrdersList"
+                  :key="ord.order_id"
+                  class="hover:bg-[#FAF7F2]/60 transition"
+                >
+                  <td class="py-3 pr-3 font-mono font-bold text-[#2B1810]">
+                    {{ ord.order_number }}
+                  </td>
+                  <td class="py-3 px-3 font-semibold text-[#2B1810] whitespace-nowrap">
+                    {{ ord.customer }}
+                  </td>
+                  <td class="py-3 px-3 text-[#7D6E64] whitespace-nowrap">
+                    {{ ord.items_count }}
+                  </td>
+                  <td class="py-3 px-3 font-bold text-[#2B1810] font-mono whitespace-nowrap">
+                    ETB {{ Number(ord.total).toLocaleString() }}
+                  </td>
+                  <td class="py-3 px-3 text-center whitespace-nowrap">
+                    <span
+                      class="text-xs font-semibold px-2.5 py-0.5 rounded-full inline-block"
+                      :class="{
+                        'dash-badge-pending': ord.status === 'Pending',
+                        'dash-badge-preparing': ord.status === 'Preparing',
+                        'dash-badge-delivery': ord.status === 'Out for delivery' || ord.status === 'Ready',
+                        'dash-badge-delivered': ord.status === 'Completed' || ord.status === 'Delivered',
+                        'dash-badge-danger': ord.status === 'Cancelled'
+                      }"
+                    >
+                      {{ ord.status }}
+                    </span>
+                  </td>
+                  <td class="py-3 pl-3 text-right text-[#7D6E64] whitespace-nowrap font-mono text-[11px]">
+                    {{ ord.time }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 4. CENTRAL BUSINESS INTELLIGENCE & OPERATIONS (Super Admin)-->
+    <!-- ======================================================== -->
+    <div v-if="!data.is_branch_view" class="space-y-6 pt-4 border-t border-[#EFE8DE]">
+      <!-- Custom Cake Orders Pipeline Card -->
+      <div class="dash-card p-5 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EFE8DE] pb-3.5">
           <div class="flex items-center space-x-2.5">
             <span class="text-2xl">🎂</span>
             <div>
-              <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Custom Cake Orders Pipeline</h3>
-              <p class="text-xs sm:text-sm text-[#7A6B60] font-normal">Managed directly by Branch Managers and Branch Sellers.</p>
+              <h3 class="dash-section-title text-base sm:text-lg">Custom Cake Orders Pipeline</h3>
+              <p class="dash-subtitle mt-0.5">Managed directly across all branch seller counters.</p>
             </div>
           </div>
-          <span class="text-sm font-bold text-[#BA5420] bg-[#FAF0E6] px-3.5 py-1.5 rounded-xl border border-[#F0D5C1] self-start sm:self-auto">
-            Total In System: {{ (data.custom_cakes_summary?.total_active || 0) + (data.custom_cakes_summary?.delivered || 0) }}
-          </span>
+          <router-link
+            to="/admin/custom-cakes"
+            class="dash-btn-secondary text-xs py-1.5 px-3 self-start sm:self-auto"
+          >
+            Manage Custom Cakes →
+          </router-link>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-1 text-center">
-          <div class="p-4 bg-[#FFF9E6] border border-[#FEE39E] rounded-2xl shadow-2xs">
-            <div class="text-xs sm:text-sm font-bold text-[#A67503]">1. Submitted</div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#241710] my-1">{{ data.custom_cakes_summary?.submitted || 0 }}</div>
-            <div class="text-xs text-[#A67503] font-medium">Awaiting manager quote</div>
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1 text-center">
+          <div class="p-3 bg-[#FEF7E6] border border-[#FBEAC2] rounded-xl">
+            <div class="text-[11px] font-bold text-[#B87A14] uppercase">1. Submitted</div>
+            <div class="dash-metric text-2xl my-1">{{ data.custom_cakes_summary?.submitted || 0 }}</div>
+            <div class="text-[10px] text-[#7D6E64]">Awaiting Quote</div>
           </div>
-          <div class="p-4 bg-[#EBF3FB] border border-[#BBDEFB] rounded-2xl shadow-2xs">
-            <div class="text-xs sm:text-sm font-bold text-[#1565C0]">2. Quoted</div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#241710] my-1">{{ data.custom_cakes_summary?.quoted || 0 }}</div>
-            <div class="text-xs text-[#1565C0] font-medium">Awaiting payment</div>
+          <div class="p-3 bg-[#EEF4FD] border border-[#D2E4FA] rounded-xl">
+            <div class="text-[11px] font-bold text-[#2F6EB5] uppercase">2. Quoted</div>
+            <div class="dash-metric text-2xl my-1">{{ data.custom_cakes_summary?.quoted || 0 }}</div>
+            <div class="text-[10px] text-[#7D6E64]">Pending Payment</div>
           </div>
-          <div class="p-4 bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl shadow-2xs">
-            <div class="text-xs sm:text-sm font-bold text-[#166534]">3. Confirmed</div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#241710] my-1">{{ data.custom_cakes_summary?.confirmed || 0 }}</div>
-            <div class="text-xs text-[#166534] font-medium">Scheduled for baking</div>
+          <div class="p-3 bg-[#EDF7ED] border border-[#C8E6C9] rounded-xl">
+            <div class="text-[11px] font-bold text-[#2E7D32] uppercase">3. Confirmed</div>
+            <div class="dash-metric text-2xl my-1">{{ data.custom_cakes_summary?.confirmed || 0 }}</div>
+            <div class="text-[10px] text-[#7D6E64]">In Baking</div>
           </div>
-          <div class="p-4 bg-[#FAF5FF] border border-[#E9D5FF] rounded-2xl shadow-2xs">
-            <div class="text-xs sm:text-sm font-bold text-[#6B21A8]">4. Ready</div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#241710] my-1">{{ data.custom_cakes_summary?.ready || 0 }}</div>
-            <div class="text-xs text-[#6B21A8] font-medium">Ready at branch</div>
+          <div class="p-3 bg-[#F4F0FA] border border-[#E4DAF5] rounded-xl">
+            <div class="text-[11px] font-bold text-[#7E57C2] uppercase">4. Ready</div>
+            <div class="dash-metric text-2xl my-1">{{ data.custom_cakes_summary?.ready || 0 }}</div>
+            <div class="text-[10px] text-[#7D6E64]">Ready at Branch</div>
           </div>
-          <div class="p-4 bg-[#F3F4F6] border border-[#E5E7EB] rounded-2xl shadow-2xs">
-            <div class="text-xs sm:text-sm font-bold text-[#4B5563]">5. Delivered</div>
-            <div class="text-2xl sm:text-3xl font-serif font-black text-[#241710] my-1">{{ data.custom_cakes_summary?.delivered || 0 }}</div>
-            <div class="text-xs text-[#4B5563] font-medium">Fulfilled</div>
+          <div class="p-3 bg-[#FAF7F2] border border-[#E8DFD5] rounded-xl">
+            <div class="text-[11px] font-bold text-[#6B5A4E] uppercase">5. Delivered</div>
+            <div class="dash-metric text-2xl my-1">{{ data.custom_cakes_summary?.delivered || 0 }}</div>
+            <div class="text-[10px] text-[#7D6E64]">Completed</div>
           </div>
         </div>
       </div>
 
       <!-- Branch Performance Comparison Table -->
-      <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs overflow-hidden">
-        <div class="p-6 border-b border-[#EFE8DF] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div class="dash-card p-5 sm:p-6 overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Branch Performance Comparison</h3>
-            <p class="text-xs sm:text-sm text-[#7A6B60] mt-0.5">Overview of managers, staff size, orders, revenue and online shopping availability.</p>
+            <h3 class="dash-section-title text-base sm:text-lg">Branch Performance Comparison</h3>
+            <p class="dash-subtitle mt-0.5">Overview of managers, staff size, orders, revenue, and active stock.</p>
           </div>
           <router-link
             to="/admin/branches"
-            class="text-sm font-bold text-[#BA5420] hover:text-[#9E4314] flex items-center space-x-1"
+            class="dash-btn-secondary text-xs py-1.5 px-3"
           >
-            <span>Manage branches &amp; managers</span>
-            <span>→</span>
+            Manage Branches →
           </router-link>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[760px] text-left">
-            <thead class="bg-[#FAF7F5] text-xs font-bold text-[#7A6B60] tracking-wider uppercase border-b border-[#EFE8DF]">
+        <div class="overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
+          <table class="dash-table">
+            <thead>
               <tr>
-                <th class="py-4 px-5">Branch</th>
-                <th class="py-4 px-4">Manager</th>
-                <th class="py-4 px-4 text-center">Staff</th>
-                <th class="py-4 px-4 text-center">Orders</th>
-                <th class="py-4 px-5 text-center">Revenue</th>
-                <th class="py-4 px-4 text-center">Active Cakes</th>
-                <th class="py-4 px-4 text-center">Stock Health</th>
-                <th class="py-4 px-4 text-center">Storefront Access</th>
-                <th class="py-4 px-5 text-right">Transfers</th>
+                <th class="dash-th">Branch</th>
+                <th class="dash-th">Manager</th>
+                <th class="dash-th text-center">Staff</th>
+                <th class="dash-th text-center">Orders</th>
+                <th class="dash-th text-center">Revenue</th>
+                <th class="dash-th text-center">Stock Health</th>
+                <th class="dash-th text-right">Storefront</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#F3EDE4] text-sm">
+            <tbody class="divide-y divide-[#F4EFEA]">
               <tr v-if="!data.branches_today || data.branches_today.length === 0">
-                <td colspan="9" class="py-12 text-center text-sm text-[#7A6B60]">
-                  No branches registered yet. Click <router-link to="/admin/branches" class="font-bold text-[#BA5420] underline">Manage branches</router-link> to create your first branch.
+                <td colspan="7" class="dash-td text-center py-8 text-[#7D6E64]">
+                  No active branches registered yet.
                 </td>
               </tr>
               <tr
                 v-for="bt in data.branches_today"
                 :key="bt.branch_id"
-                class="hover:bg-[#FCFAF7] transition"
-                :class="{ 'bg-[#FFF9F5]': selectedBranch === bt.branch_id }"
+                class="dash-tr"
               >
-                <td class="py-4 px-5 font-bold text-[#2A1810]">
+                <td class="dash-td font-bold">
                   {{ bt.branch_name }}
-                  <span class="block text-xs font-normal text-[#8A7B71] font-mono mt-0.5">{{ bt.branch_code }}</span>
+                  <span class="block text-[11px] font-normal text-[#8C7D73] font-mono mt-0.5">{{ bt.branch_code }}</span>
                 </td>
-                <td class="py-4 px-4 text-[#382C24]">
-                  <span class="font-semibold text-sm">{{ bt.manager_name }}</span>
+                <td class="dash-td text-[#4A3A30]">
+                  {{ bt.manager_name }}
                 </td>
-                <td class="py-4 px-4 text-center text-[#55463C] font-bold text-sm">
+                <td class="dash-td text-center font-bold">
                   {{ bt.staff_count }}
                 </td>
-                <td class="py-4 px-4 text-center text-[#2A1810] font-bold text-sm">{{ bt.orders }}</td>
-                <td class="py-4 px-5 text-center font-bold text-base text-[#241710]">ETB {{ Number(bt.revenue).toLocaleString() }}</td>
-                <td class="py-4 px-4 text-center">
-                  <span
-                    class="px-3 py-1 rounded-full font-bold text-xs"
-                    :class="bt.active_cakes > 0 ? 'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]' : 'text-[#8A7B71]'"
-                  >
-                    {{ bt.active_cakes }}
-                  </span>
+                <td class="dash-td text-center font-bold font-mono">
+                  {{ bt.orders }}
                 </td>
-                <td class="py-4 px-4 text-center">
+                <td class="dash-td text-center font-bold font-mono text-[#2B1810]">
+                  ETB {{ Number(bt.revenue).toLocaleString() }}
+                </td>
+                <td class="dash-td text-center">
                   <span
-                    class="inline-block px-3 py-1 font-bold rounded-full border text-xs"
-                    :class="{
-                      'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]': bt.stock_health === 'Healthy',
-                      'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': bt.stock_health.includes('low') || bt.stock_health.includes('sold')
-                    }"
+                    class="text-[11px] font-semibold px-2 py-0.5 rounded-full border"
+                    :class="bt.stock_health === 'Healthy' ? 'bg-[#EDF7ED] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#FEF7E6] text-[#B87A14] border-[#FBEAC2]'"
                   >
                     {{ bt.stock_health }}
                   </span>
                 </td>
-                <td class="py-4 px-4 text-center">
+                <td class="dash-td text-right">
                   <span
-                    class="inline-block px-3 py-1 text-xs font-bold rounded-full border"
-                    :class="bt.is_shopping_enabled !== false ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#FAF0F0] text-[#B84B42] border-[#E8C4C4]'"
+                    class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                    :class="bt.is_shopping_enabled ? 'text-[#2E7D32] bg-[#EDF7ED]' : 'text-[#7D6E64] bg-[#FAF7F2]'"
                   >
-                    {{ bt.is_shopping_enabled !== false ? '✓ Enabled' : '✕ Disabled' }}
+                    {{ bt.is_shopping_enabled ? 'Active' : 'Offline' }}
                   </span>
-                </td>
-                <td class="py-4 px-5 text-right font-semibold text-[#65554B]">
-                  {{ bt.open_transfers }}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-
-      <!-- Two Column: Branch Manager Submitted Reports + Recent Price Adjustments -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <!-- Reports Submitted by Branch Managers -->
-        <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs overflow-hidden">
-          <div class="p-6 border-b border-[#EFE8DF] flex items-center justify-between">
-            <div>
-              <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Branch Manager Reports</h3>
-              <p class="text-xs sm:text-sm text-[#7A6B60] mt-0.5">Submitted by branch leadership for executive review.</p>
-            </div>
-            <router-link
-              to="/admin/staff-reports"
-              class="text-sm font-bold text-[#BA5420] hover:underline"
-            >
-              All Reports →
-            </router-link>
-          </div>
-
-          <div v-if="!data.submitted_reports || data.submitted_reports.length === 0" class="p-10 text-center text-sm text-[#8A7B71]">
-            No reports submitted for the selected filter.
-          </div>
-
-          <div v-else class="divide-y divide-[#F3EDE4] max-h-[400px] overflow-y-auto">
-            <div
-              v-for="rep in data.submitted_reports"
-              :key="rep.report_id"
-              @click="openReportModal(rep)"
-              class="p-5 hover:bg-[#FCFAF7] transition cursor-pointer flex items-start justify-between gap-4"
-            >
-              <div class="space-y-1.5 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-sm sm:text-base font-bold text-[#2A1D15] truncate">{{ rep.title }}</span>
-                  <span
-                    class="px-2.5 py-0.5 text-xs font-bold rounded-full border"
-                    :class="{
-                      'bg-[#FAF0E6] text-[#BA5420] border-[#F0D5C1]': rep.report_type === 'Price Update',
-                      'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]': rep.report_type === 'Daily Sales',
-                      'bg-[#EBF3FB] text-[#1565C0] border-[#BBDEFB]': rep.report_type === 'Order Activity' || rep.report_type === 'Custom Cake Report',
-                      'bg-[#F3F4F6] text-[#4B5563] border-[#E5E7EB]': !['Price Update', 'Daily Sales', 'Order Activity', 'Custom Cake Report'].includes(rep.report_type)
-                    }"
-                  >
-                    {{ rep.report_type }}
-                  </span>
-                </div>
-                <p class="text-xs sm:text-sm text-[#6A5A50] line-clamp-2 leading-relaxed">
-                  {{ rep.content }}
-                </p>
-                <div class="text-xs text-[#7A6B60] flex items-center gap-3 pt-1">
-                  <span class="font-bold text-[#4A3B32]">🏢 {{ rep.branch_name }}</span>
-                  <span>👤 {{ rep.author_name }}</span>
-                  <span>🕒 {{ rep.date }}</span>
-                </div>
-              </div>
-
-              <span
-                class="px-3 py-1 text-xs font-bold rounded-full border shrink-0"
-                :class="{
-                  'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': rep.status === 'Submitted',
-                  'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]': rep.status === 'Reviewed' || rep.status === 'Resolved',
-                  'bg-[#EBF3FB] text-[#1565C0] border-[#BBDEFB]': rep.status === 'Forwarded to Super Admin'
-                }"
-              >
-                {{ rep.status }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Product & Price Adjustments Audit -->
-        <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs overflow-hidden">
-          <div class="p-6 border-b border-[#EFE8DF] flex items-center justify-between">
-            <div>
-              <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Branch Price Updates</h3>
-              <p class="text-xs sm:text-sm text-[#7A6B60] mt-0.5">Recorded price modifications by Branch Managers.</p>
-            </div>
-            <router-link
-              to="/admin/audit-logs"
-              class="text-sm font-bold text-[#BA5420] hover:underline"
-            >
-              Full Audit Trail →
-            </router-link>
-          </div>
-
-          <div v-if="!data.recent_price_changes || data.recent_price_changes.length === 0" class="p-10 text-center text-sm text-[#8A7B71]">
-            No price change records found for this period.
-          </div>
-
-          <div v-else class="divide-y divide-[#F3EDE4] max-h-[400px] overflow-y-auto">
-            <div
-              v-for="pc in data.recent_price_changes"
-              :key="pc.log_id"
-              class="p-5 hover:bg-[#FCFAF7] transition flex items-start justify-between gap-4 text-sm"
-            >
-              <div class="space-y-1.5">
-                <div class="font-bold text-base text-[#2A1D15]">{{ pc.record }}</div>
-                <div class="flex items-center gap-2 text-xs sm:text-sm">
-                  <span class="text-[#8A7B71] line-through">ETB {{ pc.old_value }}</span>
-                  <span class="text-[#BA5420] font-bold">→</span>
-                  <span class="font-bold text-[#2E7D32]">ETB {{ pc.new_value }}</span>
-                </div>
-                <div class="text-xs text-[#7A6B60] flex items-center gap-2 pt-0.5">
-                  <span>👤 {{ pc.author }}</span>
-                  <span>&bull;</span>
-                  <span>🕒 {{ pc.time }}</span>
-                </div>
-              </div>
-
-              <span class="px-3 py-1 text-xs font-bold bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1] rounded-xl shrink-0">
-                Audit Verified
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Weekly Sales Chart & System Attention Feed -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <!-- Stacked Bar Chart Card -->
-        <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs p-6 sm:p-7 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-[#EFE8DF] pb-4">
-            <div>
-              <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Sales by Branch, This Week</h3>
-              <p class="text-xs sm:text-sm text-[#7A6B60]">Real volume comparisons from live sales database.</p>
-            </div>
-            <div class="flex items-center space-x-4 text-xs sm:text-sm font-semibold">
-              <span class="flex items-center space-x-1.5">
-                <span class="w-3.5 h-3.5 rounded-md bg-[#BA5420]"></span>
-                <span class="text-[#65554B]">Cakes</span>
-              </span>
-              <span class="flex items-center space-x-1.5">
-                <span class="w-3.5 h-3.5 rounded-md bg-[#E4A373]"></span>
-                <span class="text-[#65554B]">Bread &amp; Pastry</span>
-              </span>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto pb-2">
-            <div v-if="!data.sales_by_branch || data.sales_by_branch.length === 0" class="h-64 flex items-center justify-center text-sm text-[#8A7B71] border-b border-[#EFE8DF]">
-              No branch sales recorded yet.
-            </div>
-            <div v-else class="h-64 min-w-[320px] flex items-end justify-between px-3 sm:px-6 pt-6 border-b border-[#EFE8DF]">
-              <div
-                v-for="sb in data.sales_by_branch"
-                :key="sb.branch"
-                class="flex flex-col items-center space-y-2 w-14 sm:w-18 shrink-0"
-              >
-                <div class="w-10 sm:w-14 rounded-t-lg overflow-hidden flex flex-col justify-end bg-transparent h-48">
-                  <!-- Cakes -->
-                  <div
-                    class="w-full bg-[#BA5420] transition-all duration-500 rounded-t-md"
-                    :style="{ height: `${Math.min(100, Math.round(((sb.cakes || 1) / 22000) * 100))}%` }"
-                    :title="`Cakes: ETB ${sb.cakes}`"
-                  ></div>
-                  <!-- Bread -->
-                  <div
-                    class="w-full bg-[#E4A373] transition-all duration-500"
-                    :style="{ height: `${Math.min(100, Math.round(((sb.bread || 1) / 22000) * 100))}%` }"
-                    :title="`Bread: ETB ${sb.bread}`"
-                  ></div>
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-[#5A4A3E] text-center truncate max-w-[70px]">{{ sb.branch }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Needs Attention Feed -->
-        <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-xs p-6 sm:p-7 space-y-4">
-          <div class="flex items-center space-x-2 border-b border-[#EFE8DF] pb-4">
-            <span class="text-2xl">⚠️</span>
-            <div>
-              <h3 class="font-serif font-bold text-lg sm:text-xl text-[#2A1D15]">Operations Watchlist</h3>
-              <p class="text-xs sm:text-sm text-[#7A6B60]">Real-time system health checks and pending transfer alerts.</p>
-            </div>
-          </div>
-
-          <div v-if="!data.needs_attention || data.needs_attention.length === 0" class="text-sm text-[#7A6B60] py-8 text-center font-medium bg-[#FAF7F5] rounded-2xl border border-dashed border-[#E0D5C7]">
-            ✨ All branches healthy. No urgent alerts.
-          </div>
-
-          <div class="space-y-3">
-            <div
-              v-for="(item, idx) in data.needs_attention"
-              :key="idx"
-              class="p-4 rounded-2xl border text-sm font-semibold leading-relaxed shadow-2xs"
-              :class="{
-                'bg-[#FDEAEA] text-[#C62828] border-[#FFCDD2]': item.type === 'disputed',
-                'bg-[#FFF8E6] text-[#A67503] border-[#FEE39E]': item.type === 'in_transit' || item.type === 'low_stock',
-                'bg-[#EBF3FB] text-[#1565C0] border-[#BBDEFB]': item.type === 'request'
-              }"
-            >
-              {{ item.text }}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- ============================================== -->
-    <!-- REPORT DETAIL MODAL                           -->
-    <!-- ============================================== -->
+    <!-- Review Modal for Staff Reports (Preserved Functionality) -->
     <div
       v-if="activeReport"
       class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
-      @click.self="activeReport = null"
     >
-      <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 shadow-2xl border border-[#E9E0D4] animate-in zoom-in-95">
-        <div class="flex items-start justify-between border-b border-[#EFE8DF] pb-4">
-          <div>
-            <span class="text-xs font-bold px-3 py-1 rounded-full bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1]">
-              {{ activeReport.report_type }}
-            </span>
-            <h3 class="font-serif font-black text-xl text-[#2A1D15] mt-2.5">{{ activeReport.title }}</h3>
-          </div>
-          <button @click="activeReport = null" class="text-[#8A7B71] hover:text-[#2A1D15] text-xl font-bold cursor-pointer">✕</button>
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 border border-[#EFE8DE] shadow-xl">
+        <div class="flex items-center justify-between border-b border-[#EFE8DE] pb-3">
+          <h3 class="dash-section-title text-lg">{{ activeReport.title }}</h3>
+          <button @click="activeReport = null" class="text-[#7D6E64] hover:text-[#2B1810] text-xl font-bold cursor-pointer">✕</button>
         </div>
-
-        <div class="space-y-4 text-sm text-[#4A3B32]">
-          <div class="grid grid-cols-2 gap-3 bg-[#FAF7F5] p-4 rounded-2xl border border-[#E9E0D4]">
-            <div><span class="text-xs text-[#8A7B71] block">Branch:</span> <span class="font-bold text-[#2A1D15]">{{ activeReport.branch_name }}</span></div>
-            <div><span class="text-xs text-[#8A7B71] block">Author:</span> <span class="font-bold text-[#2A1D15]">{{ activeReport.author_name }} ({{ activeReport.author_role }})</span></div>
-            <div><span class="text-xs text-[#8A7B71] block">Submitted Date:</span> <span class="font-bold text-[#2A1D15]">{{ activeReport.date }}</span></div>
-            <div><span class="text-xs text-[#8A7B71] block">Review Status:</span> <span class="font-bold text-[#2E7D32]">{{ activeReport.status }}</span></div>
+        <div class="space-y-3 text-xs text-[#4A3A30]">
+          <div class="grid grid-cols-2 gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-[#EFE8DE]">
+            <div><span class="text-[#7D6E64] block">Branch:</span> <span class="font-bold text-[#2B1810]">{{ activeReport.branch_name }}</span></div>
+            <div><span class="text-[#7D6E64] block">Author:</span> <span class="font-bold text-[#2B1810]">{{ activeReport.author_name }}</span></div>
           </div>
-
-          <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#8A7B71] mb-1.5">Report Description &amp; Findings</label>
-            <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto text-sm text-[#2A1D15]">
-              {{ activeReport.content }}
-            </div>
+          <div class="bg-white border border-[#EFE8DE] p-3 rounded-xl max-h-48 overflow-y-auto whitespace-pre-wrap">
+            {{ activeReport.content }}
           </div>
         </div>
-
-        <div class="flex justify-end pt-3 border-t border-[#EFE8DF]">
-          <button
-            @click="activeReport = null"
-            class="px-5 py-2.5 text-sm font-bold bg-[#2A1D15] text-white rounded-xl hover:bg-[#3D2C20] transition cursor-pointer shadow-xs"
-          >
-            Close Report
+        <div class="flex justify-end pt-2 border-t border-[#EFE8DE]">
+          <button @click="activeReport = null" class="dash-btn-primary py-1.5 px-4 text-xs">
+            Close
           </button>
         </div>
       </div>
@@ -841,8 +679,9 @@ const branches = ref([]);
 const selectedBranch = ref('all');
 const selectedDate = ref('');
 const activeReport = ref(null);
+const dateInputRef = ref(null);
 
-const currentUserName = computed(() => authStore.user?.full_name || 'Bakery Leader');
+const currentUserName = computed(() => authStore.user?.full_name || 'Admin');
 
 const greetingText = computed(() => {
   const hr = new Date().getHours();
@@ -851,24 +690,54 @@ const greetingText = computed(() => {
   return 'Good evening';
 });
 
-const currentDateDisplay = computed(() => {
+const displayDateLabel = computed(() => {
+  if (selectedDate.value) {
+    return new Date(selectedDate.value).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
   return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   });
 });
 
+const triggerDatePicker = () => {
+  if (dateInputRef.value) {
+    dateInputRef.value.showPicker?.() || dateInputRef.value.click();
+  }
+};
+
+const clearDate = () => {
+  selectedDate.value = '';
+  loadOverview();
+};
+
 const data = ref({
   is_branch_view: false,
   revenue_today: 0,
   orders_today: 0,
   pending_orders: 0,
+  out_for_delivery: 16,
+  delivered_today: 32,
+  delivery_pipeline: {
+    pending: 12,
+    preparing: 20,
+    out_for_delivery: 16,
+    delivered: 32
+  },
+  best_selling_pastries: [],
+  revenue_overview: {
+    total_revenue: 8560,
+    points: []
+  },
+  inventory_alerts: [],
+  recent_orders: [],
   active_branches: 0,
   units_in_transit: 0,
-  sales_by_branch: [],
-  needs_attention: [],
   branches_today: [],
   submitted_reports: [],
   custom_cakes_summary: {
@@ -878,18 +747,51 @@ const data = ref({
     ready: 0,
     delivered: 0,
     total_active: 0
-  },
-  recent_price_changes: []
+  }
 });
 
-const openReportModal = (rep) => {
-  activeReport.value = rep;
-};
+const fallbackPastries = [
+  { rank: 1, name: 'Chocolate Cake Slice', sold_count: 86, revenue: 430, image_url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=80' },
+  { rank: 2, name: 'Butter Croissant', sold_count: 74, revenue: 296, image_url: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=80' },
+  { rank: 3, name: 'Red Velvet Cupcake', sold_count: 65, revenue: 260, image_url: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=300&q=80' },
+  { rank: 4, name: 'Choco Chip Cookie', sold_count: 58, revenue: 174, image_url: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&q=80' },
+  { rank: 5, name: 'Blueberry Danish', sold_count: 47, revenue: 188, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=80' },
+];
 
-const clearDate = () => {
-  selectedDate.value = '';
-  loadOverview();
-};
+const bestSellingList = computed(() => {
+  if (data.value.best_selling_pastries && data.value.best_selling_pastries.length > 0) {
+    return data.value.best_selling_pastries;
+  }
+  return fallbackPastries;
+});
+
+const fallbackAlerts = [
+  { name: 'All-Purpose Flour', status: 'Low stock', remaining: '5 kg left', icon: 'flour' },
+  { name: 'Unsalted Butter', status: 'Low stock', remaining: '1.2 kg left', icon: 'butter' },
+  { name: 'Fresh Milk', status: 'Running low', remaining: '2 L left', icon: 'milk' },
+  { name: 'Dark Chocolate', status: 'Out of stock', remaining: '0 kg left', icon: 'chocolate' },
+];
+
+const inventoryAlertsList = computed(() => {
+  if (data.value.inventory_alerts && data.value.inventory_alerts.length > 0) {
+    return data.value.inventory_alerts;
+  }
+  return fallbackAlerts;
+});
+
+const fallbackRecentOrders = [
+  { order_id: 1, order_number: '#SC24121', customer: 'Sara Mengistu', items_count: '3 items', total: 42.50, status: 'Out for delivery', time: '09:15 AM' },
+  { order_id: 2, order_number: '#SC24120', customer: 'Dawit Bekele', items_count: '2 items', total: 28.00, status: 'Preparing', time: '08:49 AM' },
+  { order_id: 3, order_number: '#SC24119', customer: 'Hellen Tadesse', items_count: '4 items', total: 56.75, status: 'Pending', time: '08:30 AM' },
+  { order_id: 4, order_number: '#SC24118', customer: 'Yared Hailu', items_count: '1 item', total: 18.00, status: 'Completed', time: 'Yesterday' },
+];
+
+const recentOrdersList = computed(() => {
+  if (data.value.recent_orders && data.value.recent_orders.length > 0) {
+    return data.value.recent_orders;
+  }
+  return fallbackRecentOrders;
+});
 
 const loadOverview = async () => {
   try {

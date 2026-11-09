@@ -2,10 +2,13 @@
   <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Payments</h2>
+      <div>
+        <h2 class="dash-title text-xl sm:text-2xl">Payments &amp; Collections</h2>
+        <p class="dash-subtitle mt-0.5">Track multi-channel payment reconciliation across telebirr, Chapa, and cash</p>
+      </div>
       <button
         @click="exportCSV"
-        class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+        class="dash-btn-secondary text-xs sm:text-sm"
       >
         Export CSV
       </button>
@@ -13,28 +16,28 @@
 
     <!-- 4 Summary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Online revenue today</div>
-        <div class="text-2xl sm:text-3xl font-bold text-[#241710]">ETB {{ Number(summary.online_revenue_today || 41300).toLocaleString() }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Chapa and Telebirr</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Online revenue today</div>
+        <div class="dash-metric text-2xl sm:text-3xl">ETB {{ Number(summary.online_revenue_today || 41300).toLocaleString() }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Chapa and Telebirr</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Pay on pickup/delivery</div>
-        <div class="text-2xl sm:text-3xl font-bold text-[#241710]">ETB {{ Number(summary.pay_on_pickup_delivery || 6900).toLocaleString() }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">To be collected</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Pay on pickup/delivery</div>
+        <div class="dash-metric text-2xl sm:text-3xl">ETB {{ Number(summary.pay_on_pickup_delivery || 6900).toLocaleString() }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">To be collected</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Failed</div>
-        <div class="text-2xl sm:text-3xl font-bold text-[#241710]">{{ summary.failed_today || 3 }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Today</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Failed</div>
+        <div class="dash-metric text-2xl sm:text-3xl text-[#C62828]">{{ summary.failed_today || 3 }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Today</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-xl p-5 shadow-sm">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Refunds</div>
-        <div class="text-2xl sm:text-3xl font-bold text-[#241710]">ETB {{ Number(summary.refunds_this_week || 850).toLocaleString() }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">1 refund this week</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Refunds</div>
+        <div class="dash-metric text-2xl sm:text-3xl">ETB {{ Number(summary.refunds_this_week || 850).toLocaleString() }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">1 refund this week</div>
       </div>
     </div>
 

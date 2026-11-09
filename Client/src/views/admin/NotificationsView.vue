@@ -3,12 +3,12 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Notifications</h2>
-        <p class="text-xs text-[#7A6B60] mt-0.5">Automated stock warnings, distribution updates, and pending action alerts</p>
+        <h2 class="dash-title text-xl sm:text-2xl">Notifications</h2>
+        <p class="dash-subtitle mt-0.5">Automated stock warnings, distribution updates, and pending action alerts</p>
       </div>
       <button
         @click="markAllAsRead"
-        class="self-start sm:self-auto px-4 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer"
+        class="dash-btn-secondary self-start sm:self-auto text-xs sm:text-sm py-1.5 px-3.5"
       >
         Mark all as read
       </button>
@@ -18,8 +18,8 @@
     <div class="flex items-center space-x-2 overflow-x-auto pb-1 -mx-1 px-1">
       <button
         @click="setCategory('All')"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition whitespace-nowrap cursor-pointer shrink-0"
-        :class="activeCategory === 'All' ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition whitespace-nowrap cursor-pointer shrink-0"
+        :class="activeCategory === 'All' ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         All ({{ unreadCount }})
       </button>
@@ -27,8 +27,8 @@
         v-for="cat in ['Stock', 'Transfers', 'Discrepancies', 'Orders', 'System']"
         :key="cat"
         @click="setCategory(cat)"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition whitespace-nowrap cursor-pointer shrink-0"
-        :class="activeCategory === cat ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition whitespace-nowrap cursor-pointer shrink-0"
+        :class="activeCategory === cat ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         {{ cat }}
       </button>

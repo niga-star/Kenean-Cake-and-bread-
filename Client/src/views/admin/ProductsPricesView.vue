@@ -4,15 +4,15 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <div class="flex items-center space-x-2">
-          <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Products and prices</h2>
+          <h2 class="dash-title text-xl sm:text-2xl">Products and Prices</h2>
           <span
             class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border"
-            :class="isBranchManager ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'"
+            :class="isBranchManager ? 'dash-badge-pending' : 'dash-badge-neutral'"
           >
             {{ isBranchManager ? 'Branch Manager Control' : 'Read-Only (Seller)' }}
           </span>
         </div>
-        <p class="text-xs text-[#7A6B60] mt-0.5">
+        <p class="dash-subtitle mt-0.5">
           {{ isBranchManager
             ? `Set and update product prices independently for ${currentBranchName}. Changes will not affect other branches.`
             : `Viewing active catalog and counter prices for ${currentBranchName}. Only Branch Managers can update prices.` }}
@@ -24,29 +24,29 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search products..."
-          class="flex-1 sm:flex-initial bg-white border border-[#D8CDC0] rounded-lg px-3 py-2 sm:py-1.5 text-xs text-[#2D231D] shadow-2xs min-w-[130px]"
+          class="dash-input w-auto min-w-[150px] py-1.5 px-3"
         />
 
         <!-- Branch Manager Controls -->
         <template v-if="isBranchManager">
           <button
             @click="openPriceReportModal"
-            class="px-3.5 py-2 text-xs sm:text-sm font-semibold bg-white border border-[#BA5420] hover:bg-[#FAF3EC] text-[#BA5420] rounded-lg transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            class="dash-btn-secondary text-xs sm:text-sm py-1.5 px-3"
             title="Submit a product and price update report to the Super Admin"
           >
             <span>📢 Report to Super Admin</span>
           </button>
           <button
             @click="isCategoriesModalOpen = true"
-            class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-2xs cursor-pointer"
+            class="dash-btn-secondary text-xs sm:text-sm py-1.5 px-3"
           >
             Categories
           </button>
           <button
             @click="openAddProductModal"
-            class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+            class="dash-btn-primary text-xs sm:text-sm py-1.5 px-3.5"
           >
-            <span>+ Add product</span>
+            <span>+ Add Product</span>
           </button>
         </template>
       </div>

@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto pb-12 font-poppins">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#EAE1D5] pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#EFE8DE] pb-4">
       <div>
         <div class="flex items-center space-x-2">
           <span class="text-2xl">📊</span>
-          <h1 class="text-xl sm:text-2xl md:text-3xl font-serif font-black text-[#2A1D15]">
+          <h1 class="dash-title text-xl sm:text-2xl md:text-3xl">
             Reports &amp; Analytics
           </h1>
         </div>
-        <p class="text-xs text-[#7A6B60] mt-1">
+        <p class="dash-subtitle mt-1">
           Multi-branch performance metrics, distribution tracking, inventory levels, and financial reconciliation.
         </p>
       </div>
@@ -18,7 +18,7 @@
         <button
           @click="sendDailySummary"
           :disabled="sendingSummary"
-          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-[#FAF7F5] border border-[#D8CDC0] hover:bg-[#FFF1F2] text-[#881337] rounded-xl transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
           title="Send daily sales and low-stock email summary to owner"
         >
           <span>✉️</span>
@@ -27,7 +27,7 @@
 
         <button
           @click="exportCSV"
-          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-white border border-[#D8CDC0] hover:bg-[#FAF7F5] text-[#4A3B32] rounded-xl transition flex items-center justify-center space-x-1.5 shadow-2xs cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           <span>📥</span>
           <span>Export CSV</span>
@@ -35,7 +35,7 @@
 
         <button
           @click="exportPDF"
-          class="flex-1 sm:flex-none px-3.5 py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
+          class="dash-btn-primary text-xs sm:text-sm"
         >
           <span>🖨️</span>
           <span>Print / PDF</span>

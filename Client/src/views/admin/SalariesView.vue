@@ -1,35 +1,35 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#E9E0D4] shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 dash-card p-5">
       <div class="flex items-center space-x-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center text-xl shrink-0 border border-[#F0DFD0] shadow-xs">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="w-11 h-11 rounded-2xl bg-[#F6EFE6] text-[#3D251E] flex items-center justify-center text-xl shrink-0 border border-[#E8DFD3] shadow-xs">
+          <svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Salary & Wage Management</h1>
-          <p class="text-xs text-[#7A6B60] mt-0.5">Centralized payroll control, branch wage expense breakdown, and salary adjustments.</p>
+          <h1 class="dash-title text-xl sm:text-2xl">Salary &amp; Wage Management</h1>
+          <p class="dash-subtitle mt-0.5">Centralized payroll control, branch wage expense breakdown, and salary adjustments.</p>
         </div>
       </div>
 
       <!-- Quick Tab Switcher -->
-      <div class="flex items-center space-x-2 bg-[#FAF7F2] border border-[#D8CDC0] rounded-xl p-1 shadow-xs">
+      <div class="flex items-center space-x-2 bg-[#FAF7F2] border border-[#E8DFD5] rounded-xl p-1 shadow-xs">
         <button
           @click="activeTab = 'payroll'"
-          class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition"
-          :class="activeTab === 'payroll' ? 'bg-[#BA5420] text-white shadow-xs' : 'text-[#6A5A50] hover:text-[#2A1D15]'"
+          class="transition cursor-pointer"
+          :class="activeTab === 'payroll' ? 'dash-pill-active' : 'dash-pill-inactive'"
         >
           Branch Payroll
         </button>
         <button
           @click="activeTab = 'requests'"
-          class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition flex items-center space-x-1.5"
-          :class="activeTab === 'requests' ? 'bg-[#BA5420] text-white shadow-xs' : 'text-[#6A5A50] hover:text-[#2A1D15]'"
+          class="transition cursor-pointer flex items-center space-x-1.5"
+          :class="activeTab === 'requests' ? 'dash-pill-active' : 'dash-pill-inactive'"
         >
           <span>Correction Requests</span>
-          <span v-if="pendingRequestsCount > 0" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#E53935] text-white">
+          <span v-if="pendingRequestsCount > 0" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#DE1B54] text-white">
             {{ pendingRequestsCount }}
           </span>
         </button>

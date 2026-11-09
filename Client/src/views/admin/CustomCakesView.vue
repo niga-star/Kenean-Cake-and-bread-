@@ -3,15 +3,15 @@
     <!-- Header with Branch Selector and Status Filters -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-2xl font-serif font-bold text-[#2A1D15]">Custom Cake Requests</h2>
-        <p class="text-xs text-[#7A6B60] mt-0.5">Manage bespoke cake briefs, quotation lifecycle, and kitchen baking stages.</p>
+        <h2 class="dash-title text-xl sm:text-2xl">Custom Cake Requests</h2>
+        <p class="dash-subtitle mt-0.5">Manage bespoke cake briefs, quotation lifecycle, and kitchen baking stages.</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5">
         <!-- Branch Selector or Scoped Badge -->
         <div
           v-if="isBranchScoped"
-          class="bg-[#FAF3EC] border border-[#EACBB8] rounded-xl px-3.5 py-2 text-xs font-bold text-[#BA5420] flex items-center space-x-1.5 shadow-2xs"
+          class="dash-badge-pending text-xs py-1.5 px-3"
         >
           <span>📍</span>
           <span>{{ userBranchName }} Only</span>
@@ -20,7 +20,7 @@
           v-else
           v-model="selectedBranch"
           @change="loadRequests"
-          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+          class="dash-select w-auto text-xs py-1.5 px-3"
         >
           <option value="all">All Branches</option>
           <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
@@ -30,7 +30,7 @@
 
         <router-link
           to="/admin/staff-reports"
-          class="px-3.5 py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1"
+          class="dash-btn-secondary text-xs py-1.5 px-3"
         >
           <span>📋</span>
           <span>Submit Cake Report</span>
@@ -39,7 +39,7 @@
         <select
           v-model="selectedStatusFilter"
           @change="loadRequests"
-          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420]"
+          class="dash-select w-auto text-xs py-1.5 px-3"
         >
           <option value="all">All Statuses</option>
           <option value="Submitted">Submitted (Waiting Quote)</option>
@@ -55,7 +55,7 @@
         <select
           v-model="selectedDateFilter"
           @change="loadRequests"
-          class="bg-white border border-[#D8CDC0] rounded-xl px-3.5 py-2 text-xs font-semibold text-[#4A3B32] shadow-2xs focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+          class="dash-select w-auto text-xs py-1.5 px-3"
         >
           <option value="all">All Dates</option>
           <option value="today">Today</option>
@@ -97,48 +97,48 @@
 
     <!-- 4 Summary Stat Cards (100% Real Database Driven) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Submitted</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ summary.submitted || 0 }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Waiting for a quote</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Submitted</div>
+        <div class="dash-metric text-3xl">{{ summary.submitted || 0 }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Waiting for a quote</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Quoted</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ summary.quoted || 0 }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Waiting for customer acceptance</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Quoted</div>
+        <div class="dash-metric text-3xl">{{ summary.quoted || 0 }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Waiting for customer acceptance</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Confirmed</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ summary.confirmed || 0 }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Deposit paid &amp; scheduled</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Confirmed</div>
+        <div class="dash-metric text-3xl">{{ summary.confirmed || 0 }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Deposit paid &amp; scheduled</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-medium text-[#7D6E64] mb-1">Ready for Handover</div>
-        <div class="text-3xl font-bold text-[#241710]">{{ summary.ready_this_week || 0 }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Awaiting pickup or delivery</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Ready for Handover</div>
+        <div class="dash-metric text-3xl">{{ summary.ready_this_week || 0 }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Awaiting pickup or delivery</div>
       </div>
     </div>
 
     <!-- Notification / Success Message -->
-    <div v-if="successMsg" class="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium flex items-center justify-between">
+    <div v-if="successMsg" class="p-3.5 bg-[#EDF7ED] border border-[#C8E6C9] text-[#2E7D32] rounded-xl text-xs font-semibold flex items-center justify-between">
       <div class="flex items-center space-x-2">
         <span>✓</span>
         <span>{{ successMsg }}</span>
       </div>
-      <button @click="successMsg = ''" class="text-emerald-700 hover:text-emerald-900 font-bold">✕</button>
+      <button @click="successMsg = ''" class="text-[#2E7D32] hover:text-[#1B5E20] font-bold cursor-pointer">✕</button>
     </div>
 
     <!-- Main Content Grid: Requests Table + Quote & Lifecycle Side Panel -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <!-- Requests Table (Col span 2) -->
-      <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-2xl shadow-2xs overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-[#EFE8DF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="lg:col-span-2 dash-card overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-[#EFE8DE] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="flex items-center space-x-2">
-            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">Requests</h3>
-            <span class="text-xs text-[#8A7B71]">({{ filteredRequests.length }} records)</span>
+            <h3 class="dash-section-title text-base sm:text-lg">Requests</h3>
+            <span class="text-xs text-[#7D6E64]">({{ filteredRequests.length }} records)</span>
           </div>
 
           <div class="relative w-full sm:w-64">
@@ -146,26 +146,26 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search by request #, customer, flavor..."
-              class="w-full bg-[#FAF7F5] border border-[#D8CDC0] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#2A1D15] focus:outline-none focus:border-[#BA5420]"
+              class="dash-input pl-8"
             />
             <span class="absolute left-2.5 top-2 text-xs text-gray-400">🔍</span>
           </div>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[620px] text-left text-sm">
-            <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
+          <table class="dash-table min-w-[620px]">
+            <thead>
               <tr>
-                <th class="py-3 px-4">Request #</th>
-                <th class="py-3 px-3">Branch</th>
-                <th class="py-3 px-3">Customer</th>
-                <th class="py-3 px-3">Configuration</th>
-                <th class="py-3 px-3">Needed by</th>
-                <th class="py-3 px-3">Quote</th>
-                <th class="py-3 px-4 text-center">Status</th>
+                <th class="dash-th">Request #</th>
+                <th class="dash-th">Branch</th>
+                <th class="dash-th">Customer</th>
+                <th class="dash-th">Configuration</th>
+                <th class="dash-th">Needed by</th>
+                <th class="dash-th">Quote</th>
+                <th class="dash-th text-center">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#F3EDE4]">
+            <tbody class="divide-y divide-[#F4EFEA]">
               <tr v-if="filteredRequests.length === 0">
                 <td colspan="7" class="py-12 text-center text-xs text-[#8A7B71]">
                   No custom cake requests found matching current filters.

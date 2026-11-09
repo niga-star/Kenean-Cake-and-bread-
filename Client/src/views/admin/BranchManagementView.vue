@@ -18,19 +18,19 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
       <div class="flex items-center space-x-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center shrink-0 border border-[#F0DFD0] shadow-xs">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        <div class="w-11 h-11 rounded-2xl bg-[#F6EFE6] text-[#3D251E] flex items-center justify-center shrink-0 border border-[#E8DFD3] shadow-xs">
+          <svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
         <div>
-          <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Branch Management</h2>
-          <p class="text-xs text-[#7A6B60] mt-0.5 font-poppins">Manage your bakery branches efficiently</p>
+          <h2 class="dash-title text-xl sm:text-2xl">Branch Management</h2>
+          <p class="dash-subtitle mt-0.5">Manage your bakery branches efficiently</p>
         </div>
       </div>
       <button
         @click="openAddBranchModal"
-        class="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer font-poppins"
+        class="dash-btn-primary"
       >
         <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -50,20 +50,20 @@
     </div>
 
     <!-- Branches List Table -->
-    <div class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
+    <div class="dash-card overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[580px] text-left text-sm">
-          <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
+        <table class="dash-table min-w-[580px]">
+          <thead>
             <tr>
-              <th class="py-3 px-5">Code</th>
-              <th class="py-3 px-4">Branch</th>
-              <th class="py-3 px-4">Type</th>
-              <th class="py-3 px-4">Manager</th>
-              <th class="py-3 px-4">City</th>
-              <th class="py-3 px-4">Phone</th>
-              <th class="py-3 px-4 text-center">Status</th>
-              <th class="py-3 px-4 text-center">Shopping Access</th>
-              <th class="py-3 px-5 text-right">Action</th>
+              <th class="dash-th">Code</th>
+              <th class="dash-th">Branch</th>
+              <th class="dash-th">Type</th>
+              <th class="dash-th">Manager</th>
+              <th class="dash-th">City</th>
+              <th class="dash-th">Phone</th>
+              <th class="dash-th text-center">Status</th>
+              <th class="dash-th text-center">Shopping Access</th>
+              <th class="dash-th text-right">Action</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#F3EDE4]">

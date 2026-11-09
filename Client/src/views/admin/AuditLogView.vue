@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Audit Log</h2>
-        <p class="text-xs text-[#8A7B71] mt-0.5">
+        <h2 class="dash-title text-xl sm:text-2xl">Audit Log</h2>
+        <p class="dash-subtitle mt-0.5">
           Immutable chronological record of orders, price changes, custom cake workflows, transfers, and staff actions
         </p>
       </div>
@@ -13,26 +13,26 @@
         <!-- Scope Badge -->
         <span
           v-if="isSuperAdmin"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#FAF0E6] text-[#8C3D10] border border-[#F0D5C2]"
+          class="dash-badge-pending text-xs py-1.5 px-3"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-[#BA5420]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-[#B87A14]"></span>
           Scope: All Branches
         </span>
         <span
           v-else
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]"
+          class="dash-badge-neutral text-xs py-1.5 px-3"
         >
-          <span class="w-1.5 h-1.5 rounded-full bg-[#38761D]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-[#2E7D32]"></span>
           Scope: {{ userBranchName || 'Assigned Branch' }}
         </span>
 
-        <span class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
-          🔒 Read only
+        <span class="dash-badge-neutral text-xs py-1.5 px-2.5">
+          🔒 Read Only
         </span>
 
         <button
           @click="exportCSV"
-          class="px-3.5 py-1.5 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5"
+          class="dash-btn-secondary text-xs sm:text-sm py-1.5 px-3.5"
         >
           <span>📥</span>
           <span>Export CSV</span>
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Filter Control Bar -->
-    <div class="bg-white p-4 border border-[#E9E0D4] rounded-2xl shadow-xs space-y-3">
+    <div class="dash-card p-4 space-y-3">
       <!-- Top Filter Row: Search, Branch, User, Action -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <!-- Search Input -->

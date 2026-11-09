@@ -3,25 +3,25 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center text-xl shrink-0 border border-[#F0DFD0] shadow-xs">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        <div class="w-11 h-11 rounded-2xl bg-[#F6EFE6] text-[#3D251E] flex items-center justify-center text-xl shrink-0 border border-[#E8DFD3] shadow-xs">
+          <svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
         <div>
-          <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">My Staff Account</h2>
-          <p class="text-xs text-[#7A6B60] mt-0.5">Your official employee profile and salary details</p>
+          <h2 class="dash-title text-xl sm:text-2xl">My Staff Account</h2>
+          <p class="dash-subtitle mt-0.5">Your official employee profile and salary details</p>
         </div>
       </div>
 
       <button
         @click="openRequestModal"
-        class="inline-flex items-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm cursor-pointer"
+        class="dash-btn-primary text-xs sm:text-sm py-1.5 px-3.5"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        <svg class="w-4 h-4 stroke-[2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-        <span>Request Correction from Super Admin</span>
+        <span>Request Correction</span>
       </button>
     </div>
 

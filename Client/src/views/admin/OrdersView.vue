@@ -3,12 +3,12 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
+        <h2 class="dash-title text-xl sm:text-2xl">
           {{ isBranchScoped ? `${userBranchName} Branch Orders` : 'All Orders' }}
         </h2>
         <span
           v-if="isBranchScoped"
-          class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FAF3EC] text-[#BA5420] border border-[#EACBB8]"
+          class="dash-badge-pending"
         >
           📍 {{ userBranchName }} Only
         </span>
@@ -16,14 +16,14 @@
       <div class="flex flex-wrap items-center gap-2.5">
         <router-link
           to="/admin/staff-reports"
-          class="w-full sm:w-auto px-4 py-2 text-xs sm:text-sm font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           <span>📋</span>
           <span>Submit Order Report</span>
         </router-link>
         <button
           @click="exportCSV"
-          class="w-full sm:w-auto px-4 py-2 text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           Export CSV
         </button>
@@ -31,28 +31,28 @@
     </div>
 
     <!-- Alert Banner -->
-    <div v-if="successMsg" class="p-3 bg-[#EBF7EB] border border-[#C5E9C6] rounded-lg text-xs text-[#1E7422] flex items-center justify-between">
+    <div v-if="successMsg" class="p-3 bg-[#EDF7ED] border border-[#C8E6C9] rounded-xl text-xs text-[#2E7D32] flex items-center justify-between font-semibold">
       <span>{{ successMsg }}</span>
-      <button @click="successMsg = ''" class="text-[#1E7422] font-bold ml-2">&times;</button>
+      <button @click="successMsg = ''" class="text-[#2E7D32] font-bold ml-2 cursor-pointer">&times;</button>
     </div>
-    <div v-if="errorMsg" class="p-3 bg-[#FEECEC] border border-[#F5C2C2] rounded-lg text-xs text-[#B91C1C] flex items-center justify-between">
+    <div v-if="errorMsg" class="p-3 bg-[#FDEAEA] border border-[#FFCDD2] rounded-xl text-xs text-[#C62828] flex items-center justify-between font-semibold">
       <span>{{ errorMsg }}</span>
-      <button @click="errorMsg = ''" class="text-[#B91C1C] font-bold ml-2">&times;</button>
+      <button @click="errorMsg = ''" class="text-[#C62828] font-bold ml-2 cursor-pointer">&times;</button>
     </div>
 
     <!-- Status Tabs -->
     <div class="flex items-center space-x-2 overflow-x-auto pb-1">
       <button
         @click="setStatusFilter('All')"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition"
-        :class="activeStatus === 'All' ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition cursor-pointer"
+        :class="activeStatus === 'All' ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         All
       </button>
       <button
         @click="setStatusFilter('Pending')"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition flex items-center space-x-1"
-        :class="activeStatus === 'Pending' ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition cursor-pointer flex items-center space-x-1"
+        :class="activeStatus === 'Pending' ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         <span>Pending</span>
         <span class="opacity-80">({{ pendingCount }})</span>
@@ -61,31 +61,31 @@
         v-for="st in ['Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Completed', 'Cancelled']"
         :key="st"
         @click="setStatusFilter(st)"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition"
-        :class="activeStatus === st ? 'bg-[#984518] text-white shadow-sm' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition cursor-pointer"
+        :class="activeStatus === st ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         {{ st }}
       </button>
     </div>
 
     <!-- Filter Bar -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-white p-3.5 border border-[#E9E0D4] rounded-xl shadow-sm">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 dash-card p-4">
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Search</label>
+        <label class="dash-label block mb-1">Search</label>
         <input
           v-model="filters.search"
           @input="applyFilters"
           type="text"
           placeholder="Order number, customer or phone"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          class="dash-input"
         />
       </div>
 
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Branch</label>
+        <label class="dash-label block mb-1">Branch</label>
         <div
           v-if="isBranchScoped"
-          class="w-full bg-[#FAF3EC] border border-[#EACBB8] rounded-lg px-3 py-1.5 text-xs font-bold text-[#BA5420] flex items-center space-x-1.5 truncate"
+          class="dash-badge-neutral w-full py-2 px-3 text-xs justify-start truncate"
         >
           <span>📍</span>
           <span>{{ userBranchName }} Branch</span>
@@ -94,7 +94,7 @@
           v-else
           v-model="filters.branch_id"
           @change="applyFilters"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+          class="dash-select"
         >
           <option value="all">All branches</option>
           <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
@@ -104,11 +104,11 @@
       </div>
 
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Method</label>
+        <label class="dash-label block mb-1">Method</label>
         <select
           v-model="filters.method"
           @change="applyFilters"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
+          class="dash-select"
         >
           <option value="all">Delivery and pickup</option>
           <option value="Delivery">Delivery only</option>
@@ -117,11 +117,11 @@
       </div>
 
       <div>
-        <label class="block text-[11px] font-semibold text-[#8C7D73] uppercase mb-1">Date Filter</label>
+        <label class="dash-label block mb-1">Date Filter</label>
         <select
           v-model="filters.date"
           @change="applyFilters"
-          class="w-full bg-[#FDFBF7] border border-[#DDD2C5] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+          class="dash-select"
         >
           <option value="all">All Orders</option>
           <option value="today">Today</option>
@@ -164,59 +164,60 @@
     <!-- Main Content Grid: Table + Side Order Details -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <!-- Orders Table (Col span 2) -->
-      <div class="lg:col-span-2 bg-white border border-[#E9E0D4] rounded-xl shadow-sm overflow-hidden">
+      <div class="lg:col-span-2 dash-card overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[640px] text-left text-sm">
-            <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
+          <table class="dash-table min-w-[640px]">
+            <thead>
               <tr>
-                <th class="py-3 px-4">Order</th>
-                <th class="py-3 px-3">Branch</th>
-                <th class="py-3 px-3">Customer</th>
-                <th class="py-3 px-3">Method</th>
-                <th class="py-3 px-3">Payment</th>
-                <th class="py-3 px-3">Total</th>
-                <th class="py-3 px-3 text-center">Status</th>
-                <th class="py-3 px-4 text-right">Placed</th>
+                <th class="dash-th">Order</th>
+                <th class="dash-th">Branch</th>
+                <th class="dash-th">Customer</th>
+                <th class="dash-th">Method</th>
+                <th class="dash-th">Payment</th>
+                <th class="dash-th">Total</th>
+                <th class="dash-th text-center">Status</th>
+                <th class="dash-th text-right">Placed</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#F3EDE4]">
+            <tbody class="divide-y divide-[#F4EFEA]">
               <tr v-if="orders.length === 0">
-                <td colspan="8" class="py-8 text-center text-xs text-[#8A7B71]">No orders found for this view.</td>
+                <td colspan="8" class="dash-td text-center py-8 text-[#7D6E64]">No orders found for this view.</td>
               </tr>
               <tr
                 v-for="ord in orders"
                 :key="ord.order_id"
                 @click="selectOrder(ord)"
-                class="hover:bg-[#FCFAF7] transition cursor-pointer"
-                :class="selectedOrder?.order_id === ord.order_id ? 'bg-[#FAF3EC]' : ''"
+                class="dash-tr cursor-pointer"
+                :class="selectedOrder?.order_id === ord.order_id ? 'bg-[#FAF7F2]' : ''"
               >
-                <td class="py-3 px-4 font-mono text-xs font-semibold text-[#382C24]">{{ ord.order_number }}</td>
-                <td class="py-3 px-3 text-xs text-[#4A3B32]">{{ ord.branch?.branch_name }}</td>
-                <td class="py-3 px-3 text-xs text-[#5A4B41]">
-                  <div class="font-medium text-[#241710]">{{ ord.customer_name || ord.user?.full_name || 'Customer' }}</div>
-                  <div v-if="ord.customer_phone || ord.user?.phone" class="text-[10px] text-[#8A7B71]">{{ ord.customer_phone || ord.user?.phone }}</div>
+                <td class="dash-td font-mono font-bold text-[#2B1810]">{{ ord.order_number }}</td>
+                <td class="dash-td text-[#4A3A30]">{{ ord.branch?.branch_name }}</td>
+                <td class="dash-td">
+                  <div class="font-bold text-[#2B1810]">{{ ord.customer_name || ord.user?.full_name || 'Customer' }}</div>
+                  <div v-if="ord.customer_phone || ord.user?.phone" class="text-[11px] text-[#7D6E64]">{{ ord.customer_phone || ord.user?.phone }}</div>
                 </td>
-                <td class="py-3 px-3 text-xs text-[#6A5A50]">{{ ord.fulfillment_method }}</td>
-                <td class="py-3 px-3 text-xs text-[#6A5A50]">
+                <td class="dash-td text-[#4A3A30]">{{ ord.fulfillment_method }}</td>
+                <td class="dash-td text-[#4A3A30]">
                   {{ ord.payment ? `${ord.payment.payment_method} · ${ord.payment.payment_status}` : '—' }}
                 </td>
-                <td class="py-3 px-3 text-xs font-semibold text-[#241710]">
+                <td class="dash-td font-bold font-mono text-[#2B1810]">
                   ETB {{ Number(ord.total_amount).toLocaleString() }}
                 </td>
-                <td class="py-3 px-3 text-center">
+                <td class="dash-td text-center">
                   <span
-                    class="inline-block px-2.5 py-0.5 text-[11px] font-semibold rounded-full"
+                    class="text-xs font-semibold px-2.5 py-0.5 rounded-full inline-block"
                     :class="{
-                      'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]': ord.order_status === 'Pending',
-                      'bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]': ord.order_status === 'Confirmed' || ord.order_status === 'Completed',
-                      'bg-[#EBF3FB] text-[#1565C0] border border-[#BBDEFB]': ord.order_status === 'Preparing' || ord.order_status === 'Ready' || ord.order_status === 'Out for delivery',
-                      'bg-[#FDEAEA] text-[#C62828] border border-[#FFCDD2]': ord.order_status === 'Cancelled'
+                      'dash-badge-pending': ord.order_status === 'Pending',
+                      'dash-badge-preparing': ord.order_status === 'Preparing',
+                      'dash-badge-delivery': ord.order_status === 'Ready' || ord.order_status === 'Out for delivery',
+                      'dash-badge-delivered': ord.order_status === 'Confirmed' || ord.order_status === 'Completed',
+                      'dash-badge-danger': ord.order_status === 'Cancelled'
                     }"
                   >
                     {{ ord.order_status }}
                   </span>
                 </td>
-                <td class="py-3 px-4 text-right text-xs text-[#8A7B71]">
+                <td class="dash-td text-right text-[11px] font-mono text-[#7D6E64]">
                   {{ formatTime(ord.placed_at) }}
                 </td>
               </tr>
@@ -226,10 +227,10 @@
       </div>
 
       <!-- Right Side Panel: Order Details -->
-      <div v-if="selectedOrder" class="bg-white border border-[#E9E0D4] rounded-xl shadow-sm p-6 space-y-4">
+      <div v-if="selectedOrder" class="dash-card p-6 space-y-4">
         <div class="flex items-start justify-between">
           <div>
-            <h3 class="text-lg font-serif font-bold text-[#2A1D15]">
+            <h3 class="dash-section-title text-base sm:text-lg">
               {{ selectedOrder.order_number }} · {{ selectedOrder.branch?.branch_name }}
             </h3>
             <p class="text-[11px] text-[#8A7B71] leading-relaxed mt-1">

@@ -3,10 +3,10 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
+        <h2 class="dash-title text-xl sm:text-2xl">
           {{ isBranchManager ? 'Branch Staff Management' : 'Users & Staff Management' }}
         </h2>
-        <p class="text-xs text-[#7A6B60] mt-0.5">
+        <p class="dash-subtitle mt-0.5">
           {{ isBranchManager ? 'Manage sellers, servants, and delivery staff for your branch' : 'Manage branch managers, staff roles, quotas, and permissions' }}
         </p>
       </div>
@@ -16,11 +16,11 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search by name, amharic or email"
-          class="flex-1 sm:flex-initial bg-white border border-[#D8CDC0] rounded-lg px-3 py-2 sm:py-1.5 text-xs text-[#2D231D] shadow-sm focus:ring-1 focus:ring-[#BA5420] min-w-[160px]"
+          class="dash-input w-auto min-w-[160px] py-1.5 px-3"
         />
         <button
           @click="focusAddUser"
-          class="px-3.5 py-2 text-xs sm:text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm flex items-center space-x-1.5 cursor-pointer"
+          class="dash-btn-primary text-xs sm:text-sm py-1.5 px-3.5"
         >
           <span>+ Add {{ isBranchManager ? 'Staff Member' : 'User' }}</span>
         </button>

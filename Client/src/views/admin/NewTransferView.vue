@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">New transfer</h2>
-        <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-[#EAE2D8] text-[#55463C] border border-[#D5C7B8]">
+        <h2 class="dash-title text-xl sm:text-2xl">New Transfer</h2>
+        <span class="dash-badge-neutral">
           Draft
         </span>
       </div>
@@ -12,16 +12,16 @@
         <button
           @click="saveTransfer('Draft')"
           :disabled="submitting"
-          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-sm cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
-          Save draft
+          Save Draft
         </button>
         <button
           @click="saveTransfer('Approved')"
           :disabled="submitting"
-          class="px-3.5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm cursor-pointer"
+          class="dash-btn-primary text-xs sm:text-sm"
         >
-          Submit for approval
+          Submit for Approval
         </button>
       </div>
     </div>

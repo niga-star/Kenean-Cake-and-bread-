@@ -3,15 +3,15 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">Settings & Content Management</h2>
-        <p class="text-xs text-[#8A7B71]">Configure system rules, business details, homepage banners, and customer feedback</p>
+        <h2 class="dash-title text-xl sm:text-2xl">Settings &amp; Content Management</h2>
+        <p class="dash-subtitle mt-0.5">Configure system rules, business details, homepage banners, and customer feedback</p>
       </div>
 
       <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
         <button
           v-if="activeTab === 'general' || activeTab === 'business'"
           @click="loadSettings"
-          class="flex-1 sm:flex-none px-4 py-2 text-xs sm:text-sm font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg transition shadow-xs cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm py-1.5 px-3.5"
         >
           Cancel
         </button>
@@ -19,7 +19,7 @@
           v-if="activeTab === 'general' || activeTab === 'business'"
           @click="saveSettings"
           :disabled="saving"
-          class="flex-1 sm:flex-none px-5 py-2 text-xs sm:text-sm font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-xs disabled:opacity-50 cursor-pointer"
+          class="dash-btn-primary text-xs sm:text-sm py-1.5 px-4 disabled:opacity-50"
         >
           {{ saving ? 'Saving...' : 'Save Settings' }}
         </button>

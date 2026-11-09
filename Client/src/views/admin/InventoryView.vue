@@ -3,10 +3,10 @@
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
+        <h2 class="dash-title text-xl sm:text-2xl">
           {{ isSuperAdmin ? 'Central Multi-Branch Inventory' : `${userBranchName} Branch Inventory` }}
         </h2>
-        <p class="text-xs text-[#7A6B60] mt-0.5">
+        <p class="dash-subtitle mt-0.5">
           {{ isSuperAdmin ? 'Real-time physical stock across all branches and live ledger tracking.' : `Strict branch stock ledger for ${userBranchName}. Customers can only order what is available at this branch.` }}
         </p>
       </div>
@@ -14,7 +14,7 @@
       <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
         <button
           @click="showReconcileModal = true"
-          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           <span>⚖️</span>
           <span>Verify History &amp; Balance</span>
@@ -22,7 +22,7 @@
 
         <button
           @click="activeSubTab = activeSubTab === 'ledger' ? 'stock' : 'ledger'"
-          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           <span>📋</span>
           <span>{{ activeSubTab === 'ledger' ? 'View Stock Grid' : 'Transaction Ledger' }}</span>
@@ -30,7 +30,7 @@
 
         <button
           @click="exportCSV"
-          class="px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-xl transition shadow-2xs cursor-pointer"
+          class="dash-btn-secondary text-xs sm:text-sm"
         >
           Export CSV
         </button>
@@ -39,14 +39,14 @@
         <button
           v-if="canAdjustStock"
           @click="openAdjustModal()"
-          class="px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs font-bold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-xl transition shadow-xs flex items-center space-x-1 cursor-pointer"
+          class="dash-btn-primary text-xs sm:text-sm"
         >
           <span>+</span>
           <span>Adjust Stock</span>
         </button>
         <span
           v-else
-          class="px-3 py-1.5 text-xs font-medium text-[#7A6B60] bg-gray-100 border border-gray-200 rounded-xl flex items-center space-x-1"
+          class="px-3 py-1.5 text-xs font-medium text-[#7D6E64] bg-[#FAF7F2] border border-[#E8DFD5] rounded-xl flex items-center space-x-1"
         >
           <span>🔒</span>
           <span>View-Only Access (Adjustments restricted to Branch Manager)</span>
@@ -57,14 +57,14 @@
     <!-- Confirmation Toast / Message after Stock Adjustment -->
     <div
       v-if="adjustmentSuccessToast"
-      class="p-4 bg-[#EBF7EB] border border-[#C5E9C6] rounded-2xl text-xs text-[#1E7422] flex items-start justify-between shadow-xs animate-in fade-in"
+      class="p-4 bg-[#EDF7ED] border border-[#C8E6C9] rounded-2xl text-xs text-[#2E7D32] flex items-start justify-between shadow-xs animate-in fade-in"
     >
       <div class="flex items-start space-x-3">
         <span class="text-xl">✅</span>
         <div>
           <div class="font-bold text-sm">Stock Adjustment Recorded Successfully</div>
-          <div class="text-[#2B612C] mt-0.5">{{ adjustmentSuccessToast }}</div>
-          <div v-if="lastAdjustmentDetails" class="text-[11px] text-[#427C44] mt-1 space-x-2">
+          <div class="text-[#2E7D32] mt-0.5">{{ adjustmentSuccessToast }}</div>
+          <div v-if="lastAdjustmentDetails" class="text-[11px] text-[#2E7D32]/80 mt-1 space-x-2">
             <span><strong>Branch:</strong> {{ lastAdjustmentDetails.branch }}</span>
             <span>&middot;</span>
             <span><strong>Product:</strong> {{ lastAdjustmentDetails.product }}</span>
@@ -77,15 +77,15 @@
           </div>
         </div>
       </div>
-      <button @click="adjustmentSuccessToast = ''" class="text-[#2B612C] font-bold text-base hover:text-black cursor-pointer ml-3">&times;</button>
+      <button @click="adjustmentSuccessToast = ''" class="text-[#2E7D32] font-bold text-base hover:text-black cursor-pointer ml-3">&times;</button>
     </div>
 
     <!-- Branch Filter: Super Admin can switch branches; Branch staff/managers strictly see assigned branch -->
     <div v-if="isSuperAdmin" class="flex items-center space-x-2 overflow-x-auto pb-1">
       <button
         @click="selectBranch('all')"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition cursor-pointer"
-        :class="selectedBranch === 'all' ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition cursor-pointer"
+        :class="selectedBranch === 'all' ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         All branches
       </button>
@@ -93,8 +93,8 @@
         v-for="branch in branches"
         :key="branch.branch_id"
         @click="selectBranch(branch.branch_id)"
-        class="px-4 py-1.5 text-xs font-semibold rounded-full transition cursor-pointer"
-        :class="selectedBranch === branch.branch_id ? 'bg-[#984518] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#F2EAE0]'"
+        class="transition cursor-pointer"
+        :class="selectedBranch === branch.branch_id ? 'dash-pill-active' : 'dash-pill-inactive'"
       >
         {{ branch.branch_name }}
         <span v-if="branch.branch_type === 'Main'" class="ml-1 text-[10px] px-1.5 py-0.2 bg-red-100 text-red-700 rounded-full font-bold">Main</span>
@@ -103,7 +103,7 @@
 
     <!-- Strict Branch Scoped Badge for Branch Managers & Staff -->
     <div v-else class="flex items-center space-x-2 pb-1">
-      <span class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1] shadow-2xs">
+      <span class="dash-badge-pending text-xs py-1.5 px-3.5">
         <span>🔒</span>
         <span>Strict Branch Privacy: Showing {{ userBranchName }} Branch Inventory Only</span>
       </span>
@@ -111,28 +111,28 @@
 
     <!-- 4 Summary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64] mb-1">Units on hand</div>
-        <div class="text-3xl font-black text-[#241710]">{{ summary.units_on_hand.toLocaleString() }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Physical units at {{ isSuperAdmin ? `${summary.branches_count} branches` : userBranchName }}</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Units on hand</div>
+        <div class="dash-metric text-3xl">{{ summary.units_on_hand.toLocaleString() }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Physical units at {{ isSuperAdmin ? `${summary.branches_count} branches` : userBranchName }}</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64] mb-1">Reserved</div>
-        <div class="text-3xl font-black text-[#D97706]">{{ summary.reserved }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Allocated to open orders (15m hold)</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Reserved</div>
+        <div class="dash-metric text-3xl text-[#D97706]">{{ summary.reserved }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Allocated to open orders (15m hold)</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64] mb-1">Low-stock items</div>
-        <div class="text-3xl font-black text-[#EA580C]">{{ summary.low_stock_items }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">At or below reorder level (alerts sent)</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Low-stock items</div>
+        <div class="dash-metric text-3xl text-[#B87A14]">{{ summary.low_stock_items }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">At or below reorder level (alerts sent)</div>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs">
-        <div class="text-xs font-bold uppercase tracking-wider text-[#7D6E64] mb-1">Sold out</div>
-        <div class="text-3xl font-black text-[#DC2626]">{{ summary.sold_out }}</div>
-        <div class="text-xs text-[#8A7B71] mt-1">Shown as sold out, not hidden</div>
+      <div class="dash-card p-5">
+        <div class="dash-subtitle mb-1">Sold out</div>
+        <div class="dash-metric text-3xl text-[#C62828]">{{ summary.sold_out }}</div>
+        <div class="text-xs text-[#7D6E64] mt-1">Shown as sold out, not hidden</div>
       </div>
     </div>
 

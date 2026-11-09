@@ -1,18 +1,18 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto font-poppins">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-[#E9E0D4] shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 dash-card p-5">
       <div class="flex items-center space-x-3.5">
-        <div class="w-12 h-12 rounded-2xl bg-[#FAF0E6] text-[#BA5420] flex items-center justify-center text-xl shrink-0 border border-[#F0DFD0] shadow-xs">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <div class="w-11 h-11 rounded-2xl bg-[#F6EFE6] text-[#3D251E] flex items-center justify-center text-xl shrink-0 border border-[#E8DFD3] shadow-xs">
+          <svg class="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-serif font-bold text-[#2A1D15]">
+          <h1 class="dash-title text-xl sm:text-2xl">
             {{ isSuperAdmin ? 'Executive Branch Reports' : (isManager ? 'Branch Operational Reports Desk' : 'Submit Shift / Work Report') }}
           </h1>
-          <p class="text-xs text-[#7A6B60] mt-0.5">
+          <p class="dash-subtitle mt-0.5">
             {{ isSuperAdmin ? 'Central monitoring of reports and sales summaries submitted by branch managers' : (isManager ? 'Review branch staff daily reports and submit consolidated reports to Super Admin' : 'Report daily sales, order activities, deliveries, and shift findings to your Branch Manager') }}
           </p>
         </div>
@@ -20,7 +20,7 @@
 
       <button
         @click="isSubmitModalOpen = true"
-        class="inline-flex items-center justify-center space-x-1.5 px-4 py-2 text-xs sm:text-sm font-semibold bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-lg transition shadow-sm cursor-pointer"
+        class="dash-btn-primary"
       >
         <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
