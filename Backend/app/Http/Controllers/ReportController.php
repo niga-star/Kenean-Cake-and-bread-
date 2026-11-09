@@ -226,8 +226,14 @@ class ReportController extends Controller
             case 'payments':
                 return response()->json($this->getPaymentsReport($effectiveBranchId, $fromDate, $toDate));
 
+            case 'consolidated_products':
+                return response()->json($this->getConsolidatedProductsReport($effectiveBranchId, $categoryId, $fromDate, $toDate));
+
+            case 'manager_reports':
+                return response()->json($this->getManagerReportsData($effectiveBranchId, $fromDate, $toDate));
+
             case 'audit':
-                return response()->json($this->getAuditReport($fromDate, $toDate));
+                return response()->json(['columns' => [], 'rows' => [], 'message' => 'Audit logs have been removed.']);
 
             default:
                 return response()->json(['message' => "Unknown report type: {$type}"], 422);
@@ -696,6 +702,230 @@ class ReportController extends Controller
 
         return [
             'columns' => ['User', 'Sensitive Action', 'Target Record', 'Timestamp'],
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Consolidated Product Sales & Pricing:
+     * - Total products sold daily
+     * - Total products sold weekly
+     * - Product names and quantities sold
+     * - Product selling prices per branch
+     * - Daily revenue
+     * - Weekly revenue
+     * - Individual branch sales performance
+     * - Combined revenue from all branches
+     */
+    protected function getConsolidatedProductsReport($branchId, $categoryId, $fromDate, $toDate)
+    {
+        $today = Carbon::today();
+        $weekStart = Carbon::now()->startOfWeek();
+
+        // Get branches to report
+        if ($branchId) {
+            $branches = Branch::where('branch_id', $branchId)->get();
+        } else {
+            $branches = Branch::where('status', 'Active')->get();
+        }
+
+        // Products query
+        $prodQuery = Product::with(['category', 'branchPrices'])->where('status', 'Active');
+        if ($categoryId && $categoryId !== 'all') {
+            $prodQuery->where('category_id', $categoryId);
+        }
+        $products = $prodQuery->get();
+
+        $rows = [];
+        $combinedDailyUnits = 0;
+        $combinedWeeklyUnits = 0;
+        $combinedDailyRevenue = 0.0;
+        $combinedWeeklyRevenue = 0.0;
+        $combinedTotalRevenue = 0.0;
+
+        $branchPerformance = [];
+        foreach ($branches as $b) {
+            $branchPerformance[$b->branch_id] = [
+                'branch_id' => $b->branch_id,
+                'branch_name' => $b->branch_name,
+                'daily_units' => 0,
+                'weekly_units' => 0,
+                'total_units' => 0,
+                'daily_revenue' => 0.0,
+                'weekly_revenue' => 0.0,
+                'total_revenue' => 0.0,
+            ];
+        }
+
+        // Precompute order items grouped by branch_id and product_id
+        // 1. Daily items
+        $dailyItems = OrderItem::whereHas('order', function ($oq) use ($branches, $today) {
+            $oq->whereIn('branch_id', $branches->pluck('branch_id'))
+               ->where('order_status', '!=', 'Cancelled')
+               ->whereDate('placed_at', $today);
+        })->join('orders', 'order_items.order_id', '=', 'orders.order_id')
+          ->selectRaw('orders.branch_id, order_items.product_id, SUM(order_items.quantity) as qty, SUM(order_items.subtotal) as subtotal')
+          ->groupBy('orders.branch_id', 'order_items.product_id')
+          ->get();
+
+        $dailyMap = [];
+        foreach ($dailyItems as $di) {
+            $dailyMap["{$di->branch_id}_{$di->product_id}"] = [
+                'qty' => (int) $di->qty,
+                'subtotal' => (float) $di->subtotal,
+            ];
+        }
+
+        // 2. Weekly items
+        $weeklyItems = OrderItem::whereHas('order', function ($oq) use ($branches, $weekStart) {
+            $oq->whereIn('branch_id', $branches->pluck('branch_id'))
+               ->where('order_status', '!=', 'Cancelled')
+               ->whereDate('placed_at', '>=', $weekStart);
+        })->join('orders', 'order_items.order_id', '=', 'orders.order_id')
+          ->selectRaw('orders.branch_id, order_items.product_id, SUM(order_items.quantity) as qty, SUM(order_items.subtotal) as subtotal')
+          ->groupBy('orders.branch_id', 'order_items.product_id')
+          ->get();
+
+        $weeklyMap = [];
+        foreach ($weeklyItems as $wi) {
+            $weeklyMap["{$wi->branch_id}_{$wi->product_id}"] = [
+                'qty' => (int) $wi->qty,
+                'subtotal' => (float) $wi->subtotal,
+            ];
+        }
+
+        // 3. Date range items
+        $rangeQuery = OrderItem::whereHas('order', function ($oq) use ($branches, $fromDate, $toDate) {
+            $oq->whereIn('branch_id', $branches->pluck('branch_id'))
+               ->where('order_status', '!=', 'Cancelled');
+            if ($fromDate) {
+                $oq->whereDate('placed_at', '>=', $fromDate);
+            }
+            if ($toDate) {
+                $oq->whereDate('placed_at', '<=', $toDate);
+            }
+        })->join('orders', 'order_items.order_id', '=', 'orders.order_id')
+          ->selectRaw('orders.branch_id, order_items.product_id, SUM(order_items.quantity) as qty, SUM(order_items.subtotal) as subtotal')
+          ->groupBy('orders.branch_id', 'order_items.product_id')
+          ->get();
+
+        $rangeMap = [];
+        foreach ($rangeQuery as $ri) {
+            $rangeMap["{$ri->branch_id}_{$ri->product_id}"] = [
+                'qty' => (int) $ri->qty,
+                'subtotal' => (float) $ri->subtotal,
+            ];
+        }
+
+        // Construct rows
+        foreach ($products as $p) {
+            foreach ($branches as $b) {
+                $key = "{$b->branch_id}_{$p->product_id}";
+                $sellingPrice = (float) $p->getPriceForBranch($b->branch_id);
+
+                $dailyUnits = $dailyMap[$key]['qty'] ?? 0;
+                $dailyRev = $dailyMap[$key]['subtotal'] ?? ($dailyUnits * $sellingPrice);
+
+                $weeklyUnits = $weeklyMap[$key]['qty'] ?? 0;
+                $weeklyRev = $weeklyMap[$key]['subtotal'] ?? ($weeklyUnits * $sellingPrice);
+
+                $totalUnits = $rangeMap[$key]['qty'] ?? 0;
+                $totalRev = $rangeMap[$key]['subtotal'] ?? ($totalUnits * $sellingPrice);
+
+                $combinedDailyUnits += $dailyUnits;
+                $combinedWeeklyUnits += $weeklyUnits;
+                $combinedDailyRevenue += $dailyRev;
+                $combinedWeeklyRevenue += $weeklyRev;
+                $combinedTotalRevenue += $totalRev;
+
+                $branchPerformance[$b->branch_id]['daily_units'] += $dailyUnits;
+                $branchPerformance[$b->branch_id]['weekly_units'] += $weeklyUnits;
+                $branchPerformance[$b->branch_id]['total_units'] += $totalUnits;
+                $branchPerformance[$b->branch_id]['daily_revenue'] += $dailyRev;
+                $branchPerformance[$b->branch_id]['weekly_revenue'] += $weeklyRev;
+                $branchPerformance[$b->branch_id]['total_revenue'] += $totalRev;
+
+                $rows[] = [
+                    'product_id' => $p->product_id,
+                    'product' => $p->product_name,
+                    'category' => $p->category?->category_name ?? 'Pastry',
+                    'branch' => $b->branch_name,
+                    'selling_price' => $sellingPrice,
+                    'daily_units' => $dailyUnits,
+                    'weekly_units' => $weeklyUnits,
+                    'total_units' => $totalUnits,
+                    'daily_revenue' => $dailyRev,
+                    'weekly_revenue' => $weeklyRev,
+                    'total_revenue' => $totalRev,
+                ];
+            }
+        }
+
+        // Sort rows by daily units, then weekly units, then product name
+        usort($rows, function ($a, $b) {
+            if ($b['daily_units'] !== $a['daily_units']) {
+                return $b['daily_units'] <=> $a['daily_units'];
+            }
+            return $b['weekly_units'] <=> $a['weekly_units'];
+        });
+
+        return [
+            'columns' => ['Product', 'Category', 'Branch', 'Selling Price (ETB)', 'Daily Sold', 'Weekly Sold', 'Total Sold', 'Daily Revenue (ETB)', 'Weekly Revenue (ETB)', 'Total Revenue (ETB)'],
+            'rows' => $rows,
+            'summary' => [
+                'combined_daily_units' => $combinedDailyUnits,
+                'combined_weekly_units' => $combinedWeeklyUnits,
+                'combined_daily_revenue' => $combinedDailyRevenue,
+                'combined_weekly_revenue' => $combinedWeeklyRevenue,
+                'combined_total_revenue' => $combinedTotalRevenue,
+                'branch_performance' => array_values($branchPerformance),
+            ],
+        ];
+    }
+
+    /**
+     * Branch Reports submitted by Branch Managers to Super Admin:
+     */
+    protected function getManagerReportsData($branchId, $fromDate, $toDate)
+    {
+        $query = \App\Models\StaffReport::with(['user', 'branch', 'submittedTo'])
+            ->where(function ($q) {
+                $q->whereHas('user', function ($uq) {
+                    $uq->whereIn('role', ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+                })->orWhere('status', 'Forwarded to Super Admin')
+                  ->orWhereNotNull('submitted_to_id');
+            });
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+        if ($fromDate) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        $reports = $query->orderByDesc('created_at')->get();
+
+        $rows = [];
+        foreach ($reports as $r) {
+            $rows[] = [
+                'report_id' => $r->report_id,
+                'branch' => $r->branch?->branch_name ?? 'Branch',
+                'report_type' => $r->report_type,
+                'submitter' => $r->user?->full_name ?? 'Branch Manager',
+                'role' => $r->user?->role ?? 'Branch Manager',
+                'title' => $r->title,
+                'content' => $r->content,
+                'date' => $r->created_at ? $r->created_at->format('M d, Y H:i') : '-',
+                'status' => $r->status,
+                'manager_notes' => $r->manager_notes ?? '—',
+            ];
+        }
+
+        return [
+            'columns' => ['Branch', 'Report Type', 'Manager / Submitter', 'Title', 'Date Submitted', 'Status', 'Notes'],
             'rows' => $rows,
         ];
     }

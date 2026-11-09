@@ -44,23 +44,26 @@ class RoleAuthorizationMiddleware
 
         // Check specific allowed roles if specified on route
         if (!empty($allowedRoles)) {
-            // Super Admin always satisfies any administrative role requirement
-            $isAuthorized = ($user->role === 'Super Admin');
+            // Flatten comma-separated roles if passed as a single string
+            $expandedRoles = [];
+            foreach ($allowedRoles as $r) {
+                foreach (explode(',', $r) as $subR) {
+                    $expandedRoles[] = trim($subR);
+                }
+            }
+
+            $isAuthorized = in_array($user->role, $expandedRoles);
 
             if (!$isAuthorized) {
-                // Exact role match
-                if (in_array($user->role, $allowedRoles)) {
-                    $isAuthorized = true;
-                }
                 // Branch Manager / Branch Admin equivalence
-                elseif (in_array('Branch Admin', $allowedRoles) && $user->role === 'Branch Manager') {
+                if (in_array('Branch Admin', $expandedRoles) && $user->role === 'Branch Manager') {
                     $isAuthorized = true;
                 }
-                elseif (in_array('Branch Manager', $allowedRoles) && $user->role === 'Branch Admin') {
+                elseif (in_array('Branch Manager', $expandedRoles) && $user->role === 'Branch Admin') {
                     $isAuthorized = true;
                 }
                 // Branch Staff includes specialized branch staff roles
-                elseif (in_array('Branch Staff', $allowedRoles) && in_array($user->role, [
+                elseif (in_array('Branch Staff', $expandedRoles) && in_array($user->role, [
                     'Branch Staff',
                     'Branch Seller',
                     'Branch Seller / Cashier',

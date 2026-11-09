@@ -236,6 +236,72 @@
       </span>
     </div>
 
+    <!-- Special KPI Cards for Consolidated Product Sales & Pricing (Super Admin Oversight) -->
+    <div v-if="activeTabId === 'consolidated_products' && consolidatedSummary" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="dash-card p-4">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Products Sold</div>
+          <div class="text-2xl sm:text-3xl font-serif font-black text-[#1E7422] mt-1">
+            {{ consolidatedSummary.combined_daily_units || 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units today</span>
+          </div>
+          <div class="text-xs text-[#7A6B60] mt-0.5">Across all branches</div>
+        </div>
+        <div class="dash-card p-4">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Products Sold</div>
+          <div class="text-2xl sm:text-3xl font-serif font-black text-[#1565C0] mt-1">
+            {{ consolidatedSummary.combined_weekly_units || 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units this week</span>
+          </div>
+          <div class="text-xs text-[#7A6B60] mt-0.5">Combined 7-day volume</div>
+        </div>
+        <div class="dash-card p-4">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Revenue Today</div>
+          <div class="text-2xl sm:text-3xl font-serif font-black text-[#2A1D15] mt-1">
+            ETB {{ Number(consolidatedSummary.combined_daily_revenue || 0).toLocaleString() }}
+          </div>
+          <div class="text-xs text-[#1E7422] font-semibold mt-0.5">Live daily sales</div>
+        </div>
+        <div class="dash-card p-4">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Revenue</div>
+          <div class="text-2xl sm:text-3xl font-serif font-black text-[#BA5420] mt-1">
+            ETB {{ Number(consolidatedSummary.combined_weekly_revenue || 0).toLocaleString() }}
+          </div>
+          <div class="text-xs text-[#BA5420] font-semibold mt-0.5">Cumulative week sales</div>
+        </div>
+      </div>
+
+      <!-- Branch Sales Performance Breakdown Cards -->
+      <div v-if="consolidatedSummary.branch_performance && consolidatedSummary.branch_performance.length > 0" class="dash-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-serif font-bold text-sm text-[#2A1D15]">Individual Branch Sales Performance &amp; Comparison</h3>
+          <span class="text-xs text-[#7D6E64]">{{ consolidatedSummary.branch_performance.length }} branches reporting</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            v-for="bp in consolidatedSummary.branch_performance"
+            :key="bp.branch_id"
+            class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl flex items-center justify-between"
+          >
+            <div>
+              <div class="font-bold text-xs text-[#2A1D15] flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+                <span>{{ bp.branch_name }}</span>
+              </div>
+              <div class="text-[11px] text-[#7A6B60] mt-0.5">
+                Today: <strong class="text-[#1E7422]">{{ bp.daily_units }}</strong> units (ETB {{ Number(bp.daily_revenue).toLocaleString() }})
+              </div>
+              <div class="text-[11px] text-[#7A6B60]">
+                Week: <strong class="text-[#1565C0]">{{ bp.weekly_units }}</strong> units (ETB {{ Number(bp.weekly_revenue).toLocaleString() }})
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-serif font-black text-[#BA5420]">ETB {{ Number(bp.total_revenue).toLocaleString() }}</div>
+              <div class="text-[10px] text-[#7A6B60]">Total Revenue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Active Report Table Area -->
     <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-2xs overflow-hidden">
       <!-- Loading State -->
@@ -401,17 +467,133 @@
               </tr>
             </template>
 
-            <!-- 9. Audit Rows -->
-            <template v-else-if="activeTabId === 'audit'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.user }}</td>
-                <td class="py-3.5 px-5 font-semibold text-[#881337]">{{ r.action }}</td>
-                <td class="py-3.5 px-5 text-[#7A6B60] font-mono text-[11px]">{{ r.record }}</td>
-                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.time }}</td>
+            <!-- Consolidated Product Sales & Pricing Rows (Super Admin Oversight) -->
+            <template v-else-if="activeTabId === 'consolidated_products'">
+              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FAF6F0] transition">
+                <td class="py-3.5 px-5 font-bold text-[#2A1D15]">{{ r.product }}</td>
+                <td class="py-3.5 px-5 text-[#8A7B71]">{{ r.category }}</td>
+                <td class="py-3.5 px-5 font-semibold text-[#BA5420] flex items-center space-x-1.5">
+                  <span>📍</span>
+                  <span>{{ r.branch }}</span>
+                </td>
+                <td class="py-3.5 px-5 text-right font-serif font-bold text-[#2A1D15]">ETB {{ Number(r.selling_price).toLocaleString() }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#1E7422]">{{ r.daily_units }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#1565C0]">{{ r.weekly_units }}</td>
+                <td class="py-3.5 px-5 text-center font-bold text-[#2A1D15]">{{ r.total_units }}</td>
+                <td class="py-3.5 px-5 text-right font-semibold text-[#1E7422]">ETB {{ Number(r.daily_revenue).toLocaleString() }}</td>
+                <td class="py-3.5 px-5 text-right font-semibold text-[#1565C0]">ETB {{ Number(r.weekly_revenue).toLocaleString() }}</td>
+                <td class="py-3.5 px-5 text-right font-serif font-black text-[#BA5420]">ETB {{ Number(r.total_revenue).toLocaleString() }}</td>
+              </tr>
+            </template>
+
+            <!-- Manager Branch Reports Rows (Super Admin Executive Review) -->
+            <template v-else-if="activeTabId === 'manager_reports'">
+              <tr v-for="r in reportRows" :key="r.report_id" class="hover:bg-[#FAF6F0] transition">
+                <td class="py-3.5 px-5 font-bold text-[#2A1D15] flex items-center space-x-1.5">
+                  <span>📍</span>
+                  <span>{{ r.branch }}</span>
+                </td>
+                <td class="py-3.5 px-5">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF0E6] text-[#BA5420]">
+                    {{ r.report_type }}
+                  </span>
+                </td>
+                <td class="py-3.5 px-5">
+                  <div class="font-bold text-[#2A1D15]">{{ r.submitter }}</div>
+                  <div class="text-[10px] text-[#8A7B71]">{{ r.role }}</div>
+                </td>
+                <td class="py-3.5 px-5">
+                  <div class="font-bold text-[#2A1D15]">{{ r.title }}</div>
+                  <div class="text-[11px] text-[#7A6B60] line-clamp-1">{{ r.content }}</div>
+                </td>
+                <td class="py-3.5 px-5 text-[#8A7B71] text-[11px] whitespace-nowrap">{{ r.date }}</td>
+                <td class="py-3.5 px-5">
+                  <span
+                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                    :class="r.status === 'Resolved' || r.status === 'Reviewed' ? 'bg-[#EAF5EA] text-[#2E7D32]' : 'bg-[#FFF3E0] text-[#E65100]'"
+                  >
+                    {{ r.status }}
+                  </span>
+                </td>
+                <td class="py-3.5 px-5 text-right">
+                  <button
+                    @click="openManagerReportModal(r)"
+                    class="px-3 py-1 bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] font-semibold text-xs rounded-md shadow-2xs transition cursor-pointer"
+                  >
+                    Review
+                  </button>
+                </td>
               </tr>
             </template>
           </tbody>
         </table>
+      </div>
+    </div>
+    <!-- Review Manager Report Modal for Super Admin -->
+    <div
+      v-if="reviewingReport"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+    >
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl">
+        <div class="flex items-start justify-between border-b border-[#EFE8DF] pb-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-[#BA5420] bg-[#FAF0E6] px-2.5 py-0.5 rounded-full border border-[#F0D5C1]">
+              {{ reviewingReport.report_type }} · {{ reviewingReport.branch }}
+            </span>
+            <h3 class="font-serif font-bold text-lg text-[#2A1D15] mt-1.5">{{ reviewingReport.title }}</h3>
+            <p class="text-xs text-[#7A6B60]">Submitted by {{ reviewingReport.submitter }} ({{ reviewingReport.role }}) on {{ reviewingReport.date }}</p>
+          </div>
+          <button @click="reviewingReport = null" class="text-gray-400 hover:text-gray-700 text-lg cursor-pointer">&times;</button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#8A7B71] mb-1">Report Details</label>
+            <div class="bg-[#FAF7F2] p-3.5 rounded-xl text-[#3A2E26] whitespace-pre-wrap leading-relaxed border border-[#EFE4D6] max-h-56 overflow-y-auto font-sans">
+              {{ reviewingReport.content }}
+            </div>
+          </div>
+
+          <div v-if="reviewingReport.manager_notes && reviewingReport.manager_notes !== '—'" class="p-3 bg-purple-50 border border-purple-200 rounded-xl">
+            <span class="font-bold text-purple-900 block mb-0.5">Manager Notes:</span>
+            <p class="text-purple-800 text-[11px]">{{ reviewingReport.manager_notes }}</p>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#8A7B71] mb-1">Super Admin Notes</label>
+            <textarea
+              v-model="superAdminNotes"
+              rows="2"
+              placeholder="Add verification notes or instructions for the branch manager..."
+              class="w-full bg-[#FAF7F2] border border-[#DDD2C5] rounded-xl p-2.5 text-xs text-[#2A1D15] focus:ring-1 focus:ring-[#BA5420]"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-3 border-t border-[#EFE8DF]">
+          <button
+            @click="reviewingReport = null"
+            class="px-4 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition cursor-pointer"
+          >
+            Close
+          </button>
+          <div class="flex items-center space-x-2">
+            <button
+              @click="submitReportReview('Reviewed')"
+              :disabled="isSubmittingReview"
+              class="px-4 py-2 text-xs font-semibold bg-[#2A1D15] hover:bg-[#1A120D] text-white rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
+            >
+              {{ isSubmittingReview ? 'Saving...' : 'Mark as Reviewed' }}
+            </button>
+            <button
+              @click="submitReportReview('Resolved')"
+              :disabled="isSubmittingReview"
+              class="px-4 py-2 text-xs font-semibold bg-[#059669] hover:bg-[#047857] text-white rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
+            >
+              {{ isSubmittingReview ? 'Saving...' : 'Resolve Report' }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -428,24 +610,54 @@ const isBranchScoped = computed(() => !isSuperAdmin.value);
 const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
 
-// Report tabs definition per Section 10 specs
-const reportTabs = [
-  { id: 'branch_performance', label: 'Branch performance', icon: '🏢', description: 'Which branch has the highest revenue, most orders, top-selling cakes and bread?' },
-  { id: 'product_performance', label: 'Product performance', icon: '🎂', description: 'Which products sell best, and where?' },
+// Report tabs definition (Audit removed; Consolidated Sales & Pricing and Manager Reports added)
+const reportTabs = computed(() => [
+  { id: 'branch_performance', label: 'Branch Performance', icon: '🏢', description: 'Which branch has the highest revenue, most orders, top-selling cakes and bread?' },
+  { id: 'consolidated_products', label: 'Consolidated Sales & Pricing', icon: '🧁', description: 'Monitor daily and weekly products sold, product selling prices, daily/weekly revenue, and compare branch performance.' },
+  { id: 'manager_reports', label: isSuperAdmin.value ? 'Branch Reports (from Managers)' : 'Manager Reports Desk', icon: '📑', description: 'Review operational and sales reports submitted to Super Admin by Branch Managers.' },
+  { id: 'product_performance', label: 'Product Performance', icon: '🎂', description: 'Which products sell best, and where?' },
   { id: 'distribution', label: 'Distribution', icon: '🚚', description: 'How much was sent, received, missing, damaged, still in transit?' },
   { id: 'inventory', label: 'Inventory', icon: '📦', description: 'What is on hand, reserved and available per branch, and what needs replenishment?' },
   { id: 'waste', label: 'Waste', icon: '🗑️', description: 'How much stock was damaged or expired, and why?' },
   { id: 'discrepancy', label: 'Discrepancy', icon: '⚠️', description: 'Which transfers had differences and who resolved them?' },
   { id: 'delivery', label: 'Delivery', icon: '🛵', description: 'How are deliveries and pickups split, and how long do they take?' },
   { id: 'payments', label: 'Payments', icon: '💳', description: 'Revenue by method, failures, refunds.' },
-  { id: 'audit', label: 'Audit', icon: '🛡️', description: 'Who performed sensitive actions?' },
-];
+]);
 
 const activeTabId = ref('branch_performance');
 const branches = ref([]);
 const categories = ref([]);
 const loading = ref(false);
 const sendingSummary = ref(false);
+const consolidatedSummary = ref(null);
+
+// Review Report Modal
+const reviewingReport = ref(null);
+const superAdminNotes = ref('');
+const isSubmittingReview = ref(false);
+
+function openManagerReportModal(report) {
+  reviewingReport.value = report;
+  superAdminNotes.value = '';
+}
+
+async function submitReportReview(status) {
+  if (!reviewingReport.value) return;
+  isSubmittingReview.value = true;
+  try {
+    await api.post(`/admin/staff-reports/${reviewingReport.value.report_id}/review`, {
+      status,
+      manager_notes: superAdminNotes.value || undefined,
+    });
+    reviewingReport.value.status = status;
+    reviewingReport.value = null;
+    await reloadAll();
+  } catch (err) {
+    alert('Failed to update report status: ' + (err.response?.data?.message || err.message));
+  } finally {
+    isSubmittingReview.value = false;
+  }
+}
 
 const quickDateFilter = ref('this_month');
 
@@ -494,7 +706,7 @@ const reportColumns = ref([]);
 const reportRows = ref([]);
 
 const currentTabMeta = computed(() => {
-  return reportTabs.find(t => t.id === activeTabId.value);
+  return reportTabs.value.find(t => t.id === activeTabId.value);
 });
 
 async function selectTab(tabId) {
@@ -524,10 +736,12 @@ async function loadActiveReport() {
     });
     reportColumns.value = res.data.columns || [];
     reportRows.value = res.data.rows || [];
+    consolidatedSummary.value = res.data.summary || null;
   } catch (err) {
     console.error(`Failed to load report data for ${activeTabId.value}`, err);
     reportColumns.value = [];
     reportRows.value = [];
+    consolidatedSummary.value = null;
   } finally {
     loading.value = false;
   }

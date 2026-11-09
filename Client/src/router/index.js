@@ -58,7 +58,7 @@ const routes = [
       { path: 'branches', component: BranchManagementView, meta: { roles: ['Super Admin'] } },
       { path: 'users', component: UsersRolesView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'salaries', component: SalariesView, meta: { roles: ['Super Admin'] } },
-      { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
+      { path: 'staff-reports', component: StaffReportsView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'my-account', component: MyAccountView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'products', component: ProductsPricesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier'] } },
       { path: 'inventory', component: InventoryView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant'] } },
@@ -70,7 +70,7 @@ const routes = [
       { path: 'reports', component: ReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'settings', component: SettingsView, meta: { roles: ['Super Admin'] } },
-      { path: 'audit-logs', component: AuditLogView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'audit-logs', redirect: '/admin/overview' },
     ],
   },
 
@@ -186,7 +186,7 @@ router.beforeEach((to, from, next) => {
       let hasAccess = allowed.includes(role);
 
       if (!hasAccess) {
-        if (role === 'Super Admin' && !['/admin/products', '/admin/orders', '/admin/custom-cakes'].includes(to.path)) hasAccess = true;
+        if (role === 'Super Admin' && !['/admin/products', '/admin/orders', '/admin/custom-cakes', '/admin/staff-reports'].includes(to.path)) hasAccess = true;
         if (allowed.includes('Branch Manager') && role === 'Branch Admin') hasAccess = true;
         if (allowed.includes('Branch Admin') && role === 'Branch Manager') hasAccess = true;
         if (allowed.includes('Branch Staff') && [

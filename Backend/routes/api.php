@@ -177,15 +177,18 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/branches/{id}/delivery-zones', [BranchController::class, 'addDeliveryZone'])->middleware('role:Super Admin');
     Route::delete('/branches/{id}/delivery-zones/{zoneId}', [BranchController::class, 'deleteDeliveryZone'])->middleware('role:Super Admin');
 
-    // Catalog & Pricing Management (Super Admin, Branch Managers & Branch Staff/Sellers)
-    Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::post('/products/upload-image', [CatalogController::class, 'uploadImage'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::delete('/categories/{id}', [CatalogController::class, 'destroyCategory'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
-    Route::post('/products/report-price-update', [CatalogController::class, 'reportPriceUpdate'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    // Branch Sales Performance Metrics (Branch Managers & Staff)
+    Route::get('/products/branch-metrics', [CatalogController::class, 'branchSalesMetrics']);
+
+    // Catalog & Pricing Management (Branch Managers & Branch Staff/Sellers manage their own branch)
+    Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::post('/products/upload-image', [CatalogController::class, 'uploadImage'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::post('/categories', [CatalogController::class, 'storeCategory'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::delete('/categories/{id}', [CatalogController::class, 'destroyCategory'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::post('/products/{id}/branch-price', [CatalogController::class, 'setBranchPrice'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
+    Route::post('/products/report-price-update', [CatalogController::class, 'reportPriceUpdate'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
 
     // Banners & Website Content Management
     Route::get('/banners', [WebsiteSettingController::class, 'adminBanners']);

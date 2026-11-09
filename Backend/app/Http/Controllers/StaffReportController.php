@@ -27,6 +27,15 @@ class StaffReportController extends Controller
         $query = StaffReport::with(['user', 'branch', 'submittedTo']);
 
         if ($currentUser->role === 'Super Admin') {
+            // Super Admin only receives reports submitted or forwarded by Branch Managers (no direct individual staff shift logs)
+            $query->where(function ($q) use ($currentUser) {
+                $q->where('submitted_to_id', $currentUser->user_id)
+                  ->orWhere('status', 'Forwarded to Super Admin')
+                  ->orWhereHas('user', function ($uq) {
+                      $uq->whereIn('role', ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
+                  });
+            });
+
             $branchId = $request->query('branch_id');
             if ($branchId && $branchId !== 'all') {
                 $query->where('branch_id', $branchId);

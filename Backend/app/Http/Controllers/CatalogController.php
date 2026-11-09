@@ -11,6 +11,8 @@ use App\Models\BranchProductPrice;
 use App\Models\BranchInventory;
 use App\Models\AuditLog;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+use App\Models\OrderItem;
 
 class CatalogController extends Controller
 {
@@ -57,7 +59,30 @@ class CatalogController extends Controller
             }
         }
 
-        $products = $query->get()->map(function ($product) use ($branchId, $discountedMap) {
+        $todaySoldMap = [];
+        $weekSoldMap = [];
+        $today = Carbon::today();
+        $weekStart = Carbon::now()->startOfWeek();
+
+        $itemsQuery = OrderItem::whereHas('order', function ($oq) use ($branchId, $today) {
+            $oq->where('order_status', '!=', 'Cancelled');
+            if ($branchId && $branchId !== 'all') {
+                $oq->where('branch_id', $branchId);
+            }
+            $oq->whereDate('placed_at', $today);
+        })->groupBy('product_id')->selectRaw('product_id, SUM(quantity) as qty')->pluck('qty', 'product_id');
+        $todaySoldMap = $itemsQuery->toArray();
+
+        $weekQuery = OrderItem::whereHas('order', function ($oq) use ($branchId, $weekStart) {
+            $oq->where('order_status', '!=', 'Cancelled');
+            if ($branchId && $branchId !== 'all') {
+                $oq->where('branch_id', $branchId);
+            }
+            $oq->whereDate('placed_at', '>=', $weekStart);
+        })->groupBy('product_id')->selectRaw('product_id, SUM(quantity) as qty')->pluck('qty', 'product_id');
+        $weekSoldMap = $weekQuery->toArray();
+
+        $products = $query->get()->map(function ($product) use ($branchId, $discountedMap, $todaySoldMap, $weekSoldMap) {
             $resolvedPrice = (float) $product->base_price;
             $hasOverride = false;
 
@@ -71,6 +96,11 @@ class CatalogController extends Controller
                     $hasOverride = true;
                 }
             }
+
+            $dailySold = (int) ($todaySoldMap[$product->product_id] ?? 0);
+            $weeklySold = (int) ($weekSoldMap[$product->product_id] ?? 0);
+            $dailyRevenue = (float) ($dailySold * $resolvedPrice);
+            $weeklyRevenue = (float) ($weeklySold * $resolvedPrice);
 
             // Get branch stock if branch specified
             $onHand = 20;
@@ -141,10 +171,65 @@ class CatalogController extends Controller
                 'reviews_count' => $displayReviewCount,
                 'discount_badge' => $discountBadge,
                 'original_price' => $originalPrice,
+                'daily_sold' => $dailySold,
+                'weekly_sold' => $weeklySold,
+                'daily_revenue' => $dailyRevenue,
+                'weekly_revenue' => $weeklyRevenue,
             ];
         });
 
         return response()->json($products);
+    }
+
+    /**
+     * Branch sales performance metrics for Branch Managers:
+     * Daily product sales, weekly product sales, daily revenue, weekly revenue
+     */
+    public function branchSalesMetrics(Request $request)
+    {
+        $user = $request->user();
+        $branchId = $request->query('branch_id');
+        if (!$branchId || $branchId === 'all') {
+            $branchId = $user?->branch_id ?: 1;
+        }
+
+        // Branch Manager privacy check
+        if ($user && in_array($user->role, ['Branch Manager', 'Branch Admin']) && (int) $branchId !== (int) $user->branch_id) {
+            $branchId = $user->branch_id;
+        }
+
+        $today = Carbon::today();
+        $weekStart = Carbon::now()->startOfWeek();
+
+        $todayOrders = \App\Models\Order::where('branch_id', $branchId)
+            ->where('order_status', '!=', 'Cancelled')
+            ->whereDate('placed_at', $today);
+
+        $weekOrders = \App\Models\Order::where('branch_id', $branchId)
+            ->where('order_status', '!=', 'Cancelled')
+            ->whereDate('placed_at', '>=', $weekStart);
+
+        $todayUnits = (int) OrderItem::whereHas('order', function ($q) use ($branchId, $today) {
+            $q->where('branch_id', $branchId)->where('order_status', '!=', 'Cancelled')->whereDate('placed_at', $today);
+        })->sum('quantity');
+
+        $weekUnits = (int) OrderItem::whereHas('order', function ($q) use ($branchId, $weekStart) {
+            $q->where('branch_id', $branchId)->where('order_status', '!=', 'Cancelled')->whereDate('placed_at', '>=', $weekStart);
+        })->sum('quantity');
+
+        $todayRev = (float) $todayOrders->sum('total_amount');
+        $weekRev = (float) $weekOrders->sum('total_amount');
+
+        $branch = Branch::find($branchId);
+
+        return response()->json([
+            'branch_id' => (int) $branchId,
+            'branch_name' => $branch?->branch_name ?? 'My Branch',
+            'today_units_sold' => $todayUnits,
+            'week_units_sold' => $weekUnits,
+            'today_revenue' => $todayRev,
+            'week_revenue' => $weekRev,
+        ]);
     }
 
     public function show(Request $request, $id)

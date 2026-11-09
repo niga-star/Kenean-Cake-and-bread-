@@ -65,7 +65,7 @@
           </div>
           <div class="text-[11px] text-[#6A5A50] mt-0.5">
             <template v-if="isBranchManager">
-              Independent pricing active: Any price change you save applies exclusively to <strong>{{ currentBranchName }}</strong>. All updates are logged in the audit trail.
+              Independent pricing active: Any price change you save applies exclusively to <strong>{{ currentBranchName }}</strong>.
             </template>
             <template v-else>
               You have view-only access as a Branch Seller/Staff. To request a price or catalog change, submit a daily report to your Branch Manager.
@@ -80,6 +80,38 @@
         >
           Send Price Notice →
         </button>
+      </div>
+    </div>
+
+    <!-- Branch Sales Performance Cards (Branch Manager Daily & Weekly Sales Monitoring) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="dash-card p-4">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Product Sales</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#1E7422] mt-1">
+          {{ branchMetrics.today_units_sold ?? 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units sold</span>
+        </div>
+        <div class="text-xs text-[#7A6B60] mt-0.5">Today's pastry &amp; cake volume</div>
+      </div>
+      <div class="dash-card p-4">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Product Sales</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#1565C0] mt-1">
+          {{ branchMetrics.week_units_sold ?? 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units this week</span>
+        </div>
+        <div class="text-xs text-[#7A6B60] mt-0.5">7-day branch sales volume</div>
+      </div>
+      <div class="dash-card p-4">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Branch Revenue</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#2A1D15] mt-1">
+          ETB {{ Number(branchMetrics.today_revenue ?? 0).toLocaleString() }}
+        </div>
+        <div class="text-xs text-[#1E7422] font-semibold mt-0.5">Today's gross counter sales</div>
+      </div>
+      <div class="dash-card p-4">
+        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Branch Revenue</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#BA5420] mt-1">
+          ETB {{ Number(branchMetrics.week_revenue ?? 0).toLocaleString() }}
+        </div>
+        <div class="text-xs text-[#BA5420] font-semibold mt-0.5">Cumulative week sales</div>
       </div>
     </div>
 
@@ -124,6 +156,8 @@
             <tr>
               <th class="py-3 px-5">Product</th>
               <th class="py-3 px-4">Category</th>
+              <th class="py-3 px-4 text-center">Daily Sold</th>
+              <th class="py-3 px-4 text-center">Weekly Sold</th>
               <th class="py-3 px-4 text-center">Standard Base Price</th>
               <th class="py-3 px-4 text-center">{{ currentBranchName }} Branch Price</th>
               <th class="py-3 px-4 text-center">Status</th>
@@ -132,7 +166,7 @@
           </thead>
           <tbody class="divide-y divide-[#F3EDE4]">
             <tr v-if="!filteredProducts || filteredProducts.length === 0">
-              <td colspan="6" class="py-12 text-center text-sm text-[#7A6B60]">
+              <td colspan="8" class="py-12 text-center text-sm text-[#7A6B60]">
                 No products found. Click <button @click="openAddProductModal" class="font-bold text-[#BA5420] underline cursor-pointer">+ Add Product</button> to add your first product.
               </td>
             </tr>
@@ -151,6 +185,12 @@
                 </div>
               </td>
               <td class="py-3.5 px-4 text-xs text-[#55463C]">{{ p.category_name }}</td>
+              <td class="py-3.5 px-4 text-center font-bold text-[#1E7422] text-xs">
+                {{ p.daily_sold || 0 }} units
+              </td>
+              <td class="py-3.5 px-4 text-center font-bold text-[#1565C0] text-xs">
+                {{ p.weekly_sold || 0 }} units
+              </td>
               <td class="py-3.5 px-4 text-center text-xs font-medium text-[#7D6E64]">
                 ETB {{ Number(p.base_price).toLocaleString() }}
               </td>
@@ -654,6 +694,12 @@ const authStore = useAuthStore();
 const products = ref([]);
 const categories = ref([]);
 const branches = ref([]);
+const branchMetrics = ref({
+  today_units_sold: 0,
+  week_units_sold: 0,
+  today_revenue: 0,
+  week_revenue: 0,
+});
 const selectedCategory = ref('all');
 const searchQuery = ref('');
 const selectedProduct = ref(null);
@@ -719,14 +765,18 @@ const newProduct = ref({
 const loadCatalog = async () => {
   try {
     const branchParam = currentBranchId.value ? `?branch_id=${currentBranchId.value}` : '';
-    const [pRes, cRes, bRes] = await Promise.all([
+    const [pRes, cRes, bRes, mRes] = await Promise.all([
       api.get(`/products${branchParam}`),
       api.get('/categories'),
       api.get('/branches'),
+      api.get(`/admin/products/branch-metrics${branchParam}`).catch(() => ({ data: {} })),
     ]);
     products.value = pRes.data;
     categories.value = cRes.data;
     branches.value = bRes.data;
+    if (mRes.data) {
+      branchMetrics.value = mRes.data;
+    }
 
     if (!selectedProduct.value && products.value.length > 0) {
       selectProductForEdit(products.value[0]);

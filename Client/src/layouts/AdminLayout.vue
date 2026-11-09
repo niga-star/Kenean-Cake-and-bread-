@@ -238,8 +238,8 @@
           </div>
 
           <!-- SYSTEM Section -->
-          <div v-if="canAccess('notifications') || canAccess('audit-logs') || canAccess('settings') || canAccess('my-account')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Settings &amp; Logs</div>
+          <div v-if="canAccess('notifications') || canAccess('settings') || canAccess('my-account')">
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Settings &amp; Account</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('my-account')"
@@ -268,19 +268,6 @@
                   <span>Notifications</span>
                 </div>
                 <span v-if="unreadCount > 0" class="w-5 h-5 rounded-full bg-[#DE1B54] text-white text-xs font-bold flex items-center justify-center shadow-xs">{{ unreadCount }}</span>
-              </router-link>
-
-              <router-link
-                v-if="canAccess('audit-logs')"
-                to="/admin/audit-logs"
-                @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
-                :class="$route.path === '/admin/audit-logs' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
-              >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                <span>Audit Log</span>
               </router-link>
 
               <router-link
@@ -544,12 +531,12 @@ const roleScope = computed(() => {
   return 'Customer Storefront';
 });
 
-// Role-based permission map
+// Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices and staff reports)
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'products', 'salaries', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'notifications', 'settings', 'audit-logs'],
-  'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications', 'audit-logs'],
-  'Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
-  'Branch Admin': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications', 'audit-logs'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'notifications', 'settings'],
+  'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications'],
+  'Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications'],
+  'Branch Admin': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications'],
   'Branch Seller / Cashier': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Branch Seller': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Cashier': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
