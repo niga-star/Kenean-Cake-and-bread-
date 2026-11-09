@@ -827,46 +827,6 @@ class OrderReportController extends Controller
         }
     }
 
-        DB::beginTransaction();
-        try {
-            $consolidated = new BranchConsolidatedReport();
-            $consolidated->report_reference = $ref;
-            $consolidated->branch_id = $branchId;
-            $consolidated->manager_id = $manager->user_id;
-            $consolidated->period_type = $validated['period_type'];
-            $consolidated->period_start = $start;
-            $consolidated->period_end = $end;
-            $consolidated->status = 'Submitted to Super Admin';
-            $consolidated->confirmed_accuracy = true;
-            $consolidated->manager_notes = $validated['manager_notes'] ?? null;
-            $consolidated->submitted_at = now();
-            $consolidated->is_locked = true;
-
-            // Consolidate all metrics, counts, and breakdown lists
-            $consolidated->consolidateFromSellerReports($sellerReports);
-            $consolidated->save();
-
-            // Link seller reports to this consolidated report
-            SellerDailyReport::whereIn('id', $sellerReports->pluck('id'))->update([
-                'branch_report_id' => $consolidated->id,
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Verified Branch Sales Report submitted to Super Admin successfully.',
-                'consolidated_report' => $consolidated->load(['branch', 'manager']),
-            ], 201);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to consolidate report: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
-
     /**
      * List branch consolidated reports
      */
