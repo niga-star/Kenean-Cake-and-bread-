@@ -60,6 +60,8 @@ class OrderController extends Controller
             } elseif ($userBranchId) {
                 // Non-super-admin is strictly scoped to own branch; cannot query other branches
                 $query->where('branch_id', $userBranchId);
+            } else {
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -149,7 +151,7 @@ class OrderController extends Controller
 
         $user = request()->user();
         $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Customer' && $user->role !== 'Super Admin' && $userBranchId && $order->branch_id != $userBranchId) {
+        if ($user && $user->role !== 'Customer' && $user->role !== 'Super Admin' && (!$userBranchId || $order->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
@@ -214,15 +216,9 @@ class OrderController extends Controller
         $order = Order::with(['items', 'payment', 'branch'])->findOrFail($id);
         $user = $request->user();
 
-        // Step 2 & 3: Super Admin no longer directly manages operational orders
-        if ($user && $user->role === 'Super Admin') {
-            return response()->json([
-                'message' => 'Super Admin no longer directly manages or updates branch orders. Branch Managers and staff manage orders independently for their assigned branch.',
-            ], 403);
-        }
-
-        // Branch scoping: Branch Managers and staff can only update their assigned branch
-        if ($user && $user->branch_id && $order->branch_id != $user->branch_id) {
+        // Branch scoping: Branch Managers and staff can only update their assigned branch; Super Admin has full management access across all branches
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if ($user && $user->role !== 'Super Admin' && (!$userBranchId || $order->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only manage orders for your assigned branch.'], 403);
         }
 

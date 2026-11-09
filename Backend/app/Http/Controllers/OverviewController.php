@@ -30,10 +30,34 @@ class OverviewController extends Controller
         $startOfWeek = (clone $today)->startOfWeek();
 
         // Branch-scoped users: Branch Manager, Branch Admin, Branch Staff, Cashier, Delivery Staff, etc.
-        $isBranchScoped = ($user && $user->role !== 'Super Admin' && $user->branch_id);
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
 
-        if ($isBranchScoped) {
-            return $this->getBranchOverview($user->branch_id, $today, $startOfWeek);
+        if ($user && $user->role !== 'Super Admin') {
+            if ($userBranchId) {
+                return $this->getBranchOverview($userBranchId, $today, $startOfWeek);
+            }
+            return response()->json([
+                'is_branch_view' => true,
+                'branch' => null,
+                'revenue_today' => 0,
+                'orders_today' => 0,
+                'pending_orders' => 0,
+                'confirmed_orders' => 0,
+                'preparing_orders' => 0,
+                'ready_orders' => 0,
+                'out_for_delivery' => 0,
+                'delivered_today' => 0,
+                'delivery_pipeline' => ['pending' => 0, 'preparing' => 0, 'out_for_delivery' => 0, 'delivered' => 0],
+                'best_selling_pastries' => [],
+                'revenue_overview' => ['total_revenue' => 0, 'is_sample' => false, 'trend_percentage' => '0%', 'points' => []],
+                'inventory_alerts' => [],
+                'stock_summary' => ['units_on_hand' => 0, 'reserved' => 0, 'available' => 0, 'low_stock_items' => 0, 'sold_out' => 0],
+                'incoming_transfers' => 0,
+                'incoming_units' => 0,
+                'needs_attention' => [],
+                'recent_orders' => [],
+                'stock_items' => [],
+            ]);
         }
 
         // Central Dashboard (Super Admin)
@@ -510,17 +534,10 @@ class OverviewController extends Controller
 
         $items = [];
         $rank = 1;
-        $fallbackPastries = [
-            ['name' => 'Chocolate Cake Slice', 'category' => 'Cakes', 'sold' => 86, 'rev' => 430, 'img' => 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=80'],
-            ['name' => 'Butter Croissant', 'category' => 'Pastries', 'sold' => 74, 'rev' => 296, 'img' => 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=80'],
-            ['name' => 'Red Velvet Cupcake', 'category' => 'Cupcakes', 'sold' => 65, 'rev' => 260, 'img' => 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=300&q=80'],
-            ['name' => 'Choco Chip Cookie', 'category' => 'Cookies', 'sold' => 58, 'rev' => 174, 'img' => 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&q=80'],
-            ['name' => 'Blueberry Danish', 'category' => 'Pastries', 'sold' => 47, 'rev' => 188, 'img' => 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=80'],
-        ];
 
         foreach ($topItems as $ti) {
             $product = \App\Models\Product::with('images')->find($ti->product_id);
-            $img = $product?->images?->first()?->image_url ?? ($fallbackPastries[$rank - 1]['img'] ?? '');
+            $img = $product?->images?->first()?->image_url ?? '';
             $items[] = [
                 'rank' => $rank++,
                 'product_id' => $ti->product_id,
@@ -529,41 +546,6 @@ class OverviewController extends Controller
                 'sold_count' => (int) $ti->sold_count,
                 'revenue' => (float) $ti->total_revenue,
                 'image_url' => $img,
-            ];
-        }
-
-        if (count($items) < 5) {
-            $existingProducts = \App\Models\Product::with(['images', 'category'])
-                ->whereNotIn('product_id', collect($items)->pluck('product_id')->filter())
-                ->take(5 - count($items))
-                ->get();
-
-            foreach ($existingProducts as $p) {
-                $idx = count($items);
-                $fallback = $fallbackPastries[$idx % 5];
-                $items[] = [
-                    'rank' => $rank++,
-                    'product_id' => $p->product_id,
-                    'name' => $p->product_name,
-                    'category' => $p->category?->category_name ?? 'Bakery',
-                    'sold_count' => $fallback['sold'],
-                    'revenue' => (float) ($p->base_price ? $p->base_price * $fallback['sold'] : $fallback['rev']),
-                    'image_url' => $p->images->first()?->image_url ?? $fallback['img'],
-                ];
-            }
-        }
-
-        while (count($items) < 5) {
-            $idx = count($items);
-            $fb = $fallbackPastries[$idx];
-            $items[] = [
-                'rank' => $rank++,
-                'product_id' => null,
-                'name' => $fb['name'],
-                'category' => $fb['category'],
-                'sold_count' => $fb['sold'],
-                'revenue' => $fb['rev'],
-                'image_url' => $fb['img'],
             ];
         }
 
@@ -591,19 +573,10 @@ class OverviewController extends Controller
             $weekTotal += $dayRev;
         }
 
-        $hasAnySales = $weekTotal > 0;
-        if (!$hasAnySales) {
-            $sampleValues = [520, 850, 1100, 1420, 1850, 2100, 720];
-            $weekTotal = array_sum($sampleValues);
-            foreach ($chartPoints as $k => $cp) {
-                $chartPoints[$k]['revenue'] = $sampleValues[$k];
-            }
-        }
-
         return [
             'total_revenue' => $weekTotal,
-            'is_sample' => !$hasAnySales,
-            'trend_percentage' => '+10%',
+            'is_sample' => false,
+            'trend_percentage' => $weekTotal > 0 ? '+10%' : '0%',
             'points' => $chartPoints,
         ];
     }

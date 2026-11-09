@@ -556,6 +556,19 @@
             />
           </div>
 
+          <div>
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Assign Branch Manager (Optional)</label>
+            <select
+              v-model="newBranch.manager_id"
+              class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] cursor-pointer"
+            >
+              <option :value="null">-- Select / Unassigned --</option>
+              <option v-for="m in managersList" :key="m.user_id" :value="m.user_id">
+                {{ m.full_name }} ({{ m.role }})
+              </option>
+            </select>
+          </div>
+
           <div class="flex justify-end space-x-3 pt-3 border-t border-[#EFE8DF]">
             <button
               type="button"
@@ -660,6 +673,7 @@ const newBranch = ref({
   branch_name: '',
   branch_code: '',
   branch_type: 'Regular',
+  manager_id: null,
   city: 'Dessie',
   region: 'Amhara',
   address: '',
@@ -810,6 +824,7 @@ const openAddBranchModal = () => {
     branch_name: '',
     branch_code: '',
     branch_type: 'Regular',
+    manager_id: null,
     city: 'Dessie',
     region: 'Amhara',
     address: '',
@@ -829,7 +844,7 @@ const submitNewBranch = async () => {
     const res = await api.post('/admin/branches', newBranch.value);
     successMsg.value = `Branch "${res.data.branch_name}" (${res.data.branch_code}) successfully created!`;
     isAddBranchModalOpen.value = false;
-    await loadBranches();
+    await Promise.all([loadBranches(), loadManagers()]);
     selectBranchForEdit(res.data);
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Failed to register branch';

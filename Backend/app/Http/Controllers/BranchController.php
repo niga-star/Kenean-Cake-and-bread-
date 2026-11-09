@@ -67,13 +67,22 @@ class BranchController extends Controller
 
         $branch = Branch::create($validated);
 
-        // Auto-seed initial inventory for all active products at this new branch
+        // Associate assigned manager user with the new branch ID and set proper manager role
+        if (!empty($validated['manager_id'])) {
+            $mgrRole = $branch->branch_type === 'Main' ? 'Main Branch Manager' : 'Branch Manager';
+            \App\Models\User::where('user_id', $validated['manager_id'])->update([
+                'branch_id' => $branch->branch_id,
+                'role' => $mgrRole,
+            ]);
+        }
+
+        // Auto-seed initial inventory for all active products at this new branch starting at 0 (completely fresh & empty)
         $products = \App\Models\Product::where('status', 'Active')->get();
         foreach ($products as $p) {
             \App\Models\BranchInventory::firstOrCreate(
                 ['branch_id' => $branch->branch_id, 'product_id' => $p->product_id],
                 [
-                    'quantity_on_hand' => 20,
+                    'quantity_on_hand' => 0,
                     'reserved_quantity' => 0,
                     'reorder_level' => 10,
                 ]
@@ -163,7 +172,27 @@ class BranchController extends Controller
 
         $oldStatus = $branch->status;
         $oldShopping = $branch->is_shopping_enabled ? 'Enabled' : 'Disabled';
+        $oldMgrId = $branch->manager_id;
+
         $branch->update($validated);
+
+        // Keep User.branch_id and role synchronized with Branch.manager_id
+        if (array_key_exists('manager_id', $validated)) {
+            $newMgrId = $validated['manager_id'];
+            if ($oldMgrId && $oldMgrId != $newMgrId) {
+                $otherCount = Branch::where('branch_id', '!=', $branch->branch_id)->where('manager_id', $oldMgrId)->count();
+                if ($otherCount === 0) {
+                    \App\Models\User::where('user_id', $oldMgrId)->update(['branch_id' => null]);
+                }
+            }
+            if ($newMgrId) {
+                $mgrRole = $branch->branch_type === 'Main' ? 'Main Branch Manager' : 'Branch Manager';
+                \App\Models\User::where('user_id', $newMgrId)->update([
+                    'branch_id' => $branch->branch_id,
+                    'role' => $mgrRole,
+                ]);
+            }
+        }
 
         $actionNote = "Status: {$branch->status}";
         if (array_key_exists('is_shopping_enabled', $validated)) {

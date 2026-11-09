@@ -218,7 +218,7 @@
                 </div>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.pending ?? data.pending_orders ?? 12 }}</span>
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.pending ?? data.pending_orders ?? 0 }}</span>
                 <span class="w-2 h-2 rounded-full bg-[#D99B16]"></span>
               </div>
             </div>
@@ -235,7 +235,7 @@
                 </div>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.preparing ?? data.preparing_orders ?? 20 }}</span>
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.preparing ?? data.preparing_orders ?? 0 }}</span>
                 <span class="w-2 h-2 rounded-full bg-[#2F6EB5]"></span>
               </div>
             </div>
@@ -254,7 +254,7 @@
                 </div>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.out_for_delivery ?? 16 }}</span>
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.out_for_delivery ?? 0 }}</span>
                 <span class="w-2 h-2 rounded-full bg-[#7E57C2]"></span>
               </div>
             </div>
@@ -273,7 +273,7 @@
                 </div>
               </div>
               <div class="flex items-center space-x-2">
-                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.delivered ?? 32 }}</span>
+                <span class="text-sm font-bold text-[#2B1810] font-mono">{{ data.delivery_pipeline?.delivered ?? 0 }}</span>
                 <span class="w-2 h-2 rounded-full bg-[#2E7D32]"></span>
               </div>
             </div>
@@ -291,7 +291,12 @@
             </router-link>
           </div>
 
-          <div class="space-y-3.5">
+          <div v-if="bestSellingList.length === 0" class="py-8 text-center text-xs text-[#9E8E82] space-y-1">
+            <span class="text-2xl block">🥐</span>
+            <p>No pastry sales recorded yet.</p>
+          </div>
+
+          <div v-else class="space-y-3.5">
             <div
               v-for="item in bestSellingList"
               :key="item.rank"
@@ -735,17 +740,17 @@ const data = ref({
   revenue_today: 0,
   orders_today: 0,
   pending_orders: 0,
-  out_for_delivery: 16,
-  delivered_today: 32,
+  out_for_delivery: 0,
+  delivered_today: 0,
   delivery_pipeline: {
-    pending: 12,
-    preparing: 20,
-    out_for_delivery: 16,
-    delivered: 32
+    pending: 0,
+    preparing: 0,
+    out_for_delivery: 0,
+    delivered: 0
   },
   best_selling_pastries: [],
   revenue_overview: {
-    total_revenue: 8560,
+    total_revenue: 0,
     points: []
   },
   inventory_alerts: [],
@@ -764,19 +769,8 @@ const data = ref({
   }
 });
 
-const fallbackPastries = [
-  { rank: 1, name: 'Chocolate Cake Slice', sold_count: 86, revenue: 430, image_url: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&q=80' },
-  { rank: 2, name: 'Butter Croissant', sold_count: 74, revenue: 296, image_url: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=300&q=80' },
-  { rank: 3, name: 'Red Velvet Cupcake', sold_count: 65, revenue: 260, image_url: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=300&q=80' },
-  { rank: 4, name: 'Choco Chip Cookie', sold_count: 58, revenue: 174, image_url: 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=300&q=80' },
-  { rank: 5, name: 'Blueberry Danish', sold_count: 47, revenue: 188, image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=80' },
-];
-
 const bestSellingList = computed(() => {
-  if (data.value.best_selling_pastries && data.value.best_selling_pastries.length > 0) {
-    return data.value.best_selling_pastries;
-  }
-  return fallbackPastries;
+  return data.value.best_selling_pastries || [];
 });
 
 const inventoryAlertsList = computed(() => {

@@ -31,15 +31,21 @@ class UserController extends Controller
         $query = User::with('branch');
 
         // Scoping for Branch Managers: strictly restricted to their own branch
-        if ($user && in_array($user->role, ['Branch Manager', 'Branch Admin'])) {
+        if ($user && in_array($user->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
             if ($tab === 'customers') {
                 return response()->json([]);
             }
-            $query->where('branch_id', $user->branch_id);
-        } elseif ($user && $user->role === 'Main Branch Manager') {
-            $mainBranch = Branch::where('branch_type', 'Main')->first();
-            if ($mainBranch && $tab !== 'customers') {
-                $query->where('branch_id', $mainBranch->branch_id);
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if ($userBranchId) {
+                $query->where('branch_id', $userBranchId);
+            } else {
+                return response()->json([]);
+            }
+            // Branch manager cannot see Super Admin accounts
+            $query->where('role', '!=', 'Super Admin');
+        } elseif ($user && $user->role === 'Super Admin') {
+            if ($branchId && $branchId !== 'all') {
+                $query->where('branch_id', $branchId);
             }
         }
 
@@ -56,15 +62,6 @@ class UserController extends Controller
                 $query->whereIn('role', ['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff']);
             } else {
                 $query->where('role', $role);
-            }
-        }
-
-        if ($branchId && $branchId !== 'all') {
-            // Non-super-admin cannot query other branches
-            if ($user && !in_array($user->role, ['Super Admin'])) {
-                $query->where('branch_id', $user->branch_id);
-            } else {
-                $query->where('branch_id', $branchId);
             }
         }
 
@@ -136,7 +133,7 @@ class UserController extends Controller
         $branchId = $validated['branch_id'] ?? null;
 
         // Branch Manager permission enforcement
-        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin'])) {
+        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
             $allowedStaffRoles = [
                 'Branch Seller',
                 'Branch Seller / Cashier',
@@ -152,13 +149,11 @@ class UserController extends Controller
                 ], 403);
             }
 
-            // Strictly bind to the manager's branch
-            $branchId = $currentUser->branch_id;
+            // Strictly bind to the manager's assigned branch
+            $userBranchId = $currentUser->branch_id ?? Branch::where('manager_id', $currentUser->user_id)->value('branch_id');
+            $branchId = $userBranchId;
             // Branch managers cannot set salaries
             $validated['salary'] = 0.00;
-        } elseif ($currentUser && $currentUser->role === 'Main Branch Manager') {
-            $mainBranch = Branch::where('branch_type', 'Main')->first();
-            $branchId = $mainBranch?->branch_id;
         }
 
         // Branch required for branch-scoped roles
@@ -231,6 +226,11 @@ class UserController extends Controller
             'password' => Hash::make('password123'),
         ]);
 
+        // When Super Admin creates a Branch Manager, keep branch.manager_id synchronized
+        if ($currentUser && $currentUser->role === 'Super Admin' && in_array($role, ['Branch Manager', 'Main Branch Manager']) && $branchId) {
+            Branch::where('branch_id', $branchId)->update(['manager_id' => $user->user_id]);
+        }
+
         AuditLog::create([
             'user_id' => $currentUser?->user_id,
             'user_name' => $currentUser?->full_name ?? 'Super Admin',
@@ -259,21 +259,17 @@ class UserController extends Controller
         }
 
         $user = User::findOrFail($id);
+        $userBranchId = $currentUser?->branch_id ?? ($currentUser ? Branch::where('manager_id', $currentUser->user_id)->value('branch_id') : null);
 
         // Branch Manager permission checks
-        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin'])) {
+        if ($currentUser && in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager'])) {
             // Cannot modify users from other branches
-            if ($user->branch_id !== $currentUser->branch_id) {
+            if ($user->branch_id != $userBranchId) {
                 return response()->json(['message' => 'Access denied: You can only manage staff within your assigned branch.'], 403);
             }
             // Cannot modify another manager or super admin
             if (in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
                 return response()->json(['message' => 'Access denied: You cannot modify manager or administrator accounts.'], 403);
-            }
-        } elseif ($currentUser && $currentUser->role === 'Main Branch Manager') {
-            $mainBranch = Branch::where('branch_type', 'Main')->first();
-            if ($user->branch_id != $mainBranch?->branch_id) {
-                return response()->json(['message' => 'Main Branch Manager can only update users assigned to the Main Branch.'], 403);
             }
         }
 
@@ -390,13 +386,14 @@ class UserController extends Controller
 
     /**
      * Delete an employee account.
-     * Accessible to Super Admin only.
+     * - Super Admin can delete any account (except themselves).
+     * - Branch Managers can delete staff within their own branch.
      */
     public function destroy(Request $request, $id)
     {
         $currentUser = $request->user();
-        if (!$currentUser || $currentUser->role !== 'Super Admin') {
-            return response()->json(['message' => 'Only Super Admin can delete employee accounts.'], 403);
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
         $targetUser = User::findOrFail($id);
@@ -404,7 +401,29 @@ class UserController extends Controller
             return response()->json(['message' => 'Cannot delete your own account.'], 422);
         }
 
+        $isSuperAdmin = ($currentUser->role === 'Super Admin');
+        $isBranchManager = in_array($currentUser->role, ['Branch Manager', 'Main Branch Manager', 'Branch Admin']);
+
+        if (!$isSuperAdmin && !$isBranchManager) {
+            return response()->json(['message' => 'Unauthorized: Only Super Admin and Branch Managers can remove staff accounts.'], 403);
+        }
+
+        $userBranchId = $currentUser->branch_id ?? Branch::where('manager_id', $currentUser->user_id)->value('branch_id');
+
+        if ($isBranchManager) {
+            if ($targetUser->branch_id != $userBranchId) {
+                return response()->json(['message' => 'Access denied: You can only delete staff from your own assigned branch.'], 403);
+            }
+            if (in_array($targetUser->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+                return response()->json(['message' => 'Access denied: You cannot delete manager or administrator accounts.'], 403);
+            }
+        }
+
         $userName = $targetUser->full_name;
+
+        // If deleting a manager, unlink branch.manager_id
+        Branch::where('manager_id', $targetUser->user_id)->update(['manager_id' => null]);
+
         $targetUser->delete();
 
         AuditLog::create([

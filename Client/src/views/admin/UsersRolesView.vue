@@ -93,11 +93,15 @@
         <div class="flex items-center space-x-3">
           <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
           <div>
-            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ stats.totalBranches }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Branches</div>
+            <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">
+              {{ isBranchScoped ? (branches[0]?.branch_name || 'Assigned Branch') : stats.totalBranches }}
+            </div>
+            <div class="text-[11px] text-[#7D6E64] font-medium">
+              {{ isBranchScoped ? 'Branch' : 'Branches' }}
+            </div>
           </div>
         </div>
-        <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
+        <span class="text-[11px] font-bold text-[#7D6E64]">Active</span>
       </div>
 
       <!-- 3 Managers (+0%) -->
@@ -229,8 +233,10 @@
                 class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer"
               >
                 <option value="" disabled>Select Role</option>
-                <option value="Main Branch Manager">Main Branch Manager</option>
-                <option value="Branch Manager">Branch Manager</option>
+                <template v-if="isSuperAdmin">
+                  <option value="Main Branch Manager">Main Branch Manager</option>
+                  <option value="Branch Manager">Branch Manager</option>
+                </template>
                 <option value="Branch Seller / Cashier">Branch Seller / Cashier</option>
                 <option value="Branch Staff">Branch Staff</option>
                 <option value="Servant">Servant</option>
@@ -246,7 +252,8 @@
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🏬</span>
               <select
                 v-model="newUser.branch_id"
-                class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer"
+                :disabled="isBranchScoped"
+                class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option :value="null" disabled>Select Branch</option>
                 <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
@@ -307,7 +314,7 @@
           </div>
 
           <!-- Branch Filter Dropdown (Image 2) -->
-          <div class="relative">
+          <div class="relative" v-if="!isBranchScoped">
             <select
               v-model="selectedBranchFilter"
               class="px-3 py-1.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl text-xs font-bold text-[#2B1810] cursor-pointer shadow-2xs"
@@ -317,6 +324,10 @@
                 {{ b.branch_name }}
               </option>
             </select>
+          </div>
+          <div v-else class="text-xs font-bold text-[#7D6E64] bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#E2D8CC] flex items-center space-x-1.5">
+            <span>🏬</span>
+            <span>{{ branches[0]?.branch_name || 'My Branch' }}</span>
           </div>
         </div>
 
@@ -478,9 +489,13 @@
               <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Role</label>
               <select
                 v-model="editForm.role"
-                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810]"
+                :disabled="isBranchScoped && ['Branch Manager', 'Main Branch Manager', 'Branch Admin', 'Super Admin'].includes(editingUser.role)"
+                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="Branch Manager">Branch Manager</option>
+                <template v-if="isSuperAdmin">
+                  <option value="Main Branch Manager">Main Branch Manager</option>
+                  <option value="Branch Manager">Branch Manager</option>
+                </template>
                 <option value="Branch Seller / Cashier">Branch Seller / Cashier</option>
                 <option value="Branch Staff">Branch Staff</option>
                 <option value="Servant">Servant</option>
@@ -492,9 +507,10 @@
               <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch</label>
               <select
                 v-model="editForm.branch_id"
-                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810]"
+                :disabled="isBranchScoped"
+                class="w-full px-3 py-2 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option :value="null">None (HQ)</option>
+                <option v-if="isSuperAdmin" :value="null">None (HQ)</option>
                 <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
                   {{ b.branch_name }}
                 </option>
@@ -516,7 +532,7 @@
 
           <div class="flex items-center justify-between pt-3 border-t border-[#F4EFEA]">
             <button
-              v-if="isSuperAdmin && editingUser.role !== 'Super Admin'"
+              v-if="(isSuperAdmin || isBranchScoped) && editingUser.role !== 'Super Admin' && !['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(editingUser.role)"
               type="button"
               @click="deleteUser(editingUser.user_id)"
               class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 text-xs font-bold rounded-xl cursor-pointer"
@@ -569,6 +585,7 @@ const savingUser = ref(false);
 const savingEdit = ref(false);
 
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
+const isBranchScoped = computed(() => ['Main Branch Manager', 'Branch Manager', 'Manager', 'Branch Admin'].includes(authStore.user?.role));
 
 // Live dynamic stats computed from loaded staff and branches
 const stats = computed(() => {
@@ -685,7 +702,7 @@ function resetNewUser() {
   newUser.email = '';
   newUser.phone = '';
   newUser.role = 'Branch Seller / Cashier';
-  newUser.branch_id = branches.value[0]?.branch_id || 1;
+  newUser.branch_id = isBranchScoped.value ? (authStore.user?.branch_id || branches.value[0]?.branch_id) : (branches.value[0]?.branch_id || 1);
   newUser.is_active = true;
 }
 
@@ -706,9 +723,15 @@ async function fetchBranches() {
     const res = await api.get('/branches');
     if (res.data) {
       const fetched = Array.isArray(res.data) ? res.data : (res.data.data || []);
-      branches.value = fetched;
-      if (branches.value.length > 0 && !newUser.branch_id) {
-        newUser.branch_id = branches.value[0].branch_id;
+      if (isBranchScoped.value && authStore.user?.branch_id) {
+        branches.value = fetched.filter(b => b.branch_id === authStore.user.branch_id);
+        selectedBranchFilter.value = authStore.user.branch_id;
+        newUser.branch_id = authStore.user.branch_id;
+      } else {
+        branches.value = fetched;
+        if (branches.value.length > 0 && !newUser.branch_id) {
+          newUser.branch_id = branches.value[0].branch_id;
+        }
       }
     }
   } catch (e) {

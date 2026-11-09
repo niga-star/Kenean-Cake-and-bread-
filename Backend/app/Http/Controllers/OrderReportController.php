@@ -27,6 +27,10 @@ class OrderReportController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
+        if (!$user->branch_id) {
+            $user->branch_id = Branch::where('manager_id', $user->user_id)->value('branch_id');
+        }
+
         // Sellers, Cashiers, Branch Staff, and Branch Managers can create/record reports
         if (!$user->branch_id && $user->role !== 'Super Admin') {
             abort(403, 'You must be assigned to a branch to manage daily sales reports.');
@@ -48,6 +52,10 @@ class OrderReportController extends Controller
         $managerRoles = ['Branch Manager', 'Main Branch Manager', 'Branch Admin', 'Super Admin'];
         if (!in_array($user->role, $managerRoles)) {
             abort(403, 'Only Branch Managers and Admins can verify and consolidate reports.');
+        }
+
+        if (!$user->branch_id) {
+            $user->branch_id = Branch::where('manager_id', $user->user_id)->value('branch_id');
         }
 
         return $user;

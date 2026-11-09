@@ -180,7 +180,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span>{{ currentRole === 'Branch Staff' ? 'Order Preparation' : (isBranchScoped ? 'My Orders' : 'Orders') }}</span>
+                <span>{{ currentRole === 'Branch Staff' ? 'Order Preparation' : (['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? 'Branch Orders' : (isBranchScoped ? 'My Orders' : 'Orders')) }}</span>
               </router-link>
 
               <router-link
@@ -193,7 +193,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.5a3.5 3.5 0 01-7 0 3.5 3.5 0 01-7 0M12 4v4m-4-2h8m-9 9.5V20a1 1 0 001 1h16a1 1 0 001-1v-4.5" />
                 </svg>
-                <span>{{ isBranchScoped ? 'Custom Cake Orders' : 'Custom Cakes' }}</span>
+                <span>{{ ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? 'Branch Custom Cakes' : (isBranchScoped ? 'Custom Cake Orders' : 'Custom Cakes') }}</span>
               </router-link>
 
               <router-link
@@ -581,10 +581,10 @@ const roleScope = computed(() => {
 
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices, inventory, and staff reports; Sellers manage daily orders and counter sales)
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'manager-reports', 'notifications', 'settings'],
-  'Main Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
-  'Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
-  'Branch Admin': ['overview', 'users', 'products', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'manager-reports', 'notifications', 'settings'],
+  'Main Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
+  'Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
+  'Branch Admin': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
   'Branch Seller / Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],
   'Branch Seller': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],
   'Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'my-account', 'notifications'],

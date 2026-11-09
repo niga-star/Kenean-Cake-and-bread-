@@ -107,7 +107,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/auth/users', [AuthController::class, 'listUsers'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/users', [UserController::class, 'store']);
     Route::match(['put', 'patch'], '/users/{id}', [UserController::class, 'update']);
-    Route::delete('/users/{id}', [UserController::class, 'destroy'])->middleware('role:Super Admin');
+    Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::get('/branches-quotas', [UserController::class, 'branchQuotas']);
 
     // System Audit Logs (Super Admin, Main Branch Manager, Branch Manager)

@@ -27,11 +27,17 @@ class InventoryController extends Controller
 
         $user = $request->user();
         $selectedBranchId = $request->query('branch_id');
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
 
         // Scoping rule: All branch users strictly see their own branch only; Super Admin sees all
-        if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
-            $selectedBranchId = $user->branch_id;
-            $branches = Branch::where('branch_id', $user->branch_id)->get();
+        if ($user && $user->role !== 'Super Admin') {
+            if ($userBranchId) {
+                $selectedBranchId = $userBranchId;
+                $branches = Branch::where('branch_id', $userBranchId)->get();
+            } else {
+                $selectedBranchId = -1;
+                $branches = collect([]);
+            }
         } else {
             $branches = Branch::where('status', 'Active')->get();
         }
@@ -94,7 +100,8 @@ class InventoryController extends Controller
         $branch = Branch::findOrFail($validated['branch_id']);
 
         // Branch role check: must belong to the branch unless super_admin
-        if ($user && $user->role !== 'Super Admin' && $user->branch_id && $user->branch_id != $validated['branch_id']) {
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
+        if ($user && $user->role !== 'Super Admin' && (!$userBranchId || $userBranchId != $validated['branch_id'])) {
             return response()->json(['message' => 'You can only adjust stock for your assigned branch.'], 403);
         }
 
@@ -132,9 +139,10 @@ class InventoryController extends Controller
     {
         $user = $request->user();
         $query = InventoryTransaction::with(['branch', 'product', 'creator'])->latest('created_at');
+        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
 
-        if ($user && $user->role !== 'Super Admin' && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
+        if ($user && $user->role !== 'Super Admin') {
+            $query->where('branch_id', $userBranchId ?: -1);
         } elseif ($request->has('branch_id') && $request->branch_id && $request->branch_id !== 'all') {
             $query->where('branch_id', $request->branch_id);
         }
