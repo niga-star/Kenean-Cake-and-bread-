@@ -412,3 +412,35 @@ php Backend/artisan migrate
 | **Super Admin MONITORS & OVERSEES** | Centralized dashboard receiving only manager-consolidated reports. Inspects product and custom cake breakdowns across all branches. |
 | **Data Privacy & Scoping** | Enforced at database and middleware level. Sellers only access own reports; Managers only access own branch. |
 | **Financial Integrity** | Automatic calculations for amounts, advance payments, and balances. Unapproved reports are excluded from HQ revenue totals. |
+
+---
+
+## 13. Upgrades: Financial Integrity Safeguards & 3D Interactive Cake Studio
+
+### 13.1 Step 1: Core Financial & Relational Safeguards
+- **Sequential Reference Numbering with Collision Protection:**
+  - Branch Seller Reports: `DSR-BR{branch_id}-YYYYMMDD-{SEQ}` (e.g. `DSR-BR1-20261109-001`).
+  - Branch Consolidated Reports: `BCR-BR{branch_id}-YYYYMMDD-{SEQ}` (e.g. `BCR-BR1-20261109-001`).
+  - Generated via sequential lookup per branch per day with database collision incrementing.
+- **Duplicate Order Guard:**
+  - `sellerTodayOrders` automatically excludes any order or custom cake request already recorded in an active daily sales report.
+  - Submissions validate uniqueness of `order_id` and `custom_cake_id`, strictly preventing double counting of revenue.
+- **Strict Branch Binding:**
+  - Branch Sellers, Cashiers, and Managers are hard-bound to `$request->user()->branch_id`; client-side branch overrides are strictly ignored.
+- **Super Admin Official Verified Revenue Rule:**
+  - HQ Official Revenue (`total_revenue`) strictly sums reports with status `Verified by Super Admin`.
+  - Pending verification revenue (`Submitted to Super Admin`) is segregated and displayed in audit inspection indicators.
+- **Financial Record Immutability:**
+  - Daily reports can only be deleted while in `Draft` status. Once submitted or approved, records are permanent for audit compliance.
+
+### 13.2 Step 2: Interactive 3D Cake Studio
+- **Three.js WebGL 3D Visualizer:**
+  - Real-time 3D rendering in [`CustomCakeBuilderView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue) with cylinder tier geometries, silver pedestal stand, creamy frosting shaders, and decorative pearl border rings.
+  - Interactive orbit controls: mouse drag and touch gestures rotate 360° horizontally and tilt vertically; scroll wheel and pinch zoom smoothly.
+  - Auto-spin turntable mode with one-click toggle.
+  - Dynamic 3D occasion toppers (Birthday Candle with glowing flame, Wedding Interlocking Rings, Celebration Crest).
+  - Dynamic Piped Inscription Ribbon generated via canvas texture and mounted on the cake tier.
+  - High-resolution 3D preview snapshot capture (`toDataURL('image/jpeg')`) automatically attached to customer design briefs and displayed in admin inspection galleries.
+  - Structured `design_config` JSON column and `snapshot_url` column stored in `custom_cake_requests`.
+  - Graceful fallback to 2D layered visualizer for devices or browsers without WebGL.
+

@@ -621,6 +621,13 @@
                 >
                   Edit / Fix
                 </button>
+                <button
+                  v-if="rep.status === 'Draft'"
+                  @click="deleteDraft(rep.id)"
+                  class="text-xs text-rose-700 font-bold hover:underline cursor-pointer"
+                >
+                  Delete Draft
+                </button>
               </td>
             </tr>
           </tbody>
@@ -1012,6 +1019,21 @@ async function editReport(id) {
     }
   } catch (e) {
     alert('Failed to load report for editing.');
+  }
+}
+
+async function deleteDraft(id) {
+  if (!confirm('Are you sure you want to delete this draft daily report? Submitted reports cannot be deleted.')) {
+    return;
+  }
+  try {
+    const res = await axios.delete(`/reports/seller/daily-reports/${id}`);
+    if (res.data.success) {
+      alert('Draft report deleted successfully.');
+      await fetchReportsHistory();
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to delete report.');
   }
 }
 

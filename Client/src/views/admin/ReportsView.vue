@@ -110,13 +110,21 @@
         <div class="text-[11px] text-[#7D6E64]">Officially approved by HQ</div>
       </div>
 
-      <!-- 4. Combined Multi-Branch Revenue -->
+      <!-- 4. Combined Multi-Branch Revenue (Verified Official) -->
       <div class="bg-gradient-to-r from-[#3D251E] to-[#57392C] text-white rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
-        <div class="text-[10px] font-bold uppercase tracking-widest text-[#D8CDC5]">Total Revenue (All Branches)</div>
-        <div class="text-2xl sm:text-3xl font-serif font-black text-amber-200">
-          ETB {{ Number(kpis.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+        <div class="flex items-center justify-between">
+          <div class="text-[10px] font-bold uppercase tracking-widest text-[#D8CDC5]">Verified Revenue (Official)</div>
+          <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">HQ Approved</span>
         </div>
-        <div class="text-[11px] text-[#E5DACD]">From manager-verified reports</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-amber-200">
+          ETB {{ Number(kpis.verified_revenue !== undefined ? kpis.verified_revenue : (kpis.total_revenue || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+        </div>
+        <div class="text-[11px] text-[#E5DACD] flex items-center justify-between">
+          <span>Official HQ audit approved</span>
+          <span v-if="kpis.pending_verification_revenue > 0" class="text-amber-300 font-semibold text-[10px]">
+            +ETB {{ Number(kpis.pending_verification_revenue).toLocaleString(undefined, { maximumFractionDigits: 0 }) }} in review
+          </span>
+        </div>
       </div>
 
       <!-- 5. Regular Orders Across All Branches -->
@@ -209,8 +217,13 @@
               <td class="py-3.5 px-3 text-center font-bold text-[#2B1810]">
                 {{ b.custom_cakes }}
               </td>
-              <td class="py-3.5 px-3 text-right font-serif font-black text-sm text-[#2B1810]">
-                ETB {{ Number(b.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+              <td class="py-3.5 px-3 text-right">
+                <div class="font-serif font-black text-sm text-[#2B1810]">
+                  ETB {{ Number(b.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+                </div>
+                <div v-if="b.pending_revenue > 0" class="text-[10px] text-amber-700 font-semibold">
+                  +ETB {{ Number(b.pending_revenue).toLocaleString(undefined, { maximumFractionDigits: 0 }) }} in review
+                </div>
               </td>
               <td class="py-3.5 px-3 font-semibold text-[#6E5D52]">
                 {{ b.manager_name }}

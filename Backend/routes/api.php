@@ -161,6 +161,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportShow']);
     Route::post('/reports/seller/daily-reports', [OrderReportController::class, 'sellerReportStore']);
     Route::put('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportUpdate']);
+    Route::delete('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportDestroy']);
 
     // Level 2: Branch Manager (Verification & Consolidation)
     Route::post('/reports/manager/verify/{id}', [OrderReportController::class, 'managerVerifyReport'])

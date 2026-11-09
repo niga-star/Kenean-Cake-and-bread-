@@ -20,6 +20,8 @@ class CustomCakeRequest extends Model
         'cake_size',
         'flavor',
         'design',
+        'design_config',
+        'snapshot_url',
         'message',
         'needed_by',
         'quoted_price',
@@ -31,6 +33,7 @@ class CustomCakeRequest extends Model
 
     protected $casts = [
         'needed_by' => 'date',
+        'design_config' => 'array',
         'quoted_price' => 'decimal:2',
         'deposit_required_percentage' => 'decimal:2',
         'deposit_paid' => 'decimal:2',

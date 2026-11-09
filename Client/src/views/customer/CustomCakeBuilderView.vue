@@ -74,111 +74,259 @@
 
     <!-- 3. INTERACTIVE 3D/LAYERED CAKE CANVAS & TWO-COLUMN BUILDER -->
     <div class="sweetbakes-container py-8 space-y-8">
-      <!-- Interactive Cake Visualizer Canvas -->
-      <div class="bg-gradient-to-b from-[#FAF7F5] to-white dark:from-[#24150E] dark:to-[#170E0A] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-          <!-- Left: Cake Specs & Palette Summary -->
-          <div class="space-y-3 max-w-sm text-center md:text-left">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 bg-rose-50 dark:bg-[#341822] text-[#DE1B54] rounded-full text-xs font-bold border border-rose-200 dark:border-rose-900/50">
-              <span>🎂</span>
-              <span>{{ localeStore.isAmharic ? 'የቀጥታ ንድፍ ስቱዲዮ' : 'Live Visualizer Studio' }}</span>
+      <!-- Interactive Cake Visualizer Studio (3D WebGL / 2D Graceful Fallback) -->
+      <div class="bg-gradient-to-b from-[#FAF7F5] via-[#FFFBF8] to-white dark:from-[#24150E] dark:via-[#1E110A] dark:to-[#170E0A] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-7 shadow-xs relative overflow-hidden">
+        
+        <!-- Studio Header with Mode Toggle & Action Toolbar -->
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-[#F0E6DD] dark:border-[#382318] pb-4 mb-5">
+          <!-- Studio Title & Tech Pill -->
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#DE1B54] to-rose-400 text-white flex items-center justify-center text-sm shadow-xs font-bold">
+              🎂
             </div>
-            <h2 class="text-xl sm:text-2xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
-              {{ cakeSize }}
-            </h2>
-            <div class="space-y-1 text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
-              <div><strong>{{ localeStore.isAmharic ? 'ጣዕም:' : 'Flavor:' }}</strong> {{ flavor }}</div>
-              <div><strong>{{ localeStore.isAmharic ? 'ክሬም:' : 'Frosting:' }}</strong> {{ filling }}</div>
-              <div><strong>{{ localeStore.isAmharic ? 'ዝግጅት:' : 'Occasion:' }}</strong> {{ occasion }}</div>
-              <div v-if="isFasting" class="text-emerald-700 dark:text-emerald-400 font-bold flex items-center justify-center md:justify-start space-x-1">
-                <span>🌿</span>
-                <span>{{ localeStore.isAmharic ? '100% የጾም የተረጋገጠ (የጾም)' : "100% Ye'Tsom Certified (የጾም)" }}</span>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 class="text-base sm:text-lg font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'የቀጥታ 3D ኬክ ስቱዲዮ' : '3D Interactive Cake Studio' }}
+                </h2>
+                <span
+                  class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border"
+                  :class="visualizerMode === '3d' && webglSupported 
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300' 
+                    : 'bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-900 dark:text-stone-300'"
+                >
+                  {{ visualizerMode === '3d' && webglSupported ? 'WebGL 3D Active' : '2D Mode' }}
+                </span>
               </div>
+              <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
+                {{ localeStore.isAmharic ? 'ኬክዎን በ 3D አሽከርክረው፣ አቅርበው ይመልከቱ እና ቅጽበታዊ ፎቶ ያንሱ!' : 'Rotate, pan, zoom, customize frosting and capture your 3D centerpiece!' }}
+              </p>
             </div>
           </div>
 
-          <!-- Center: Dynamic Interactive Layered Cake Preview -->
-          <div class="flex-1 flex flex-col items-center justify-end min-h-[220px] sm:min-h-[250px] relative">
-            <!-- Occasion Topper -->
-            <div class="text-2xl sm:text-3xl animate-bounce mb-1">
-              {{ occasionTopper }}
-            </div>
-
-            <!-- Top Tier (T3) - Only for 3-Tier -->
-            <div
-              v-if="tierCount >= 3"
-              class="w-24 sm:w-28 h-12 rounded-t-xl border-2 border-white/60 dark:border-black/30 shadow-md relative transition-all duration-500 flex items-center justify-center"
-              :style="{ backgroundColor: cakeColorStyle.primary }"
-            >
-              <div class="absolute inset-x-0 bottom-0 h-2 bg-black/10"></div>
-              <!-- Frosting pearls -->
-              <div class="absolute -bottom-1 inset-x-1 flex justify-around">
-                <span v-for="p in 5" :key="p" class="w-1.5 h-1.5 rounded-full bg-amber-100 shadow-2xs"></span>
-              </div>
-            </div>
-
-            <!-- Middle Tier (T2) - For 2-Tier & 3-Tier -->
-            <div
-              v-if="tierCount >= 2"
-              class="h-14 sm:h-16 rounded-t-xl border-2 border-white/60 dark:border-black/30 shadow-md relative transition-all duration-500 flex items-center justify-center"
-              :class="tierCount === 2 ? 'w-36 sm:w-44' : 'w-36 sm:w-44'"
-              :style="{ backgroundColor: cakeColorStyle.primary }"
-            >
-              <div class="absolute inset-x-0 bottom-0 h-2 bg-black/10"></div>
-              <!-- Frosting pearls -->
-              <div class="absolute -bottom-1 inset-x-1 flex justify-around">
-                <span v-for="p in 7" :key="p" class="w-1.5 h-1.5 rounded-full bg-amber-100 shadow-2xs"></span>
-              </div>
-            </div>
-
-            <!-- Base Tier (T1) - Always visible -->
-            <div
-              class="h-16 sm:h-20 rounded-t-2xl border-2 border-white/60 dark:border-black/30 shadow-lg relative transition-all duration-500 flex items-center justify-center"
-              :class="tierCount === 1 ? (cakeSize.includes('6') ? 'w-36 sm:w-44' : 'w-48 sm:w-56') : (tierCount === 2 ? 'w-48 sm:w-56' : 'w-52 sm:w-64')"
-              :style="{ backgroundColor: cakeColorStyle.primary }"
-            >
-              <!-- Drip Overlay -->
-              <div class="absolute inset-x-0 top-0 h-3 bg-black/15 rounded-t-2xl"></div>
-
-              <!-- Live Piped Inscription Ribbon on Base Tier -->
-              <div
-                v-if="message.trim()"
-                class="px-3 py-1 bg-white/95 dark:bg-[#1E120B]/95 text-[#DE1B54] font-script text-xs sm:text-sm rounded-full shadow-md border border-[#DE1B54]/30 max-w-[85%] truncate transition-all animate-fade-in z-10"
+          <!-- Studio Toolbar: Mode Switcher & Camera Controls -->
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <!-- Mode Switcher -->
+            <div class="bg-[#F2ECE4] dark:bg-[#2A1810] p-1 rounded-full flex items-center space-x-1 border border-stone-200 dark:border-[#382318]">
+              <button
+                type="button"
+                @click="switchVisualizerMode('3d')"
+                :disabled="!webglSupported"
+                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center space-x-1"
+                :class="visualizerMode === '3d' 
+                  ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' 
+                  : 'text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#2A1810]'"
               >
-                &ldquo;{{ message }}&rdquo;
-              </div>
-
-              <!-- Frosting border pearls -->
-              <div class="absolute -bottom-1.5 inset-x-2 flex justify-around">
-                <span v-for="p in 9" :key="p" class="w-2 h-2 rounded-full bg-amber-100 shadow-xs"></span>
-              </div>
+                <span>✨</span>
+                <span>{{ localeStore.isAmharic ? '3D ስቱዲዮ' : '3D Studio' }}</span>
+              </button>
+              <button
+                type="button"
+                @click="switchVisualizerMode('2d')"
+                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center space-x-1"
+                :class="visualizerMode === '2d' 
+                  ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' 
+                  : 'text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#2A1810]'"
+              >
+                <span>🖼️</span>
+                <span>{{ localeStore.isAmharic ? 'ክላሲክ 2D' : 'Classic 2D' }}</span>
+              </button>
             </div>
 
-            <!-- Silver Pedestal / Cake Board -->
-            <div class="w-64 sm:w-80 h-3.5 bg-gradient-to-r from-gray-300 via-gray-100 to-gray-400 dark:from-gray-700 dark:via-gray-500 dark:to-gray-800 rounded-full shadow-lg mt-0.5 border border-gray-400/30"></div>
+            <!-- 3D Actions (only active when visualizerMode === '3d') -->
+            <template v-if="visualizerMode === '3d' && webglSupported">
+              <button
+                type="button"
+                @click="autoRotate = !autoRotate"
+                class="px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                :class="autoRotate 
+                  ? 'bg-rose-50 text-[#DE1B54] border-rose-300 dark:bg-rose-950/40 dark:border-rose-900' 
+                  : 'bg-white text-stone-700 border-stone-200 dark:bg-[#2A1810] dark:text-[#C5B7AF] dark:border-[#382318] hover:bg-stone-50'"
+                :title="autoRotate ? 'Pause auto-spin' : 'Enable auto-spin'"
+              >
+                <span>{{ autoRotate ? '⏸️' : '🔄' }}</span>
+                <span>{{ autoRotate ? (localeStore.isAmharic ? 'እሽክርክሪት አቁም' : 'Spinning') : (localeStore.isAmharic ? 'አሽከርክር' : 'Auto-Spin') }}</span>
+              </button>
+
+              <button
+                type="button"
+                @click="resetCameraView"
+                class="px-3 py-1.5 bg-white dark:bg-[#2A1810] hover:bg-stone-50 dark:hover:bg-[#341822] text-stone-700 dark:text-[#FAF3EE] border border-stone-200 dark:border-[#382318] rounded-full text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                title="Reset camera view"
+              >
+                <span>🎯</span>
+                <span>{{ localeStore.isAmharic ? 'ካሜራ መልስ' : 'Reset View' }}</span>
+              </button>
+
+              <button
+                type="button"
+                @click="take3DSnapshot"
+                class="px-3.5 py-1.5 bg-gradient-to-r from-[#DE1B54] to-[#B31340] hover:from-[#C51345] hover:to-[#960E34] text-white rounded-full text-xs font-bold transition shadow-xs cursor-pointer flex items-center space-x-1.5 active:scale-95"
+                title="Capture high-resolution 3D preview snapshot"
+              >
+                <span>📸</span>
+                <span>{{ localeStore.isAmharic ? '3D ፎቶ አንሳ' : 'Capture 3D Snapshot' }}</span>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Viewport Main Grid: Specs, Viewport, Palette -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          
+          <!-- Left Column: Specs Summary (3 cols) -->
+          <div class="lg:col-span-3 space-y-3 text-center lg:text-left order-2 lg:order-1">
+            <div class="bg-white/80 dark:bg-[#1E120B]/80 backdrop-blur-xs p-4 rounded-2xl border border-stone-200 dark:border-[#382318] space-y-2 shadow-2xs">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64] dark:text-[#A8988C]">Configuration Summary</div>
+              <div class="text-base sm:text-lg font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
+                {{ cakeSize }}
+              </div>
+              <div class="space-y-1 text-xs text-[#6E5D53] dark:text-[#C5B7AF] pt-1 border-t border-stone-100 dark:border-[#382318]">
+                <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ጣዕም:' : 'Flavor:' }}</span> {{ flavor }}</div>
+                <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ክሬም:' : 'Frosting:' }}</span> {{ filling }}</div>
+                <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ዝግጅት:' : 'Occasion:' }}</span> {{ occasion }}</div>
+                <div v-if="message.trim()" class="truncate text-[#DE1B54] font-semibold italic">
+                  &ldquo;{{ message }}&rdquo;
+                </div>
+                <div v-if="isFasting" class="text-emerald-700 dark:text-emerald-400 font-bold flex items-center justify-center lg:justify-start space-x-1 pt-1">
+                  <span>🌿</span>
+                  <span>100% Ye'Tsom Fasting Certified</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Right: Quick Palette Swatches -->
-          <div class="bg-white/80 dark:bg-[#1E120B]/80 backdrop-blur-xs p-4 rounded-2xl border border-gray-200 dark:border-[#382318] text-xs space-y-2 text-center md:text-right shrink-0">
-            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">Palette Preview:</div>
-            <div class="flex items-center justify-center md:justify-end space-x-2">
-              <span
-                class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
-                :style="{ backgroundColor: cakeColorStyle.primary }"
-                :title="flavor"
-              ></span>
-              <span
-                class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
-                :style="{ backgroundColor: cakeColorStyle.fillingColor }"
-                :title="filling"
-              ></span>
-              <span
-                class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block bg-[#DE1B54]"
-                title="Signature SweetBakes Ribbon"
-              ></span>
+          <!-- Center Column: Viewport Canvas (6 cols) -->
+          <div class="lg:col-span-6 flex flex-col items-center justify-center order-1 lg:order-2 relative">
+            
+            <!-- Snapshot Flash Animation Overlay -->
+            <div
+              v-if="snapshotFlash"
+              class="absolute inset-0 bg-white/90 z-30 rounded-2xl pointer-events-none transition-opacity duration-300"
+            ></div>
+
+            <!-- MODE 1: Three.js 3D WebGL Canvas -->
+            <div
+              v-show="visualizerMode === '3d' && webglSupported"
+              class="w-full relative flex flex-col items-center"
+            >
+              <div class="w-full h-[280px] sm:h-[340px] lg:h-[380px] rounded-2xl bg-radial from-white via-rose-50/30 to-[#FAF4EE] dark:from-[#26160F] dark:via-[#1E110A] dark:to-[#170E0A] border border-stone-200 dark:border-[#382318] shadow-inner relative overflow-hidden flex items-center justify-center">
+                <canvas
+                  ref="threeCanvasRef"
+                  class="w-full h-full block cursor-grab active:cursor-grabbing touch-none select-none"
+                ></canvas>
+
+                <!-- Floating Interaction Hint Pill -->
+                <div class="absolute bottom-2.5 inset-x-0 mx-auto w-max px-3 py-1 bg-black/60 backdrop-blur-xs text-white/90 text-[10px] rounded-full pointer-events-none flex items-center space-x-1.5 shadow-md">
+                  <span>🖱️</span>
+                  <span>{{ localeStore.isAmharic ? 'ለመዞር ይጎትቱ • ለማቅረብ ያሸብርቁ' : 'Drag to rotate • Scroll to zoom • Touch friendly' }}</span>
+                </div>
+              </div>
             </div>
-            <div class="text-[10px] text-gray-500 dark:text-gray-400">
-              {{ cakeColorStyle.name }}
+
+            <!-- MODE 2: Classic 2D Layered Fallback -->
+            <div
+              v-if="visualizerMode === '2d' || !webglSupported"
+              class="w-full flex flex-col items-center justify-end min-h-[240px] sm:min-h-[280px] py-4 relative"
+            >
+              <!-- Occasion Topper -->
+              <div class="text-2xl sm:text-3xl animate-bounce mb-1">
+                {{ occasionTopper }}
+              </div>
+
+              <!-- Top Tier (T3) - Only for 3-Tier -->
+              <div
+                v-if="tierCount >= 3"
+                class="w-24 sm:w-28 h-12 rounded-t-xl border-2 border-white/60 dark:border-black/30 shadow-md relative transition-all duration-500 flex items-center justify-center"
+                :style="{ backgroundColor: cakeColorStyle.primary }"
+              >
+                <div class="absolute inset-x-0 bottom-0 h-2 bg-black/10"></div>
+                <!-- Frosting pearls -->
+                <div class="absolute -bottom-1 inset-x-1 flex justify-around">
+                  <span v-for="p in 5" :key="p" class="w-1.5 h-1.5 rounded-full bg-amber-100 shadow-2xs"></span>
+                </div>
+              </div>
+
+              <!-- Middle Tier (T2) - For 2-Tier & 3-Tier -->
+              <div
+                v-if="tierCount >= 2"
+                class="h-14 sm:h-16 rounded-t-xl border-2 border-white/60 dark:border-black/30 shadow-md relative transition-all duration-500 flex items-center justify-center"
+                :class="tierCount === 2 ? 'w-36 sm:w-44' : 'w-36 sm:w-44'"
+                :style="{ backgroundColor: cakeColorStyle.primary }"
+              >
+                <div class="absolute inset-x-0 bottom-0 h-2 bg-black/10"></div>
+                <!-- Frosting pearls -->
+                <div class="absolute -bottom-1 inset-x-1 flex justify-around">
+                  <span v-for="p in 7" :key="p" class="w-1.5 h-1.5 rounded-full bg-amber-100 shadow-2xs"></span>
+                </div>
+              </div>
+
+              <!-- Base Tier (T1) - Always visible -->
+              <div
+                class="h-16 sm:h-20 rounded-t-2xl border-2 border-white/60 dark:border-black/30 shadow-lg relative transition-all duration-500 flex items-center justify-center"
+                :class="tierCount === 1 ? (cakeSize.includes('6') ? 'w-36 sm:w-44' : 'w-48 sm:w-56') : (tierCount === 2 ? 'w-48 sm:w-56' : 'w-52 sm:w-64')"
+                :style="{ backgroundColor: cakeColorStyle.primary }"
+              >
+                <!-- Drip Overlay -->
+                <div class="absolute inset-x-0 top-0 h-3 bg-black/15 rounded-t-2xl"></div>
+
+                <!-- Live Piped Inscription Ribbon on Base Tier -->
+                <div
+                  v-if="message.trim()"
+                  class="px-3 py-1 bg-white/95 dark:bg-[#1E120B]/95 text-[#DE1B54] font-script text-xs sm:text-sm rounded-full shadow-md border border-[#DE1B54]/30 max-w-[85%] truncate transition-all animate-fade-in z-10"
+                >
+                  &ldquo;{{ message }}&rdquo;
+                </div>
+
+                <!-- Frosting border pearls -->
+                <div class="absolute -bottom-1.5 inset-x-2 flex justify-around">
+                  <span v-for="p in 9" :key="p" class="w-2 h-2 rounded-full bg-amber-100 shadow-xs"></span>
+                </div>
+              </div>
+
+              <!-- Silver Pedestal / Cake Board -->
+              <div class="w-64 sm:w-80 h-3.5 bg-gradient-to-r from-gray-300 via-gray-100 to-gray-400 dark:from-gray-700 dark:via-gray-500 dark:to-gray-800 rounded-full shadow-lg mt-0.5 border border-gray-400/30"></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Palette & Snapshot Thumbnail (3 cols) -->
+          <div class="lg:col-span-3 space-y-3 text-center lg:text-right order-3">
+            <!-- Palette Card -->
+            <div class="bg-white/80 dark:bg-[#1E120B]/80 backdrop-blur-xs p-4 rounded-2xl border border-stone-200 dark:border-[#382318] text-xs space-y-2 shadow-2xs">
+              <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የቀለም ቅንብር:' : 'Palette Preview:' }}</div>
+              <div class="flex items-center justify-center lg:justify-end space-x-2">
+                <span
+                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
+                  :style="{ backgroundColor: cakeColorStyle.primary }"
+                  :title="flavor"
+                ></span>
+                <span
+                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
+                  :style="{ backgroundColor: cakeColorStyle.fillingColor }"
+                  :title="filling"
+                ></span>
+                <span
+                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block bg-[#DE1B54]"
+                  title="Signature SweetBakes Ribbon"
+                ></span>
+              </div>
+              <div class="text-[10px] text-gray-500 dark:text-gray-400">
+                {{ cakeColorStyle.name }}
+              </div>
+            </div>
+
+            <!-- Captured 3D Snapshot Pill / Thumbnail -->
+            <div
+              v-if="capturedSnapshotUrl"
+              class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 p-3 rounded-2xl space-y-2 shadow-2xs"
+            >
+              <div class="flex items-center justify-between text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+                <span>3D Snapshot Saved ✓</span>
+                <span class="text-[9px] bg-emerald-200/60 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.5 rounded">Attached</span>
+              </div>
+              <div class="w-full aspect-video rounded-xl overflow-hidden border border-emerald-200/60 dark:border-emerald-800/60">
+                <img :src="capturedSnapshotUrl" alt="3D Cake Snapshot" class="w-full h-full object-cover" />
+              </div>
             </div>
           </div>
         </div>
@@ -601,7 +749,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import * as THREE from 'three';
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useAuthStore } from '../../stores/auth';
@@ -614,6 +763,26 @@ const branchStore = useBranchStore();
 const authStore = useAuthStore();
 const toast = useToastStore();
 const localeStore = useLocaleStore();
+
+// 3D Visualizer State
+const visualizerMode = ref('3d'); // '3d' or '2d'
+const webglSupported = ref(true);
+const threeCanvasRef = ref(null);
+const autoRotate = ref(true);
+const snapshotFlash = ref(false);
+const capturedSnapshotUrl = ref(null);
+
+// Three.js internal references
+let scene = null;
+let camera = null;
+let renderer = null;
+let animationFrameId = null;
+let cakeGroup = null;
+let resizeObserver = null;
+let isDraggingOrbit = false;
+let currentRotation = { x: 0.28, y: -0.45 };
+let targetZoom = 8.5;
+let currentZoom = 8.5;
 
 const fileInput = ref(null);
 const isSubmitting = ref(false);
@@ -687,6 +856,488 @@ const cakeColorStyle = computed(() => {
     default:
       return { primary: '#FFF8E7', fillingColor: '#DE1B54', name: 'Signature SweetBakes' };
   }
+});
+
+// =========================================================================
+// THREE.JS 3D CAKE STUDIO ENGINE
+// =========================================================================
+
+function switchVisualizerMode(mode) {
+  visualizerMode.value = mode;
+  if (mode === '3d') {
+    nextTick(() => {
+      initThree();
+    });
+  }
+}
+
+function initThree() {
+  if (!threeCanvasRef.value) return;
+
+  try {
+    const canvas = threeCanvasRef.value;
+    const width = canvas.parentElement?.clientWidth || canvas.clientWidth || 460;
+    const height = canvas.parentElement?.clientHeight || canvas.clientHeight || 360;
+
+    // Dispose old renderer if exists
+    if (renderer) {
+      destroyThree();
+    }
+
+    // 1. Scene
+    scene = new THREE.Scene();
+
+    // 2. Camera
+    camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    camera.position.set(0, 3.0, targetZoom);
+
+    // 3. Renderer with preserveDrawingBuffer for snapshot capture
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true,
+    });
+    renderer.setSize(width, height, false);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    // 4. Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xfff5ea, 1.4);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    keyLight.position.set(6, 9, 6);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffe2d8, 0.9);
+    rimLight.position.set(-6, 4, -5);
+    scene.add(rimLight);
+
+    const accentPoint = new THREE.PointLight(0xffb3c6, 1.2, 12);
+    accentPoint.position.set(0, 6, 4);
+    scene.add(accentPoint);
+
+    // 5. Cake Root Group
+    cakeGroup = new THREE.Group();
+    cakeGroup.position.set(0, -1.0, 0);
+    cakeGroup.rotation.x = currentRotation.x;
+    cakeGroup.rotation.y = currentRotation.y;
+    scene.add(cakeGroup);
+
+    // 6. Build initial 3D Cake Meshes
+    build3DCake();
+
+    // 7. Setup Orbit Interaction Listeners
+    setupCanvasControls(canvas);
+
+    // 8. Start Animation Loop
+    startAnimationLoop();
+
+    // 9. Resize Handling
+    if (window.ResizeObserver && canvas.parentElement) {
+      resizeObserver = new ResizeObserver(() => {
+        if (!renderer || !camera || !canvas.parentElement) return;
+        const newW = canvas.parentElement.clientWidth;
+        const newH = canvas.parentElement.clientHeight;
+        if (newW > 0 && newH > 0) {
+          camera.aspect = newW / newH;
+          camera.updateProjectionMatrix();
+          renderer.setSize(newW, newH, false);
+        }
+      });
+      resizeObserver.observe(canvas.parentElement);
+    }
+
+    webglSupported.value = true;
+  } catch (err) {
+    console.warn('WebGL initialization failed, falling back to 2D view', err);
+    webglSupported.value = false;
+    visualizerMode.value = '2d';
+  }
+}
+
+function build3DCake() {
+  if (!cakeGroup) return;
+
+  // Clear existing meshes
+  while (cakeGroup.children.length > 0) {
+    const obj = cakeGroup.children[0];
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+      else obj.material.dispose();
+    }
+    cakeGroup.remove(obj);
+  }
+
+  const primaryColor = new THREE.Color(cakeColorStyle.value.primary);
+  const fillingColor = new THREE.Color(cakeColorStyle.value.fillingColor);
+
+  // Frosting Material (Silky Buttercream Sheen)
+  const frostingMat = new THREE.MeshStandardMaterial({
+    color: primaryColor,
+    roughness: 0.35,
+    metalness: 0.04,
+  });
+
+  const fillingMat = new THREE.MeshStandardMaterial({
+    color: fillingColor,
+    roughness: 0.25,
+    metalness: 0.08,
+  });
+
+  // Silver Cake Stand / Board
+  const standGeo = new THREE.CylinderGeometry(2.9, 3.1, 0.2, 48);
+  const standMat = new THREE.MeshStandardMaterial({
+    color: 0xdedede,
+    metalness: 0.85,
+    roughness: 0.25,
+  });
+  const standMesh = new THREE.Mesh(standGeo, standMat);
+  standMesh.position.y = 0.1;
+  cakeGroup.add(standMesh);
+
+  // Helper: pearl border ring
+  function addPearlRing(radius, y, count) {
+    const pearlGeo = new THREE.SphereGeometry(0.075, 12, 12);
+    const pearlMat = new THREE.MeshStandardMaterial({
+      color: 0xfffaea,
+      metalness: 0.3,
+      roughness: 0.15,
+    });
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const pearl = new THREE.Mesh(pearlGeo, pearlMat);
+      pearl.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius);
+      cakeGroup.add(pearl);
+    }
+  }
+
+  const tiers = tierCount.value;
+
+  // BASE TIER (Tier 1) - Always present
+  const baseH = tiers === 1 ? 1.8 : 1.35;
+  const baseR = 2.2;
+  const baseY = 0.2 + baseH / 2;
+  const baseGeo = new THREE.CylinderGeometry(baseR, baseR, baseH, 64);
+  const baseMesh = new THREE.Mesh(baseGeo, frostingMat);
+  baseMesh.position.y = baseY;
+  cakeGroup.add(baseMesh);
+
+  // Drip collar on Base tier
+  const drip1Geo = new THREE.CylinderGeometry(baseR + 0.03, baseR + 0.03, 0.15, 64);
+  const drip1 = new THREE.Mesh(drip1Geo, fillingMat);
+  drip1.position.y = baseY + baseH / 2 - 0.07;
+  cakeGroup.add(drip1);
+
+  addPearlRing(baseR + 0.02, 0.25, 28);
+
+  let currentTopY = 0.2 + baseH;
+
+  // MIDDLE TIER (Tier 2)
+  if (tiers >= 2) {
+    const midH = 1.25;
+    const midR = 1.55;
+    const midY = currentTopY + midH / 2;
+    const midGeo = new THREE.CylinderGeometry(midR, midR, midH, 64);
+    const midMesh = new THREE.Mesh(midGeo, frostingMat);
+    midMesh.position.y = midY;
+    cakeGroup.add(midMesh);
+
+    const drip2Geo = new THREE.CylinderGeometry(midR + 0.03, midR + 0.03, 0.12, 64);
+    const drip2 = new THREE.Mesh(drip2Geo, fillingMat);
+    drip2.position.y = midY + midH / 2 - 0.06;
+    cakeGroup.add(drip2);
+
+    addPearlRing(midR + 0.02, currentTopY + 0.05, 20);
+    currentTopY += midH;
+  }
+
+  // TOP TIER (Tier 3)
+  if (tiers >= 3) {
+    const topH = 1.15;
+    const topR = 1.0;
+    const topY = currentTopY + topH / 2;
+    const topGeo = new THREE.CylinderGeometry(topR, topR, topH, 64);
+    const topMesh = new THREE.Mesh(topGeo, frostingMat);
+    topMesh.position.y = topY;
+    cakeGroup.add(topMesh);
+
+    const drip3Geo = new THREE.CylinderGeometry(topR + 0.03, topR + 0.03, 0.1, 64);
+    const drip3 = new THREE.Mesh(drip3Geo, fillingMat);
+    drip3.position.y = topY + topH / 2 - 0.05;
+    cakeGroup.add(drip3);
+
+    addPearlRing(topR + 0.02, currentTopY + 0.05, 14);
+    currentTopY += topH;
+  }
+
+  // OCCASION TOPPER
+  buildOccasionTopper(currentTopY);
+
+  // PIPED INSCRIPTION RIBBON / PLAQUE
+  buildDedicationRibbon(baseR, baseY);
+}
+
+function buildOccasionTopper(topY) {
+  const occ = occasion.value;
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xf5b83d,
+    metalness: 0.9,
+    roughness: 0.2,
+  });
+
+  if (occ === 'Birthday') {
+    // 3D Birthday Candle with flame
+    const candleGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.9, 16);
+    const candleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+    const candle = new THREE.Mesh(candleGeo, candleMat);
+    candle.position.set(0, topY + 0.45, 0);
+    cakeGroup.add(candle);
+
+    // Wick
+    const wickGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.15, 8);
+    const wickMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+    const wick = new THREE.Mesh(wickGeo, wickMat);
+    wick.position.set(0, topY + 0.95, 0);
+    cakeGroup.add(wick);
+
+    // Flame
+    const flameGeo = new THREE.ConeGeometry(0.12, 0.35, 16);
+    const flameMat = new THREE.MeshBasicMaterial({ color: 0xff9900 });
+    const flame = new THREE.Mesh(flameGeo, flameMat);
+    flame.position.set(0, topY + 1.15, 0);
+    cakeGroup.add(flame);
+  } else if (occ === 'Wedding') {
+    // Interlocking Golden Rings
+    const ringGeo = new THREE.TorusGeometry(0.35, 0.06, 16, 32);
+    const ring1 = new THREE.Mesh(ringGeo, goldMat);
+    ring1.position.set(-0.2, topY + 0.45, 0);
+    ring1.rotation.y = 0.4;
+    const ring2 = new THREE.Mesh(ringGeo, goldMat);
+    ring2.position.set(0.2, topY + 0.45, 0);
+    ring2.rotation.y = -0.4;
+    cakeGroup.add(ring1);
+    cakeGroup.add(ring2);
+  } else {
+    // Golden Celebration Star / Disc Emblem
+    const discGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.08, 32);
+    const disc = new THREE.Mesh(discGeo, goldMat);
+    disc.position.set(0, topY + 0.4, 0);
+    disc.rotation.x = Math.PI / 2;
+    cakeGroup.add(disc);
+
+    // Golden sphere crown
+    const starGeo = new THREE.SphereGeometry(0.2, 16, 16);
+    const star = new THREE.Mesh(starGeo, goldMat);
+    star.position.set(0, topY + 0.8, 0);
+    cakeGroup.add(star);
+  }
+}
+
+function buildDedicationRibbon(baseR, baseY) {
+  if (!message.value || !message.value.trim()) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  // Background ribbon plaque
+  ctx.fillStyle = '#FFF8F2';
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(8, 8, 496, 112, 24);
+  } else {
+    ctx.rect(8, 8, 496, 112);
+  }
+  ctx.fill();
+
+  // Border
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = '#DE1B54';
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = '#DE1B54';
+  ctx.font = 'bold 26px "Playfair Display", Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const textToDraw = message.value.length > 28 ? message.value.substring(0, 26) + '...' : message.value;
+  ctx.fillText(textToDraw, 256, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const plaqueGeo = new THREE.PlaneGeometry(1.6, 0.42);
+  const plaqueMat = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+  });
+
+  const plaqueMesh = new THREE.Mesh(plaqueGeo, plaqueMat);
+  // Position slightly in front of base tier facing the default camera angle
+  plaqueMesh.position.set(0, baseY, baseR + 0.05);
+  cakeGroup.add(plaqueMesh);
+}
+
+function setupCanvasControls(canvas) {
+  let isDown = false;
+  let startX = 0;
+  let startY = 0;
+  let lastTouchDist = 0;
+
+  function onPointerDown(clientX, clientY) {
+    isDown = true;
+    isDraggingOrbit = true;
+    startX = clientX;
+    startY = clientY;
+  }
+
+  function onPointerMove(clientX, clientY) {
+    if (!isDown || !cakeGroup) return;
+    const deltaX = clientX - startX;
+    const deltaY = clientY - startY;
+    startX = clientX;
+    startY = clientY;
+
+    currentRotation.y += deltaX * 0.012;
+    currentRotation.x = Math.max(-0.15, Math.min(0.65, currentRotation.x + deltaY * 0.008));
+    cakeGroup.rotation.y = currentRotation.y;
+    cakeGroup.rotation.x = currentRotation.x;
+  }
+
+  function onPointerUp() {
+    isDown = false;
+    isDraggingOrbit = false;
+  }
+
+  canvas.addEventListener('mousedown', (e) => onPointerDown(e.clientX, e.clientY));
+  window.addEventListener('mousemove', (e) => onPointerMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', onPointerUp);
+
+  // Touch
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      onPointerDown(e.touches[0].clientX, e.touches[0].clientY);
+    } else if (e.touches.length === 2) {
+      lastTouchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1) {
+      onPointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    } else if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const diff = lastTouchDist - dist;
+      lastTouchDist = dist;
+      targetZoom = Math.max(5.5, Math.min(13.0, targetZoom + diff * 0.02));
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', onPointerUp, { passive: true });
+
+  // Scroll to zoom
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    targetZoom = Math.max(5.5, Math.min(13.0, targetZoom + e.deltaY * 0.005));
+  }, { passive: false });
+}
+
+function startAnimationLoop() {
+  function animate() {
+    animationFrameId = requestAnimationFrame(animate);
+
+    if (autoRotate.value && cakeGroup && !isDraggingOrbit) {
+      currentRotation.y += 0.004;
+      cakeGroup.rotation.y = currentRotation.y;
+    }
+
+    // Smooth camera zoom damping
+    if (camera) {
+      currentZoom += (targetZoom - currentZoom) * 0.1;
+      camera.position.z = currentZoom;
+      camera.lookAt(0, 1.2, 0);
+    }
+
+    if (renderer && scene && camera) {
+      renderer.render(scene, camera);
+    }
+  }
+  animate();
+}
+
+function resetCameraView() {
+  currentRotation = { x: 0.28, y: -0.45 };
+  targetZoom = 8.5;
+  if (cakeGroup) {
+    cakeGroup.rotation.x = currentRotation.x;
+    cakeGroup.rotation.y = currentRotation.y;
+  }
+}
+
+function take3DSnapshot() {
+  if (!renderer || !scene || !camera) return;
+
+  // Render high quality frame
+  renderer.render(scene, camera);
+  const dataUrl = renderer.domElement.toDataURL('image/jpeg', 0.92);
+  capturedSnapshotUrl.value = dataUrl;
+
+  // Add to inspiration gallery if not already present
+  if (!referenceSamples.value.includes(dataUrl)) {
+    referenceSamples.value.unshift(dataUrl);
+  }
+
+  snapshotFlash.value = true;
+  setTimeout(() => {
+    snapshotFlash.value = false;
+  }, 300);
+
+  toast.success('3D Snapshot captured and attached to order brief! 📸');
+}
+
+function destroyThree() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+  if (renderer) {
+    renderer.dispose();
+    renderer = null;
+  }
+  scene = null;
+  camera = null;
+  cakeGroup = null;
+}
+
+// Watchers to update 3D model whenever user changes flavors, size, message, occasion
+watch(
+  [cakeSize, flavor, filling, isFasting, occasion, message],
+  () => {
+    if (visualizerMode.value === '3d' && cakeGroup) {
+      build3DCake();
+    }
+  },
+  { deep: true }
+);
+
+onUnmounted(() => {
+  destroyThree();
 });
 
 const sizeOptions = [
@@ -869,6 +1520,13 @@ onMounted(async () => {
   if (!restored && branchStore.selectedBranchId) {
     preparingBranchId.value = branchStore.selectedBranchId;
   }
+
+  // Initialize Three.js interactive 3D studio
+  if (visualizerMode.value === '3d') {
+    nextTick(() => {
+      initThree();
+    });
+  }
 });
 
 function applyPreset(preset) {
@@ -966,6 +1624,17 @@ async function handleSubmitCustomCake() {
 
   isSubmitting.value = true;
   try {
+    // Automatic snapshot capture if in 3D mode and none captured yet
+    if (visualizerMode.value === '3d' && webglSupported.value && renderer && scene && camera) {
+      if (!capturedSnapshotUrl.value) {
+        renderer.render(scene, camera);
+        capturedSnapshotUrl.value = renderer.domElement.toDataURL('image/jpeg', 0.92);
+        if (!referenceSamples.value.includes(capturedSnapshotUrl.value)) {
+          referenceSamples.value.unshift(capturedSnapshotUrl.value);
+        }
+      }
+    }
+
     const payload = {
       branch_id: preparingBranchId.value,
       customer_name: customerName.value ? customerName.value.trim() : '',
@@ -974,6 +1643,20 @@ async function handleSubmitCustomCake() {
       flavor: `${flavor.value} with ${filling.value}${isFasting.value ? ' (100% Ye\'Tsom Fasting Certified)' : ''}`,
       needed_by: neededBy.value,
       design: `${occasion.value} cake. ${description.value}`,
+      design_config: {
+        mode: visualizerMode.value,
+        tierCount: tierCount.value,
+        cakeSize: cakeSize.value,
+        flavor: flavor.value,
+        filling: filling.value,
+        occasion: occasion.value,
+        isFasting: isFasting.value,
+        message: message.value,
+        primaryColor: cakeColorStyle.value.primary,
+        fillingColor: cakeColorStyle.value.fillingColor,
+        description: description.value,
+      },
+      snapshot_url: capturedSnapshotUrl.value || null,
       message: message.value,
       image_urls: referenceSamples.value,
     };

@@ -65,6 +65,74 @@ class OrderReportController extends Controller
         return $user;
     }
 
+    /**
+     * Helper to generate sequential reference: DSR-BR{branch_id}-YYYYMMDD-{SEQ}
+     * with collision protection
+     */
+    protected function generateDsrReference($branchId, $date)
+    {
+        $dayStr = Carbon::parse($date)->format('Ymd');
+        $prefix = "DSR-BR{$branchId}-{$dayStr}-";
+
+        $latest = SellerDailyReport::where('report_reference', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->value('report_reference');
+
+        $seq = 1;
+        if ($latest && preg_match('/-(\d{3,})$/', $latest, $m)) {
+            $seq = intval($m[1]) + 1;
+        } else {
+            $count = SellerDailyReport::where('branch_id', $branchId)
+                ->whereDate('report_date', Carbon::parse($date)->toDateString())
+                ->count();
+            $seq = $count + 1;
+        }
+
+        do {
+            $candidate = $prefix . sprintf('%03d', $seq);
+            $exists = SellerDailyReport::where('report_reference', $candidate)->exists();
+            if ($exists) {
+                $seq++;
+            }
+        } while ($exists);
+
+        return $candidate;
+    }
+
+    /**
+     * Helper to generate sequential reference: BCR-BR{branch_id}-YYYYMMDD-{SEQ}
+     * with collision protection
+     */
+    protected function generateBcrReference($branchId, $date = null)
+    {
+        $dayStr = Carbon::parse($date ?? now())->format('Ymd');
+        $prefix = "BCR-BR{$branchId}-{$dayStr}-";
+
+        $latest = BranchConsolidatedReport::where('report_reference', 'like', $prefix . '%')
+            ->orderBy('id', 'desc')
+            ->value('report_reference');
+
+        $seq = 1;
+        if ($latest && preg_match('/-(\d{3,})$/', $latest, $m)) {
+            $seq = intval($m[1]) + 1;
+        } else {
+            $count = BranchConsolidatedReport::where('branch_id', $branchId)
+                ->whereDate('created_at', Carbon::parse($date ?? now())->toDateString())
+                ->count();
+            $seq = $count + 1;
+        }
+
+        do {
+            $candidate = $prefix . sprintf('%03d', $seq);
+            $exists = BranchConsolidatedReport::where('report_reference', $candidate)->exists();
+            if ($exists) {
+                $seq++;
+            }
+        } while ($exists);
+
+        return $candidate;
+    }
+
     // =========================================================================
     // LEVEL 1: BRANCH SELLER ENDPOINTS
     // =========================================================================
@@ -76,7 +144,8 @@ class OrderReportController extends Controller
     public function sellerTodayOrders(Request $request)
     {
         $user = $this->checkSellerAccess($request);
-        $branchId = $user->branch_id ?? $request->query('branch_id');
+        // Strict branch binding: non-Super Admin cannot query other branches
+        $branchId = ($user->role !== 'Super Admin') ? (int) $user->branch_id : (int) ($request->query('branch_id') ?: $user->branch_id);
         $date = $request->query('date', Carbon::today()->toDateString());
 
         if (!$branchId) {
@@ -88,11 +157,18 @@ class OrderReportController extends Controller
 
         $branch = Branch::find($branchId);
 
-        // Fetch regular orders placed for this branch on the given date
+        // Financial Safeguard: Exclude orders already part of any existing seller daily report
+        $reportedOrderIds = SellerReportOrder::whereNotNull('order_id')
+            ->pluck('order_id')
+            ->unique()
+            ->toArray();
+
+        // Fetch regular orders placed for this branch on the given date (excluding cancelled & already reported)
         $orders = Order::with('items')
             ->where('branch_id', $branchId)
             ->whereDate('placed_at', $date)
             ->where('order_status', '!=', 'Cancelled')
+            ->whereNotIn('order_id', $reportedOrderIds)
             ->get();
 
         $regularRows = [];
@@ -130,6 +206,12 @@ class OrderReportController extends Controller
             }
         }
 
+        // Financial Safeguard: Exclude custom cakes already part of any existing seller daily report
+        $reportedCakeIds = SellerReportCustomCake::whereNotNull('custom_cake_id')
+            ->pluck('custom_cake_id')
+            ->unique()
+            ->toArray();
+
         // Fetch custom cakes for this branch
         $cakes = CustomCakeRequest::where('branch_id', $branchId)
             ->where(function ($q) use ($date) {
@@ -137,6 +219,7 @@ class OrderReportController extends Controller
                   ->orWhereDate('needed_by', $date);
             })
             ->where('status', '!=', 'Rejected')
+            ->whereNotIn('request_id', $reportedCakeIds)
             ->get();
 
         $customCakeRows = [];
@@ -166,8 +249,8 @@ class OrderReportController extends Controller
             ];
         }
 
-        // Suggested Reference Number: DSR-BR{id}-YYYYMMDD-{RAND}
-        $ref = 'DSR-BR' . $branchId . '-' . Carbon::parse($date)->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+        // Sequential Reference Number: DSR-BR{id}-YYYYMMDD-{SEQ}
+        $ref = $this->generateDsrReference($branchId, $date);
 
         return response()->json([
             'success' => true,
@@ -270,7 +353,8 @@ class OrderReportController extends Controller
     {
         $user = $this->checkSellerAccess($request);
 
-        $branchId = $user->branch_id ?? $request->input('branch_id');
+        // Strict branch binding: non-Super Admin cannot tamper with branch_id
+        $branchId = ($user->role !== 'Super Admin') ? (int) $user->branch_id : (int) ($request->input('branch_id') ?: $user->branch_id);
         if (!$branchId) {
             return response()->json(['success' => false, 'message' => 'Branch ID is required.'], 422);
         }
@@ -280,6 +364,7 @@ class OrderReportController extends Controller
             'report_reference' => 'nullable|string',
             'action' => 'required|in:draft,submit',
             'orders' => 'present|array',
+            'orders.*.order_id' => 'nullable|integer',
             'orders.*.order_number' => 'required|string',
             'orders.*.product_name' => 'required|string',
             'orders.*.category' => 'nullable|string',
@@ -289,6 +374,7 @@ class OrderReportController extends Controller
             'orders.*.payment_status' => 'nullable|string',
             'orders.*.customer_info' => 'nullable|string',
             'custom_cakes' => 'present|array',
+            'custom_cakes.*.custom_cake_id' => 'nullable|integer',
             'custom_cakes.*.cake_order_number' => 'required|string',
             'custom_cakes.*.customer_name' => 'required|string',
             'custom_cakes.*.cake_category' => 'nullable|string',
@@ -304,7 +390,8 @@ class OrderReportController extends Controller
         ]);
 
         $reportDate = Carbon::parse($validated['report_date'])->toDateString();
-        $ref = $validated['report_reference'] ?: ('DSR-BR' . $branchId . '-' . Carbon::parse($reportDate)->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4)));
+        // Sequential reference with collision protection
+        $ref = $validated['report_reference'] ?: $this->generateDsrReference($branchId, $reportDate);
 
         // Status determination
         $isSubmit = $validated['action'] === 'submit';
@@ -312,6 +399,26 @@ class OrderReportController extends Controller
 
         DB::beginTransaction();
         try {
+            // Guard against duplicate orders in submission
+            foreach ($validated['orders'] as $row) {
+                if (!empty($row['order_id'])) {
+                    $alreadyExists = SellerReportOrder::where('order_id', $row['order_id'])->exists();
+                    if ($alreadyExists) {
+                        throw new \Exception("Order #" . ($row['order_number'] ?? $row['order_id']) . " has already been included in another daily sales report.");
+                    }
+                }
+            }
+
+            // Guard against duplicate custom cakes in submission
+            foreach ($validated['custom_cakes'] as $row) {
+                if (!empty($row['custom_cake_id'])) {
+                    $alreadyExists = SellerReportCustomCake::where('custom_cake_id', $row['custom_cake_id'])->exists();
+                    if ($alreadyExists) {
+                        throw new \Exception("Custom Cake #" . ($row['cake_order_number'] ?? $row['custom_cake_id']) . " has already been included in another daily sales report.");
+                    }
+                }
+            }
+
             $report = SellerDailyReport::create([
                 'report_reference' => $ref,
                 'branch_id' => $branchId,
@@ -401,6 +508,10 @@ class OrderReportController extends Controller
             abort(403, 'You can only update your own reports.');
         }
 
+        if ($user->role !== 'Super Admin' && (int) $report->branch_id !== (int) $user->branch_id) {
+            abort(403, 'Access denied: You can only update reports for your assigned branch.');
+        }
+
         if (!in_array($report->status, ['Draft', 'Returned for Correction'])) {
             return response()->json([
                 'success' => false,
@@ -419,6 +530,30 @@ class OrderReportController extends Controller
 
         DB::beginTransaction();
         try {
+            // Guard against duplicate orders in update (excluding this report's previous lines)
+            foreach ($validated['orders'] as $row) {
+                if (!empty($row['order_id'])) {
+                    $alreadyExists = SellerReportOrder::where('order_id', $row['order_id'])
+                        ->where('report_id', '!=', $report->id)
+                        ->exists();
+                    if ($alreadyExists) {
+                        throw new \Exception("Order #" . ($row['order_number'] ?? $row['order_id']) . " has already been included in another daily sales report.");
+                    }
+                }
+            }
+
+            // Guard against duplicate custom cakes in update
+            foreach ($validated['custom_cakes'] as $row) {
+                if (!empty($row['custom_cake_id'])) {
+                    $alreadyExists = SellerReportCustomCake::where('custom_cake_id', $row['custom_cake_id'])
+                        ->where('report_id', '!=', $report->id)
+                        ->exists();
+                    if ($alreadyExists) {
+                        throw new \Exception("Custom Cake #" . ($row['cake_order_number'] ?? $row['custom_cake_id']) . " has already been included in another daily sales report.");
+                    }
+                }
+            }
+
             if (!empty($validated['report_date'])) {
                 $report->report_date = Carbon::parse($validated['report_date'])->toDateString();
             }
@@ -557,7 +692,8 @@ class OrderReportController extends Controller
     public function managerPendingConsolidation(Request $request)
     {
         $manager = $this->checkManagerAccess($request);
-        $branchId = $manager->branch_id ?? $request->query('branch_id');
+        // Strict branch binding: non-Super Admin cannot access other branches
+        $branchId = ($manager->role !== 'Super Admin') ? (int) $manager->branch_id : (int) ($request->query('branch_id') ?: $manager->branch_id);
 
         if (!$branchId) {
             return response()->json(['success' => false, 'message' => 'Branch ID required.'], 422);
@@ -583,7 +719,8 @@ class OrderReportController extends Controller
         $totalBranchRevenue = (float) $sellerReports->sum('combined_daily_revenue');
         $totalPaymentsReceived = (float) $sellerReports->sum('total_payments_received');
 
-        $suggestedRef = 'BCR-BR' . $branchId . '-' . Carbon::now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+        // Sequential reference with collision protection
+        $suggestedRef = $this->generateBcrReference($branchId, $fromDate);
 
         return response()->json([
             'success' => true,
@@ -613,7 +750,8 @@ class OrderReportController extends Controller
     public function managerConsolidateAndSubmit(Request $request)
     {
         $manager = $this->checkManagerAccess($request);
-        $branchId = $manager->branch_id ?? $request->input('branch_id');
+        // Strict branch binding
+        $branchId = ($manager->role !== 'Super Admin') ? (int) $manager->branch_id : (int) ($request->input('branch_id') ?: $manager->branch_id);
 
         if (!$branchId) {
             return response()->json(['success' => false, 'message' => 'Branch ID required.'], 422);
@@ -646,7 +784,48 @@ class OrderReportController extends Controller
             ], 422);
         }
 
-        $ref = $validated['report_reference'] ?: ('BCR-BR' . $branchId . '-' . Carbon::now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -4)));
+        // Sequential reference with collision protection
+        $ref = $validated['report_reference'] ?: $this->generateBcrReference($branchId, $start);
+
+        DB::beginTransaction();
+        try {
+            $consolidated = new BranchConsolidatedReport();
+            $consolidated->report_reference = $ref;
+            $consolidated->branch_id = $branchId;
+            $consolidated->manager_id = $manager->user_id;
+            $consolidated->period_type = $validated['period_type'];
+            $consolidated->period_start = $start;
+            $consolidated->period_end = $end;
+            $consolidated->status = 'Submitted to Super Admin';
+            $consolidated->confirmed_accuracy = true;
+            $consolidated->manager_notes = $validated['manager_notes'] ?? null;
+            $consolidated->submitted_at = now();
+            $consolidated->is_locked = true;
+
+            // Consolidate all metrics, counts, and breakdown lists
+            $consolidated->consolidateFromSellerReports($sellerReports);
+            $consolidated->save();
+
+            // Link seller reports to this consolidated report
+            SellerDailyReport::whereIn('id', $sellerReports->pluck('id'))->update([
+                'branch_report_id' => $consolidated->id,
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Verified Branch Sales Report submitted to Super Admin successfully.',
+                'consolidated_report' => $consolidated->load(['branch', 'manager']),
+            ], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to consolidate report: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
         DB::beginTransaction();
         try {
@@ -755,13 +934,20 @@ class OrderReportController extends Controller
         // Overview KPI metrics
         $totalBranches = $branches->count();
         $totalSubmittedReports = $consolidatedReports->count();
-        $awaitingReviewCount = $consolidatedReports->where('status', 'Submitted to Super Admin')->count();
-        $verifiedReportsCount = $consolidatedReports->where('status', 'Verified by Super Admin')->count();
+        $awaitingReviewReports = $consolidatedReports->where('status', 'Submitted to Super Admin');
+        $awaitingReviewCount = $awaitingReviewReports->count();
+        $verifiedReports = $consolidatedReports->where('status', 'Verified by Super Admin');
+        $verifiedReportsCount = $verifiedReports->count();
 
-        // Calculate combined revenue across submitted/verified reports
+        // Financial Verification Rule:
+        // Verified revenue: strictly from reports officially verified by Super Admin
+        // Pending verification: reports submitted by managers awaiting Super Admin review
+        $verifiedRevenue = (float) $verifiedReports->sum('total_branch_revenue');
+        $pendingRevenue = (float) $awaitingReviewReports->sum('total_branch_revenue');
+        $totalCombinedRevenue = (float) $consolidatedReports->sum('total_branch_revenue');
+
         $totalRegularOrders = (int) $consolidatedReports->sum('total_regular_orders');
         $totalCustomCakes = (int) $consolidatedReports->sum('total_custom_cake_orders');
-        $totalRevenue = (float) $consolidatedReports->sum('total_branch_revenue');
         $totalAdvancePayments = (float) $consolidatedReports->sum('total_advance_payments');
         $totalOutstandingBalances = (float) $consolidatedReports->sum('total_outstanding_balances');
         $totalPaymentsReceived = (float) $consolidatedReports->sum('total_payments_received');
@@ -774,7 +960,10 @@ class OrderReportController extends Controller
 
             $regOrders = (int) $bReports->sum('total_regular_orders');
             $customCakes = (int) $bReports->sum('total_custom_cake_orders');
-            $rev = (float) $bReports->sum('total_branch_revenue');
+            
+            $bVerifiedRev = (float) $bReports->where('status', 'Verified by Super Admin')->sum('total_branch_revenue');
+            $bPendingRev = (float) $bReports->where('status', 'Submitted to Super Admin')->sum('total_branch_revenue');
+            $bTotalRev = (float) $bReports->sum('total_branch_revenue');
 
             $status = $latestReport ? $latestReport->status : 'No Submissions';
 
@@ -786,7 +975,9 @@ class OrderReportController extends Controller
                 'manager_name' => $branch->manager?->full_name ?? 'Unassigned',
                 'regular_orders' => $regOrders,
                 'custom_cakes' => $customCakes,
-                'total_revenue' => $rev,
+                'total_revenue' => $bVerifiedRev, // OFFICIAL RULE: official branch revenue is verified
+                'pending_revenue' => $bPendingRev,
+                'combined_revenue' => $bTotalRev,
                 'latest_report_status' => $status,
                 'latest_report_id' => $latestReport?->id,
                 'reports_count' => $bReports->count(),
@@ -802,7 +993,10 @@ class OrderReportController extends Controller
                 'verified_reports_count' => $verifiedReportsCount,
                 'total_regular_orders' => $totalRegularOrders,
                 'total_custom_cakes' => $totalCustomCakes,
-                'total_revenue' => $totalRevenue,
+                'total_revenue' => $verifiedRevenue, // OFFICIAL REVENUE RULE: only verified counts as official
+                'verified_revenue' => $verifiedRevenue,
+                'pending_verification_revenue' => $pendingRevenue,
+                'total_combined_revenue' => $totalCombinedRevenue,
                 'total_advance_payments' => $totalAdvancePayments,
                 'total_outstanding_balances' => $totalOutstandingBalances,
                 'total_payments_received' => $totalPaymentsReceived,
@@ -811,6 +1005,46 @@ class OrderReportController extends Controller
             'recent_reports' => $consolidatedReports->take(20)->values(),
             'branches' => $branches->map(fn($b) => ['id' => $b->branch_id, 'name' => $b->branch_name]),
         ]);
+    }
+
+    /**
+     * Delete seller daily report (Draft only - financial records protected)
+     */
+    public function sellerReportDestroy(Request $request, $id)
+    {
+        $user = $this->checkSellerAccess($request);
+        $report = SellerDailyReport::findOrFail($id);
+
+        if ($user->role !== 'Super Admin' && (int) $report->seller_id !== (int) $user->user_id) {
+            abort(403, 'Access denied: You can only delete your own draft reports.');
+        }
+
+        // Financial Integrity: protect non-draft records
+        if ($report->status !== 'Draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Financial record is protected: Cannot delete a daily report with status "' . $report->status . '". Reports in verification or approved cannot be deleted for audit compliance.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $report->orders()->delete();
+            $report->customCakes()->delete();
+            $report->delete();
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Draft daily sales report deleted successfully.',
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete report: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
