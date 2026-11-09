@@ -1,44 +1,25 @@
 <template>
   <div
     ref="containerRef"
-    class="relative w-full h-[380px] sm:h-[440px] md:h-[480px] lg:h-[540px] xl:h-[580px] flex items-center justify-center select-none touch-none group"
+    class="relative w-full h-[360px] sm:h-[420px] md:h-[460px] lg:h-[520px] xl:h-[560px] flex items-center justify-center select-none touch-none bg-transparent"
+    style="background: transparent !important;"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="onPointerUp"
     @pointerleave="onPointerLeave"
   >
-    <!-- Three.js Canvas -->
-    <canvas ref="canvasRef" class="w-full h-full block cursor-grab active:cursor-grabbing outline-none"></canvas>
-
-    <!-- Interactive 3D Pill Hint (Luxury Badge) -->
-    <div
-      class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/90 dark:bg-[#1E120B]/90 backdrop-blur-md border border-rose-200/80 dark:border-[#58263A] text-[#DE1B54] dark:text-rose-300 text-xs font-bold shadow-md pointer-events-none transition-all duration-300 group-hover:scale-105"
-    >
-      <span class="inline-block animate-spin" style="animation-duration: 4s;">✨</span>
-      <span>{{ isAmharic ? '3D በይነተገናኝ ኬክ • ለማሽከርከር ይጎትቱ' : '3D Interactive Cake • Drag to Rotate' }}</span>
-    </div>
-
-    <!-- Quick Spin & Reset Controls in Top Right -->
-    <div class="absolute top-3 right-3 flex items-center space-x-1.5 opacity-80 hover:opacity-100 transition-opacity">
-      <button
-        type="button"
-        @click="triggerSpinBoost"
-        class="w-8 h-8 rounded-full bg-white/90 dark:bg-[#1E120B]/90 backdrop-blur-md border border-rose-200/80 dark:border-[#4A2518] text-gray-700 dark:text-gray-200 hover:text-[#DE1B54] hover:border-[#DE1B54] flex items-center justify-center text-xs shadow-xs transition-all cursor-pointer"
-        :title="isAmharic ? 'ኬኩን አሽከርክር' : 'Spin Cake'"
-      >
-        <span>🔄</span>
-      </button>
-    </div>
+    <!-- Three.js Canvas: 100% Fully Transparent, Borderless, Frameless -->
+    <canvas
+      ref="canvasRef"
+      class="w-full h-full block cursor-grab active:cursor-grabbing outline-none bg-transparent border-0 ring-0 shadow-none"
+      style="background: transparent !important;"
+    ></canvas>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
-import { useLocaleStore } from '../stores/locale';
-
-const localeStore = useLocaleStore();
-const isAmharic = computed(() => localeStore.isAmharic);
 
 const containerRef = ref(null);
 const canvasRef = ref(null);
@@ -81,13 +62,15 @@ function init3D() {
   camera.position.set(0, 1.1, 5.6);
   camera.lookAt(0, 0.25, 0);
 
-  // 3. Renderer
+  // 3. Renderer with 100% Transparent Alpha & No Premultiplication Dark Edges
   renderer = new THREE.WebGLRenderer({
     canvas: canvasRef.value,
     antialias: true,
     alpha: true,
+    premultipliedAlpha: false,
     powerPreference: 'high-performance',
   });
+  renderer.setClearColor(0x000000, 0);
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -165,12 +148,6 @@ function buildCakeScene() {
     metalness: 0.02,
   });
 
-  const chocolateMat = new THREE.MeshStandardMaterial({
-    color: 0x3d251e,
-    roughness: 0.25,
-    metalness: 0.1,
-  });
-
   const strawberrySkinMat = new THREE.MeshStandardMaterial({
     color: 0xd91642,
     roughness: 0.2,
@@ -182,15 +159,29 @@ function buildCakeScene() {
     roughness: 0.4,
   });
 
-  // Soft Ground Shadow
-  const shadowGeo = new THREE.CylinderGeometry(2.3, 2.4, 0.01, 32);
+  // Soft Radial Gradient Ground Shadow (Seamless, Zero Hard Edges)
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = 128;
+  shadowCanvas.height = 128;
+  const shadowCtx = shadowCanvas.getContext('2d');
+  const gradient = shadowCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gradient.addColorStop(0, 'rgba(38, 20, 14, 0.28)');
+  gradient.addColorStop(0.45, 'rgba(38, 20, 14, 0.12)');
+  gradient.addColorStop(0.8, 'rgba(38, 20, 14, 0.03)');
+  gradient.addColorStop(1, 'rgba(38, 20, 14, 0.0)');
+  shadowCtx.fillStyle = gradient;
+  shadowCtx.fillRect(0, 0, 128, 128);
+
+  const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+  const shadowGeo = new THREE.PlaneGeometry(4.4, 4.4);
   const shadowMat = new THREE.MeshBasicMaterial({
-    color: 0x1f110a,
+    map: shadowTexture,
     transparent: true,
-    opacity: 0.22,
+    depthWrite: false,
   });
   const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
-  shadowMesh.position.y = -1.25;
+  shadowMesh.rotation.x = -Math.PI / 2;
+  shadowMesh.position.y = -1.24;
   cakeGroup.add(shadowMesh);
 
   // Stand Base Plate
@@ -259,7 +250,7 @@ function buildCakeScene() {
     cakeGroup.add(pearl);
   }
 
-  // Tier 1 Middle Red Velvet Velvet Ribbon
+  // Tier 1 Middle Red Velvet Ribbon
   const ribbonGeo = new THREE.CylinderGeometry(tier1Radius + 0.015, tier1Radius + 0.015, 0.12, 64);
   const ribbonMesh = new THREE.Mesh(ribbonGeo, rubyMat);
   ribbonMesh.position.y = 0.05;
@@ -284,7 +275,6 @@ function buildCakeScene() {
     );
     cakeGroup.add(dropMesh);
 
-    // Drip bulb droplet at end
     const bulbGeo = new THREE.SphereGeometry(0.042, 10, 10);
     const bulbMesh = new THREE.Mesh(bulbGeo, pureWhiteFrostingMat);
     bulbMesh.position.set(
@@ -340,7 +330,7 @@ function buildCakeScene() {
   }
 
   // --- LUXURY TOPPINGS & CONFECTIONERY ART ---
-  // 1. Rosettes of whipped cream on top
+  // Whipped cream rosettes
   const rosetteCount = 8;
   const rosetteGeo = new THREE.ConeGeometry(0.12, 0.18, 16);
   for (let i = 0; i < rosetteCount; i++) {
@@ -355,7 +345,7 @@ function buildCakeScene() {
     cakeGroup.add(rosette);
   }
 
-  // 2. Realistic Strawberries atop Cake
+  // Strawberries
   function createStrawberry(scale = 1.0) {
     const sGroup = new THREE.Group();
     const coneGeo = new THREE.ConeGeometry(0.14 * scale, 0.28 * scale, 16);
@@ -363,7 +353,6 @@ function buildCakeScene() {
     berryMesh.rotation.x = Math.PI;
     sGroup.add(berryMesh);
 
-    // Green leafy crown
     const leafGeo = new THREE.ConeGeometry(0.08 * scale, 0.08 * scale, 5);
     const leafMesh = new THREE.Mesh(leafGeo, greenLeafMat);
     leafMesh.position.y = 0.14 * scale;
@@ -387,7 +376,7 @@ function buildCakeScene() {
   s3.rotation.set(0.3, -0.8, -0.2);
   cakeGroup.add(s3);
 
-  // 3. French Macarons atop Tier & Ledge
+  // French Macarons
   function createMacaron(colorHex, scale = 1.0) {
     const mGroup = new THREE.Group();
     const shellMat = new THREE.MeshStandardMaterial({
@@ -416,25 +405,22 @@ function buildCakeScene() {
     return mGroup;
   }
 
-  // Pink Macaron on Top
   const macaron1 = createMacaron(0xf472b6, 1.1);
   macaron1.position.set(-0.15, 1.6, -0.32);
   macaron1.rotation.set(0.4, 0.2, 0.8);
   cakeGroup.add(macaron1);
 
-  // Pistachio Macaron on Tier 1 Ledge
   const macaron2 = createMacaron(0xa7f3d0, 1.0);
   macaron2.position.set(1.35, 0.68, 0.3);
   macaron2.rotation.set(0.2, -0.5, 0.4);
   cakeGroup.add(macaron2);
 
-  // Vanilla Gold Macaron on Tier 1 Ledge
   const macaron3 = createMacaron(0xfef08a, 1.0);
   macaron3.position.set(-1.3, 0.68, -0.4);
   macaron3.rotation.set(-0.3, 0.7, -0.5);
   cakeGroup.add(macaron3);
 
-  // 4. 24K Gold Flakes & Spheres
+  // 24K Gold Spheres
   const goldBallGeo = new THREE.SphereGeometry(0.065, 14, 14);
   for (let i = 0; i < 7; i++) {
     const gb = new THREE.Mesh(goldBallGeo, goldMat);
@@ -447,7 +433,7 @@ function buildCakeScene() {
     cakeGroup.add(gb);
   }
 
-  // 5. Celebration Center Golden Sparkle / Heart Topper
+  // Celebration Golden Heart Topper
   const topperStemGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.6, 12);
   const topperStem = new THREE.Mesh(topperStemGeo, goldMat);
   topperStem.position.set(0, 1.82, 0);
@@ -469,7 +455,6 @@ function buildCakeScene() {
   cakeGroup.add(heartMesh);
 
   // --- FLOATING CONFECTIONERY PARTICLES IN ORBIT ---
-  // Create 6 floating luxury elements that bob in 3D around the cake
   const orbitItems = [
     { type: 'macaron', color: 0xf472b6, radius: 2.7, y: 0.8, speed: 0.7, offset: 0.5 },
     { type: 'berry', color: 0xd91642, radius: 2.6, y: -0.2, speed: 0.9, offset: 1.8 },
@@ -479,7 +464,7 @@ function buildCakeScene() {
     { type: 'berry', color: 0xd91642, radius: 2.9, y: 1.2, speed: 0.75, offset: 5.1 },
   ];
 
-  orbitItems.forEach((item, idx) => {
+  orbitItems.forEach((item) => {
     let mesh;
     if (item.type === 'macaron') {
       mesh = createMacaron(item.color, 0.75);
@@ -535,13 +520,11 @@ function onPointerMove(e) {
     targetRotY += deltaX * 0.009;
     targetRotX += deltaY * 0.005;
 
-    // Clamp vertical tilt
     targetRotX = Math.max(-0.25, Math.min(0.4, targetRotX));
 
     previousPointerX = e.clientX;
     previousPointerY = e.clientY;
   } else if (containerRef.value) {
-    // Subtle Mouse Parallax
     const rect = containerRef.value.getBoundingClientRect();
     const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -559,10 +542,6 @@ function onPointerLeave() {
   isDragging = false;
   mouseParallaxX = 0;
   mouseParallaxY = 0;
-}
-
-function triggerSpinBoost() {
-  spinBoost = 0.06;
 }
 
 // Render Animation Loop
@@ -646,4 +625,3 @@ onUnmounted(() => {
   cleanup3D();
 });
 </script>
-

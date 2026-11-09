@@ -17,11 +17,8 @@
           @load="heroImageLoaded = true"
         />
 
-        <!-- Warm Luxury Gradient Overlay: Stronger on Left for Crisp Text, Transparent on Right for 3D View -->
-        <div class="absolute inset-0 bg-gradient-to-r from-[#FAF7F2]/95 via-[#FAF7F2]/80 via-50% to-[#FAF7F2]/40 lg:to-transparent dark:from-[#150D09]/95 dark:via-[#150D09]/85 dark:via-50% dark:to-[#150D09]/40 lg:dark:to-transparent pointer-events-none"></div>
-
-        <!-- Subtle Ambient Blush/Berry Glow in Top Center -->
-        <div class="absolute -top-32 left-1/3 w-96 h-96 bg-rose-300/20 dark:bg-rose-900/15 rounded-full blur-3xl pointer-events-none"></div>
+        <!-- Left Side Text Readability Gradient: Fades Completely to Transparent on Right for Pure Background View -->
+        <div class="absolute inset-y-0 left-0 w-full lg:w-[58%] bg-gradient-to-r from-[#FAF7F2]/95 via-[#FAF7F2]/85 via-60% to-transparent dark:from-[#150D09]/95 dark:via-[#150D09]/85 dark:via-60% dark:to-transparent pointer-events-none"></div>
       </div>
 
       <!-- Hero Grid: Two Columns (Left Copy & CTAs, Right Interactive 3D Cake) -->
@@ -101,11 +98,8 @@
             </div>
           </div>
 
-          <!-- Right Column: Interactive 3D Cake Canvas (lg:col-span-5) -->
-          <div class="lg:col-span-5 flex justify-center items-center relative">
-            <!-- Glow backdrop behind 3D cake -->
-            <div class="absolute w-72 h-72 sm:w-80 sm:h-80 bg-rose-300/25 dark:bg-rose-900/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
-            <!-- 3D Cake Component with WebGL, lighting, soft shadows, floating particles & parallax -->
+          <!-- Right Column: Naturally Floating 3D Cake (Directly Over Hero Scene) -->
+          <div class="lg:col-span-5 flex justify-center items-center relative w-full pointer-events-auto">
             <HeroCake3D />
           </div>
         </div>
