@@ -35,6 +35,42 @@
           Export CSV
         </button>
 
+        <!-- Stock Receive Button (Requirement 1, 2, 3: In every branch except Main Branch) -->
+        <button
+          v-if="showStockReceiveButton"
+          @click="openStockReceiveModal"
+          class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-2.5 cursor-pointer active:scale-95 shrink-0 border border-emerald-600"
+          :title="latestReceivedStock ? `Latest: ${latestReceivedStock.product_name} (${latestReceivedStock.category_name}) - Qty: ${latestReceivedStock.quantity_received} on ${latestReceivedStock.formatted_date || latestReceivedStock.date_received}` : 'Receive stock at this branch location'"
+        >
+          <span class="text-base shrink-0">📥</span>
+          <div class="flex flex-col text-left leading-tight">
+            <span class="font-extrabold flex items-center gap-1.5">
+              <span>Stock Receive</span>
+              <span
+                v-if="latestReceivedStock"
+                class="text-[10px] font-semibold bg-emerald-900/60 text-emerald-200 px-1.5 py-0.2 rounded"
+              >
+                +{{ latestReceivedStock.quantity_received }}
+              </span>
+            </span>
+            <span
+              v-if="latestReceivedStock"
+              class="text-[11px] font-medium text-emerald-100 hidden sm:flex items-center gap-1"
+            >
+              <span>{{ latestReceivedStock.product_name }}</span>
+              <span>&bull;</span>
+              <span>{{ latestReceivedStock.category_name }}</span>
+              <span>&bull;</span>
+              <span class="font-bold text-white">{{ latestReceivedStock.quantity_received }} pcs</span>
+              <span>&bull;</span>
+              <span class="text-emerald-200 text-[10px]">{{ latestReceivedStock.formatted_date || latestReceivedStock.date_received }}</span>
+            </span>
+            <span v-else class="text-[10px] text-emerald-200">
+              Branch Inflow
+            </span>
+          </div>
+        </button>
+
         <!-- Functional + Adjust Stock Button -->
         <button
           v-if="canAdjustStock"
@@ -51,6 +87,61 @@
           <span>🔒</span>
           <span>View-Only Access (Adjustments restricted to Branch Manager)</span>
         </span>
+      </div>
+    </div>
+
+    <!-- Received Stock Details Widget / Banner (Requirement 2: Displays Product name, Category, Received quantity, Date received) -->
+    <div
+      v-if="showStockReceiveButton && latestReceivedStock"
+      class="bg-gradient-to-r from-emerald-50 via-[#F2FBF5] to-teal-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in"
+    >
+      <div class="flex items-start sm:items-center space-x-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs border border-emerald-700/20">
+          📦
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+              Latest Stock Received
+            </span>
+            <span class="text-xs text-stone-500 font-medium flex items-center space-x-1">
+              <span>📅</span>
+              <span>{{ latestReceivedStock.formatted_date || latestReceivedStock.date_received }}</span>
+            </span>
+            <span v-if="latestReceivedStock.receiver_name" class="text-xs text-stone-400 font-medium hidden sm:inline">
+              &middot; Received by {{ latestReceivedStock.receiver_name }}
+            </span>
+          </div>
+
+          <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h4 class="text-sm sm:text-base font-bold text-[#2A1D15]">
+              {{ latestReceivedStock.product_name }}
+            </h4>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-white border border-stone-200 text-[#7D6E64] shadow-2xs">
+              🏷️ {{ latestReceivedStock.category_name }}
+            </span>
+            <span class="text-xs sm:text-sm font-black text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs">
+              +{{ latestReceivedStock.quantity_received }} units received
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2.5 self-start md:self-auto shrink-0">
+        <button
+          @click="openStockReceiveHistory"
+          class="px-3.5 py-2 text-xs font-bold text-emerald-900 bg-white hover:bg-emerald-50 border border-emerald-300 rounded-xl transition cursor-pointer shadow-2xs flex items-center space-x-1.5"
+        >
+          <span>📋</span>
+          <span>View All History ({{ receivedStocksList.length }})</span>
+        </button>
+        <button
+          @click="openStockReceiveModal"
+          class="px-3.5 py-2 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-1"
+        >
+          <span>+</span>
+          <span>Receive More</span>
+        </button>
       </div>
     </div>
 
@@ -682,6 +773,215 @@
         </div>
       </div>
     </div>
+
+    <!-- Stock Receive Modal (Requirement 1, 2, 4, 5) -->
+    <div
+      v-if="showStockReceiveModal"
+      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+      @click.self="showStockReceiveModal = false"
+    >
+      <div class="bg-white rounded-3xl border border-[#D8CDC0] max-w-xl w-full p-6 space-y-5 shadow-2xl animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between border-b border-[#F2EAE0] pb-3.5">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0">
+              📥
+            </div>
+            <div>
+              <h3 class="font-serif font-black text-lg text-[#2A1D15]">
+                {{ stockReceiveActiveTab === 'receive' ? 'Receive Stock at Branch' : 'Received Stock History' }}
+              </h3>
+              <p class="text-xs text-[#7A6B60]">
+                {{ activeReceivingBranchName }} Branch &middot; Location Stock Inflow
+              </p>
+            </div>
+          </div>
+          <button
+            @click="showStockReceiveModal = false"
+            class="text-[#7A6B60] hover:text-black font-bold text-xl cursor-pointer p-1"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Modal Tabs -->
+        <div class="flex items-center space-x-2 border-b border-[#F2EAE0] pb-2 text-xs font-bold">
+          <button
+            type="button"
+            @click="stockReceiveActiveTab = 'receive'"
+            class="px-3.5 py-1.5 rounded-lg transition cursor-pointer"
+            :class="stockReceiveActiveTab === 'receive' ? 'bg-emerald-700 text-white shadow-2xs' : 'text-stone-600 hover:bg-stone-100'"
+          >
+            + Receive Stock
+          </button>
+          <button
+            type="button"
+            @click="stockReceiveActiveTab = 'history'"
+            class="px-3.5 py-1.5 rounded-lg transition cursor-pointer flex items-center space-x-1"
+            :class="stockReceiveActiveTab === 'history' ? 'bg-emerald-700 text-white shadow-2xs' : 'text-stone-600 hover:bg-stone-100'"
+          >
+            <span>Received Stock History</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="stockReceiveActiveTab === 'history' ? 'bg-emerald-800 text-white' : 'bg-stone-200 text-stone-700'">
+              {{ receivedStocksList.length }}
+            </span>
+          </button>
+        </div>
+
+        <!-- TAB 1: Receive Form -->
+        <form v-if="stockReceiveActiveTab === 'receive'" @submit.prevent="submitStockReceive" class="space-y-4 text-xs">
+          <!-- Branch Selector (if Super Admin) -->
+          <div v-if="isSuperAdmin && branches.length > 0">
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+              Destination Branch *
+            </label>
+            <select
+              v-model="stockReceiveForm.branch_id"
+              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2.5 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+              required
+            >
+              <option v-for="b in nonMainBranches" :key="b.branch_id" :value="b.branch_id">
+                {{ b.branch_name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Product Selector -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+              Product *
+            </label>
+            <select
+              v-model="stockReceiveForm.product_id"
+              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2.5 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none cursor-pointer"
+              required
+            >
+              <option :value="null" disabled>Choose product to receive...</option>
+              <option v-for="p in distinctProducts" :key="p.product_id" :value="p.product_id">
+                {{ p.product_name }} ({{ p.category_name || 'Bakery' }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Product Category & On Hand Preview (Requirement 2) -->
+          <div v-if="selectedReceiveProduct" class="p-3 bg-[#FAF7F5] border border-[#E8DFD5] rounded-xl flex items-center justify-between shadow-2xs">
+            <div>
+              <span class="text-[11px] text-[#7D6E64] font-medium block">Product Category:</span>
+              <span class="text-xs font-bold text-[#2A1D15]">🏷️ {{ selectedReceiveProduct.category_name || 'Bakery & Pastries' }}</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[11px] text-[#7D6E64] font-medium block">Current Stock at Branch:</span>
+              <span class="text-xs font-bold text-emerald-700">{{ selectedReceiveProductOnHand }} units on hand</span>
+            </div>
+          </div>
+
+          <!-- Received Quantity Input (Requirement 2) -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+              Received Quantity (Units) *
+            </label>
+            <input
+              v-model.number="stockReceiveForm.quantity_received"
+              type="number"
+              min="1"
+              max="100000"
+              placeholder="e.g. 25"
+              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2.5 text-xs font-bold text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+              required
+            />
+          </div>
+
+          <!-- Date Received Input (Requirement 2) -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+              Date Received *
+            </label>
+            <input
+              v-model="stockReceiveForm.date_received"
+              type="date"
+              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2.5 text-xs font-semibold text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none cursor-pointer"
+              required
+            />
+          </div>
+
+          <!-- Reference or Delivery Notes -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+              Reference / Delivery Notes (Optional)
+            </label>
+            <input
+              v-model="stockReceiveForm.notes"
+              type="text"
+              placeholder="e.g. Supplier delivery batch #401 or internal restock transfer"
+              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+            />
+          </div>
+
+          <!-- Submit & Cancel -->
+          <div class="flex items-center justify-end space-x-2.5 pt-3 border-t border-[#F2EAE0]">
+            <button
+              type="button"
+              @click="showStockReceiveModal = false"
+              class="px-4 py-2 border border-[#D8CDC0] text-[#5A4B41] text-xs font-semibold rounded-xl hover:bg-[#FAF7F5] cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              :disabled="isSubmittingReceive || !stockReceiveForm.product_id || !stockReceiveForm.quantity_received"
+              class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-1.5"
+            >
+              <span>📥</span>
+              <span>{{ isSubmittingReceive ? 'Receiving Stock...' : 'Confirm & Receive Stock' }}</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- TAB 2: Received Stock History Table (Requirement 2 & 5) -->
+        <div v-else class="space-y-3">
+          <div class="overflow-x-auto max-h-[55vh] overflow-y-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-[#FAF7F2] text-[10px] font-bold text-[#827165] uppercase tracking-wider border-b border-[#EFE8DF] sticky top-0">
+                <tr>
+                  <th class="py-2.5 px-3">Date Received</th>
+                  <th class="py-2.5 px-3">Product Name</th>
+                  <th class="py-2.5 px-3">Product Category</th>
+                  <th class="py-2.5 px-3 text-center">Received Qty</th>
+                  <th class="py-2.5 px-3">Receiver</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#F3EDE4]">
+                <tr v-if="receivedStocksList.length === 0">
+                  <td colspan="5" class="py-8 text-center text-xs text-[#7A6B60]">
+                    No stock receive records yet for this branch.
+                  </td>
+                </tr>
+                <tr v-for="rcv in receivedStocksList" :key="rcv.received_stock_id" class="hover:bg-[#FCFAF7]">
+                  <td class="py-2.5 px-3 text-stone-600 font-medium whitespace-nowrap">{{ rcv.formatted_date || rcv.date_received }}</td>
+                  <td class="py-2.5 px-3 font-bold text-[#2A1D15]">{{ rcv.product_name }}</td>
+                  <td class="py-2.5 px-3">
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-stone-100 text-stone-700 border border-stone-200">
+                      🏷️ {{ rcv.category_name }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-3 text-center font-black text-emerald-700">+{{ rcv.quantity_received }}</td>
+                  <td class="py-2.5 px-3 text-stone-500 text-[11px] truncate max-w-[120px]">{{ rcv.receiver_name }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between pt-2 border-t border-[#F2EAE0] text-xs">
+            <span class="text-stone-500 font-medium">Total Received Records: {{ receivedStocksList.length }}</span>
+            <button
+              type="button"
+              @click="stockReceiveActiveTab = 'receive'"
+              class="px-3.5 py-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition cursor-pointer"
+            >
+              + Receive New Stock
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -710,6 +1010,84 @@ const isManager = computed(() => ['Branch Manager', 'Branch Admin', 'Main Branch
 const canAdjustStock = computed(() => isSuperAdmin.value || isManager.value);
 const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
+
+// Stock Receive Feature State (Requirements 1, 2, 3, 4, 5)
+const receivedStocksList = ref([]);
+const latestReceivedStock = ref(null);
+const showStockReceiveModal = ref(false);
+const stockReceiveActiveTab = ref('receive'); // 'receive' or 'history'
+const isSubmittingReceive = ref(false);
+const stockReceiveForm = ref({
+  branch_id: null,
+  product_id: null,
+  quantity_received: 10,
+  date_received: new Date().toISOString().split('T')[0],
+  notes: '',
+  reference_number: '',
+});
+
+// Non-Main Branches filter (Requirement 1, 3, 4)
+const nonMainBranches = computed(() => {
+  return branches.value.filter(b => b.branch_type !== 'Main' && b.branch_id !== 1);
+});
+
+const currentBranchInfo = computed(() => {
+  if (isSuperAdmin.value) {
+    if (selectedBranch.value === 'all') return null;
+    return branches.value.find(b => b.branch_id === selectedBranch.value) || null;
+  }
+  return authStore.user?.branch || branches.value.find(b => b.branch_id === userBranchId.value) || null;
+});
+
+const isMainBranchSelected = computed(() => {
+  if (isSuperAdmin.value) {
+    if (selectedBranch.value === 'all') return false;
+    const b = currentBranchInfo.value;
+    return b ? (b.branch_type === 'Main' || b.branch_id === 1) : false;
+  }
+  const b = authStore.user?.branch;
+  if (b && (b.branch_type === 'Main' || b.branch_id === 1)) return true;
+  if (authStore.user?.branch_id === 1 || authStore.user?.role === 'Main Branch Manager') return true;
+  return false;
+});
+
+// Stock Receive button displayed in every branch except Main Branch (Requirement 1, 3, 4)
+const showStockReceiveButton = computed(() => {
+  if (isMainBranchSelected.value) return false;
+  if (isSuperAdmin.value) {
+    if (selectedBranch.value === 'all') {
+      return nonMainBranches.value.length > 0;
+    }
+    const b = currentBranchInfo.value;
+    return b ? (b.branch_type !== 'Main' && b.branch_id !== 1) : false;
+  }
+  return !isMainBranchSelected.value;
+});
+
+const activeReceivingBranchName = computed(() => {
+  if (isSuperAdmin.value) {
+    if (stockReceiveForm.value.branch_id) {
+      const b = branches.value.find(x => x.branch_id === stockReceiveForm.value.branch_id);
+      if (b) return b.branch_name;
+    }
+    return currentBranchInfo.value?.branch_name || 'Selected Branch';
+  }
+  return userBranchName.value;
+});
+
+const selectedReceiveProduct = computed(() => {
+  if (!stockReceiveForm.value.product_id) return null;
+  return distinctProducts.value.find(p => p.product_id === stockReceiveForm.value.product_id) || null;
+});
+
+const selectedReceiveProductOnHand = computed(() => {
+  if (!stockReceiveForm.value.product_id) return 0;
+  const targetBranchId = isSuperAdmin.value ? stockReceiveForm.value.branch_id : userBranchId.value;
+  const match = items.value.find(
+    i => i.product_id === stockReceiveForm.value.product_id && (targetBranchId ? i.branch_id === targetBranchId : true)
+  );
+  return match ? match.on_hand : 0;
+});
 
 const summary = ref({
   units_on_hand: 0,
@@ -790,12 +1168,36 @@ const loadInventory = async () => {
     // Build distinct products
     const seen = new Set();
     distinctProducts.value = [];
-    res.data.items.forEach((item) => {
+    (res.data.items || []).forEach((item) => {
       if (!seen.has(item.product_id)) {
         seen.add(item.product_id);
-        distinctProducts.value.push({ product_id: item.product_id, product_name: item.product_name });
+        distinctProducts.value.push({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          category_name: item.category_name || 'Bakery & Pastries',
+        });
       }
     });
+
+    // Fallback if branch has 0 inventory rows: fetch from product catalog
+    if (distinctProducts.value.length === 0) {
+      try {
+        const prodRes = await api.get('/products');
+        const prods = Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []);
+        prods.forEach(p => {
+          if (!seen.has(p.product_id)) {
+            seen.add(p.product_id);
+            distinctProducts.value.push({
+              product_id: p.product_id,
+              product_name: p.product_name,
+              category_name: p.category?.category_name || p.category_name || 'Bakery & Pastries',
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Failed to load catalog products fallback', e);
+      }
+    }
 
     if (items.value.length > 0 && !distinctProducts.value.find(p => p.product_id === adjustForm.value.product_id)) {
       adjustForm.value.product_id = items.value[0].product_id;
@@ -839,8 +1241,99 @@ const loadReconcile = async () => {
 const selectBranch = (branchId) => {
   selectedBranch.value = branchId;
   loadInventory();
+  fetchReceivedStocks();
   if (activeSubTab.value === 'ledger') {
     loadTransactions();
+  }
+};
+
+// Stock Receive Modal & Actions (Requirement 1, 2, 4, 5)
+const openStockReceiveModal = () => {
+  stockReceiveActiveTab.value = 'receive';
+  if (isSuperAdmin.value) {
+    if (selectedBranch.value !== 'all' && !isMainBranchSelected.value) {
+      stockReceiveForm.value.branch_id = selectedBranch.value;
+    } else if (nonMainBranches.value.length > 0) {
+      stockReceiveForm.value.branch_id = nonMainBranches.value[0].branch_id;
+    }
+  } else {
+    stockReceiveForm.value.branch_id = userBranchId.value;
+  }
+
+  if (!stockReceiveForm.value.product_id && distinctProducts.value.length > 0) {
+    stockReceiveForm.value.product_id = distinctProducts.value[0].product_id;
+  }
+  if (!stockReceiveForm.value.date_received) {
+    stockReceiveForm.value.date_received = new Date().toISOString().split('T')[0];
+  }
+  showStockReceiveModal.value = true;
+};
+
+const openStockReceiveHistory = () => {
+  stockReceiveActiveTab.value = 'history';
+  showStockReceiveModal.value = true;
+};
+
+const fetchReceivedStocks = async () => {
+  try {
+    const branchParam = isSuperAdmin.value
+      ? (selectedBranch.value !== 'all' ? selectedBranch.value : null)
+      : userBranchId.value;
+
+    if (isMainBranchSelected.value) {
+      receivedStocksList.value = [];
+      latestReceivedStock.value = null;
+      return;
+    }
+
+    const res = await api.get('/admin/received-stocks', {
+      params: { branch_id: branchParam }
+    });
+    receivedStocksList.value = res.data.received_stocks || [];
+    latestReceivedStock.value = res.data.latest_received || null;
+  } catch (err) {
+    console.error('Failed to load received stocks', err);
+    receivedStocksList.value = [];
+    latestReceivedStock.value = null;
+  }
+};
+
+const submitStockReceive = async () => {
+  if (!stockReceiveForm.value.product_id || !stockReceiveForm.value.quantity_received) return;
+  isSubmittingReceive.value = true;
+  try {
+    const payload = {
+      branch_id: isSuperAdmin.value ? stockReceiveForm.value.branch_id : userBranchId.value,
+      product_id: stockReceiveForm.value.product_id,
+      quantity_received: parseInt(stockReceiveForm.value.quantity_received, 10),
+      date_received: stockReceiveForm.value.date_received,
+      notes: stockReceiveForm.value.notes,
+      reference_number: stockReceiveForm.value.reference_number,
+    };
+
+    const res = await api.post('/admin/received-stocks', payload);
+    const newRecord = res.data.received_stock;
+    if (newRecord) {
+      latestReceivedStock.value = newRecord;
+      receivedStocksList.value.unshift(newRecord);
+    }
+
+    adjustmentSuccessToast.value = res.data.message || 'Stock successfully received!';
+    showStockReceiveModal.value = false;
+
+    // Reset form fields
+    stockReceiveForm.value.quantity_received = 10;
+    stockReceiveForm.value.notes = '';
+
+    // Reload inventory & transactions
+    await loadInventory();
+    if (activeSubTab.value === 'ledger') {
+      await loadTransactions();
+    }
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to record received stock.');
+  } finally {
+    isSubmittingReceive.value = false;
   }
 };
 
@@ -962,6 +1455,7 @@ onMounted(async () => {
     adjustForm.value.branch_id = userBranchId.value;
   }
   await loadInventory();
+  await fetchReceivedStocks();
   await loadTransactions();
   await loadReconcile();
 });

@@ -61,6 +61,7 @@ class InventoryController extends Controller
                 'branch_name' => $inv->branch->branch_name,
                 'product_id' => $inv->product_id,
                 'product_name' => $inv->product->product_name,
+                'category_name' => $inv->product?->category?->category_name ?? 'Bakery',
                 'on_hand' => (int) $inv->quantity_on_hand,
                 'reserved' => (int) $inv->reserved_quantity,
                 'available' => $inv->available_quantity,

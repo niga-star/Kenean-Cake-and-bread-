@@ -25,6 +25,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\StaffReportController;
 use App\Http\Controllers\OrderReportController;
+use App\Http\Controllers\ReceivedStockController;
 
 // Public Auth with Rate Limiting (Section 12 requirement)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
@@ -132,6 +133,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/inventory/adjust', [InventoryController::class, 'adjust']);
     Route::get('/inventory/transactions', [InventoryController::class, 'transactions']);
     Route::get('/inventory/reconcile', [InventoryController::class, 'reconcile']);
+    Route::get('/received-stocks', [ReceivedStockController::class, 'index']);
+    Route::post('/received-stocks', [ReceivedStockController::class, 'store']);
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);
