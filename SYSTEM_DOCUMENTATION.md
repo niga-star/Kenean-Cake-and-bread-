@@ -444,3 +444,41 @@ php Backend/artisan migrate
   - Structured `design_config` JSON column and `snapshot_url` column stored in `custom_cake_requests`.
   - Graceful fallback to 2D layered visualizer for devices or browsers without WebGL.
 
+### 13.3 Step 3: Branch Manager Level 2: 3D Design Auditing, Pricing Autonomy & Clarification Resubmission
+- **Custom Cake 3D Design & Specification Verification Modal:**
+  - Integrated full 3D snapshot inspection in [`ManagerOrderReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ManagerOrderReportsView.vue) with customer reference photos, tiers/size, flavors, buttercream finish, dedication message/plaque inscription, total agreed price, advance deposit, and balance due.
+- **Super Admin Clarification & Re-Submission Workflow:**
+  - Backend endpoint `POST /api/admin/reports/manager/consolidated-reports/{id}/resubmit` in [`OrderReportController.php`](file:///c:/Kenan%20Cake/Backend/app/Http/Controllers/OrderReportController.php).
+  - Interactive clarification resolution UI for reports with status `Returned for Clarification` in [`ManagerOrderReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ManagerOrderReportsView.vue), requiring manager clarification remarks and accuracy confirmation checkbox before re-submitting to Super Admin.
+- **Branch Pricing & Product Autonomy:**
+  - Implemented in [`ProductsPricesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ProductsPricesView.vue) with independent branch price setting, daily & weekly sales monitoring by product, and price update notifications sent to Super Admin.
+- **Branch Inventory & Stock Control:**
+  - Implemented in [`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue) with manager-restricted stock adjustments, reason presets, inventory audit transactions, and real-time reconciliation.
+- **Role Separation & Staff Reports:**
+  - Verified in [`AdminLayout.vue`](file:///c:/Kenan%20Cake/Client/src/layouts/AdminLayout.vue) and [`StaffReportController.php`](file:///c:/Kenan%20Cake/Backend/app/Http/Controllers/StaffReportController.php): Super Admin is restricted to consolidated branch reports, while Branch Managers manage local staff reports.
+
+### 13.4 Step 4: Super Admin Multi-Branch Monitoring & Consolidated Ledger Verification
+- **Central Multi-Branch Monitoring & KPI Governance:**
+  - Verified in [`ReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ReportsView.vue) & [`OrderReportController.php`](file:///c:/Kenan%20Cake/Backend/app/Http/Controllers/OrderReportController.php):
+  - Official Revenue sums strictly from reports with status `Verified by Super Admin`.
+  - Transparent pipeline tracking for revenue pending verification (`Submitted to Super Admin`), advance deposits, and balances receivable.
+- **Consolidated Submissions Filter Tabs:**
+  - Interactive filter pills: `All Submissions`, `Awaiting Review` (with pending counter badge), `Verified`, `Clarification Needed`.
+- **Deep Sales Inspection Modal with 3D Cake Auditing:**
+  - Status alert banners for official verified state, returned clarification, and awaiting review.
+  - **Individual Custom Cake Orders & 3D Design Audits** table with `🎂 View 3D Snapshot` button launching the 3D Cake Studio Preview modal.
+- **Headquarters Verification Actions:**
+  - `Mark as Verified`: Permanently locks report into official corporate ledger.
+  - `Return for Clarification`: Requires feedback notes, unlocks report for Branch Manager adjustment, and notifies the manager.
+
+### 13.5 Step 5: End-to-End System Verification & Delivery Coverage
+- **Delivery Zone Enforcement & Branch Coverage:**
+  - Strict branch location bounding in [`CheckoutView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CheckoutView.vue): Delivery zones are locked to the branch city (e.g. Dessie).
+  - Selecting an address outside active zones displays explicit warning and restricts submission, offering Free Shop Pickup or branch switching.
+- **Dynamic Contact Page & Google Maps Synchronization:**
+  - [`ContactSection.vue`](file:///c:/Kenan%20Cake/Client/src/components/ContactSection.vue) dynamically pulls branches from `/api/branches` with real GPS coordinates, distance calculator (Haversine formula), and direct Google Maps directions links.
+- **Continuous Integration & Clean Build Status:**
+  - Full Vite build completed with 0 errors (`dist/` production assets generated).
+  - All 22 database migrations active and consistent.
+  - End-to-end API pipeline verified with collision-free sequential references and draft deletion safeguards.
+
