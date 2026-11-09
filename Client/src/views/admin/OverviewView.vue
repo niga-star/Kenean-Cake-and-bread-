@@ -64,8 +64,9 @@
           Reset
         </button>
 
-        <!-- + New Order Dark Pill Button (Reference UI) -->
+        <!-- + New Order Dark Pill Button (Only shown to roles handling orders) -->
         <router-link
+          v-if="canAccessOrders"
           to="/admin/orders"
           class="dash-btn-primary py-2 px-4 text-xs sm:text-sm flex items-center space-x-1.5 shadow-xs"
         >
@@ -193,7 +194,11 @@
         <div>
           <div class="flex items-center justify-between mb-4">
             <h2 class="dash-section-title text-base sm:text-lg">Delivery Status</h2>
-            <router-link to="/admin/orders" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+            <router-link
+              v-if="canAccessOrders"
+              to="/admin/orders"
+              class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition"
+            >
               View all
             </router-link>
           </div>
@@ -445,7 +450,11 @@
         <div>
           <div class="flex items-center justify-between mb-4">
             <h2 class="dash-section-title text-base sm:text-lg">Recent Orders</h2>
-            <router-link to="/admin/orders" class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition">
+            <router-link
+              v-if="canAccessOrders"
+              to="/admin/orders"
+              class="text-xs font-semibold text-[#7D6E64] hover:text-[#3D251E] transition"
+            >
               View all
             </router-link>
           </div>
@@ -682,6 +691,11 @@ const activeReport = ref(null);
 const dateInputRef = ref(null);
 
 const currentUserName = computed(() => authStore.user?.full_name || 'Admin');
+
+const canAccessOrders = computed(() => {
+  const role = authStore.user?.role;
+  return ['Super Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'].includes(role);
+});
 
 const greetingText = computed(() => {
   const hr = new Date().getHours();
