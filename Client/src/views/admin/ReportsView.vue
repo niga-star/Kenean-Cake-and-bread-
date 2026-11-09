@@ -1,41 +1,40 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto pb-12 font-poppins">
+  <div class="space-y-6 max-w-7xl mx-auto pb-16 font-poppins">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-[#EFE8DE] pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EFE8DE] pb-5">
       <div>
-        <div class="flex items-center space-x-2">
-          <span class="text-2xl">📊</span>
-          <h1 class="dash-title text-xl sm:text-2xl md:text-3xl">
-            Reports &amp; Analytics
+        <div class="flex items-center space-x-2.5">
+          <span class="text-2xl">🏛️</span>
+          <h1 class="font-serif text-2xl sm:text-3xl font-black text-[#2B1810]">
+            Branch Sales &amp; Order Reports
           </h1>
         </div>
-        <p class="dash-subtitle mt-1">
-          Multi-branch performance metrics, distribution tracking, inventory levels, and financial reconciliation.
+        <p class="text-sm text-[#7D6E64] mt-1">
+          Centralized headquarters monitoring of verified branch sales reports submitted by Branch Managers.
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
         <button
-          @click="sendDailySummary"
-          :disabled="sendingSummary"
-          class="dash-btn-secondary text-xs sm:text-sm"
-          title="Send daily sales and low-stock email summary to owner"
+          @click="fetchOverviewData"
+          class="px-3.5 py-2 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1 shadow-2xs"
         >
-          <span>✉️</span>
-          <span>{{ sendingSummary ? 'Dispatching...' : 'Email Summary' }}</span>
+          <span>🔄</span>
+          <span>Refresh</span>
         </button>
 
         <button
           @click="exportCSV"
-          class="dash-btn-secondary text-xs sm:text-sm"
+          class="px-3.5 py-2 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1 shadow-2xs"
         >
           <span>📥</span>
           <span>Export CSV</span>
         </button>
 
         <button
-          @click="exportPDF"
-          class="dash-btn-primary text-xs sm:text-sm"
+          @click="printReport"
+          class="px-4 py-2 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
         >
           <span>🖨️</span>
           <span>Print / PDF</span>
@@ -43,555 +42,491 @@
       </div>
     </div>
 
-    <!-- Scoped Branch Notice if not Super Admin -->
-    <div
-      v-if="isBranchScoped"
-      class="p-3.5 bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl flex items-center justify-between text-xs text-[#92400E] shadow-2xs"
-    >
-      <div class="flex items-center space-x-2.5">
-        <span class="text-base">🔒</span>
-        <span><strong>Strict Branch Privacy:</strong> You are viewing reports exclusively for <strong>{{ userBranchName }} Branch</strong>. Cross-branch comparisons are restricted to Super Admin.</span>
-      </div>
-      <span class="text-[11px] font-bold px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full border border-amber-300">Branch Scoped</span>
-    </div>
-
-    <!-- 4 High-Level Summary Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Revenue</div>
-        <div class="text-3xl font-serif font-black text-[#241710]">
-          ETB {{ Number(metrics.revenue || 0).toLocaleString() }}
-        </div>
-        <div class="text-xs text-[#059669] font-medium flex items-center space-x-1 pt-1">
-          <span>↗</span>
-          <span>{{ metrics.revenue_trend || '+12% vs previous period' }}</span>
-        </div>
+    <!-- Filter Bar: Date Range and Branch Filter -->
+    <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-bold text-[#7D6E64] uppercase text-[11px]">Period:</span>
+        <button
+          v-for="p in [
+            { label: 'All Time', val: 'all' },
+            { label: 'Today', val: 'today' },
+            { label: 'This Week', val: 'this_week' },
+            { label: 'This Month', val: 'this_month' }
+          ]"
+          :key="p.val"
+          @click="setPeriod(p.val)"
+          class="px-3 py-1.5 rounded-xl font-bold transition cursor-pointer"
+          :class="activePeriod === p.val ? 'bg-[#3D251E] text-white shadow-2xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
+        >
+          {{ p.label }}
+        </button>
       </div>
 
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Orders</div>
-        <div class="text-3xl font-serif font-black text-[#241710]">
-          {{ metrics.orders || 0 }}
-        </div>
-        <div class="text-xs text-[#7A6B60] font-medium pt-1">
-          {{ metrics.orders_sub || 'Across branches' }}
-        </div>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Average Order Value</div>
-        <div class="text-3xl font-serif font-black text-[#241710]">
-          ETB {{ Number(metrics.avg_order || 0).toLocaleString() }}
-        </div>
-        <div class="text-xs text-[#059669] font-medium flex items-center space-x-1 pt-1">
-          <span>↗</span>
-          <span>{{ metrics.avg_order_trend || '+3%' }}</span>
-        </div>
-      </div>
-
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-2xs space-y-1">
-        <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Units Sold</div>
-        <div class="text-3xl font-serif font-black text-[#241710]">
-          {{ metrics.units_sold || 0 }}
-        </div>
-        <div class="text-xs text-[#7A6B60] font-medium pt-1">
-          {{ metrics.units_sub || 'Cakes & bread' }}
-        </div>
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-[#7D6E64] uppercase text-[11px]">Filter Branch:</span>
+        <select
+          v-model="selectedBranchId"
+          @change="fetchOverviewData"
+          class="px-3 py-1.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] cursor-pointer"
+        >
+          <option value="all">All Branches</option>
+          <option v-for="b in branchesList" :key="b.id" :value="b.id">
+            {{ b.name }}
+          </option>
+        </select>
       </div>
     </div>
 
-    <!-- Quick Date Filters & Detailed Parameters -->
-    <div class="bg-white p-4 border border-[#E9E0D4] rounded-2xl shadow-2xs space-y-3">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F2EAE0] pb-3">
-        <div class="flex items-center space-x-2">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#7D6E64]">Date Filter:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              @click="setDateFilter('today')"
-              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
-              :class="quickDateFilter === 'today' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              @click="setDateFilter('this_week')"
-              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
-              :class="quickDateFilter === 'this_week' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
-            >
-              This Week
-            </button>
-            <button
-              type="button"
-              @click="setDateFilter('this_month')"
-              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
-              :class="quickDateFilter === 'this_month' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
-            >
-              This Month
-            </button>
-            <button
-              type="button"
-              @click="setDateFilter('custom')"
-              class="px-3 py-1 text-xs font-bold rounded-lg border transition cursor-pointer"
-              :class="quickDateFilter === 'custom' ? 'bg-[#BA5420] text-white border-[#BA5420]' : 'bg-[#FAF7F5] border-[#D8CDC0] text-[#5A4B41] hover:bg-[#F4ECE3]'"
-            >
-              Custom Date Range
-            </button>
-          </div>
+    <!-- ================================================================= -->
+    <!-- SECTION 5A: OVERVIEW KPI CARDS                                    -->
+    <!-- ================================================================= -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
+      <!-- 1. Total Branches -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Branches</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#2B1810]">
+          {{ kpis.total_branches || 0 }}
         </div>
+        <div class="text-[11px] text-[#7D6E64]">Active operational outlets</div>
+      </div>
 
-        <div v-if="isBranchScoped" class="text-xs font-bold text-[#BA5420] flex items-center space-x-1.5">
-          <span>📍</span>
-          <span>Assigned: {{ userBranchName }} Branch</span>
+      <!-- 2. Submitted Reports & Awaiting Review -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64]">Branch Reports</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-[#2B1810]">
+          {{ kpis.total_submitted_reports || 0 }}
+        </div>
+        <div class="text-[11px] font-bold flex items-center space-x-1" :class="kpis.awaiting_review_count > 0 ? 'text-amber-700' : 'text-emerald-700'">
+          <span>{{ kpis.awaiting_review_count || 0 }} awaiting review</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end pt-1">
-        <!-- Branch Filter -->
+      <!-- 3. Verified Reports -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Verified Reports</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-emerald-700">
+          {{ kpis.verified_reports_count || 0 }}
+        </div>
+        <div class="text-[11px] text-[#7D6E64]">Officially approved by HQ</div>
+      </div>
+
+      <!-- 4. Combined Multi-Branch Revenue -->
+      <div class="bg-gradient-to-r from-[#3D251E] to-[#57392C] text-white rounded-2xl p-4 sm:p-5 shadow-xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-[#D8CDC5]">Total Revenue (All Branches)</div>
+        <div class="text-2xl sm:text-3xl font-serif font-black text-amber-200">
+          ETB {{ Number(kpis.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+        </div>
+        <div class="text-[11px] text-[#E5DACD]">From manager-verified reports</div>
+      </div>
+
+      <!-- 5. Regular Orders Across All Branches -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Regular Orders</div>
+        <div class="text-2xl font-serif font-black text-[#2B1810]">
+          {{ kpis.total_regular_orders || 0 }}
+        </div>
+        <div class="text-[11px] text-[#7D6E64]">Bakery retail transactions</div>
+      </div>
+
+      <!-- 6. Custom Cake Orders Across All Branches -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64]">Total Custom Cakes</div>
+        <div class="text-2xl font-serif font-black text-[#2B1810]">
+          {{ kpis.total_custom_cakes || 0 }}
+        </div>
+        <div class="text-[11px] text-[#7D6E64]">Special celebration cakes</div>
+      </div>
+
+      <!-- 7. Advance Payments Collected -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Advance Deposits</div>
+        <div class="text-2xl font-serif font-black text-emerald-700">
+          ETB {{ Number(kpis.total_advance_payments || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+        </div>
+        <div class="text-[11px] text-[#7D6E64]">Cash &amp; bank deposits received</div>
+      </div>
+
+      <!-- 8. Outstanding Balances -->
+      <div class="bg-white border border-[#E9E0D4] rounded-2xl p-4 sm:p-5 shadow-2xs space-y-1">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-700">Outstanding Balances</div>
+        <div class="text-2xl font-serif font-black text-amber-700">
+          ETB {{ Number(kpis.total_outstanding_balances || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+        </div>
+        <div class="text-[11px] text-[#7D6E64]">Receivable on cake delivery</div>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 5B: BRANCH-BY-BRANCH PERFORMANCE TABLE                    -->
+    <!-- ================================================================= -->
+    <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-2xs space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#F4EFEA] pb-3">
         <div>
-          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Branch</label>
-          <div v-if="isBranchScoped" class="p-2 bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl text-xs font-bold text-[#2D231D]">
-            {{ userBranchName }} Branch
-          </div>
-          <select
-            v-else
-            v-model="filters.branch_id"
-            @change="reloadAll"
-            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
-          >
-            <option value="all">All active branches</option>
-            <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-              {{ b.branch_name }} Branch
-            </option>
-          </select>
+          <h2 class="font-serif font-black text-lg text-[#2B1810]">
+            Branch-by-Branch Performance Overview
+          </h2>
+          <p class="text-xs text-[#7D6E64]">
+            Click on any branch to inspect its submitted orders, custom cakes, revenue, and manager verification trail.
+          </p>
         </div>
-
-        <!-- Category Filter -->
-        <div>
-          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Category</label>
-          <select
-            v-model="filters.category_id"
-            @change="reloadAll"
-            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] font-medium"
-          >
-            <option value="all">All categories</option>
-            <option v-for="c in categories" :key="c.category_id" :value="c.category_id">
-              {{ c.category_name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Date From -->
-        <div>
-          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date From</label>
-          <input
-            v-model="filters.from_date"
-            @change="quickDateFilter = 'custom'; reloadAll()"
-            type="date"
-            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
-          />
-        </div>
-
-        <!-- Date To -->
-        <div>
-          <label class="block text-[11px] font-bold text-[#8C7D73] uppercase mb-1">Date To</label>
-          <input
-            v-model="filters.to_date"
-            @change="quickDateFilter = 'custom'; reloadAll()"
-            type="date"
-            class="w-full bg-[#FAF7F5] border border-[#DDD2C5] rounded-xl px-3 py-2 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420]"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- 9 Report Tabs matching Section 10 -->
-    <div class="flex items-center space-x-2 overflow-x-auto pb-2 border-b border-[#EAE1D5]">
-      <button
-        v-for="tab in reportTabs"
-        :key="tab.id"
-        @click="selectTab(tab.id)"
-        class="px-4 py-2 text-xs font-bold rounded-xl transition whitespace-nowrap flex items-center space-x-1.5 shadow-2xs"
-        :class="activeTabId === tab.id ? 'bg-[#881337] text-white shadow-xs' : 'bg-white border border-[#DDD2C5] text-[#5A4B41] hover:bg-[#FAF7F5]'"
-      >
-        <span>{{ tab.icon }}</span>
-        <span>{{ tab.label }}</span>
-      </button>
-    </div>
-
-    <!-- Contextual Explanation Banner -->
-    <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-2.5 text-xs text-[#881337]">
-      <div>
-        <div class="font-bold flex items-center space-x-1.5">
-          <span>💡</span>
-          <span>{{ currentTabMeta?.label }} Report</span>
-        </div>
-        <p class="text-[#7A3644] mt-0.5 leading-relaxed">
-          <strong>Questions it answers:</strong> {{ currentTabMeta?.description }}
-        </p>
-      </div>
-      <span class="text-[11px] font-semibold text-[#9F1239] self-start sm:self-auto shrink-0 bg-white px-2.5 py-1 rounded-lg border border-[#FBCFE8]">
-        {{ reportRows.length }} record(s) loaded
-      </span>
-    </div>
-
-    <!-- Special KPI Cards for Consolidated Product Sales & Pricing (Super Admin Oversight) -->
-    <div v-if="activeTabId === 'consolidated_products' && consolidatedSummary" class="space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="dash-card p-4">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Products Sold</div>
-          <div class="text-2xl sm:text-3xl font-serif font-black text-[#1E7422] mt-1">
-            {{ consolidatedSummary.combined_daily_units || 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units today</span>
-          </div>
-          <div class="text-xs text-[#7A6B60] mt-0.5">Across all branches</div>
-        </div>
-        <div class="dash-card p-4">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Products Sold</div>
-          <div class="text-2xl sm:text-3xl font-serif font-black text-[#1565C0] mt-1">
-            {{ consolidatedSummary.combined_weekly_units || 0 }} <span class="text-xs font-sans font-medium text-[#7D6E64]">units this week</span>
-          </div>
-          <div class="text-xs text-[#7A6B60] mt-0.5">Combined 7-day volume</div>
-        </div>
-        <div class="dash-card p-4">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Daily Revenue Today</div>
-          <div class="text-2xl sm:text-3xl font-serif font-black text-[#2A1D15] mt-1">
-            ETB {{ Number(consolidatedSummary.combined_daily_revenue || 0).toLocaleString() }}
-          </div>
-          <div class="text-xs text-[#1E7422] font-semibold mt-0.5">Live daily sales</div>
-        </div>
-        <div class="dash-card p-4">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Weekly Revenue</div>
-          <div class="text-2xl sm:text-3xl font-serif font-black text-[#BA5420] mt-1">
-            ETB {{ Number(consolidatedSummary.combined_weekly_revenue || 0).toLocaleString() }}
-          </div>
-          <div class="text-xs text-[#BA5420] font-semibold mt-0.5">Cumulative week sales</div>
-        </div>
+        <span class="text-xs font-bold text-[#7D6E64]">
+          Showing {{ branchPerformance.length }} Active Branches
+        </span>
       </div>
 
-      <!-- Branch Sales Performance Breakdown Cards -->
-      <div v-if="consolidatedSummary.branch_performance && consolidatedSummary.branch_performance.length > 0" class="dash-card p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="font-serif font-bold text-sm text-[#2A1D15]">Individual Branch Sales Performance &amp; Comparison</h3>
-          <span class="text-xs text-[#7D6E64]">{{ consolidatedSummary.branch_performance.length }} branches reporting</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <div
-            v-for="bp in consolidatedSummary.branch_performance"
-            :key="bp.branch_id"
-            class="p-3 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl flex items-center justify-between"
-          >
-            <div>
-              <div class="font-bold text-xs text-[#2A1D15] flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                <span>{{ bp.branch_name }}</span>
-              </div>
-              <div class="text-[11px] text-[#7A6B60] mt-0.5">
-                Today: <strong class="text-[#1E7422]">{{ bp.daily_units }}</strong> units (ETB {{ Number(bp.daily_revenue).toLocaleString() }})
-              </div>
-              <div class="text-[11px] text-[#7A6B60]">
-                Week: <strong class="text-[#1565C0]">{{ bp.weekly_units }}</strong> units (ETB {{ Number(bp.weekly_revenue).toLocaleString() }})
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="text-xs font-serif font-black text-[#BA5420]">ETB {{ Number(bp.total_revenue).toLocaleString() }}</div>
-              <div class="text-[10px] text-[#7A6B60]">Total Revenue</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Report Table Area -->
-    <div class="bg-white border border-[#E9E0D4] rounded-3xl shadow-2xs overflow-hidden">
-      <!-- Loading State -->
-      <div v-if="loading" class="py-16 text-center text-xs text-[#7A6B60] space-y-2">
-        <div class="w-6 h-6 border-2 border-[#BA5420] border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <div>Querying live MySQL transactions...</div>
-      </div>
-
-      <!-- Empty State -->
-      <div v-else-if="reportRows.length === 0" class="py-16 text-center text-xs text-[#7A6B60] space-y-2">
-        <div class="text-3xl">📋</div>
-        <div class="font-bold text-[#38121A]">No report records found for the selected filter parameters.</div>
-        <div>Try expanding the date range or selecting another branch.</div>
-      </div>
-
-      <!-- Dynamic Data Table with Safe Horizontal Scroll on Mobile -->
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-left text-xs min-w-[620px]">
-          <thead class="bg-[#FAF7F5] text-[11px] font-bold text-[#7A6B60] tracking-wider uppercase border-b border-[#F2D7DC]">
-            <tr>
-              <th
-                v-for="col in reportColumns"
-                :key="col"
-                class="py-3.5 px-5"
-                :class="col.includes('Revenue') || col.includes('Amount') || col.includes('Value') || col.includes('Order Value') ? 'text-right' : (col.includes('Orders') || col.includes('Units') || col.includes('Sent') || col.includes('Received') || col.includes('Count') ? 'text-center' : '')"
-              >
-                {{ col }}
-              </th>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-[#FAF7F2] text-[#6E5D52] uppercase font-bold text-[10px] tracking-wider border-b border-[#E9E0D4]">
+              <th class="py-3 px-3">Branch</th>
+              <th class="py-3 px-3 text-center">Regular Orders</th>
+              <th class="py-3 px-3 text-center">Custom Cakes</th>
+              <th class="py-3 px-3 text-right">Total Revenue</th>
+              <th class="py-3 px-3">Manager</th>
+              <th class="py-3 px-3">Report Status</th>
+              <th class="py-3 px-3 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-[#F8E7EA]">
-            <!-- 1. Branch Performance Rows -->
-            <template v-if="activeTabId === 'branch_performance'">
-              <tr v-for="r in reportRows" :key="r.branch_id" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A] flex items-center space-x-2">
-                  <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
-                  <span>{{ r.branch }}</span>
-                </td>
-                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.orders }}</td>
-                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.units }}</td>
-                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-right font-semibold text-[#7A6B60]">ETB {{ Number(r.avg_order).toLocaleString() }}</td>
-              </tr>
-            </template>
-
-            <!-- 2. Product Performance Rows -->
-            <template v-else-if="activeTabId === 'product_performance'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-product font-bold text-[#38121A]">{{ r.product }}</td>
-                <td class="py-3.5 px-5 font-medium text-[#7A6B60]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 text-[#881337] font-semibold">{{ r.category }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.units }}</td>
-                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
-              </tr>
-            </template>
-
-            <!-- 3. Distribution Rows -->
-            <template v-else-if="activeTabId === 'distribution'">
-              <tr v-for="r in reportRows" :key="r.transfer_id" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#881337]">{{ r.transfer }}</td>
-                <td class="py-3.5 px-5 font-medium text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#4B1A24]">{{ r.sent }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#059669]">{{ r.received }}</td>
-                <td class="py-3.5 px-5 text-center font-bold" :class="r.missing > 0 ? 'text-[#DC2626]' : 'text-gray-400'">
-                  {{ r.missing }}
-                </td>
-                <td class="py-3.5 px-5 text-center font-bold" :class="r.damaged > 0 ? 'text-[#D97706]' : 'text-gray-400'">
-                  {{ r.damaged }}
-                </td>
-                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.days_to_receipt }}</td>
-                <td class="py-3.5 px-5">
-                  <span
-                    class="px-2.5 py-1 rounded-full text-[10px] font-bold"
-                    :class="r.status === 'Received' ? 'bg-[#ECFDF5] text-[#059669]' : (r.status === 'Disputed' ? 'bg-[#FEF2F2] text-[#DC2626]' : 'bg-[#EFF6FF] text-[#2563EB]')"
-                  >
-                    {{ r.status }}
-                  </span>
-                </td>
-              </tr>
-            </template>
-
-            <!-- 4. Inventory Rows -->
-            <template v-else-if="activeTabId === 'inventory'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 font-product font-bold text-[#261814]">{{ r.product }}</td>
-                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.category }}</td>
-                <td class="py-3.5 px-5 text-center font-semibold text-[#4B1A24]">{{ r.on_hand }}</td>
-                <td class="py-3.5 px-5 text-center font-semibold text-[#D97706]">{{ r.reserved }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#059669]">{{ r.available }}</td>
-                <td class="py-3.5 px-5 text-center text-[#7A6B60]">{{ r.reorder_level }}</td>
-                <td class="py-3.5 px-5">
-                  <span
-                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                    :class="r.status === 'Needs replenishment' ? 'bg-[#FEE2E2] text-[#DC2626] animate-pulse' : 'bg-[#ECFDF5] text-[#059669]'"
-                  >
-                    {{ r.status }}
-                  </span>
-                </td>
-              </tr>
-            </template>
-
-            <!-- 5. Waste Rows -->
-            <template v-else-if="activeTabId === 'waste'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 font-medium text-[#261814]">{{ r.product }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#DC2626]">{{ r.quantity }} units</td>
-                <td class="py-3.5 px-5 text-[#7A6B60]">{{ r.reason }}</td>
-                <td class="py-3.5 px-5 text-right font-black text-[#DC2626]">ETB {{ Number(r.value).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.date }}</td>
-              </tr>
-            </template>
-
-            <!-- 6. Discrepancy Rows -->
-            <template v-else-if="activeTabId === 'discrepancy'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#881337]">{{ r.transfer }}</td>
-                <td class="py-3.5 px-5 font-medium text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 font-semibold text-[#261814]">{{ r.line }}</td>
-                <td class="py-3.5 px-5 font-bold text-[#DC2626]">{{ r.difference }}</td>
-                <td class="py-3.5 px-5 text-[#7A6B60] italic">{{ r.reason }}</td>
-                <td class="py-3.5 px-5">
-                  <span class="px-2 py-0.5 bg-[#FFFBEB] text-[#B45309] rounded-md font-semibold text-[10px]">
-                    {{ r.resolution }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-5 text-[#9CA3AF] text-[11px]">{{ r.date }}</td>
-              </tr>
-            </template>
-
-            <!-- 7. Delivery Rows -->
-            <template v-else-if="activeTabId === 'delivery'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A]">{{ r.branch }}</td>
-                <td class="py-3.5 px-5 font-semibold flex items-center space-x-1.5" :class="r.method === 'Delivery' ? 'text-[#2563EB]' : 'text-[#059669]'">
-                  <span>{{ r.method === 'Delivery' ? '🚚' : '🏪' }}</span>
-                  <span>{{ r.method }}</span>
-                </td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.count }} orders</td>
-                <td class="py-3.5 px-5 text-center text-[#7A6B60] font-medium">{{ r.avg_time }}</td>
-                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.revenue).toLocaleString() }}</td>
-              </tr>
-            </template>
-
-            <!-- 8. Payments Rows -->
-            <template v-else-if="activeTabId === 'payments'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FFF1F2]/40 transition">
-                <td class="py-3.5 px-5 font-bold text-[#38121A] flex items-center space-x-1.5">
-                  <span>💳</span>
-                  <span>{{ r.method }}</span>
-                </td>
-                <td class="py-3.5 px-5">
-                  <span
-                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                    :class="r.status === 'Paid' ? 'bg-[#ECFDF5] text-[#059669]' : (r.status === 'Refunded' ? 'bg-[#FEF2F2] text-[#DC2626]' : 'bg-[#FFFBEB] text-[#D97706]')"
-                  >
-                    {{ r.status }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#261814]">{{ r.count }} transactions</td>
-                <td class="py-3.5 px-5 text-right font-black text-[#881337]">ETB {{ Number(r.amount).toLocaleString() }}</td>
-              </tr>
-            </template>
-
-            <!-- Consolidated Product Sales & Pricing Rows (Super Admin Oversight) -->
-            <template v-else-if="activeTabId === 'consolidated_products'">
-              <tr v-for="(r, idx) in reportRows" :key="idx" class="hover:bg-[#FAF6F0] transition">
-                <td class="py-3.5 px-5 font-bold text-[#2A1D15]">{{ r.product }}</td>
-                <td class="py-3.5 px-5 text-[#8A7B71]">{{ r.category }}</td>
-                <td class="py-3.5 px-5 font-semibold text-[#BA5420] flex items-center space-x-1.5">
-                  <span>📍</span>
-                  <span>{{ r.branch }}</span>
-                </td>
-                <td class="py-3.5 px-5 text-right font-serif font-bold text-[#2A1D15]">ETB {{ Number(r.selling_price).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#1E7422]">{{ r.daily_units }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#1565C0]">{{ r.weekly_units }}</td>
-                <td class="py-3.5 px-5 text-center font-bold text-[#2A1D15]">{{ r.total_units }}</td>
-                <td class="py-3.5 px-5 text-right font-semibold text-[#1E7422]">ETB {{ Number(r.daily_revenue).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-right font-semibold text-[#1565C0]">ETB {{ Number(r.weekly_revenue).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-right font-serif font-black text-[#BA5420]">ETB {{ Number(r.total_revenue).toLocaleString() }}</td>
-              </tr>
-            </template>
-
-            <!-- Manager Branch Reports Rows (Super Admin Executive Review) -->
-            <template v-else-if="activeTabId === 'manager_reports'">
-              <tr v-for="r in reportRows" :key="r.report_id" class="hover:bg-[#FAF6F0] transition">
-                <td class="py-3.5 px-5 font-bold text-[#2A1D15] flex items-center space-x-1.5">
-                  <span>📍</span>
-                  <span>{{ r.branch }}</span>
-                </td>
-                <td class="py-3.5 px-5">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF0E6] text-[#BA5420]">
-                    {{ r.report_type }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-5">
-                  <div class="font-bold text-[#2A1D15]">{{ r.submitter }}</div>
-                  <div class="text-[10px] text-[#8A7B71]">{{ r.role }}</div>
-                </td>
-                <td class="py-3.5 px-5">
-                  <div class="font-bold text-[#2A1D15]">{{ r.title }}</div>
-                  <div class="text-[11px] text-[#7A6B60] line-clamp-1">{{ r.content }}</div>
-                </td>
-                <td class="py-3.5 px-5 text-[#8A7B71] text-[11px] whitespace-nowrap">{{ r.date }}</td>
-                <td class="py-3.5 px-5">
-                  <span
-                    class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                    :class="r.status === 'Resolved' || r.status === 'Reviewed' ? 'bg-[#EAF5EA] text-[#2E7D32]' : 'bg-[#FFF3E0] text-[#E65100]'"
-                  >
-                    {{ r.status }}
-                  </span>
-                </td>
-                <td class="py-3.5 px-5 text-right">
-                  <button
-                    @click="openManagerReportModal(r)"
-                    class="px-3 py-1 bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] font-semibold text-xs rounded-md shadow-2xs transition cursor-pointer"
-                  >
-                    Review
-                  </button>
-                </td>
-              </tr>
-            </template>
+          <tbody class="divide-y divide-[#F2ECE4]">
+            <tr v-if="branchPerformance.length === 0">
+              <td colspan="7" class="py-8 text-center text-[#9E8E82] text-xs">
+                No branch performance data recorded yet.
+              </td>
+            </tr>
+            <tr
+              v-for="b in branchPerformance"
+              :key="b.branch_id"
+              class="hover:bg-[#FAF7F2]/70 transition cursor-pointer"
+              @click="onRowClick(b)"
+            >
+              <td class="py-3.5 px-3">
+                <div class="font-bold text-[#2B1810] text-sm">{{ b.branch_name }}</div>
+                <div class="text-[#7D6E64] text-[11px] font-mono">{{ b.branch_code }} • {{ b.city || 'Addis Ababa' }}</div>
+              </td>
+              <td class="py-3.5 px-3 text-center font-bold text-[#2B1810]">
+                {{ b.regular_orders }}
+              </td>
+              <td class="py-3.5 px-3 text-center font-bold text-[#2B1810]">
+                {{ b.custom_cakes }}
+              </td>
+              <td class="py-3.5 px-3 text-right font-serif font-black text-sm text-[#2B1810]">
+                ETB {{ Number(b.total_revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3.5 px-3 font-semibold text-[#6E5D52]">
+                {{ b.manager_name }}
+              </td>
+              <td class="py-3.5 px-3">
+                <span
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block"
+                  :class="{
+                    'bg-emerald-50 text-emerald-800 border-emerald-200': b.latest_report_status === 'Verified by Super Admin',
+                    'bg-blue-50 text-blue-800 border-blue-200': b.latest_report_status === 'Submitted to Super Admin',
+                    'bg-rose-50 text-rose-800 border-rose-200': b.latest_report_status === 'Returned for Clarification',
+                    'bg-stone-100 text-stone-600 border-stone-200': b.latest_report_status === 'No Submissions'
+                  }"
+                >
+                  {{ b.latest_report_status }}
+                </span>
+              </td>
+              <td class="py-3.5 px-3 text-center" @click.stop>
+                <button
+                  v-if="b.latest_report_id"
+                  @click="inspectReport(b.latest_report_id)"
+                  class="px-3 py-1.5 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs"
+                >
+                  Inspect Report
+                </button>
+                <span v-else class="text-[#B29E91] text-xs italic">Awaiting</span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
-    <!-- Review Manager Report Modal for Super Admin -->
+
+    <!-- ================================================================= -->
+    <!-- RECENT CONSOLIDATED BRANCH SUBMISSIONS LIST                       -->
+    <!-- ================================================================= -->
+    <div class="bg-white border border-[#E9E0D4] rounded-2xl p-6 shadow-2xs space-y-4">
+      <div class="flex items-center justify-between border-b border-[#F4EFEA] pb-3">
+        <div>
+          <h2 class="font-serif font-black text-lg text-[#2B1810]">
+            All Branch Consolidated Submissions
+          </h2>
+          <p class="text-xs text-[#7D6E64]">
+            Review all consolidated branch reports submitted by branch managers for official verification.
+          </p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-[#FAF7F2] text-[#6E5D52] uppercase font-bold text-[10px] tracking-wider border-b border-[#E9E0D4]">
+              <th class="py-3 px-3">Report Ref</th>
+              <th class="py-3 px-3">Branch</th>
+              <th class="py-3 px-3">Period</th>
+              <th class="py-3 px-3">Dates</th>
+              <th class="py-3 px-3 text-center">Sellers</th>
+              <th class="py-3 px-3 text-right">Regular Rev</th>
+              <th class="py-3 px-3 text-right">Custom Cake Rev</th>
+              <th class="py-3 px-3 text-right">Total Revenue</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#F2ECE4]">
+            <tr v-if="recentReports.length === 0">
+              <td colspan="10" class="py-8 text-center text-[#9E8E82] text-xs">
+                No consolidated branch reports submitted yet.
+              </td>
+            </tr>
+            <tr v-for="r in recentReports" :key="r.id" class="hover:bg-[#FAF7F2]/60 transition">
+              <td class="py-3 px-3 font-mono font-bold text-[#3D251E]">
+                {{ r.report_reference }}
+              </td>
+              <td class="py-3 px-3 font-bold text-[#2B1810]">
+                {{ r.branch?.branch_name || 'Branch #' + r.branch_id }}
+              </td>
+              <td class="py-3 px-3 font-semibold text-[#6E5D52]">
+                {{ r.period_type }}
+              </td>
+              <td class="py-3 px-3 text-[#6E5D52]">
+                {{ formatDate(r.period_start) }} – {{ formatDate(r.period_end) }}
+              </td>
+              <td class="py-3 px-3 text-center font-bold text-[#2B1810]">
+                {{ r.sellers_included_count }}
+              </td>
+              <td class="py-3 px-3 text-right">
+                ETB {{ Number(r.total_regular_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3 px-3 text-right">
+                ETB {{ Number(r.total_custom_cake_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3 px-3 text-right font-serif font-black text-[#2B1810]">
+                ETB {{ Number(r.total_branch_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+              </td>
+              <td class="py-3 px-3">
+                <span
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block"
+                  :class="{
+                    'bg-emerald-50 text-emerald-800 border-emerald-200': r.status === 'Verified by Super Admin',
+                    'bg-blue-50 text-blue-800 border-blue-200': r.status === 'Submitted to Super Admin',
+                    'bg-rose-50 text-rose-800 border-rose-200': r.status === 'Returned for Clarification',
+                  }"
+                >
+                  {{ r.status }}
+                </span>
+              </td>
+              <td class="py-3 px-3 text-center">
+                <button
+                  @click="inspectReport(r.id)"
+                  class="px-3 py-1.5 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs"
+                >
+                  {{ r.status === 'Submitted to Super Admin' ? 'Audit & Verify' : 'View Full Details' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 5C & 5D: SUPER ADMIN DEEP SALES INSPECTION & VERIFY MODAL -->
+    <!-- ================================================================= -->
     <div
-      v-if="reviewingReport"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      v-if="activeInspection"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+      @click.self="activeInspection = null"
     >
-      <div class="bg-white border border-[#E9E0D4] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl">
-        <div class="flex items-start justify-between border-b border-[#EFE8DF] pb-3">
+      <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 space-y-5 border border-[#E9E0D4] shadow-xl">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between border-b border-[#F2ECE4] pb-4">
           <div>
-            <span class="text-[10px] font-bold uppercase tracking-wider text-[#BA5420] bg-[#FAF0E6] px-2.5 py-0.5 rounded-full border border-[#F0D5C1]">
-              {{ reviewingReport.report_type }} · {{ reviewingReport.branch }}
-            </span>
-            <h3 class="font-serif font-bold text-lg text-[#2A1D15] mt-1.5">{{ reviewingReport.title }}</h3>
-            <p class="text-xs text-[#7A6B60]">Submitted by {{ reviewingReport.submitter }} ({{ reviewingReport.role }}) on {{ reviewingReport.date }}</p>
+            <div class="text-[11px] font-bold uppercase tracking-wider text-[#7D6E64]">Super Admin Inspection &amp; Headquarters Approval</div>
+            <h3 class="font-serif font-black text-2xl text-[#2B1810]">
+              {{ activeInspection.report_reference }}
+            </h3>
+            <p class="text-xs text-[#7D6E64] mt-0.5">
+              Branch: <strong>{{ activeInspection.branch?.branch_name }}</strong> |
+              Manager: <strong>{{ activeInspection.manager?.full_name || activeInspection.manager?.email }}</strong> |
+              Period: <strong>{{ activeInspection.period_type }} ({{ formatDate(activeInspection.period_start) }} – {{ formatDate(activeInspection.period_end) }})</strong> |
+              Status: <strong>{{ activeInspection.status }}</strong>
+            </p>
           </div>
-          <button @click="reviewingReport = null" class="text-gray-400 hover:text-gray-700 text-lg cursor-pointer">&times;</button>
+          <button @click="activeInspection = null" class="text-[#7D6E64] hover:text-[#2B1810] text-2xl font-bold cursor-pointer">✕</button>
         </div>
 
-        <div class="space-y-3 text-xs">
+        <!-- Manager Notes -->
+        <div v-if="activeInspection.manager_notes" class="p-3.5 bg-[#FAF7F2] border border-[#E9E0D4] rounded-xl text-xs text-[#2B1810]">
+          <strong>Branch Manager Reconciliation Notes:</strong>
+          <p class="mt-0.5 text-[#6E5D52]">{{ activeInspection.manager_notes }}</p>
+        </div>
+
+        <!-- Super Admin Notes if already returned previously -->
+        <div v-if="activeInspection.super_admin_notes" class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900">
+          <strong>HQ Clarification Notes:</strong>
+          <p class="mt-0.5">{{ activeInspection.super_admin_notes }}</p>
+        </div>
+
+        <!-- Financial Summary Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#FAF7F2] p-4 rounded-xl border border-[#E9E0D4]">
           <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#8A7B71] mb-1">Report Details</label>
-            <div class="bg-[#FAF7F2] p-3.5 rounded-xl text-[#3A2E26] whitespace-pre-wrap leading-relaxed border border-[#EFE4D6] max-h-56 overflow-y-auto font-sans">
-              {{ reviewingReport.content }}
+            <div class="text-[#7D6E64] text-[10px] uppercase font-bold">Regular Revenue</div>
+            <div class="font-serif font-black text-base text-[#2B1810]">
+              ETB {{ Number(activeInspection.total_regular_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+            </div>
+            <div class="text-[10px] text-[#7D6E64]">{{ activeInspection.total_regular_orders }} orders ({{ activeInspection.total_regular_products_sold }} items)</div>
+          </div>
+
+          <div>
+            <div class="text-[#7D6E64] text-[10px] uppercase font-bold">Custom Cake Revenue</div>
+            <div class="font-serif font-black text-base text-[#2B1810]">
+              ETB {{ Number(activeInspection.total_custom_cake_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+            </div>
+            <div class="text-[10px] text-[#7D6E64]">{{ activeInspection.total_custom_cake_orders }} cakes booked</div>
+          </div>
+
+          <div>
+            <div class="text-[#7D6E64] text-[10px] uppercase font-bold">Advance Deposits</div>
+            <div class="font-serif font-black text-base text-emerald-700">
+              ETB {{ Number(activeInspection.total_advance_payments).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+            </div>
+            <div class="text-[10px] text-amber-700">Due: ETB {{ Number(activeInspection.total_outstanding_balances).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</div>
+          </div>
+
+          <div>
+            <div class="text-[#7D6E64] text-[10px] uppercase font-bold">Total Branch Revenue</div>
+            <div class="font-serif font-black text-lg text-[#3D251E]">
+              ETB {{ Number(activeInspection.total_branch_revenue).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+            </div>
+            <div class="text-[10px] text-emerald-800">Cash In: ETB {{ Number(activeInspection.total_payments_received).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</div>
+          </div>
+        </div>
+
+        <!-- Sellers Involved Breakdown -->
+        <div v-if="activeInspection.seller_reports?.length" class="space-y-2">
+          <div class="text-xs font-bold uppercase tracking-wider text-[#2B1810]">
+            Sellers Reporting in this Period ({{ activeInspection.seller_reports.length }} reports)
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div
+              v-for="sr in activeInspection.seller_reports"
+              :key="sr.id"
+              class="p-3 bg-white border border-[#E9E0D4] rounded-xl flex items-center justify-between"
+            >
+              <div>
+                <div class="font-bold text-[#2B1810]">{{ sr.seller?.full_name || sr.seller?.email }}</div>
+                <div class="text-[11px] text-[#7D6E64] font-mono">{{ sr.report_reference }} • {{ formatDate(sr.report_date) }}</div>
+              </div>
+              <div class="text-right">
+                <div class="font-serif font-bold text-[#2B1810]">ETB {{ Number(sr.combined_daily_revenue).toFixed(2) }}</div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">{{ sr.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Breakdown from JSON (Products & Custom Cakes) -->
+        <div v-if="activeInspection.breakdown_json" class="space-y-4">
+          <!-- Products breakdown -->
+          <div v-if="activeInspection.breakdown_json.products?.length" class="space-y-1.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#2B1810]">Products &amp; Items Sold Breakdown</div>
+            <div class="border border-[#E9E0D4] rounded-xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#FAF7F2] text-[#6E5D52] font-bold text-[10px] uppercase">
+                  <tr>
+                    <th class="p-2.5">Product Name</th>
+                    <th class="p-2.5">Category</th>
+                    <th class="p-2.5 text-right">Quantity Sold</th>
+                    <th class="p-2.5 text-right">Total Revenue</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#F2ECE4]">
+                  <tr v-for="(p, idx) in activeInspection.breakdown_json.products" :key="idx">
+                    <td class="p-2.5 font-semibold text-[#2B1810]">{{ p.name }}</td>
+                    <td class="p-2.5 text-[#6E5D52]">{{ p.category }}</td>
+                    <td class="p-2.5 text-right font-bold text-[#2B1810]">{{ p.quantity }}</td>
+                    <td class="p-2.5 text-right font-bold text-[#2B1810]">ETB {{ Number(p.total).toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div v-if="reviewingReport.manager_notes && reviewingReport.manager_notes !== '—'" class="p-3 bg-purple-50 border border-purple-200 rounded-xl">
-            <span class="font-bold text-purple-900 block mb-0.5">Manager Notes:</span>
-            <p class="text-purple-800 text-[11px]">{{ reviewingReport.manager_notes }}</p>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-bold uppercase tracking-wider text-[#8A7B71] mb-1">Super Admin Notes</label>
-            <textarea
-              v-model="superAdminNotes"
-              rows="2"
-              placeholder="Add verification notes or instructions for the branch manager..."
-              class="w-full bg-[#FAF7F2] border border-[#DDD2C5] rounded-xl p-2.5 text-xs text-[#2A1D15] focus:ring-1 focus:ring-[#BA5420]"
-            ></textarea>
+          <!-- Custom Cakes breakdown -->
+          <div v-if="activeInspection.breakdown_json.custom_cakes?.length" class="space-y-1.5">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#2B1810]">Custom Cakes Breakdown</div>
+            <div class="border border-[#E9E0D4] rounded-xl overflow-hidden">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-[#FAF7F2] text-[#6E5D52] font-bold text-[10px] uppercase">
+                  <tr>
+                    <th class="p-2.5">Category &amp; Design</th>
+                    <th class="p-2.5">Size/Weight</th>
+                    <th class="p-2.5 text-right">Quantity</th>
+                    <th class="p-2.5 text-right">Total Price</th>
+                    <th class="p-2.5 text-right">Advance Paid</th>
+                    <th class="p-2.5 text-right">Balance Due</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[#F2ECE4]">
+                  <tr v-for="(c, idx) in activeInspection.breakdown_json.custom_cakes" :key="idx">
+                    <td class="p-2.5 font-semibold text-[#2B1810]">{{ c.category }} — {{ c.design }}</td>
+                    <td class="p-2.5 text-[#6E5D52]">{{ c.size }}</td>
+                    <td class="p-2.5 text-right font-bold">{{ c.quantity }}</td>
+                    <td class="p-2.5 text-right font-bold text-[#2B1810]">ETB {{ Number(c.total).toFixed(2) }}</td>
+                    <td class="p-2.5 text-right font-bold text-emerald-700">ETB {{ Number(c.advance).toFixed(2) }}</td>
+                    <td class="p-2.5 text-right font-bold text-amber-700">ETB {{ Number(c.balance).toFixed(2) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center justify-between pt-3 border-t border-[#EFE8DF]">
-          <button
-            @click="reviewingReport = null"
-            class="px-4 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition cursor-pointer"
-          >
-            Close
-          </button>
-          <div class="flex items-center space-x-2">
+        <!-- Super Admin Decision Form -->
+        <div class="bg-[#FAF7F2] p-4 rounded-xl border border-[#E9E0D4] space-y-3">
+          <div class="text-xs font-bold uppercase tracking-wider text-[#2B1810]">
+            Super Admin Action (Verification or Return for Clarification)
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">
+              Feedback Notes (Required when returning report for clarification)
+            </label>
+            <textarea
+              v-model="superAdminNotes"
+              rows="2"
+              placeholder="e.g. Verified by Super Admin: Reconciled with central ERP ledger. OR: Return note: Please verify custom cake advances for this week."
+              class="w-full px-3.5 py-2 bg-white border border-[#E2D8CC] rounded-xl text-xs font-medium focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E]"
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
             <button
-              @click="submitReportReview('Reviewed')"
-              :disabled="isSubmittingReview"
-              class="px-4 py-2 text-xs font-semibold bg-[#2A1D15] hover:bg-[#1A120D] text-white rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
+              @click="activeInspection = null"
+              class="px-4 py-2 bg-white border border-[#E2D8CC] text-[#6E5D52] font-bold text-xs rounded-xl cursor-pointer"
             >
-              {{ isSubmittingReview ? 'Saving...' : 'Mark as Reviewed' }}
+              Close
             </button>
-            <button
-              @click="submitReportReview('Resolved')"
-              :disabled="isSubmittingReview"
-              class="px-4 py-2 text-xs font-semibold bg-[#059669] hover:bg-[#047857] text-white rounded-xl shadow-2xs transition cursor-pointer disabled:opacity-50"
-            >
-              {{ isSubmittingReview ? 'Saving...' : 'Resolve Report' }}
-            </button>
+
+            <div class="flex items-center space-x-3">
+              <button
+                @click="submitSuperAdminDecision('return')"
+                :disabled="decisionSubmitting"
+                class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                ↩️ Return for Clarification
+              </button>
+
+              <button
+                @click="submitSuperAdminDecision('verify')"
+                :disabled="decisionSubmitting"
+                class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs"
+              >
+                ✅ Mark as Verified
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -600,215 +535,166 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useAuthStore } from '../../stores/auth';
+import { ref, reactive, onMounted } from 'vue';
 import api from '../../api';
 
-const authStore = useAuthStore();
-const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
-const isBranchScoped = computed(() => !isSuperAdmin.value);
-const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
-const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
+const activePeriod = ref('all');
+const selectedBranchId = ref('all');
+const branchesList = ref([]);
 
-// Report tabs definition (Audit removed; Consolidated Sales & Pricing and Manager Reports added)
-const reportTabs = computed(() => [
-  { id: 'branch_performance', label: 'Branch Performance', icon: '🏢', description: 'Which branch has the highest revenue, most orders, top-selling cakes and bread?' },
-  { id: 'consolidated_products', label: 'Consolidated Sales & Pricing', icon: '🧁', description: 'Monitor daily and weekly products sold, product selling prices, daily/weekly revenue, and compare branch performance.' },
-  { id: 'manager_reports', label: isSuperAdmin.value ? 'Branch Reports (from Managers)' : 'Manager Reports Desk', icon: '📑', description: 'Review operational and sales reports submitted to Super Admin by Branch Managers.' },
-  { id: 'product_performance', label: 'Product Performance', icon: '🎂', description: 'Which products sell best, and where?' },
-  { id: 'distribution', label: 'Distribution', icon: '🚚', description: 'How much was sent, received, missing, damaged, still in transit?' },
-  { id: 'inventory', label: 'Inventory', icon: '📦', description: 'What is on hand, reserved and available per branch, and what needs replenishment?' },
-  { id: 'waste', label: 'Waste', icon: '🗑️', description: 'How much stock was damaged or expired, and why?' },
-  { id: 'discrepancy', label: 'Discrepancy', icon: '⚠️', description: 'Which transfers had differences and who resolved them?' },
-  { id: 'delivery', label: 'Delivery', icon: '🛵', description: 'How are deliveries and pickups split, and how long do they take?' },
-  { id: 'payments', label: 'Payments', icon: '💳', description: 'Revenue by method, failures, refunds.' },
-]);
+const kpis = reactive({
+  total_branches: 0,
+  total_submitted_reports: 0,
+  awaiting_review_count: 0,
+  verified_reports_count: 0,
+  total_regular_orders: 0,
+  total_custom_cakes: 0,
+  total_revenue: 0,
+  total_advance_payments: 0,
+  total_outstanding_balances: 0,
+  total_payments_received: 0,
+});
 
-const activeTabId = ref('branch_performance');
-const branches = ref([]);
-const categories = ref([]);
-const loading = ref(false);
-const sendingSummary = ref(false);
-const consolidatedSummary = ref(null);
+const branchPerformance = ref([]);
+const recentReports = ref([]);
 
-// Review Report Modal
-const reviewingReport = ref(null);
+// Deep inspection modal
+const activeInspection = ref(null);
 const superAdminNotes = ref('');
-const isSubmittingReview = ref(false);
+const decisionSubmitting = ref(false);
 
-function openManagerReportModal(report) {
-  reviewingReport.value = report;
-  superAdminNotes.value = '';
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch (e) {
+    return d;
+  }
 }
 
-async function submitReportReview(status) {
-  if (!reviewingReport.value) return;
-  isSubmittingReview.value = true;
+function setPeriod(p) {
+  activePeriod.value = p;
+  fetchOverviewData();
+}
+
+async function fetchOverviewData() {
   try {
-    await api.post(`/admin/staff-reports/${reviewingReport.value.report_id}/review`, {
-      status,
-      manager_notes: superAdminNotes.value || undefined,
+    let url = '/admin/reports/super-admin/overview';
+    const params = [];
+    if (selectedBranchId.value !== 'all') {
+      params.push(`branch_id=${selectedBranchId.value}`);
+    }
+
+    const today = new Date();
+    if (activePeriod.value === 'today') {
+      const todayStr = today.toISOString().substring(0, 10);
+      params.push(`from_date=${todayStr}`);
+      params.push(`to_date=${todayStr}`);
+    } else if (activePeriod.value === 'this_week') {
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      params.push(`from_date=${startOfWeek.toISOString().substring(0, 10)}`);
+      params.push(`to_date=${today.toISOString().substring(0, 10)}`);
+    } else if (activePeriod.value === 'this_month') {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      params.push(`from_date=${startOfMonth.toISOString().substring(0, 10)}`);
+      params.push(`to_date=${today.toISOString().substring(0, 10)}`);
+    }
+
+    if (params.length > 0) {
+      url += '?' + params.join('&');
+    }
+
+    const res = await api.get(url);
+    if (res.data && res.data.success) {
+      Object.assign(kpis, res.data.kpis);
+      branchPerformance.value = res.data.branch_performance || [];
+      recentReports.value = res.data.recent_reports || [];
+      branchesList.value = res.data.branches || [];
+    }
+  } catch (e) {
+    console.error('Failed to fetch Super Admin overview:', e);
+  }
+}
+
+function onRowClick(b) {
+  if (b.latest_report_id) {
+    inspectReport(b.latest_report_id);
+  }
+}
+
+// Inspect consolidated report
+async function inspectReport(id) {
+  try {
+    const res = await api.get(`/admin/reports/super-admin/consolidated/${id}`);
+    if (res.data && res.data.success) {
+      activeInspection.value = res.data.report;
+      superAdminNotes.value = activeInspection.value.super_admin_notes || '';
+    }
+  } catch (e) {
+    alert('Failed to load consolidated report details.');
+  }
+}
+
+// Super Admin decision: verify or return
+async function submitSuperAdminDecision(action) {
+  if (action === 'return' && !superAdminNotes.value.trim()) {
+    alert('Please provide clarification notes explaining what the Branch Manager must verify.');
+    return;
+  }
+
+  const confirmMsg = action === 'verify'
+    ? 'Mark this consolidated branch report as Verified by Super Admin?'
+    : 'Return this report to the Branch Manager for clarification?';
+
+  if (!confirm(confirmMsg)) return;
+
+  decisionSubmitting.value = true;
+  try {
+    const res = await api.post(`/admin/reports/super-admin/consolidated/${activeInspection.value.id}/verify`, {
+      action: action,
+      super_admin_notes: superAdminNotes.value,
     });
-    reviewingReport.value.status = status;
-    reviewingReport.value = null;
-    await reloadAll();
-  } catch (err) {
-    alert('Failed to update report status: ' + (err.response?.data?.message || err.message));
-  } finally {
-    isSubmittingReview.value = false;
-  }
-}
 
-const quickDateFilter = ref('this_month');
-
-const filters = ref({
-  branch_id: isBranchScoped.value ? userBranchId.value : 'all',
-  category_id: 'all',
-  product_id: 'all',
-  from_date: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-  to_date: new Date().toISOString().split('T')[0],
-});
-
-const setDateFilter = (filterKey) => {
-  quickDateFilter.value = filterKey;
-  const now = new Date();
-  if (filterKey === 'today') {
-    const todayStr = now.toISOString().split('T')[0];
-    filters.value.from_date = todayStr;
-    filters.value.to_date = todayStr;
-  } else if (filterKey === 'this_week') {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
-    filters.value.from_date = monday.toISOString().split('T')[0];
-    filters.value.to_date = new Date().toISOString().split('T')[0];
-  } else if (filterKey === 'this_month') {
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-    filters.value.from_date = firstDay.toISOString().split('T')[0];
-    filters.value.to_date = new Date().toISOString().split('T')[0];
-  }
-  reloadAll();
-};
-
-const metrics = ref({
-  revenue: 0,
-  revenue_trend: '+12% vs previous period',
-  orders: 0,
-  orders_sub: '0 pending',
-  avg_order: 0,
-  avg_order_trend: '+3%',
-  units_sold: 0,
-  units_sub: 'Cakes & bread',
-});
-
-const reportColumns = ref([]);
-const reportRows = ref([]);
-
-const currentTabMeta = computed(() => {
-  return reportTabs.value.find(t => t.id === activeTabId.value);
-});
-
-async function selectTab(tabId) {
-  activeTabId.value = tabId;
-  await loadActiveReport();
-}
-
-async function loadSummary() {
-  try {
-    const res = await api.get('/admin/reports/summary', { params: filters.value });
-    if (res.data?.metrics) {
-      metrics.value = res.data.metrics;
+    if (res.data && res.data.success) {
+      alert(res.data.message);
+      activeInspection.value = null;
+      await fetchOverviewData();
     }
   } catch (err) {
-    console.error('Failed to load reports summary', err);
-  }
-}
-
-async function loadActiveReport() {
-  loading.value = true;
-  try {
-    const res = await api.get('/admin/reports/data', {
-      params: {
-        type: activeTabId.value,
-        ...filters.value,
-      },
-    });
-    reportColumns.value = res.data.columns || [];
-    reportRows.value = res.data.rows || [];
-    consolidatedSummary.value = res.data.summary || null;
-  } catch (err) {
-    console.error(`Failed to load report data for ${activeTabId.value}`, err);
-    reportColumns.value = [];
-    reportRows.value = [];
-    consolidatedSummary.value = null;
+    console.error('Decision submission failed:', err);
+    alert(err.response?.data?.message || 'Action failed.');
   } finally {
-    loading.value = false;
-  }
-}
-
-async function reloadAll() {
-  await Promise.all([loadSummary(), loadActiveReport()]);
-}
-
-async function sendDailySummary() {
-  sendingSummary.value = true;
-  try {
-    const res = await api.post('/admin/reports/send-daily-summary');
-    alert(`Success: ${res.data.message}\nDate: ${res.data.summary.date}\nRevenue: ETB ${res.data.summary.revenue_today}\nOrders: ${res.data.summary.orders_today}\nLow-stock alerts: ${res.data.summary.low_stock_count}`);
-  } catch (err) {
-    alert('Failed to dispatch daily summary: ' + (err.response?.data?.message || err.message));
-  } finally {
-    sendingSummary.value = false;
+    decisionSubmitting.value = false;
   }
 }
 
 function exportCSV() {
-  if (reportRows.value.length === 0) {
-    alert('No data to export.');
-    return;
-  }
+  const headers = ['Branch', 'Regular Orders', 'Custom Cakes', 'Total Revenue (ETB)', 'Manager', 'Report Status'];
+  const rows = branchPerformance.value.map(b => [
+    `"${b.branch_name}"`,
+    b.regular_orders,
+    b.custom_cakes,
+    b.total_revenue,
+    `"${b.manager_name}"`,
+    `"${b.latest_report_status}"`
+  ]);
 
-  const cols = reportColumns.value;
-  // Convert rows into array of values matching cols
-  const csvRows = [cols.map(c => `"${c}"`).join(',')];
-
-  reportRows.value.forEach(row => {
-    const values = Object.values(row).map(val => {
-      const sanitized = String(val ?? '').replace(/"/g, '""');
-      return `"${sanitized}"`;
-    });
-    csvRows.push(values.join(','));
-  });
-
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', `sweetbakes_${activeTabId.value}_${filters.value.to_date}.csv`);
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `SweetBakes_Branch_Sales_Report_${new Date().toISOString().substring(0, 10)}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
 
-function exportPDF() {
+function printReport() {
   window.print();
 }
 
 onMounted(async () => {
-  try {
-    const [bRes, cRes] = await Promise.all([
-      api.get('/branches'),
-      api.get('/categories'),
-    ]);
-    branches.value = bRes.data;
-    categories.value = cRes.data;
-  } catch (e) {}
-
-  if (isBranchScoped.value && userBranchId.value) {
-    filters.value.branch_id = userBranchId.value;
-  }
-
-  await reloadAll();
+  await fetchOverviewData();
 });
 </script>

@@ -23,6 +23,8 @@ const AuditLogView = () => import('../views/admin/AuditLogView.vue');
 const MyAccountView = () => import('../views/admin/MyAccountView.vue');
 const SalariesView = () => import('../views/admin/SalariesView.vue');
 const StaffReportsView = () => import('../views/admin/StaffReportsView.vue');
+const SellerDailyReportView = () => import('../views/admin/SellerDailyReportView.vue');
+const ManagerOrderReportsView = () => import('../views/admin/ManagerOrderReportsView.vue');
 
 // Customer views (Lazy Loaded)
 const CustomerHomeView = () => import('../views/customer/CustomerHomeView.vue');
@@ -67,6 +69,8 @@ const routes = [
       { path: 'orders', component: OrdersView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'] } },
       { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'] } },
       { path: 'payments', component: PaymentsView, meta: { roles: ['Super Admin', 'Main Branch Manager'] } },
+      { path: 'seller-reports', component: SellerDailyReportView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier'] } },
+      { path: 'manager-reports', component: ManagerOrderReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'reports', component: ReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'settings', component: SettingsView, meta: { roles: ['Super Admin'] } },

@@ -209,6 +209,35 @@
                 <span>{{ isBranchScoped ? 'Branch Sales' : 'Payments' }}</span>
               </router-link>
 
+              <!-- Branch Seller: Daily Sales Report Form -->
+              <router-link
+                v-if="canAccess('seller-reports')"
+                to="/admin/seller-reports"
+                @click="sidebarOpen = false"
+                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                :class="$route.path.startsWith('/admin/seller-reports') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
+              >
+                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <span>Daily Sales Report</span>
+              </router-link>
+
+              <!-- Branch Manager: Order Reports Verification & Consolidated Branch Report -->
+              <router-link
+                v-if="canAccess('manager-reports')"
+                to="/admin/manager-reports"
+                @click="sidebarOpen = false"
+                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                :class="$route.path.startsWith('/admin/manager-reports') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
+              >
+                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Order Reports &amp; Verification</span>
+              </router-link>
+
+              <!-- Super Admin: Centralized Branch Sales & Order Reports -->
               <router-link
                 v-if="canAccess('reports')"
                 to="/admin/reports"
@@ -219,7 +248,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span>{{ isBranchScoped ? 'Branch Reports' : 'Reports' }}</span>
+                <span>Branch Sales Reports</span>
               </router-link>
 
               <router-link
@@ -534,15 +563,15 @@ const roleScope = computed(() => {
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices and staff reports)
 const permissions = {
   'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'reports', 'notifications', 'settings'],
-  'Main Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'reports', 'notifications'],
-  'Branch Manager': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications'],
-  'Branch Admin': ['overview', 'users', 'products', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'reports', 'notifications'],
-  'Branch Seller / Cashier': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Seller': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
-  'Cashier': ['products', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Main Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'seller-reports', 'staff-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'orders', 'custom-cakes', 'payments', 'notifications'],
+  'Branch Manager': ['overview', 'users', 'products', 'manager-reports', 'seller-reports', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'notifications'],
+  'Branch Admin': ['overview', 'users', 'products', 'manager-reports', 'seller-reports', 'staff-reports', 'my-account', 'inventory', 'distribution', 'orders', 'custom-cakes', 'notifications'],
+  'Branch Seller / Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Seller': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
+  'Cashier': ['products', 'seller-reports', 'orders', 'custom-cakes', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Servant': ['orders', 'inventory', 'staff-reports', 'my-account', 'notifications'],
   'Delivery Staff': ['orders', 'staff-reports', 'my-account', 'notifications'],
-  'Branch Staff': ['products', 'inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
+  'Branch Staff': ['products', 'seller-reports', 'inventory', 'distribution', 'orders', 'staff-reports', 'my-account', 'notifications'],
   'Customer': [],
 };
 

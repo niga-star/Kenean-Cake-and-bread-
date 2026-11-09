@@ -24,6 +24,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\StaffReportController;
+use App\Http\Controllers\OrderReportController;
 
 // Public Auth with Rate Limiting (Section 12 requirement)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
@@ -153,22 +154,35 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::post('/payments/refund', [PaymentController::class, 'refund'])->middleware('role:Super Admin,Main Branch Manager');
 
-    // Reports (Scoped by controller)
+    // Three-Level Order & Custom Cake Reporting System
+    // Level 1: Branch Seller
+    Route::get('/reports/seller/today-orders', [OrderReportController::class, 'sellerTodayOrders']);
+    Route::get('/reports/seller/daily-reports', [OrderReportController::class, 'sellerReportsIndex']);
+    Route::get('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportShow']);
+    Route::post('/reports/seller/daily-reports', [OrderReportController::class, 'sellerReportStore']);
+    Route::put('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportUpdate']);
+
+    // Level 2: Branch Manager (Verification & Consolidation)
+    Route::post('/reports/manager/verify/{id}', [OrderReportController::class, 'managerVerifyReport'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+    Route::get('/reports/manager/pending-consolidation', [OrderReportController::class, 'managerPendingConsolidation'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+    Route::post('/reports/manager/consolidate-and-submit', [OrderReportController::class, 'managerConsolidateAndSubmit'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+    Route::get('/reports/manager/consolidated-reports', [OrderReportController::class, 'managerConsolidatedReports'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+
+    // Level 3: Super Admin (Centralized Monitoring & Approval)
+    Route::get('/reports/super-admin/overview', [OrderReportController::class, 'superAdminOverview'])
+        ->middleware('role:Super Admin');
+    Route::get('/reports/super-admin/consolidated/{id}', [OrderReportController::class, 'superAdminConsolidatedShow'])
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
+    Route::post('/reports/super-admin/consolidated/{id}/verify', [OrderReportController::class, 'superAdminVerify'])
+        ->middleware('role:Super Admin');
+
+    // Legacy reports endpoint for backward compatibility where needed
     Route::get('/reports/summary', [ReportController::class, 'summary']);
     Route::get('/reports/data', [ReportController::class, 'reportData']);
-    Route::post('/reports/send-daily-summary', [ReportController::class, 'sendDailySummary']);
-
-    // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/mark-read', [NotificationController::class, 'markAllRead']);
-    Route::post('/notifications/alert-rules', [NotificationController::class, 'saveAlertRules'])->middleware('role:Super Admin');
-
-    // Settings (Super Admin Only)
-    Route::get('/settings', [SettingController::class, 'index'])->middleware('role:Super Admin');
-    Route::post('/settings', [SettingController::class, 'update'])->middleware('role:Super Admin');
-
-    // Audit Log (Super Admin and Branch Managers)
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
 
     // Branch management (Super Admin Only)
     Route::post('/branches', [BranchController::class, 'store'])->middleware('role:Super Admin');
