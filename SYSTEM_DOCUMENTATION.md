@@ -506,7 +506,12 @@ All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `Ro
 
 ## 12. Verification & Quality Assurance Suite
 
-Every rule in this specification is verified through automated test suites:
+Every rule in this specification is verified through an automated test suite ([`Backend/test_v41_comprehensive.php`](file:///c:/Kenan%20Cake/Backend/test_v41_comprehensive.php)):
+
+```bash
+php Backend/test_v41_comprehensive.php
+# Verification Result: Total Passed: 41 | Total Failed: 0
+```
 
 | Area | Test Scenario | Expected Outcome |
 |---|---|---|
