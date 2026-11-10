@@ -828,20 +828,27 @@
 
         <!-- TAB 1: Receive Form -->
         <form v-if="stockReceiveActiveTab === 'receive'" @submit.prevent="submitStockReceive" class="space-y-4 text-xs">
-          <!-- Branch Selector (if Super Admin) -->
-          <div v-if="isSuperAdmin && branches.length > 0">
+          <!-- Dispatch Manifest Selector (v4.1 Section 3 & 5) -->
+          <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
-              Destination Branch *
+              Incoming Shipment Manifest *
             </label>
-            <select
-              v-model="stockReceiveForm.branch_id"
-              class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2.5 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
-              required
-            >
-              <option v-for="b in nonMainBranches" :key="b.branch_id" :value="b.branch_id">
-                {{ b.branch_name }}
-              </option>
-            </select>
+            <div v-if="inTransitDispatches.length > 0">
+              <select
+                v-model="stockReceiveForm.dispatch_id"
+                class="w-full border border-emerald-400 bg-emerald-50/60 rounded-xl px-3 py-2.5 text-xs font-bold text-emerald-900 focus:ring-1 focus:ring-emerald-600 focus:outline-none cursor-pointer"
+                required
+              >
+                <option :value="null" disabled>Choose incoming dispatch manifest...</option>
+                <option v-for="d in inTransitDispatches" :key="d.dispatch_id" :value="d.dispatch_id">
+                  📦 Manifest {{ d.reference_number }} (From: {{ d.from_branch_name }} &middot; {{ d.items.length }} items)
+                </option>
+              </select>
+            </div>
+            <div v-else class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-1">
+              <div class="font-bold">⚠️ No shipments currently in transit</div>
+              <p class="text-[11px] text-amber-700">Stock shipments must first be dispatched by the Main Branch Manager before they can be received at this branch.</p>
+            </div>
           </div>
 
           <!-- Product Selector -->
@@ -1011,13 +1018,15 @@ const canAdjustStock = computed(() => isSuperAdmin.value || isManager.value);
 const userBranchId = computed(() => authStore.user?.branch_id || (branches.value[0]?.branch_id ?? 1));
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || (branches.value[0]?.branch_name) || 'My Branch');
 
-// Stock Receive Feature State (Requirements 1, 2, 3, 4, 5)
+// Stock Receive Feature State (v4.1 Section 3 & 5)
 const receivedStocksList = ref([]);
 const latestReceivedStock = ref(null);
+const inTransitDispatches = ref([]);
 const showStockReceiveModal = ref(false);
 const stockReceiveActiveTab = ref('receive'); // 'receive' or 'history'
 const isSubmittingReceive = ref(false);
 const stockReceiveForm = ref({
+  dispatch_id: null,
   branch_id: null,
   product_id: null,
   quantity_received: 10,
@@ -1026,9 +1035,9 @@ const stockReceiveForm = ref({
   reference_number: '',
 });
 
-// Non-Main Branches filter (Requirement 1, 3, 4)
+// Non-Main Branches filter (v4.1 Section 5)
 const nonMainBranches = computed(() => {
-  return branches.value.filter(b => b.branch_type !== 'Main' && b.branch_id !== 1);
+  return branches.value.filter(b => b.branch_type !== 'Main');
 });
 
 const currentBranchInfo = computed(() => {
@@ -1043,25 +1052,19 @@ const isMainBranchSelected = computed(() => {
   if (isSuperAdmin.value) {
     if (selectedBranch.value === 'all') return false;
     const b = currentBranchInfo.value;
-    return b ? (b.branch_type === 'Main' || b.branch_id === 1) : false;
+    return b ? b.branch_type === 'Main' : false;
   }
   const b = authStore.user?.branch;
-  if (b && (b.branch_type === 'Main' || b.branch_id === 1)) return true;
-  if (authStore.user?.branch_id === 1 || authStore.user?.role === 'Main Branch Manager') return true;
+  if (b && b.branch_type === 'Main') return true;
+  if (authStore.user?.role === 'Main Branch Manager') return true;
   return false;
 });
 
-// Stock Receive button displayed in every branch except Main Branch (Requirement 1, 3, 4)
+// Stock Receive button displayed for Branch Manager and Branch Staff in regular branches only (v4.1 Section 3 & 5)
 const showStockReceiveButton = computed(() => {
-  if (isMainBranchSelected.value) return false;
-  if (isSuperAdmin.value) {
-    if (selectedBranch.value === 'all') {
-      return nonMainBranches.value.length > 0;
-    }
-    const b = currentBranchInfo.value;
-    return b ? (b.branch_type !== 'Main' && b.branch_id !== 1) : false;
-  }
-  return !isMainBranchSelected.value;
+  if (isSuperAdmin.value) return false; // Super Admin views only (v4.1 Section 3)
+  if (isMainBranchSelected.value) return false; // Main Branch never receives (v4.1 Section 5)
+  return true;
 });
 
 const activeReceivingBranchName = computed(() => {
@@ -1291,19 +1294,28 @@ const fetchReceivedStocks = async () => {
     });
     receivedStocksList.value = res.data.received_stocks || [];
     latestReceivedStock.value = res.data.latest_received || null;
+    inTransitDispatches.value = res.data.in_transit_dispatches || [];
+    if (inTransitDispatches.value.length > 0 && !stockReceiveForm.value.dispatch_id) {
+      stockReceiveForm.value.dispatch_id = inTransitDispatches.value[0].dispatch_id;
+    }
   } catch (err) {
     console.error('Failed to load received stocks', err);
     receivedStocksList.value = [];
     latestReceivedStock.value = null;
+    inTransitDispatches.value = [];
   }
 };
 
 const submitStockReceive = async () => {
+  if (!stockReceiveForm.value.dispatch_id) {
+    alert('Please select an incoming dispatch manifest to receive against.');
+    return;
+  }
   if (!stockReceiveForm.value.product_id || !stockReceiveForm.value.quantity_received) return;
   isSubmittingReceive.value = true;
   try {
     const payload = {
-      branch_id: isSuperAdmin.value ? stockReceiveForm.value.branch_id : userBranchId.value,
+      dispatch_id: stockReceiveForm.value.dispatch_id,
       product_id: stockReceiveForm.value.product_id,
       quantity_received: parseInt(stockReceiveForm.value.quantity_received, 10),
       date_received: stockReceiveForm.value.date_received,
@@ -1325,8 +1337,9 @@ const submitStockReceive = async () => {
     stockReceiveForm.value.quantity_received = 10;
     stockReceiveForm.value.notes = '';
 
-    // Reload inventory & transactions
+    // Reload inventory, transactions, and dispatches
     await loadInventory();
+    await fetchReceivedStocks();
     if (activeSubTab.value === 'ledger') {
       await loadTransactions();
     }

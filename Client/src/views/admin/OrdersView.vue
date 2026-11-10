@@ -12,6 +12,12 @@
         >
           📍 {{ userBranchName }} Only
         </span>
+        <span
+          v-if="isManager"
+          class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300"
+        >
+          👁️ Read-Only Supervision
+        </span>
       </div>
       <div class="flex flex-wrap items-center gap-2.5">
         <button
@@ -316,8 +322,11 @@
           </div>
         </div>
 
-        <!-- Action Buttons: Branch Manager & Staff Order Confirmation Lifecycle -->
-        <div class="pt-3 flex space-x-3">
+        <!-- Action Buttons: Branch Seller & Staff Order Confirmation Lifecycle (v4.1 Section 1 & 3: Managers are Read-Only) -->
+        <div v-if="isManager" class="pt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 text-center font-medium">
+          👁️ <strong>Branch Manager Supervisory Mode (Read-Only)</strong>: Status changes and customer handovers are performed by Branch Sellers and Staff.
+        </div>
+        <div v-else class="pt-3 flex space-x-3">
           <button
             v-if="selectedOrder.order_status === 'Pending'"
             @click="updateOrderStatus(selectedOrder, 'Confirmed')"
@@ -435,6 +444,7 @@ import api from '../../api';
 
 const authStore = useAuthStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
+const isManager = computed(() => ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(authStore.user?.role));
 const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
 const userBranchId = computed(() => authStore.user?.branch_id || authStore.user?.branch?.branch_id);
 const userBranchName = computed(() => authStore.user?.branch?.branch_name || 'My');

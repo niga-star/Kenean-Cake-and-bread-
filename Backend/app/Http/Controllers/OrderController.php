@@ -16,6 +16,7 @@ use App\Models\BranchInventory;
 use App\Models\InventoryTransaction;
 use App\Models\AuditLog;
 use App\Models\Notification;
+use App\Models\CustomCakeRequest;
 use App\Models\DeliveryZone;
 use App\Models\AppSetting;
 use Carbon\Carbon;
@@ -165,6 +166,114 @@ class OrderController extends Controller
         }
 
         return response()->json($order);
+    }
+
+    /**
+     * Two-Factor Order Tracking (v4.1 Section 8.3 & 11)
+     * Requires order_number + (phone OR email).
+     * Returns sanitized status stepper info without leaking addresses or payment data.
+     */
+    public function trackOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'order_number' => 'required|string',
+            'contact' => 'required|string',
+        ]);
+
+        $orderNumber = trim($validated['order_number']);
+        $contact = strtolower(trim($validated['contact']));
+
+        // Try regular bakery orders
+        $order = Order::with(['branch', 'items.product', 'statusHistory'])
+            ->where('order_number', $orderNumber)
+            ->first();
+
+        if ($order) {
+            $orderPhone = strtolower(trim($order->customer_phone ?? ''));
+            $orderEmail = strtolower(trim($order->customer_email ?? ($order->user?->email ?? '')));
+            $shippingPhone = strtolower(trim($order->shipping_address['phone'] ?? ($order->address?->phone ?? '')));
+
+            $matched = ($contact !== '' && ($contact === $orderPhone || $contact === $orderEmail || $contact === $shippingPhone))
+                || (strlen($contact) >= 7 && (($orderPhone && str_contains($orderPhone, $contact)) || str_contains($contact, $orderPhone)));
+
+            if ($matched) {
+                $statusMap = [
+                    'pending' => 'Order Placed',
+                    'confirmed' => 'Confirmed',
+                    'preparing' => 'In Kitchen / Preparing',
+                    'out_for_delivery' => 'Out for Delivery',
+                    'ready_for_pickup' => 'Ready for Pickup',
+                    'completed' => ($order->order_type === 'delivery' ? 'Delivered' : 'Collected'),
+                    'cancelled' => 'Cancelled',
+                ];
+
+                return response()->json([
+                    'order_number' => $order->order_number,
+                    'order_type' => $order->order_type ?? 'delivery',
+                    'status' => $order->status,
+                    'status_label' => $statusMap[$order->status] ?? ucfirst($order->status),
+                    'branch_name' => $order->branch?->branch_name ?? 'SweetBakes Bakery',
+                    'created_at' => $order->created_at?->toIso8601String(),
+                    'confirmed_at' => $order->confirmed_at?->toIso8601String(),
+                    'prepared_at' => $order->prepared_at?->toIso8601String(),
+                    'out_for_delivery_at' => $order->dispatched_at?->toIso8601String(),
+                    'completed_at' => $order->delivered_at?->toIso8601String(),
+                    'items_count' => $order->items->count(),
+                    'items_summary' => $order->items->map(fn($i) => [
+                        'product_name' => $i->product?->product_name ?? 'Bakery Item',
+                        'quantity' => $i->quantity,
+                    ]),
+                ]);
+            }
+        }
+
+        // Try custom cake requests
+        $cake = CustomCakeRequest::with(['branch', 'user'])
+            ->where(function($q) use ($orderNumber) {
+                $q->where('request_id', $orderNumber)
+                  ->orWhere('request_number', $orderNumber);
+            })
+            ->first();
+
+        if ($cake) {
+            $cakePhone = strtolower(trim($cake->customer_phone ?? ''));
+            $cakeEmail = strtolower(trim($cake->user?->email ?? ''));
+
+            $matched = ($contact !== '' && ($contact === $cakePhone || $contact === $cakeEmail))
+                || (strlen($contact) >= 7 && (($cakePhone && str_contains($cakePhone, $contact)) || str_contains($contact, $cakePhone)));
+
+            if ($matched) {
+                $cakeStatusMap = [
+                    'Pending' => 'Order Placed',
+                    'Approved' => 'Confirmed',
+                    'In Kitchen' => 'In Kitchen / Preparing',
+                    'Completed' => 'Delivered / Collected',
+                    'Rejected' => 'Cancelled',
+                ];
+
+                return response()->json([
+                    'order_number' => $cake->request_number ?: ('CCR-' . $cake->request_id),
+                    'order_type' => 'custom_cake',
+                    'status' => $cake->status,
+                    'status_label' => $cakeStatusMap[$cake->status] ?? $cake->status,
+                    'branch_name' => $cake->branch?->branch_name ?? 'SweetBakes Bakery',
+                    'created_at' => $cake->created_at?->toIso8601String(),
+                    'delivery_date' => $cake->needed_by ? $cake->needed_by->format('Y-m-d') : null,
+                    'items_count' => 1,
+                    'items_summary' => [
+                        [
+                            'product_name' => 'Custom Celebration Cake (' . ($cake->flavor ?? 'Bespoke') . ')',
+                            'quantity' => 1,
+                        ]
+                    ],
+                ]);
+            }
+        }
+
+        // Anti-enumeration: generic 404 message
+        return response()->json([
+            'message' => 'Order not found. Please verify your order number and the phone number or email used at checkout.'
+        ], 404);
     }
 
     /**

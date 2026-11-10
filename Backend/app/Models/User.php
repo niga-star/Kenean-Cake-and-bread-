@@ -24,6 +24,7 @@ class User extends Authenticatable
         'salary',
         'employment_status',
         'status',
+        'status_reason',
         'hire_date',
     ];
 
@@ -59,6 +60,11 @@ class User extends Authenticatable
     public function salaryCorrectionRequests()
     {
         return $this->hasMany(SalaryCorrectionRequest::class, 'user_id', 'user_id');
+    }
+
+    public function employeeProfile()
+    {
+        return $this->hasOne(EmployeeProfile::class, 'user_id', 'user_id');
     }
 
     public function staffReports()

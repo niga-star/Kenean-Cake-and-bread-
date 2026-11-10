@@ -14,20 +14,32 @@
       </p>
     </div>
 
-    <!-- Search Input Box -->
-    <div class="flex items-center space-x-2 bg-white dark:bg-[#1E120B] p-2.5 rounded-2xl border border-gray-200 dark:border-[#382318] shadow-xs max-w-lg mx-auto">
-      <div class="pl-3 text-base text-[#786B60] dark:text-[#C5B7AF]">🔍</div>
-      <input
-        v-model="searchNumber"
-        type="text"
-        :placeholder="localeStore.t('order_num_placeholder')"
-        @keyup.enter="searchOrder"
-        class="flex-1 px-3 py-2 text-xs font-mono font-bold text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none uppercase bg-transparent"
-      />
+    <!-- Two-Factor Search Box (v4.1 Section 8.3 & 11) -->
+    <div class="flex flex-col sm:flex-row items-center gap-2 bg-white dark:bg-[#1E120B] p-2.5 rounded-2xl border border-gray-200 dark:border-[#382318] shadow-xs max-w-xl mx-auto">
+      <div class="flex-1 w-full flex items-center px-3 py-1.5 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-xl border border-gray-200 dark:border-[#382318]">
+        <span class="text-xs mr-2 text-stone-400 font-mono font-bold">#</span>
+        <input
+          v-model="searchNumber"
+          type="text"
+          placeholder="Order # (e.g. ORD-1001)"
+          @keyup.enter="searchOrder"
+          class="w-full text-xs font-mono font-bold text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none uppercase bg-transparent"
+        />
+      </div>
+      <div class="flex-1 w-full flex items-center px-3 py-1.5 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-xl border border-gray-200 dark:border-[#382318]">
+        <span class="text-xs mr-2 text-stone-400">📱</span>
+        <input
+          v-model="searchContact"
+          type="text"
+          placeholder="Phone or Email"
+          @keyup.enter="searchOrder"
+          class="w-full text-xs font-medium text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none bg-transparent"
+        />
+      </div>
       <button
         @click="searchOrder"
         :disabled="isSearching"
-        class="px-6 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer active:scale-95"
+        class="w-full sm:w-auto px-6 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer active:scale-95 shrink-0"
       >
         {{ isSearching ? localeStore.t('tracking_btn_loading') : localeStore.t('track_now_btn') }}
       </button>
@@ -172,6 +184,7 @@ const toast = useToastStore();
 const localeStore = useLocaleStore();
 
 const searchNumber = ref(route.query.order || '');
+const searchContact = ref(route.query.contact || route.query.phone || route.query.email || '');
 const order = ref(null);
 const isSearching = ref(false);
 const hasSearched = ref(false);
@@ -179,9 +192,9 @@ const hasSearched = ref(false);
 const steps = computed(() => [
   { key: 'Pending', label: localeStore.isAmharic ? 'ትዕዛዝ ተቀብለናል' : 'Order Placed' },
   { key: 'Confirmed', label: localeStore.isAmharic ? 'ተረጋግጧል' : 'Confirmed' },
-  { key: 'Preparing', label: localeStore.isAmharic ? 'በመጋገር ላይ' : 'Baking' },
-  { key: 'Ready', label: localeStore.isAmharic ? 'ለመላክ ዝግጁ' : 'Ready / Dispatch' },
-  { key: 'Completed', label: localeStore.isAmharic ? 'ተጠናቋል' : 'Completed' },
+  { key: 'Preparing', label: localeStore.isAmharic ? 'በመጋገር ላይ' : 'In Kitchen' },
+  { key: 'Ready', label: localeStore.isAmharic ? 'ለመላክ ዝግጁ' : 'Out for Delivery / Pickup' },
+  { key: 'Completed', label: localeStore.isAmharic ? 'ተጠናቋል' : 'Delivered / Collected' },
 ]);
 
 function formatDate(d) {
@@ -190,19 +203,22 @@ function formatDate(d) {
 }
 
 function statusBadgeClass(status) {
-  switch (status) {
-    case 'Pending':
+  const s = (status || '').toLowerCase();
+  switch (s) {
+    case 'pending':
       return 'bg-[#B98235]/15 text-[#B98235] border border-[#B98235]/30';
-    case 'Confirmed':
+    case 'confirmed':
       return 'bg-rose-50 text-[#DE1B54] border border-rose-200 dark:bg-[#341822] dark:border-[#58263A]';
-    case 'Preparing':
+    case 'preparing':
       return 'bg-[#B98235]/15 text-[#B98235] border border-[#B98235]/30';
-    case 'Ready':
-    case 'Out for delivery':
+    case 'ready':
+    case 'ready_for_pickup':
+    case 'out_for_delivery':
       return 'bg-[#387A54]/15 text-[#387A54] border border-[#387A54]/30';
-    case 'Completed':
+    case 'completed':
       return 'bg-[#387A54]/20 text-[#387A54] border border-[#387A54]/40';
-    case 'Cancelled':
+    case 'cancelled':
+    case 'rejected':
       return 'bg-[#B84B42]/15 text-[#B84B42] border border-[#B84B42]/30';
     default:
       return 'bg-gray-100 text-[#2A1810] border border-gray-200 dark:bg-[#20120B] dark:text-[#FAF3EE] dark:border-[#382318]';
@@ -210,25 +226,30 @@ function statusBadgeClass(status) {
 }
 
 function getStepIndex(key) {
+  const k = (key || '').toLowerCase();
   const map = {
-    'Pending': 0,
-    'Confirmed': 1,
-    'Preparing': 2,
-    'Ready': 3,
-    'Out for delivery': 3,
-    'Completed': 4,
+    'pending': 0,
+    'confirmed': 1,
+    'approved': 1,
+    'preparing': 2,
+    'in kitchen': 2,
+    'ready': 3,
+    'ready_for_pickup': 3,
+    'out for delivery': 3,
+    'out_for_delivery': 3,
+    'completed': 4,
   };
-  return map[key] ?? 0;
+  return map[k] ?? 0;
 }
 
 function isStepComplete(key) {
-  const currentIdx = getStepIndex(order.value?.order_status);
+  const currentIdx = getStepIndex(order.value?.status || order.value?.order_status);
   const stepIdx = getStepIndex(key);
   return currentIdx > stepIdx;
 }
 
 function isCurrentStep(key) {
-  const currentIdx = getStepIndex(order.value?.order_status);
+  const currentIdx = getStepIndex(order.value?.status || order.value?.order_status);
   const stepIdx = getStepIndex(key);
   return currentIdx === stepIdx;
 }
@@ -238,23 +259,31 @@ async function searchOrder() {
     toast.error('Please enter an order number.');
     return;
   }
+  if (!searchContact.value.trim()) {
+    toast.error('Please enter the phone number or email used at checkout.');
+    return;
+  }
 
   isSearching.value = true;
   hasSearched.value = true;
   try {
-    const res = await api.get(`/orders/${searchNumber.value.trim()}`);
+    const res = await api.post('/orders/track', {
+      order_number: searchNumber.value.trim(),
+      contact: searchContact.value.trim(),
+    });
     order.value = res.data;
+    order.value.order_status = res.data.status_label || res.data.status;
     toast.success(`Loaded order #${order.value.order_number}`);
   } catch (err) {
     order.value = null;
-    toast.error('Order not found. Please verify your order number and try again.');
+    toast.error(err.response?.data?.message || 'Order not found. Please verify your order number and phone or email.');
   } finally {
     isSearching.value = false;
   }
 }
 
 onMounted(() => {
-  if (searchNumber.value) {
+  if (searchNumber.value && searchContact.value) {
     searchOrder();
   }
 });

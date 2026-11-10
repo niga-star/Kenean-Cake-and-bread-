@@ -60,7 +60,7 @@ class NotificationController extends Controller
 
                 $scopedBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
                 if (!$scopedBranchId && $user->role === 'Main Branch Manager') {
-                    $scopedBranchId = 1;
+                    $scopedBranchId = Branch::where('branch_type', 'Main')->value('branch_id');
                 }
 
                 if ($scopedBranchId) {
@@ -160,7 +160,7 @@ class NotificationController extends Controller
 
             $scopedBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
             if (!$scopedBranchId && $user->role === 'Main Branch Manager') {
-                $scopedBranchId = 1;
+                $scopedBranchId = Branch::where('branch_type', 'Main')->value('branch_id');
             }
             if ($scopedBranchId) {
                 $query->where(function ($q) use ($scopedBranchId, $user) {

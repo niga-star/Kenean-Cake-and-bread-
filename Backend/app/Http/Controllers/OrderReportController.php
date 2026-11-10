@@ -311,7 +311,14 @@ class OrderReportController extends Controller
         }
 
         if ($request->query('status')) {
-            $query->where('status', $request->query('status'));
+            $st = $request->query('status');
+            if ($st === 'Pending Verification' || $st === 'Submitted') {
+                $query->whereIn('status', ['Pending Verification', 'Submitted']);
+            } elseif ($st === 'Returned' || $st === 'Rejected' || $st === 'Returned for Correction') {
+                $query->whereIn('status', ['Returned', 'Rejected', 'Returned for Correction']);
+            } else {
+                $query->where('status', $st);
+            }
         }
 
         if ($request->query('from_date')) {
@@ -415,7 +422,7 @@ class OrderReportController extends Controller
 
         // Status determination
         $isSubmit = $validated['action'] === 'submit';
-        $status = $isSubmit ? 'Pending Verification' : 'Draft';
+        $status = $isSubmit ? 'Submitted' : 'Draft';
 
         DB::beginTransaction();
         try {
@@ -551,7 +558,7 @@ class OrderReportController extends Controller
             abort(403, 'Access denied: You can only update reports for your assigned branch.');
         }
 
-        if (!in_array($report->status, ['Draft', 'Returned for Correction', 'Rejected'])) {
+        if (!in_array($report->status, ['Draft', 'Returned', 'Returned for Correction', 'Rejected'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'This report cannot be edited because it is ' . $report->status . '.',
@@ -597,7 +604,7 @@ class OrderReportController extends Controller
                 $report->report_date = Carbon::parse($validated['report_date'])->toDateString();
             }
 
-            $report->status = $isSubmit ? 'Pending Verification' : 'Draft';
+            $report->status = $isSubmit ? 'Submitted' : 'Draft';
             if ($isSubmit) {
                 $report->submitted_at = now();
             }
@@ -716,34 +723,25 @@ class OrderReportController extends Controller
                 ], 422);
             }
 
-            $report->status = 'Rejected';
+            $report->status = 'Returned';
             $report->manager_id = $manager->user_id;
             $report->manager_notes = $validated['manager_notes'];
             $report->returned_at = now();
             $report->save();
 
             // Dispatch notification directly to the seller (Strictly once)
-            $alreadyRejected = Notification::where('user_id', $report->seller_id)
-                ->where('category', 'Reports')
-                ->where('title', 'like', "%{$report->report_reference}%")
-                ->where('title', 'like', '%Rejected%')
-                ->where('created_at', '>=', now()->subHours(12))
-                ->exists();
-
-            if (!$alreadyRejected) {
-                Notification::create([
-                    'user_id' => $report->seller_id,
-                    'branch_id' => $report->branch_id,
-                    'category' => 'Reports',
-                    'title' => "Report Rejected: {$report->report_reference}",
-                    'message' => "Manager note: {$validated['manager_notes']}",
-                    'link' => '/admin/seller-reports',
-                ]);
-            }
+            Notification::create([
+                'user_id' => $report->seller_id,
+                'branch_id' => $report->branch_id,
+                'category' => 'Reports',
+                'title' => "Report Returned: {$report->report_reference}",
+                'message' => "Manager note: {$validated['manager_notes']}",
+                'link' => '/admin/seller-reports',
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Report has been rejected and returned to seller with your reason.',
+                'message' => 'Report has been returned to seller with correction notes.',
                 'report' => $report,
             ]);
         }
@@ -756,23 +754,14 @@ class OrderReportController extends Controller
         $report->save();
 
         // Dispatch notification directly to the seller (Strictly once)
-        $alreadyApproved = Notification::where('user_id', $report->seller_id)
-            ->where('category', 'Reports')
-            ->where('title', 'like', "%{$report->report_reference}%")
-            ->where('title', 'like', '%Approved%')
-            ->where('created_at', '>=', now()->subHours(12))
-            ->exists();
-
-        if (!$alreadyApproved) {
-            Notification::create([
-                'user_id' => $report->seller_id,
-                'branch_id' => $report->branch_id,
-                'category' => 'Reports',
-                'title' => "Report Approved: {$report->report_reference}",
-                'message' => "Your daily sales report was verified and approved by {$manager->full_name}.",
-                'link' => '/admin/seller-reports',
-            ]);
-        }
+        Notification::create([
+            'user_id' => $report->seller_id,
+            'branch_id' => $report->branch_id,
+            'category' => 'Reports',
+            'title' => "Report Approved: {$report->report_reference}",
+            'message' => "Your daily sales report was verified and approved by {$manager->full_name}.",
+            'link' => '/admin/seller-reports',
+        ]);
 
         return response()->json([
             'success' => true,
@@ -946,7 +935,14 @@ class OrderReportController extends Controller
             ->orderBy('id', 'desc');
 
         if ($request->query('status')) {
-            $query->where('status', $request->query('status'));
+            $st = $request->query('status');
+            if ($st === 'Pending Verification' || $st === 'Submitted') {
+                $query->whereIn('status', ['Pending Verification', 'Submitted']);
+            } elseif ($st === 'Returned' || $st === 'Rejected' || $st === 'Returned for Correction') {
+                $query->whereIn('status', ['Returned', 'Rejected', 'Returned for Correction']);
+            } else {
+                $query->where('status', $st);
+            }
         }
 
         $reports = $query->paginate($request->query('per_page', 15));
@@ -1094,6 +1090,65 @@ class OrderReportController extends Controller
             'success' => false,
             'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers are responsible for managing and reviewing all sales reports within their branch.',
         ], 403);
+    }
+
+    /**
+     * Super Admin multi-branch sales & revenue summary across approved daily reports
+     */
+    public function adminBranchSummary(Request $request)
+    {
+        $this->checkSuperAdminAccess($request);
+
+        $branches = Branch::all();
+        $branchSummaries = [];
+
+        $platformBookedSales = 0.0;
+        $platformCashCollected = 0.0;
+        $platformApprovedReports = 0;
+
+        foreach ($branches as $branch) {
+            $approvedReports = SellerDailyReport::where('branch_id', $branch->branch_id)
+                ->where('status', 'Approved')
+                ->get();
+
+            $pendingCount = SellerDailyReport::where('branch_id', $branch->branch_id)
+                ->whereIn('status', ['Submitted', 'Pending Verification'])
+                ->count();
+
+            $bookedSales = (float) $approvedReports->sum('combined_daily_revenue');
+            $cashCollected = (float) $approvedReports->sum('total_payments_received');
+            $approvedCount = $approvedReports->count();
+            $regularRevenue = (float) $approvedReports->sum('regular_order_revenue');
+            $customCakeRevenue = (float) $approvedReports->sum('custom_cake_revenue');
+
+            $platformBookedSales += $bookedSales;
+            $platformCashCollected += $cashCollected;
+            $platformApprovedReports += $approvedCount;
+
+            $branchSummaries[] = [
+                'branch_id' => $branch->branch_id,
+                'branch_name' => $branch->branch_name,
+                'branch_code' => $branch->branch_code,
+                'branch_type' => $branch->branch_type,
+                'total_booked_sales' => round($bookedSales, 2),
+                'total_cash_collected' => round($cashCollected, 2),
+                'approved_reports_count' => $approvedCount,
+                'pending_reports_count' => $pendingCount,
+                'regular_order_revenue' => round($regularRevenue, 2),
+                'custom_cake_revenue' => round($customCakeRevenue, 2),
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'platform_summary' => [
+                'total_booked_sales' => round($platformBookedSales, 2),
+                'total_cash_collected' => round($platformCashCollected, 2),
+                'total_approved_reports' => $platformApprovedReports,
+                'branches_count' => $branches->count(),
+            ],
+            'branches' => $branchSummaries,
+        ]);
     }
 }
 

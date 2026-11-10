@@ -26,9 +26,10 @@ use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\StaffReportController;
 use App\Http\Controllers\OrderReportController;
 use App\Http\Controllers\ReceivedStockController;
+use App\Http\Controllers\StockDispatchController;
 
-// Public Auth with Rate Limiting (Section 12 requirement)
-Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:60,1');
+// Public Auth with Rate Limiting (v4.1 Section 10 & 11: 5 attempts/min)
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:30,1');
@@ -107,6 +108,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/users-list', [UserController::class, 'index']);
     Route::get('/auth/users', [AuthController::class, 'listUsers'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/users', [UserController::class, 'store']);
+    Route::patch('/users/{id}/status', [UserController::class, 'updateStatus']);
+    Route::put('/users/{id}/salary', [UserController::class, 'updateSalary'])->middleware('role:Super Admin');
     Route::match(['put', 'patch'], '/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
     Route::get('/branches-quotas', [UserController::class, 'branchQuotas']);
@@ -135,6 +138,13 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/inventory/reconcile', [InventoryController::class, 'reconcile']);
     Route::get('/received-stocks', [ReceivedStockController::class, 'index']);
     Route::post('/received-stocks', [ReceivedStockController::class, 'store']);
+
+    // Stock Dispatches (v4.1 Section 5 & 11)
+    Route::get('/dispatches', [StockDispatchController::class, 'index']);
+    Route::post('/dispatches', [StockDispatchController::class, 'store']);
+    Route::get('/dispatches/{id}', [StockDispatchController::class, 'show']);
+    Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send']);
+    Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);
@@ -193,6 +203,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
 
     // Level 3: Super Admin (Centralized Monitoring & Approval)
+    Route::get('/reports/admin/branch-summary', [OrderReportController::class, 'adminBranchSummary'])
+        ->middleware('role:Super Admin');
     Route::get('/reports/super-admin/overview', [OrderReportController::class, 'superAdminOverview'])
         ->middleware('role:Super Admin');
     Route::get('/reports/super-admin/consolidated/{id}', [OrderReportController::class, 'superAdminConsolidatedShow'])
@@ -256,6 +268,7 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 });
 
 // Customer Storefront Order & Cake Endpoints
+Route::post('/orders/track', [OrderController::class, 'trackOrder'])->middleware('throttle:15,1');
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/orders', [OrderController::class, 'store']);

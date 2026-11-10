@@ -513,4 +513,169 @@ class UserController extends Controller
 
         return response()->json(['message' => 'User deleted successfully.']);
     }
+
+    /**
+     * Dedicated endpoint to update account status (v4.1 Section 6 & 11)
+     * PATCH /api/admin/users/{id}/status
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $user = User::findOrFail($id);
+        $isSuperAdmin = ($currentUser->role === 'Super Admin');
+        $managerRoles = ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'];
+        $targetIsManager = in_array($user->role, $managerRoles);
+
+        // Security & RBAC Enforcement (v4.1 Section 6):
+        // 1. Super Admin cannot change own status (prevents lockout)
+        if ($isSuperAdmin && $user->user_id === $currentUser->user_id) {
+            return response()->json([
+                'message' => 'Access denied: Super Admin cannot alter their own account status to prevent system lockout.'
+            ], 403);
+        }
+
+        // 2. Branch Managers:
+        if (!$isSuperAdmin) {
+            // Cannot modify own account status
+            if ($user->user_id === $currentUser->user_id) {
+                return response()->json([
+                    'message' => 'Access denied: Branch Managers cannot change their own account status. Only the Super Admin can manage Branch Manager account statuses.'
+                ], 403);
+            }
+
+            // Cannot modify any other manager or super admin account
+            if ($targetIsManager) {
+                return response()->json([
+                    'message' => 'Access denied: Only the Super Admin can change Branch Manager account statuses.'
+                ], 403);
+            }
+
+            // Strictly restricted to staff belonging to manager's own branch
+            $userBranchId = $currentUser->branch_id ?? Branch::where('manager_id', $currentUser->user_id)->value('branch_id');
+            if (!$userBranchId || (int) $user->branch_id !== (int) $userBranchId) {
+                return response()->json([
+                    'message' => 'Access denied: You can only manage staff belonging to your assigned branch.'
+                ], 403);
+            }
+
+            if ($user->role === 'Customer') {
+                return response()->json([
+                    'message' => 'Access denied: Branch Managers cannot modify customer accounts.'
+                ], 403);
+            }
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:Active,Inactive,Suspended',
+            'status_reason' => 'nullable|string|max:500',
+        ]);
+
+        // A Suspended status requires a written reason (v4.1 Section 6) -> 422 if missing
+        if ($validated['status'] === 'Suspended' && empty(trim($validated['status_reason'] ?? ''))) {
+            return response()->json([
+                'message' => 'A written reason is required when placing an account in Suspended status.'
+            ], 422);
+        }
+
+        $oldStatus = $user->status;
+        $user->status = $validated['status'];
+        $user->status_reason = ($validated['status'] === 'Suspended') ? trim($validated['status_reason']) : null;
+        $user->employment_status = $validated['status'];
+        $user->save();
+
+        // Immediately revoke active sessions if account is deactivated or suspended (v4.1 Section 6)
+        if (in_array($validated['status'], ['Inactive', 'Suspended'])) {
+            $user->tokens()->delete();
+        }
+
+        // Audit log
+        AuditLog::create([
+            'user_id' => $currentUser->user_id,
+            'user_name' => $currentUser->full_name . ' (' . $currentUser->role . ')',
+            'action' => "User status updated ({$oldStatus} -> {$validated['status']})",
+            'record' => $user->full_name . ($user->branch ? " · {$user->branch->branch_name}" : ""),
+            'entity_type' => 'User',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => "Status: {$oldStatus}",
+            'new_value' => "Status: {$validated['status']}" . ($user->status_reason ? " (Reason: {$user->status_reason})" : ""),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Account status for {$user->full_name} updated to {$user->status}.",
+            'user' => $user->load('branch'),
+        ]);
+    }
+
+    /**
+     * Update employee salary in employee_profiles (v4.1 Section 10 & 11)
+     * PUT /api/admin/users/{id}/salary
+     */
+    public function updateSalary(Request $request, $id)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser || $currentUser->role !== 'Super Admin') {
+            return response()->json(['message' => 'Access denied: Only Super Admin can manage employee salaries.'], 403);
+        }
+
+        $validated = $request->validate([
+            'salary' => 'required|numeric|min:0|max:1000000',
+        ]);
+
+        $user = User::findOrFail($id);
+        $oldSalary = (float) $user->salary;
+
+        $user->salary = (float) $validated['salary'];
+        $user->save();
+
+        \Illuminate\Support\Facades\DB::table('employee_profiles')->updateOrInsert(
+            ['user_id' => $user->user_id],
+            ['salary' => (float) $validated['salary'], 'updated_at' => now()]
+        );
+
+        AuditLog::create([
+            'user_id' => $currentUser->user_id,
+            'user_name' => $currentUser->full_name . ' (Super Admin)',
+            'action' => 'Salary updated',
+            'record' => $user->full_name,
+            'entity_type' => 'Salary',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => "ETB " . number_format($oldSalary, 2),
+            'new_value' => "ETB " . number_format((float) $validated['salary'], 2),
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => "Salary for {$user->full_name} updated to ETB " . number_format((float) $validated['salary'], 2),
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Business-wide audit logs for Super Admin (v4.1 Section 11)
+     * GET /api/admin/audit-logs
+     */
+    public function auditLogs(Request $request)
+    {
+        $currentUser = $request->user();
+        if (!$currentUser || $currentUser->role !== 'Super Admin') {
+            return response()->json(['message' => 'Access denied.'], 403);
+        }
+
+        $query = AuditLog::orderBy('id', 'desc');
+
+        if ($request->filled('action')) {
+            $query->where('action', 'like', '%' . $request->action . '%');
+        }
+
+        if ($request->filled('entity_type')) {
+            $query->where('entity_type', $request->entity_type);
+        }
+
+        return response()->json($query->paginate(50));
+    }
 }
