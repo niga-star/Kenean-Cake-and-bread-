@@ -91,11 +91,12 @@ All accounts use the password: `password123`
 ## 🚀 Running the Project
 
 ### 1. Database
-Make sure MySQL is running on port 3306 with the `kenan_cake_db` database:
+Start MySQL in XAMPP and make sure the `kenean-cake-and-bread` database exists. The backend defaults to `127.0.0.1:3306`, username `root`, and a blank password. If your local MySQL root account has a password, put it in `DB_PASSWORD` in `Backend/.env` (not in `.env.example`).
 ```bash
 # Started via mysqld standalone with defaults
 C:\xampp\mysql\bin\mysqld.exe --defaults-file=C:\xampp\mysql\bin\my.ini --standalone
 ```
+Copy `Backend/.env.example` to `Backend/.env`, then from `Backend` run `php artisan migrate:status` to verify the local connection. Run `php artisan migrate` only if you intend to create/update the schema.
 
 ### 2. Backend (Laravel API)
 ```bash
