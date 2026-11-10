@@ -37,9 +37,17 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
-            'salary' => 'float',
+            'salary' => 'decimal:2',
             'hire_date' => 'date',
         ];
+    }
+
+    public function getSalaryAttribute($value)
+    {
+        if ($this->relationLoaded('employeeProfile') && $this->employeeProfile) {
+            return (float) $this->employeeProfile->salary;
+        }
+        return (float) ($value ?? 0.00);
     }
 
     public function branch()

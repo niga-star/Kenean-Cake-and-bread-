@@ -96,13 +96,25 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Order not found.'], 404);
         }
 
-        $payment = Payment::where('order_id', $order->order_id)->first();
+        $paymentQuery = Payment::where('order_id', $order->order_id);
+        if ($request->filled('payment_id')) {
+            $payment = $paymentQuery->where('payment_id', $request->input('payment_id'))->first();
+        } else {
+            $payment = $paymentQuery->orderBy('payment_id', 'desc')->first();
+        }
+
         if (!$payment) {
             return response()->json(['message' => 'No payment record associated with this order.'], 404);
         }
 
         if ($payment->payment_status === 'Refunded') {
             return response()->json(['message' => 'This payment has already been refunded.'], 422);
+        }
+
+        if ((float) $validated['amount'] > (float) $payment->amount) {
+            return response()->json([
+                'message' => "Refund amount (ETB " . number_format($validated['amount'], 2) . ") cannot exceed the recorded payment amount (ETB " . number_format($payment->amount, 2) . ")."
+            ], 422);
         }
 
         $user = $request->user();
@@ -130,10 +142,10 @@ class PaymentController extends Controller
                         'branch_id' => $order->branch_id,
                         'product_id' => $item->product_id,
                         'transaction_type' => 'order_cancelled',
-                        'quantity' => -$item->quantity,
+                        'quantity' => 0,
                         'reference_type' => 'Order',
                         'reference_id' => $order->order_id,
-                        'reason' => "Order {$order->order_number} refunded ETB {$validated['amount']}: {$validated['reason']}",
+                        'reason' => "Order {$order->order_number} refunded ETB {$validated['amount']}: {$validated['reason']}. Released reserved stock.",
                         'created_by' => $user?->user_id,
                     ]);
                 }

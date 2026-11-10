@@ -111,6 +111,21 @@ class AuthController extends Controller
             'status' => 'Active',
         ]);
 
+        // Link any prior guest orders or custom cake requests placed with this customer's phone
+        if (!empty($user->phone)) {
+            \App\Models\Order::where('customer_phone', $user->phone)
+                ->whereHas('user', function ($uq) {
+                    $uq->where('email', 'like', 'guest_%@sweetbakes.local')
+                       ->orWhere('email', 'like', 'customer_%@sweetbakes.local');
+                })->update(['user_id' => $user->user_id]);
+
+            \App\Models\CustomCakeRequest::where('customer_phone', $user->phone)
+                ->whereHas('user', function ($uq) {
+                    $uq->where('email', 'like', 'guest_%@sweetbakes.local')
+                       ->orWhere('email', 'like', 'customer_%@sweetbakes.local');
+                })->update(['user_id' => $user->user_id]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

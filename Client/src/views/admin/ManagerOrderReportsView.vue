@@ -63,7 +63,7 @@
         <div class="flex items-center space-x-2">
           <span class="text-xs font-bold text-[#7D6E64] uppercase">Status Filter:</span>
           <button
-            v-for="st in ['All', 'Pending Verification', 'Approved', 'Rejected', 'Returned for Correction']"
+            v-for="st in ['All', 'Pending Verification', 'Approved', 'Returned', 'Draft']"
             :key="st"
             @click="filterStatus = st; fetchSellerReports()"
             class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer"
@@ -132,9 +132,9 @@
                   <span
                     class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block"
                     :class="{
-                      'bg-amber-50 text-amber-800 border-amber-200': rep.status === 'Pending Verification',
+                      'bg-amber-50 text-amber-800 border-amber-200': rep.status === 'Pending Verification' || rep.status === 'Submitted',
                       'bg-emerald-50 text-emerald-800 border-emerald-200': rep.status === 'Approved',
-                      'bg-rose-50 text-rose-800 border-rose-200': rep.status === 'Returned for Correction' || rep.status === 'Rejected',
+                      'bg-rose-50 text-rose-800 border-rose-200': ['Returned', 'Returned for Correction', 'Rejected'].includes(rep.status),
                       'bg-stone-100 text-stone-700 border-stone-200': rep.status === 'Draft'
                     }"
                   >
@@ -146,7 +146,7 @@
                     @click="openVerificationModal(rep.id)"
                     class="px-3 py-1.5 bg-[#3D251E] hover:bg-[#2B1810] text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-2xs"
                   >
-                    {{ rep.status === 'Pending Verification' ? '🔍 Review & Verify' : 'View Details' }}
+                    {{ (rep.status === 'Pending Verification' || rep.status === 'Submitted') ? '🔍 Review & Verify' : 'View Details' }}
                   </button>
                 </td>
               </tr>
@@ -901,7 +901,7 @@ async function submitVerification(action) {
 
   const confirmMsg = action === 'approve'
     ? 'Confirm direct approval of this seller daily sales report?'
-    : 'Reject and return this report to the seller with your reason note?';
+    : 'Return this report to the seller with your correction notes?';
 
   if (!confirm(confirmMsg)) return;
 

@@ -40,7 +40,7 @@
     >
       <span class="text-xl">⚠️</span>
       <div class="space-y-1">
-        <div class="text-sm font-bold">This report was rejected by your Branch Manager</div>
+        <div class="text-sm font-bold">This report was returned by your Branch Manager with correction notes</div>
         <div class="text-xs bg-white/70 p-2.5 rounded-xl border border-rose-200 font-medium">
           <strong>Review Note:</strong> {{ currentManagerNotes || 'Please double check product quantities and payment amounts.' }}
         </div>
@@ -592,9 +592,9 @@
                 <span
                   class="px-2.5 py-1 rounded-full text-[11px] font-bold border inline-block"
                   :class="{
-                    'bg-amber-50 text-amber-800 border-amber-200': rep.status === 'Pending Verification',
+                    'bg-amber-50 text-amber-800 border-amber-200': ['Pending Verification', 'Submitted'].includes(rep.status),
                     'bg-emerald-50 text-emerald-800 border-emerald-200': rep.status === 'Approved',
-                    'bg-rose-50 text-rose-800 border-rose-200': ['Returned for Correction', 'Rejected'].includes(rep.status),
+                    'bg-rose-50 text-rose-800 border-rose-200': ['Returned', 'Returned for Correction', 'Rejected'].includes(rep.status),
                     'bg-stone-100 text-stone-700 border-stone-200': rep.status === 'Draft'
                   }"
                 >
@@ -615,7 +615,7 @@
                   View Details
                 </button>
                 <button
-                  v-if="['Draft', 'Returned for Correction', 'Rejected'].includes(rep.status)"
+                  v-if="['Draft', 'Returned', 'Returned for Correction', 'Rejected'].includes(rep.status)"
                   @click="editReport(rep.id)"
                   class="text-xs text-amber-700 font-bold hover:underline cursor-pointer"
                 >
@@ -1009,7 +1009,7 @@ async function editReport(id) {
     if (res.data && res.data.success) {
       const rep = res.data.report;
       editingReportId.value = rep.id;
-      isReturned.value = rep.status === 'Returned for Correction' || rep.status === 'Rejected';
+      isReturned.value = ['Returned', 'Returned for Correction', 'Rejected'].includes(rep.status);
       currentManagerNotes.value = rep.manager_notes || '';
       form.report_date = rep.report_date?.substring(0, 10) || new Date().toISOString().substring(0, 10);
       form.report_reference = rep.report_reference;

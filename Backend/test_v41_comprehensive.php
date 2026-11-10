@@ -579,6 +579,98 @@ $count = Notification::where('title', $nTitle)->count();
 assertTest($count === 1, "Only 1 notification saved in database for duplicated event");
 
 // -------------------------------------------------------------------------
+// TEST 7: Indexes, Guest Linking & Financial Refund Controls
+// -------------------------------------------------------------------------
+echo "\n--- TEST 7: Indexes, Guest Linking & Financial Refund Controls ---\n";
+
+// 7.1 Verify Composite Database Indexes
+$orderIndices = DB::select("SHOW INDEX FROM orders WHERE Key_name = 'idx_orders_branch_status_placed'");
+assertTest(!empty($orderIndices), "Composite index idx_orders_branch_status_placed active on orders");
+
+$invIndices = DB::select("SHOW INDEX FROM inventory_transactions WHERE Key_name = 'idx_inv_tx_branch_prod_created'");
+assertTest(!empty($invIndices), "Composite index idx_inv_tx_branch_prod_created active on inventory_transactions");
+
+$reportIndices = DB::select("SHOW INDEX FROM seller_daily_reports WHERE Key_name = 'idx_reports_branch_date_status'");
+assertTest(!empty($reportIndices), "Composite index idx_reports_branch_date_status active on seller_daily_reports");
+
+// 7.2 Guest Order Linking upon Customer Registration
+$guestPhone = '+251977' . mt_rand(100000, 999999);
+$guestUser = User::create([
+    'full_name' => 'Guest Checkout User',
+    'email' => 'guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+    'phone' => $guestPhone,
+    'password' => Hash::make('password123'),
+    'role' => 'Customer',
+    'status' => 'Active',
+]);
+
+$guestOrder = Order::create([
+    'user_id' => $guestUser->user_id,
+    'order_number' => 'ORD-GUEST-' . uniqid(),
+    'customer_name' => 'Guest Checkout User',
+    'customer_phone' => $guestPhone,
+    'branch_id' => $branch2->branch_id,
+    'total_amount' => 450.00,
+    'order_status' => 'Pending',
+    'placed_at' => now(),
+]);
+
+$authCtrl = app(\App\Http\Controllers\AuthController::class);
+$regReq = Request::create('/api/auth/register', 'POST', [
+    'full_name' => 'Registered Customer',
+    'email' => 'reg_' . uniqid() . '@gmail.com',
+    'phone' => $guestPhone,
+    'password' => 'password123',
+]);
+$regRes = $authCtrl->register($regReq);
+assertTest($regRes->getStatusCode() === 201, "Customer registered successfully (201 Created)");
+$newUserId = json_decode($regRes->getContent(), true)['user']['user_id'];
+$updatedGuestOrder = $guestOrder->fresh();
+assertTest((int) $updatedGuestOrder->user_id === (int) $newUserId, "Historical guest order successfully linked to newly registered user ID");
+
+// 7.3 Financial Refund Validation
+$payCtrl = app(\App\Http\Controllers\PaymentController::class);
+$refundOrder = Order::create([
+    'user_id' => $seller2->user_id,
+    'order_number' => 'ORD-REFUND-' . uniqid(),
+    'customer_name' => 'Refund Customer',
+    'branch_id' => $branch2->branch_id,
+    'total_amount' => 300.00,
+    'order_status' => 'Confirmed',
+    'placed_at' => now(),
+]);
+
+$testPayment = \App\Models\Payment::create([
+    'order_id' => $refundOrder->order_id,
+    'payment_method' => 'Chapa',
+    'amount' => 300.00,
+    'payment_status' => 'Paid',
+    'transaction_reference' => 'TXN-REF-' . uniqid(),
+]);
+
+// Exceeding amount refund attempt returns 422
+$req = Request::create('/api/admin/payments/refund', 'POST', [
+    'order_number' => $refundOrder->order_number,
+    'amount' => 500.00, // Exceeds 300
+    'reason' => 'Customer requested excess refund',
+]);
+$req->setUserResolver(fn() => $superAdmin);
+$res = $payCtrl->refund($req);
+assertTest($res->getStatusCode() === 422, "Refund amount exceeding recorded payment rejected with 422");
+
+// Valid refund succeeds
+$req = Request::create('/api/admin/payments/refund', 'POST', [
+    'order_number' => $refundOrder->order_number,
+    'amount' => 300.00,
+    'reason' => 'Defective packaging complaint',
+]);
+$req->setUserResolver(fn() => $superAdmin);
+$res = $payCtrl->refund($req);
+assertTest($res->getStatusCode() === 200, "Valid refund processed successfully (200 OK)");
+assertTest($testPayment->fresh()->payment_status === 'Refunded', "Payment status marked as Refunded");
+assertTest($refundOrder->fresh()->order_status === 'Cancelled', "Order status marked as Cancelled upon refund");
+
+// -------------------------------------------------------------------------
 // Summary
 // -------------------------------------------------------------------------
 echo "\n=================================================================\n";
