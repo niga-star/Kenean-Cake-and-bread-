@@ -47,3 +47,4 @@ class ReceivedStock extends Model
         return $this->belongsTo(User::class, 'received_by', 'user_id');
     }
 }
+

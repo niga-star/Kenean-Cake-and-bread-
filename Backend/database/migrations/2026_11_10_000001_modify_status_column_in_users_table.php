@@ -19,3 +19,4 @@ return new class extends Migration
         DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active'");
     }
 };
+
