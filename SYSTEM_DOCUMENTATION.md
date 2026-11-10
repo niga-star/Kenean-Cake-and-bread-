@@ -1,57 +1,86 @@
 # 🧁 SweetBakes Bakery Management & E-Commerce Platform
 ## Comprehensive Technical, Architectural & Functional Documentation
 
-> **Platform Version:** 4.0 Enterprise (Release 2026.11.10)  
+> **Platform Version:** 4.1 Enterprise (Revision of 4.0, Release 2026.11.10)  
 > **Backend Architecture:** Laravel 11 / PHP 8.2+ / REST API / Eloquent ORM  
 > **Frontend Architecture:** Vue.js 3 (Composition API) / Vite / Tailwind CSS / Pinia  
-> **Database:** MySQL / MariaDB (InnoDB, Strict Relational Constraints, 33+ Tables)  
-> **Design Standard:** Warm Luxury Bakery Visual System (Chocolate `#3D251E`, Terracotta `#BA5420`, Blush `#FAF7F2`, `#FFF5F2` gradients)
+> **Database:** MySQL / MariaDB (InnoDB, Strict Relational Constraints)  
+> **Design Standard:** Warm Luxury Bakery Visual System (Dark Chocolate `#3D251E`, Warm Terracotta `#BA5420`, Forest Emerald `#047857`, Cream Canvas `#FAF7F2`, Soft Blush `#FFF5F2`)
+
+---
+
+## What Changed in v4.1
+
+Version 4.1 fixes 14 critical defects and contradictions identified during the v4.0 review: conflicting role rules, a missing stock-dispatch workflow, schema precision errors, and unsafe defaults. Changed rules are marked **(v4.1)** throughout this document.
+
+| # | Area | Defect in v4.0 | Resolution in v4.1 |
+|---|---|---|---|
+| **1** | **Role Matrix** | Contradicted between "omitted from manager dashboard" and "belongs to Branch Managers". | Single source of truth matrix: Branch Managers have **read-only order visibility** for supervisory oversight; Main Branch Manager explicitly covered across all domains. |
+| **2** | **Stock Receive Roles** | Matrix said "view only" for staff, while API allowed staff. Super Admin had receive rights without a branch. | Harmonized: **Branch Manager and Branch Staff receive**; Super Admin and Sellers view only. Super Admin cannot receive stock. |
+| **3** | **Dispatch & Receive Flow** | Receipts occurred without verifying stock was ever sent or available. | Linked two-step flow: Main Branch dispatches (`stock_dispatches`, `stock_dispatch_items`), and the destination branch receives against that dispatch. |
+| **4** | **Main Branch Detection** | Code mixed `branch_type = 'Main'` and hardcoded `branch_id = 1`. | Main Branch is identified **exclusively by `branch_type = 'Main'`**. Hardcoded IDs such as `branch_id = 1` are strictly forbidden. |
+| **5** | **HTTP Status Codes** | Mixed 403 and 422 for authorization and input failures. | Consistent standard: **HTTP 403 Forbidden** for permission/role violations; **HTTP 422 Unprocessable Entity** for validation/state errors. |
+| **6** | **Staff Account Creation** | Managers could potentially create elevated roles. | Managers create **only staff roles** (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`) in their **own branch only**. Elevated requests return 403. |
+| **7** | **Order Status Flow** | Tracker labels and notification statuses were misaligned. | Unified status machine shared across DB, notifications, and customer stepper: `pending`, `confirmed`, `preparing`, `out_for_delivery`, `ready_for_pickup`, `completed`, `cancelled`. |
+| **8** | **Sales Reports Lifecycle** | Mixed terms ("reject" vs "return") and blurred cash vs sales. | Defined lifecycle: `draft` $\rightarrow$ `submitted` $\rightarrow$ `approved` (locked) or `returned` (with notes). Explicit separation of **Booked Sales** vs **Cash Collected**. |
+| **9** | **Database Schema** | Longitude truncated values $> 99^\circ$; salary exposed in users; missing dispatch tables. | Fixed `longitude` to `DECIMAL(11,8)`; created `roles`, `employee_profiles` (salaries), `branch_product_prices`, and `stock_dispatches` tables; `users.status_reason` required when Suspended. |
+| **10** | **Security & Auth** | Permissive 60/min login throttle; order tracking open to enumeration; hardcoded passwords. | Login throttle tightened to **5/min**; order tracking requires **2 factors** (`order_number` + phone/email); passwords loaded from `SEED_DEFAULT_PASSWORD`. |
+| **11** | **API Completeness** | Missing dispatch, salary, quotation, and branch summary endpoints. | Added full endpoints for stock dispatches, custom-cake quotes, branch pricing, salaries, audit logs, and Super Admin consolidated read-only report summaries. |
+| **12** | **Naming & Seed Data** | Legacy database name (`kenan_cake_db`) and real personal seed emails. | Standardized product name to **SweetBakes**, database `sweetbakes_db`, and development seed emails to `@sweetbakes.test`. |
+| **13** | **Notifications** | Missing customer & manager notification mappings; duplicate alerts. | Complete recipient event mapping; duplicate notifications suppressed via unique composite constraint `(recipient, entity, event_or_status)`. |
+| **14** | **Formatting & Math** | Broken LaTeX expressions and unescaped currency symbols. | Clean GFM KaTeX math formatting and strict currency notations. |
 
 ---
 
 ## 1. Executive Overview & System Purpose
 
-The **SweetBakes Bakery Management & E-Commerce Platform** is an enterprise multi-branch bakery ecosystem engineered to unify digital storefront sales, branch-level retail operations, independent branch governance, centralized corporate oversight, and automated inventory logistics:
+The **SweetBakes Bakery Management & E-Commerce Platform** is an enterprise multi-branch bakery platform unifying digital customer sales, retail counter transactions, autonomous branch administration, central production distribution, and headquarters oversight:
 
-1. **Customer E-Commerce Storefront:** Enables customers to select their nearest branch, explore real-time inventory, place bakery retail orders, design bespoke celebration cakes in an interactive 3D studio, track delivery progress with live milestone steppers, and enjoy a refined homepage with smooth typing and scroll animations.
-2. **Branch Retail & Seller Operations:** Equips Branch Sellers and Cashiers with tools to record in-store counter orders, custom cake bookings, customer advance deposits, and submit structured Daily Sales Reports with auto-calculation safeguards.
-3. **Autonomous Branch Management:** Empowers Branch Managers with isolated branch-level oversight: independent branch product pricing, staff account lifecycle management (`Active`, `Inactive`, `Suspended`), physical stock adjustments, seller report approval/rejection, and local shift reporting.
-4. **Stock Receive Logistics Engine:** Provides dedicated stock inflow processing for all regional branches (excluding the Main Production Branch) with real-time on-button and banner status tracking (Product Name, Category, Received Quantity, Date Received).
-5. **Headquarters Centralized Governance:** Empowers the Super Admin to oversee multi-branch revenue, initialize new branches with zero-data isolation guarantees, manage manager accounts, configure employee salaries, and monitor business-wide audit and inventory transaction ledgers.
+1. **Customers (Storefront):** Choose their nearest branch, browse real-time localized stock and prices, order bakery items online, design bespoke cakes in an interactive 3D WebGL studio, and track orders with a two-factor milestone stepper.
+2. **Branch Sellers and Cashiers:** Record counter orders, custom cake requests, and customer advance deposits with real-time balance calculations, and submit structured Daily Sales Reports.
+3. **Branch Managers:** Supervise branch operations with read-only order queues, configure branch-specific product selling prices, manage staff account lifecycles (`Active`, `Inactive`, `Suspended`), adjust physical inventory with mandatory reason codes, receive stock dispatches, and approve or return seller reports.
+4. **Main Branch Manager:** Manages the Main Branch with all manager authorities, plus creating and dispatching stock shipments to regular branches **(v4.1)**.
+5. **Super Admin:** Global oversight across all branches, creates new branches with zero data guarantees, manages manager accounts and employee salaries, and reviews immutable business-wide audit and inventory ledgers.
+
+> [!NOTE]
+> **Storefront Clarification (v4.1):** The homepage features an elegant, fast-loading 2D luxury presentation with an interactive typewriter headline and smooth scroll reveals. The 3D WebGL studio is dedicated exclusively to the [`/custom-cake`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue) studio page.
 
 ---
 
-## 2. System Architecture & Technology Stack
+## 2. Architecture & Technology Stack
+
+The platform operates as a stateless REST API (Laravel 11) consumed by a modern single-page client (Vue 3 / Vite), with all data isolation and authorization enforced on the server.
 
 ```mermaid
 flowchart TD
     subgraph ClientLayer["🖥️ Frontend Client Layer (Vue.js 3 + Vite)"]
-        CustomerUI["Customer Storefront\n(Animated Home, Shop, 3D Cake Builder, Cart, Checkout)"]
+        CustomerUI["Customer Storefront\n(Animated Home, Shop, 3D Cake Studio, Cart, 2-Factor Tracker)"]
         SellerUI["Branch Seller Portal\n(Orders, Custom Cakes, Daily Sales Report, Local Notifications)"]
-        ManagerUI["Branch Manager Portal\n(Staff Status, Branch Pricing, Inventory, Stock Receive, Report Approval)"]
-        AdminUI["Super Admin Portal\n(Central KPIs, Branch Management, Salaries, System Logs)"]
+        ManagerUI["Branch Manager Portal\n(Read-Only Orders, Staff Status, Branch Pricing, Stock Receive, Report Review)"]
+        MainManagerUI["Main Branch Manager Portal\n(Main Operations, Stock Dispatch Engine)"]
+        AdminUI["Super Admin Portal\n(Central KPIs, Branch Management, Salaries, Audit Ledgers)"]
     end
 
     subgraph SecurityLayer["🛡️ Security, RBAC & Isolation Layer"]
-        SanctumAuth["Sanctum Bearer Token Authentication"]
-        RBACMiddleware["RoleAuthorizationMiddleware\n(Super Admin, Managers, Sellers, Staff)"]
-        BranchIsolation["Strict Branch Data Isolation Guard\n(Cryptographic Session & DB Scoping)"]
-        StatusGuard["Account Status Protection Guard\n(Anti-Tamper & Hierarchy Enforcement)"]
+        SanctumAuth["Sanctum Bearer Token Auth\n(Revoked immediately on Inactive/Suspended)"]
+        RBACMiddleware["RoleAuthorizationMiddleware\n(Role & Scope Enforcement)"]
+        BranchIsolation["Strict Server-Side Branch Isolation\n(Forces branch_id from authenticated session)"]
+        RateLimiter["Security Rate Limiters\n(Login: 5/min, Tracking: 15/min)"]
     end
 
     subgraph BackendLayer["⚙️ Backend REST API Controllers (Laravel 11)"]
-        OrderCtrl["Order & Custom Cake Controllers"]
-        ReportCtrl["OrderReportController (Branch Review & Approval)"]
-        StockRcvCtrl["ReceivedStockController (Branch Inflow Engine)"]
-        CatalogCtrl["Catalog & Branch Pricing Controller"]
-        InventoryCtrl["Inventory & Stock Ledger Controller"]
-        BranchCtrl["Branch Management Controller (Fresh Init)"]
-        UserCtrl["User, Staff & Salary Controller"]
-        NotifyCtrl["NotificationController (Role & Branch Router)"]
+        OrderCtrl["OrderController & CustomCakeController"]
+        DispatchCtrl["StockDispatchController (v4.1 Dispatch Engine)"]
+        StockRcvCtrl["ReceivedStockController (v4.1 Linked Inflow Engine)"]
+        ReportCtrl["OrderReportController (v4.1 Lifecycle: draft/submitted/approved/returned)"]
+        CatalogCtrl["CatalogController & BranchPriceController (v4.1)"]
+        InventoryCtrl["InventoryController (Ledger & Reconciliation)"]
+        UserCtrl["UserController & SalaryController (v4.1)"]
+        NotifyCtrl["NotificationController (v4.1 Unique Constraint Deduplication)"]
     end
 
     subgraph DatabaseLayer["🗄️ Relational Database (MySQL InnoDB)"]
-        CoreDB[("kenan_cake_db\n(33+ Relational Tables,\nStrict Foreign Keys, Row-Level Locking)")]
+        CoreDB[("sweetbakes_db\n(Strict Foreign Keys, Row-Level Locking,\nDecimal 11,8 GPS, Immutable Ledgers)")]
     end
 
     ClientLayer --> SecurityLayer
@@ -60,14 +89,15 @@ flowchart TD
 ```
 
 ### Core Technologies:
-- **Backend Framework:** Laravel 11 running on PHP 8.2+.
-- **Authentication:** Laravel Sanctum issuing stateless Bearer tokens with token expiration and multi-role authorization middleware (`RoleAuthorizationMiddleware`).
-- **Database Engine:** MySQL InnoDB with strict foreign key constraints, atomic transactions (`DB::transaction()`, `lockForUpdate()`), and soft deletes on critical entities.
-- **Frontend Framework:** Vue 3 using the Composition API (`<script setup>`), Vue Router 4 with strict role navigation guards, Pinia for reactive store management, and Vite for lightning-fast bundling.
-- **Styling & Design System:** Tailwind CSS with warm luxury bakery design tokens:
-  - **Dark Chocolate Primary:** `#3D251E` (Headers, Primary Buttons, Sidebar Background)
-  - **Warm Terracotta Accent:** `#BA5420` (CTA buttons, highlight badges, interactive controls)
-  - **Forest Emerald Action:** `#047857` / `#059669` (Stock Receive features, approved badges)
+- **Backend:** Laravel 11 running on PHP 8.2+.
+- **Authentication & Sessions:** Laravel Sanctum issuing stateless Bearer tokens. Existing tokens are **revoked immediately** when an account status changes to `Inactive` or `Suspended` **(v4.1)**.
+- **Authorization:** `RoleAuthorizationMiddleware` applied to every administrative and branch route.
+- **Database:** MySQL InnoDB with strict foreign key constraints, atomic transactions (`DB::transaction()`, `lockForUpdate()`), and soft deletes on critical entities. Primary keys strictly follow `<table_singular>_id`.
+- **Frontend:** Vue 3 using `<script setup>` Composition API, Vue Router 4 with role navigation guards, Pinia reactive stores, and Vite bundling.
+- **Design Tokens:**
+  - **Dark Chocolate:** `#3D251E` (Headers, Primary Buttons, Sidebar Background)
+  - **Warm Terracotta:** `#BA5420` (CTA buttons, highlight badges, interactive controls)
+  - **Forest Emerald:** `#047857` / `#059669` (Stock Receive, approved badges)
   - **Cream Canvas:** `#FAF7F2` (Warm background canvas)
   - **Soft Blush Header:** Gradient `from-[#FFF5F2] via-[#FFF0EC] to-[#FCE7E1]` with border `#F7E1D7`
   - **Headings Font:** `font-serif` (Playfair Display)
@@ -75,458 +105,446 @@ flowchart TD
 
 ---
 
-## 3. User Roles, Permissions & Scoping Hierarchy (RBAC)
+## 3. Roles, Permissions & Scoping (RBAC)
 
-The platform enforces strict, multi-tiered Role-Based Access Control (RBAC) across frontend navigation, API routes, controller logic, and database query builders:
+Access is enforced across four defensive tiers: frontend navigation guards, API route middleware, controller authorization, and database query scopes. 
 
-```mermaid
-graph TD
-    SuperAdmin["👑 Super Admin\n(Global Oversight, Branches, Salaries, Manager Accounts)"]
-    MainManager["🏭 Main Branch Manager\n(Central Production, Stock Dispatches, Main Branch Staff)"]
-    BranchManager["👨‍💼 Branch Manager\n(Local Branch Staff, Local Pricing, Stock Adjustments, Report Approval)"]
-    BranchSeller["🧑‍🍳 Branch Seller / Cashier\n(Counter Orders, Custom Cakes, Deposits, Daily Sales Reports)"]
-    BranchStaff["👨‍🍳 Branch Staff / Kitchen\n(Order Preparation, Kitchen Fulfillment, Stock Viewing)"]
-    Customer["🛒 Customer\n(Catalog, 3D Cake Studio, Cart, Checkout, Order Tracking)"]
+### Authoritative Role Permission Matrix (v4.1):
+This matrix is the **single source of truth** across the entire platform:
 
-    SuperAdmin -->|Creates Branches & Assigns Managers| BranchManager
-    SuperAdmin -->|Oversees Central Distribution| MainManager
-    MainManager -->|Dispatches Stock Transfers| BranchManager
-    BranchManager -->|Manages Staff Status & Approves Reports| BranchSeller
-    BranchManager -->|Supervises Shifts & Kitchen| BranchStaff
-    BranchSeller -->|Serves & Books| Customer
-```
+| Role | Operational Scope | Orders & Custom Cakes | Stock Dispatch | Stock Receive | Staff Account Status | Daily Sales Reports |
+|---|---|:---:|:---:|:---:|---|---|
+| **Super Admin** | All branches | None *(Queues removed)* | View only *(Audit)* | View only *(Audit)* | Any user, including managers | Read-only consolidated summary of approved reports |
+| **Main Branch Manager** | Main Branch | **Read-only** *(v4.1)* | **Create & Send** *(v4.1)* | Hidden *(Main never receives)* | Main Branch staff only; not own status | Reviews, approves, or returns Main Branch seller reports |
+| **Branch Manager** | Own branch | **Read-only** *(v4.1)* | None | **Receive & View** | Own-branch staff only; not own status | Reviews, approves, or returns own-branch seller reports |
+| **Branch Seller / Cashier** | Own branch | **Full Daily Recording** | None | View only | None | Records sales, books cakes, submits daily reports |
+| **Branch Staff / Servant** | Own branch | Order prep only | None | **Receive & View** *(v4.1)* | None | Kitchen preparation and shift logs |
+| **Customer** | Public Storefront | Own orders only | None | None | Own profile only | None |
 
-### Role Matrix & Authority Boundaries:
-
-| Role | Operational Scope | Storefront / Admin | Orders & Custom Cakes | Stock Receive | Staff Status Governance | Daily Sales Report Responsibility |
-|---|---|---|:---:|:---:|---|---|
-| **Super Admin** | Whole Business (All Branches) | Admin Portal | ❌ *Removed for Clean Governance* | ❌ *(Central Distribution)* | Full control over all Manager, Seller, and Staff account statuses (`Active`, `Inactive`, `Suspended`). | Central multi-branch overview & audit logs. |
-| **Main Branch Manager** | Main Branch Only | Admin Portal | ❌ *(Retail handled by Sellers)* | ❌ *(Main Branch Dispatches)* | Manages staff within Main Branch only. Cannot alter own status. | Reviews Main Branch counter reports. |
-| **Branch Manager** | Assigned Branch Only | Admin Portal | ❌ *Omitted from dashboard to focus on leadership* | ✅ **Full Access** *(Receive Inflow)* | Can activate, deactivate, or suspend staff in **own branch only**. **Cannot change own status**. | **Exclusively reviews, approves, or rejects** local seller reports. |
-| **Branch Seller / Cashier** | Assigned Branch Only | Admin Portal | ✅ **Full Daily Recording** | ❌ *(Managed by Manager/Supervisor)* | No staff status permissions. | Records sales, books cakes, and **submits Daily Sales Reports** to Manager. |
-| **Branch Staff / Servant** | Assigned Branch Only | Admin Portal | Order prep only | View only | No staff status permissions. | Kitchen prep and shift logs. |
-| **Customer** | Public Storefront | Storefront | View own placed orders | ❌ | Self profile only. | None. |
-
-> [!IMPORTANT]
-> **Core Role Governance Updates (Release 4.0):**
-> 1. **Super Admin Dashboard:** Order and Custom Order management queues are completely removed from the Super Admin dashboard. These features belong exclusively to Branch Sellers and Branch Managers.
-> 2. **Branch Sales Reports:** Branch sales reports are no longer submitted to the Super Admin. The Branch Manager is responsible for reviewing, auditing, and approving/rejecting all sales reports within their branch.
-> 3. **Manager Account Status Self-Protection:** Branch Managers cannot modify their own status (`Active`, `Inactive`, `Suspended`). Only the Super Admin can modify a Branch Manager's status.
-> 4. **Branch Staff Isolation:** Branch Managers can only alter the status of staff members belonging to their own branch. Attempts to alter cross-branch staff accounts return HTTP 403.
+### Key Governance Rules:
+1. **Manager Read-Only Order Supervision (v4.1):** Branch Managers have read-only visibility into branch orders and custom cakes. They supervise kitchen preparation and fulfillment milestones without recording retail orders.
+2. **Stock Receive Authority (v4.1):** Branch Managers and Branch Staff at destination branches can receive stock. Super Admin has no assigned branch and cannot receive stock.
+3. **Manager Account Status Protection:** Only the Super Admin can alter a Branch Manager's or Main Branch Manager's account status. Managers attempting self-modification receive **HTTP 403 Forbidden**.
+4. **Cross-Branch Isolation:** Managers attempting to alter staff, modify prices, or view transactions belonging to another branch receive **HTTP 403 Forbidden**.
 
 ---
 
-## 4. Branch Management & Data Isolation Architecture
+## 4. Branch Management & Data Isolation
 
-To ensure multi-tenant security and operational autonomy across expanding branch networks, the platform enforces strict branch data isolation:
+Every branch operates in strict isolation. The server determines the branch identity from the authenticated session, never from client input.
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor SuperAdmin as 👑 Super Admin
-    participant BranchCtrl as ⚙️ BranchController
+    participant API as 🛡️ Branch Management API
     participant DB as 🗄️ MySQL Database
-    actor Manager as 👨‍💼 Branch Manager (New Branch)
+    actor Manager as 👨‍💼 Branch Manager (Branch B)
 
-    Note over SuperAdmin,DB: 1. NEW BRANCH INITIALIZATION (ZERO DATA GUARANTEE)
-    SuperAdmin->>BranchCtrl: POST /api/admin/branches (Create Branch + Assign Manager)
-    BranchCtrl->>DB: Insert new Branch record (status: Active, type: Regular)
-    BranchCtrl->>DB: Link assigned Manager user (branch_id = new_id, role = Branch Manager)
-    BranchCtrl->>DB: Initialize empty inventory records (quantity_on_hand = 0, reserved = 0)
-    Note over DB: All statistics, orders, sales, users, and financial records START AT ZERO.
-    DB-->>BranchCtrl: Branch created successfully
-    BranchCtrl-->>SuperAdmin: 201 Created
+    Note over SuperAdmin,DB: 1. FRESH BRANCH INITIALIZATION (ZERO-DATA GUARANTEE)
+    SuperAdmin->>API: POST /api/admin/branches (Create Branch C + Assign Manager)
+    API->>DB: INSERT INTO branches (branch_type = 'Regular', status = 'Active')
+    API->>DB: Link Manager user to Branch C (role = Branch Manager)
+    API->>DB: Zero initialization: 0 orders, 0 custom cakes, 0 staff, 0 inventory, 0 reports
+    Note over DB: Reference data (products, categories) is shared. Branch C shows NO sellable items until priced and stocked.
+    DB-->>API: Branch C Created
+    API-->>SuperAdmin: 201 Created
 
-    Note over Manager,DB: 2. STRICT BRANCH DATA ISOLATION AT RUNTIME
-    Manager->>BranchCtrl: GET /api/admin/inventory?branch_id=999 (Tamper attempt)
-    BranchCtrl->>BranchCtrl: Verify user->role != 'Super Admin'
-    BranchCtrl->>BranchCtrl: Override branch_id with authenticated user->branch_id
-    BranchCtrl->>DB: SELECT * FROM branch_inventory WHERE branch_id = user->branch_id
-    DB-->>Manager: Returns strictly assigned branch data only
+    Note over Manager,DB: 2. SERVER-SIDE BRANCH SCOPING (ANTI-TAMPERING)
+    Manager->>API: GET /api/admin/inventory?branch_id=A (Attempting cross-branch query)
+    API->>API: Check user->role != 'Super Admin'
+    API->>API: Force branch_id = user->branch_id (Branch B)
+    API->>DB: SELECT * FROM branch_inventory WHERE branch_id = Branch B
+    DB-->>API: Branch B records only
+    API-->>Manager: 200 OK (Branch B data)
 ```
 
-### Key Isolation Guarantees:
-1. **Fresh & Empty Initialization:**
-   - Whenever the Super Admin creates a new branch, it starts with **completely fresh and empty data**.
-   - All statistics, sales, counter orders, custom cakes, staff lists, and financial ledgers start at exactly **zero**.
-   - Never copies or inherits data from existing branches. Data accumulates only as new transactions are performed at that specific branch.
-2. **Backend Controller Enforcement:**
-   - Non-Super Admin requests automatically have their target `branch_id` overridden by `$request->user()->branch_id`.
-   - Modifying query strings (`?branch_id=X`) or payload attributes in API calls cannot bypass branch isolation.
-3. **Database Query Scoping:**
-   - Every operational model (`Order`, `CustomCakeRequest`, `SellerDailyReport`, `BranchInventory`, `ReceivedStock`, `InventoryTransaction`, `Notification`) has strict `where('branch_id', $branchId)` scoping.
+### Isolation Guarantees (v4.1):
+1. **Fresh Start Guarantee:** A new branch created by the Super Admin starts with zero orders, custom cakes, staff members, reports, inventory records, branch prices, and ledger entries. Nothing is copied from existing branches.
+2. **Product Catalog & Availability (v4.1):** Products and categories are shared reference data. A newly created branch displays **no products as available for retail purchase** until the branch receives stock and sets a local selling price in `branch_product_prices`.
+3. **Server-Side Override:** For every authenticated user except Super Admin, `branch_id` is locked to `$request->user()->branch_id`. Query parameters (`?branch_id=X`) and payload values are discarded.
+4. **Customer Storefront Exception (v4.1):** Customers select a branch from active branches (`status = 'Active'`). Customer requests pass the selected `branch_id`, and customers access only their own order records.
 
 ---
 
-## 5. Stock Receive Feature (Branch Inflow Engine)
+## 5. Stock Dispatch & Receive Engine (v4.1)
 
-The **Stock Receive** feature allows non-Main branch locations to receive incoming stock deliveries (from the central bakery, production hubs, or external suppliers) and immediately update their local on-hand inventory and audit ledgers.
+Stock distribution operates as a linked, two-phase supply chain workflow: the Main Branch dispatches, and the regular destination branch receives against that dispatch.
 
 ```mermaid
-flowchart TD
-    subgraph NonMainBranches["📍 Non-Main Branches (Buabuha, Fuad, New Branches)"]
-        Btn["📥 Stock Receive Button\n(Active on all Non-Main Branches)"]
-        Banner["📦 Received Stock Banner\n(Product, Category, Qty, Date)"]
-        Modal["📝 Stock Receive Modal\n(Product Selector, Qty, Date, Notes)"]
+sequenceDiagram
+    autonumber
+    actor MainMgr as 🏭 Main Branch Manager
+    participant API as ⚙️ Stock Engine API
+    participant DB as 🗄️ MySQL Database
+    actor DestStaff as 👨‍💼 Branch Manager / Staff (Destination)
+
+    Note over MainMgr,DB: PHASE 1: DISPATCH CREATION & SHIPMENT
+    MainMgr->>API: POST /api/admin/dispatches (to_branch_id, product_lines)
+    API->>DB: INSERT INTO stock_dispatches (status = 'draft')
+    API-->>MainMgr: Dispatch Draft Created
+
+    MainMgr->>API: POST /api/admin/dispatches/{id}/send
+    API->>DB: Verify Main Branch quantity_on_hand >= dispatched quantity
+    alt Insufficient Stock at Main Branch
+        API-->>MainMgr: 422 Unprocessable Entity (Insufficient stock)
+    else Stock Available
+        API->>DB: Decrement Main Branch quantity_on_hand
+        API->>DB: INSERT INTO inventory_transactions (type = 'transfer_dispatch', -quantity)
+        API->>DB: UPDATE stock_dispatches (status = 'in_transit', sent_at = NOW())
+        API->>DB: INSERT INTO audit_logs
+        API->>DB: INSERT INTO notifications (Destination Branch Manager & Staff)
+        API-->>MainMgr: 200 OK (Shipment In Transit)
     end
 
-    subgraph MainBranch["🏭 Main Branch (Dessie Piazza)"]
-        MainNotice["🔒 Stock Receive Button Hidden\n(Main Branch distributes only; does not receive)"]
-        BackendBlock["🚫 Backend 422 Block\n(Blocks branch_id = 1 or branch_type = 'Main')"]
+    Note over DestStaff,DB: PHASE 2: RECEIVE AGAINST DISPATCH
+    DestStaff->>API: POST /api/admin/received-stocks (dispatch_id, quantities_received)
+    API->>DB: Verify dispatch->to_branch_id == user->branch_id
+    alt Dispatch addressed to different branch
+        API-->>DestStaff: 403 Forbidden
+    else Valid Destination
+        API->>DB: Increment Destination quantity_on_hand
+        API->>DB: INSERT INTO received_stocks (dispatch_id, product_name, category_name, qty, date)
+        API->>DB: INSERT INTO inventory_transactions (type = 'transfer_receive', +quantity)
+        alt All lines received in full
+            API->>DB: UPDATE stock_dispatches (status = 'received')
+        else Line received short
+            API->>DB: UPDATE stock_dispatches (status = 'partially_received')
+            API->>DB: Store discrepancy notes & notify Main Branch Manager + Super Admin
+        end
+        API->>DB: INSERT INTO notifications (Branch Staff)
+        API-->>DestStaff: 201 Created (Stock Received & Ledger Updated)
     end
-
-    subgraph Execution["⚙️ Execution & Ledger Logging"]
-        StockDB[("Table: received_stocks\n(product_name, category_name, qty, date, branch_id)")]
-        InvDB[("Table: branch_inventory\n(Increments quantity_on_hand)")]
-        TxDB[("Table: inventory_transactions\n(Type: transfer_receive, +quantity)")]
-        AuditDB[("Table: audit_logs\n(Audit trail with user and old/new values)")]
-        NotifDB[("Table: notifications\n(Branch scoped stock alert)")]
-    end
-
-    Btn --> Modal
-    Modal -->|Submit Stock Inflow| Execution
-    Execution --> StockDB
-    Execution --> InvDB
-    Execution --> TxDB
-    Execution --> AuditDB
-    Execution --> NotifDB
-    Execution -->|Immediate Reactivity| Banner
-    Execution -->|Updates Button Label| Btn
 ```
 
-### Functional Requirements & Implementation:
-
-1. **Stock Receive Button (Requirement 1 & 3):**
-   - Displayed in **every non-Main branch**, including all existing branches (e.g. Buabuha, Fuad) and any newly created branches.
-   - **Main Branch Exclusion:** Hidden in the Main Branch. The Main Branch is the production and distribution center; it bakes and dispatches stock to other branches rather than receiving transfers.
-2. **Received Stock Details Display (Requirement 2):**
-   - When a branch receives stock, both the **Stock Receive button** and the **Received Stock Banner** prominently display the latest received stock details:
-     - **Product Name** (e.g., Strawberry Shortcake)
-     - **Product Category** (e.g., Cakes, Pastries, Bread)
-     - **Received Quantity** (e.g., `+25 pcs`)
-     - **Date Received** (e.g., `Nov 10, 2026`)
-3. **Branch Compatibility (Requirement 4):**
-   - Fully automated and dynamic. Any newly created branch (`branch_type = 'Regular'`) created by the Super Admin automatically inherits Stock Receive capabilities without manual code updates or ID hardcoding.
-4. **Data Management & Ledger Integration (Requirement 5):**
-   - Stored in the dedicated `received_stocks` table with foreign key `branch_id`.
-   - Each branch only accesses its own received stock history via `GET /api/admin/received-stocks`.
-   - **Atomic Inflow Processing:** Executed inside a database transaction:
-     - Increments `branch_inventory.quantity_on_hand`.
-     - Logs an immutable `inventory_transactions` row with `transaction_type = 'transfer_receive'`.
-     - Records an entry in `audit_logs`.
-     - Emits a branch-scoped notification for branch staff.
+### Stock Receive Display Rules:
+1. **Dynamic Button Visibility:** The **Stock Receive** button displays only when the active branch has `branch_type = 'Regular'` (not Main) and the logged-in role has receive authority (`Branch Manager`, `Branch Staff`).
+2. **Main Branch Identification (v4.1):** Evaluated strictly by `branch_type = 'Main'`. Hardcoded IDs such as `branch_id = 1` are strictly prohibited.
+3. **On-Button & Banner Information:** When stock is received, the button and top banner dynamically display:
+   - **Product Name** (e.g. Strawberry Shortcake)
+   - **Product Category** (e.g. Cakes)
+   - **Received Quantity** (e.g. `+25 pcs`)
+   - **Date Received** (e.g. `Nov 10, 2026`)
+4. **Validation Standards:**
+   - Destination branch is derived from the authenticated user.
+   - Receiving stock for the Main Branch returns **HTTP 422**.
+   - Receiving against a dispatch addressed to another branch returns **HTTP 403**.
+   - Received quantity must be positive and cannot exceed dispatched quantity.
 
 ---
 
 ## 6. Staff Account Status & Governance Hierarchy
 
-To maintain staff discipline and organizational integrity, employee account status management is regulated by strict hierarchical controls:
+Employee account status is managed strictly from above, and self-modification is impossible:
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Active: Super Admin or Branch Manager recruits staff
+    [*] --> Active: Created by Super Admin or Branch Manager
 
-    state "Staff Member Account Statuses" as S {
-        Active --> Inactive: Manager / Admin deactivates
-        Inactive --> Active: Manager / Admin reactivates
-        Active --> Suspended: Manager / Admin restricts (disciplinary)
+    state "Staff Account Statuses" as S {
+        Active --> Inactive: Deactivated (Leaves employment / On leave)
+        Inactive --> Active: Reactivated
+        Active --> Suspended: Suspended (Disciplinary / Audit review)
         Suspended --> Active: Reinstated
-        Suspended --> Inactive: Deactivated
+        Suspended --> Inactive: Terminated
     }
 
     note right of S
-        Super Admin: Controls ALL account statuses (including Managers)
-        Branch Manager: Controls OWN BRANCH STAFF only (Blocked from altering self)
+        Super Admin: Controls ALL accounts (including Managers)
+        Branch Manager: Controls OWN BRANCH STAFF only
+        Suspended requires mandatory written reason (v4.1)
     end note
 ```
 
-### Account Status Lifecycle:
-- `Active`: Employee has full portal access according to their assigned role.
-- `Inactive`: Account is disabled; employee cannot log in or record transactions.
-- `Suspended`: Account is temporarily restricted pending operational or audit review.
+### Status Lifecycle & Token Invalidation (v4.1):
+| Status | Meaning | Login Allowed | Existing Bearer Tokens |
+|---|---|:---:|---|
+| `Active` | Full access according to role permissions | Yes | Valid |
+| `Inactive` | Account disabled | No | **Revoked immediately** *(v4.1)* |
+| `Suspended` | Restricted pending operational/audit review | No | **Revoked immediately** *(v4.1)* (Written reason mandatory) |
 
-### Strict Governance Rules:
-1. **Branch Manager Account Protection:**
-   - Branch Managers **must not be able to change their own account status**.
-   - Only the **Super Admin** can manage, activate, deactivate, or suspend a Branch Manager's account.
-   - Controller validation strictly rejects any manager self-modification requests.
-2. **Branch Staff Management:**
-   - Branch Managers have full authority to activate, deactivate, or restrict staff members (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`) belonging to **their own branch only**.
-3. **Branch Isolation:**
-   - Branch Managers cannot view, edit, or modify staff accounts belonging to any other branch.
-   - Any attempt to target a staff member from another branch returns HTTP 403 Forbidden.
+### Who May Change Whose Status (v4.1):
+| Actor | May Change | May NOT Change |
+|---|---|---|
+| **Super Admin** | Any user, including Branch Managers and Main Branch Manager | Own status *(Prevents system lockout)* |
+| **Main Branch Manager** | Staff of Main Branch only | Own status; other managers; staff of other branches |
+| **Branch Manager** | Staff of own branch (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`) | Own status; other managers; staff of other branches |
+| **Everyone Else** | None | Anything |
+
+### Account Creation Restrictions (v4.1):
+When a Branch Manager creates a user (`POST /api/admin/users`), the system forces the new account into the manager's own branch and permits only staff roles (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`). Attempts to create `Branch Manager`, `Main Branch Manager`, or `Super Admin` accounts return **HTTP 403 Forbidden**.
 
 ---
 
-## 7. Branch Seller Notification System
+## 7. Unified Notification Engine
 
-The notification engine has been updated with a minimal, modern, and noise-free design, preventing duplicate alerts and routing events strictly by role and branch ID:
+Notifications are dispatched once per event, routed to the correct role in the correct branch, and synchronized with the customer milestone tracker:
 
 ```mermaid
-flowchart TD
-    subgraph OrderEvents["📦 Order Status Transitions"]
-        E1["Order Placed / Paid"]
-        E2["Preparation Started (In Kitchen)"]
-        E3["Out for Delivery / Ready for Pickup"]
-        E4["Order Completed"]
+flowchart LR
+    subgraph OrderFlow["Order Status Transitions"]
+        P["pending"] --> C["confirmed"]
+        C --> PR["preparing"]
+        PR --> OD["out_for_delivery (Delivery)"]
+        PR --> RP["ready_for_pickup (Pickup/Counter)"]
+        OD --> CO["completed"]
+        RP --> CO
+        P -.-> CA["cancelled"]
+        C -.-> CA
     end
 
-    subgraph NotificationRouter["📬 Notification Routing & Deduplication Engine"]
-        DedupCheck{"Has this status notification\nalready been sent for this order?"}
-        BranchResolver["Resolve Target Branch ID"]
-        RoleFilter["Filter Target Roles"]
+    subgraph DeduplicationRouter["Deduplication & Routing Guard (v4.1)"]
+        Key["Unique Key Check:\n(recipient_id, entity_type, entity_id, status)"]
     end
 
-    subgraph Recipients["👥 Isolated Notification Inboxes"]
-        SellerInbox["🧑‍🍳 Relevant Branch Seller Only\n(Orders, Prep status, Delivery dispatches)"]
-        ManagerInbox["👨‍💼 Branch Manager Only\n(Low stock warnings, Local shift reports)"]
-        AdminInbox["👑 Super Admin Only\n(Central system events, Salary changes)"]
+    subgraph Inboxes["Isolated Inboxes"]
+        Seller["🧑‍🍳 Branch Sellers (Own Branch)"]
+        Customer["🛒 Customer (Push / Tracker)"]
+        Manager["👨‍💼 Branch Manager (Read-Only Alert)"]
     end
 
-    OrderEvents --> DedupCheck
-    DedupCheck -->|Yes - Duplicate| Discard["🚫 Suppress duplicate"]
-    DedupCheck -->|No - First Change| BranchResolver
-    BranchResolver --> RoleFilter
-    RoleFilter -->|Order & Custom Cake alerts| SellerInbox
-    RoleFilter -->|Branch management alerts| ManagerInbox
-    RoleFilter -->|HQ Central alerts| AdminInbox
+    OrderFlow --> Key
+    Key -->|First Event| Seller & Customer & Manager
+    Key -->|Repeated Transition| Suppress["🚫 No-op (Suppressed)"]
 ```
 
-### Key Safeguards:
-1. **Zero Duplicates:** Notifications are triggered only once per status transition (`pending` $\rightarrow$ `preparing` $\rightarrow$ `out_for_delivery` $\rightarrow$ `completed`).
-2. **Super Admin Relief:** All Order and Custom Order notifications are removed from the Super Admin dashboard, eliminating noise.
-3. **Branch Seller Focus:** Branch Sellers receive alerts only for orders originating at their assigned branch.
-4. **Modern Minimalist UI:** Rendered with clean icons, status badges, contextual time indicators, and direct action links.
+### Authoritative Order Status & Milestone Mapping (v4.1):
+| Internal Status | Customer Tracker Label | Customer Notified | Delivery Orders | Pickup / Counter Orders |
+|---|---|:---:|:---:|:---:|
+| `pending` | Order Placed | Yes *(Receipt)* | Step 1 | Step 1 |
+| `confirmed` | Confirmed | Yes | Step 2 | Step 2 |
+| `preparing` | In Kitchen / Preparing | No *(Kitchen step)* | Step 3 | Step 3 |
+| `out_for_delivery` | Out for Delivery | Yes | Step 4 | Skipped |
+| `ready_for_pickup` | Ready for Pickup | Yes | Skipped | Step 4 |
+| `completed` | Delivered / Collected | Yes | Step 5 | Step 5 |
+| `cancelled` | Cancelled | Yes | Aborted | Aborted |
+
+### Recipients by System Event:
+| Event | Target Recipients |
+|---|---|
+| New Order / Custom Cake Request | Sellers of that specific branch |
+| Order Status Change or Cancellation | Customer + Branch Manager (Read-only alert) |
+| Stock Dispatched to Branch | Destination Branch Manager + Branch Staff |
+| Stock Received | Main Branch Manager; Super Admin on discrepancy only |
+| Seller Daily Report Submitted | Manager of that branch |
+| Seller Daily Report Approved / Returned | The submitting seller |
+| Inventory at or below Reorder Level | Branch Manager of that branch |
+| Account Suspended | Super Admin (for managers); audit log otherwise |
 
 ---
 
-## 8. Customer Storefront & Homepage Animation Engine
+## 8. Customer Storefront & Homepage
 
-The customer storefront combines high-performance e-commerce browsing with a warm, luxury bakery aesthetic:
-
-### 8.1. Homepage Visual System & Interactive Typography
-- **Removal of 3D Canvas:** The homepage features a clean, fast-loading, responsive luxury bakery presentation without distracting 3D elements.
-- **Interactive Typing Headline:** Features a typewriter animation engine for hero headlines and slogans:
-  - Dynamically types and backspaces evocative taglines (*"Handcrafted with Love"*, *"Artisan Sourdough & Custom Celebration Cakes"*, *"Freshly Baked Every Morning"*).
-  - Smooth blinking cursor, realistic typing cadence, and pauses before backspacing.
-- **Subtle Scroll Reveals:** Clean fade-in and smooth slide-up reveal animations applied to headings, feature cards, product grids, and action buttons.
-- **Full Responsiveness:** Lightweight CSS/JS transitions designed for fast mobile loading and touch-friendly navigation.
+### 8.1. Homepage Visual System
+- Clean, fast-loading 2D luxury presentation with zero 3D canvas overhead on mobile.
+- Typewriter animation headline cycling through curated slogans with natural typing speed, blinking cursor, and pause-before-backspace.
+- Smooth scroll reveals (fade-in, slide-up) for product categories, feature highlights, and baker story.
+- Users with `prefers-reduced-motion` enabled receive clean static typography without animation **(v4.1)**.
 
 ### 8.2. Interactive 3D Custom Cake Studio ([`/custom-cake`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue))
-- Customers design bespoke celebratory cakes in a dedicated 3D WebGL studio:
-  - **Tier Geometries:** 1 kg, 2 kg, 3 kg, or Tiered arrangements with realistic cream frosting textures and pearl border piping.
-  - **3D Orbit & Turntable:** Full 360° mouse drag, touch rotation, zoom, and auto-spin turntable mode.
-  - **Occasion Toppers & Ribbons:** 3D Birthday Candles with glowing flame, Wedding Interlocking Rings, Celebration Crests, and custom piped inscription ribbons.
-  - **3D Snapshot Capture:** Exports high-resolution WebGL snapshot data attached to customer order requests for kitchen fulfillment and seller quotation.
+- Dedicated 3D WebGL studio with 1 kg, 2 kg, 3 kg, and multi-tiered cylinder cake geometries.
+- Full orbit rotation, touch pinch-zoom, and turntable auto-spin.
+- 3D occasion toppers (birthday candle with flame, wedding rings, celebration crest, piped inscription ribbon).
+- WebGL high-resolution snapshot generation attached to customer requests for seller quotation.
 
-### 8.3. Live Order Tracking Milestone Stepper ([`/track-order`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderTrackingView.vue))
-- Customers enter order reference numbers (`ORD-xxxx` or `CCR-xxxx`) to monitor real-time fulfillment milestones:
-  $$\text{Order Placed} \longrightarrow \text{Confirmed} \longrightarrow \text{In Kitchen / Preparing} \longrightarrow \text{Out for Delivery} \longrightarrow \text{Delivered}$$
-
-### 8.4. Branch Discovery & GPS Synchronization ([`/contact`](file:///c:/Kenan%20Cake/Client/src/views/customer/ContactView.vue))
-- Synchronized with the `branches` database table. Displays actual branch addresses, operating hours, phone numbers, and clickable Google Maps navigation links.
+### 8.3. Two-Factor Order Tracker ([`/track-order`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderTrackingView.vue)) (v4.1)
+- Requires **two factors** to view order status: `order_number` (`ORD-xxxx` or `CCR-xxxx`) PLUS customer phone number or email.
+- Entering order number alone returns a generic not-found message, preventing order enumeration.
+- Rate-limited to 15 lookups per minute per IP.
+- Displays fulfillment milestone stepper matching Section 7.
 
 ---
 
-## 9. Branch Seller & Manager Sales Reporting Architecture
+## 9. Sales Reporting Architecture
+
+Sellers record daily counter transactions and submit one Daily Sales Report per branch per day. The Branch Manager audits and approves the report or returns it for correction.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Seller as 🧑‍🍳 Branch Seller
-    actor Manager as 👨‍💼 Branch Manager
-    participant System as 💻 SweetBakes Core System
-    participant DB as 🗄️ MySQL Database
+stateDiagram-v2
+    [*] --> draft: Seller records counter sales & cake deposits
+    draft --> submitted: Seller submits to Branch Manager
+    submitted --> approved: Branch Manager verifies & approves (LOCKED)
+    submitted --> returned: Branch Manager returns with correction notes
+    returned --> submitted: Seller edits discrepancies & resubmits
 
-    Note over Seller,DB: 1. DAILY RECORDING & SUBMISSION (SELLER)
-    Seller->>System: Open Daily Sales Report Form (/admin/seller-reports)
-    System->>DB: Fetch today's branch transactions (GET /reports/seller/today-orders)
-    DB-->>System: Today's counter orders & custom cake requests
-    System-->>Seller: Auto-populate orders, custom cakes, deposits & balances
-    Seller->>System: Review lines and click "Submit to Branch Manager"
-    System->>DB: Save SellerDailyReport (Status: Pending Verification)
-    DB-->>System: Saved successfully
-
-    Note over Manager,DB: 2. LOCAL AUDIT & APPROVAL (BRANCH MANAGER)
-    Manager->>System: Open Seller Reports (/admin/manager-reports)
-    System->>DB: Fetch seller reports for manager's assigned branch ONLY
-    DB-->>System: List of branch seller reports
-    Manager->>System: Review line items, payment status, and deposits
-    alt Discrepancy detected
-        Manager->>System: Click "Return for Correction" + enter notes
-        System->>DB: Update report status = "Returned for Correction"
-        DB-->>Seller: Correction alert banner displayed on Seller dashboard
-    else All items verified accurate
-        Manager->>System: Click "Approve Seller Report"
-        System->>DB: Update report status = "Approved", verified_at = NOW()
-        DB-->>Manager: Report officially approved in branch ledger
-    end
+    note right of approved
+        Approved reports are permanently locked.
+        Super Admin reads consolidated summaries.
+        Reports are NEVER sent to Super Admin for approval.
+    end note
 ```
 
-### Key Principles of Reporting:
-1. **Local Approval Authority:** The Branch Manager has complete authority to review, audit, approve, or reject seller reports. Reports are no longer sent to the Super Admin.
-2. **Auto-Fill Speed:** 1-click import of today's branch orders (`GET /api/admin/reports/seller/today-orders`) avoids manual re-entry errors.
-3. **Protected Formulas:**
-   $$\text{Total Order Amount} = \text{Quantity} \times \text{Unit Price}$$
-   $$\text{Remaining Balance} = (\text{Quantity} \times \text{Unit Price}) - \text{Advance Payment}$$
-   $$\text{Total Daily Sales} = \text{Regular Orders Revenue} + \text{Custom Cake Revenue}$$
+### Financial Definitions & Protected Formulas (v4.1):
+- **Booked Sales:** Total agreed value of orders and custom cakes booked that day.
+- **Cash Collected:** Actual currency collected that day (counter sales + advance deposits + balance payments).
+- **Outstanding Balance:** Booked value awaiting payment upon collection or delivery.
+
+$$\text{Line Total} = (\text{Quantity} \times \text{Unit Price}) - \text{Discount}$$
+$$\text{Remaining Balance} = \text{Line Total} - \text{Advance Payment}$$
+$$\text{Total Daily Booked Sales} = \text{Regular Orders Revenue} + \text{Custom Cake Revenue}$$
+
+> [!IMPORTANT]
+> The server recalculates every figure upon submission; client-submitted totals are ignored. Advance payments cannot exceed line totals, and remaining balances cannot be negative.
 
 ---
 
 ## 10. Database Schema & Migration Architecture
 
+### Key Relational Tables (v4.1):
+
 ```mermaid
 erDiagram
     BRANCHES ||--o{ USERS : employs
     BRANCHES ||--o{ BRANCH_INVENTORY : stocks
+    BRANCHES ||--o{ BRANCH_PRODUCT_PRICES : prices
+    BRANCHES ||--o{ STOCK_DISPATCHES : dispatches_from
+    BRANCHES ||--o{ STOCK_DISPATCHES : dispatches_to
     BRANCHES ||--o{ RECEIVED_STOCKS : receives
     BRANCHES ||--o{ INVENTORY_TRANSACTIONS : logs
     BRANCHES ||--o{ ORDERS : fulfills
     BRANCHES ||--o{ CUSTOM_CAKE_REQUESTS : prepares
-    BRANCHES ||--o{ SELLER_DAILY_REPORTS : records
+    BRANCHES ||--o{ SELLER_DAILY_REPORTS : audits
     BRANCHES ||--o{ NOTIFICATIONS : routes
 
-    USERS ||--o{ SELLER_DAILY_REPORTS : submits
-    USERS ||--o{ RECEIVED_STOCKS : receives_by
-    USERS ||--o{ AUDIT_LOGS : performs
-
-    PRODUCTS ||--o{ ORDER_ITEMS : contains
-    PRODUCTS ||--o{ BRANCH_INVENTORY : tracks
-    PRODUCTS ||--o{ RECEIVED_STOCKS : specifies
-    PRODUCTS ||--o{ INVENTORY_TRANSACTIONS : records
-    PRODUCTS ||--o{ BRANCH_PRODUCT_PRICES : localized_in
-
-    ORDERS ||--o{ ORDER_ITEMS : includes
-    SELLER_DAILY_REPORTS ||--o{ SELLER_REPORT_ORDERS : itemizes
-    SELLER_DAILY_REPORTS ||--o{ SELLER_REPORT_CUSTOM_CAKES : itemizes
+    USERS ||--|| EMPLOYEE_PROFILES : has
+    ROLES ||--o{ USERS : classifies
+    STOCK_DISPATCHES ||--o{ STOCK_DISPATCH_ITEMS : contains
+    STOCK_DISPATCHES ||--o{ RECEIVED_STOCKS : fulfills_with
 ```
 
-### Key Relational Tables:
-
-#### 1. `received_stocks` (Branch Stock Inflow)
-| Column | Type | Description |
+#### 1. `branches`
+| Column | Type | Constraints / Description |
 |---|---|---|
-| `received_stock_id` | BIGINT UNSIGNED (PK) | Unique primary key for the received stock record |
-| `branch_id` | BIGINT UNSIGNED (FK) | Target destination branch receiving the stock |
-| `product_id` | BIGINT UNSIGNED (FK) | Bakery product received |
-| `product_name` | VARCHAR(255) | Name of the received product |
-| `category_name` | VARCHAR(255) | Category name (e.g., Cakes, Pastries, Bread) |
-| `quantity_received`| INT UNSIGNED | Positive integer representing units received |
-| `date_received` | DATE | Date the shipment was received at the branch |
-| `received_by` | BIGINT UNSIGNED (FK) | User ID of staff/manager accepting delivery |
-| `receiver_name` | VARCHAR(255) | Full name of receiving personnel |
-| `reference_number` | VARCHAR(100) | Delivery manifest or shipment reference code |
-| `notes` | TEXT (Nullable) | Delivery observations or batch notes |
-| `created_at` / `updated_at` | TIMESTAMP | Audit timestamps |
-
-#### 2. `users` (Account Status Enhanced)
-| Column | Type | Description |
-|---|---|---|
-| `user_id` | BIGINT UNSIGNED (PK) | Unique user identification |
-| `branch_id` | BIGINT UNSIGNED (FK, Nullable) | Assigned branch location (NULL for Super Admin) |
-| `full_name` | VARCHAR(255) | User's full name |
-| `email` | VARCHAR(255) (Unique) | Login credential |
-| `role` | VARCHAR(100) | `Super Admin`, `Main Branch Manager`, `Branch Manager`, `Branch Seller`, `Cashier`, `Servant`, `Branch Staff`, `Customer` |
-| `status` | ENUM('Active', 'Inactive', 'Suspended') | Account operating state |
-| `salary` | DECIMAL(10,2) | Monthly remuneration managed by Super Admin |
-
-#### 3. `branches`
-| Column | Type | Description |
-|---|---|---|
-| `branch_id` | BIGINT UNSIGNED (PK) | Unique branch identification |
-| `branch_name` | VARCHAR(255) | Name of bakery branch |
-| `branch_code` | VARCHAR(50) (Unique) | Unique branch identifier (e.g. `BR-BUA`) |
-| `branch_type` | ENUM('Main', 'Regular') | Main production center vs regional retail branch |
+| `branch_id` | BIGINT UNSIGNED (PK) | Unique branch ID |
+| `branch_name` | VARCHAR(255) | Name of bakery location |
+| `branch_code` | VARCHAR(50) (Unique) | Unique identifier (e.g. `BR-BUA`) |
+| `branch_type` | ENUM('Main', 'Regular') | Exactly one 'Main' branch; all others 'Regular' |
 | `city` / `address` | VARCHAR(255) | Physical geographic location |
-| `latitude` / `longitude` | DECIMAL(10,8) | GPS coordinates for live maps & distance calculation |
+| `latitude` | DECIMAL(10,8) | Range $\pm 90^\circ$ |
+| `longitude` | DECIMAL(11,8) | **Fixed in v4.1:** Range $\pm 180^\circ$ requires 3 integer digits |
 | `manager_id` | BIGINT UNSIGNED (FK) | Assigned Branch Manager |
 | `status` | ENUM('Active', 'Inactive') | Branch operating status |
 
-#### 4. `branch_inventory` & `inventory_transactions`
-- `branch_inventory`: Tracks `quantity_on_hand`, `reserved_quantity`, `available_quantity` (virtual), and `reorder_level` per `(branch_id, product_id)`.
-- `inventory_transactions`: Immutable log storing signed `quantity`, `transaction_type` (`production`, `transfer_dispatch`, `transfer_receive`, `order_placed`, `order_completed`, `order_cancelled`, `damaged`, `expired`, `manual_adjustment`), `reason`, and `created_by`.
+#### 2. `users`, `roles` & `employee_profiles` (v4.1)
+- `roles`: `role_id` (PK), `role_name`, `slug` (`super_admin`, `main_branch_manager`, `branch_manager`, `branch_seller`, `cashier`, `servant`, `branch_staff`, `customer`).
+- `users`: `user_id` (PK), `role_id` (FK), `branch_id` (FK, nullable), `full_name`, `email` (Unique), `status` (`Active`, `Inactive`, `Suspended`), `status_reason` (TEXT, nullable, **required when Suspended**).
+- `employee_profiles` **(v4.1)**: `user_id` (PK/FK), `salary` (`DECIMAL(10,2)`). Segregates compensation data away from the customer-facing user entity; managed exclusively by Super Admin.
+
+#### 3. `stock_dispatches` & `stock_dispatch_items` (v4.1)
+- `stock_dispatches`: `dispatch_id` (PK), `from_branch_id` (FK, Main Branch), `to_branch_id` (FK, Destination), `status` (`draft`, `in_transit`, `partially_received`, `received`, `cancelled`), `reference_number` (Unique), `created_by` (FK), `sent_at` (TIMESTAMP).
+- `stock_dispatch_items`: `dispatch_id` (FK), `product_id` (FK), `quantity_dispatched` (INT UNSIGNED), `quantity_received` (INT UNSIGNED).
+
+#### 4. `received_stocks` (v4.1)
+- `received_stock_id` (PK), `branch_id` (FK), `product_id` (FK), `dispatch_id` (FK, nullable in v4.0, **mandatory in v4.1**), `product_name`, `category_name`, `receiver_name`, `quantity_received` (INT UNSIGNED), `date_received` (DATE), `received_by` (FK), `notes` (TEXT).
+
+#### 5. `branch_product_prices` (v4.1)
+- `branch_id` (FK), `product_id` (FK), `price` (`DECIMAL(10,2)`), `updated_by` (FK). Unique composite key `(branch_id, product_id)`.
 
 ---
 
-## 11. API Route Reference
+## 11. Complete RESTful API Route Reference
 
-### Authentication & Public Storefront:
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/login` | Sanctum Bearer token login (rate-limited 60/min) |
-| `POST` | `/api/auth/register` | Customer account registration |
-| `GET` | `/api/branches` | List active branches with GPS coordinates |
-| `GET` | `/api/products` | Browse product catalog with localized branch prices |
-| `POST` | `/api/orders` | Place online retail order |
-| `GET` | `/api/orders/track/{number}` | Real-time milestone order tracker |
-| `POST` | `/api/custom-cakes` | Submit 3D bespoke cake request with WebGL snapshot |
+All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `RoleAuthorizationMiddleware`.
 
-### Stock Receive & Inventory API:
+### Public Storefront & Authentication:
+| Method | Endpoint | Rate Limit | Description |
+|---|---|:---:|---|
+| `POST` | `/api/auth/login` | **5 / min** *(v4.1)* | Bearer token authentication with IP/email throttling |
+| `POST` | `/api/auth/register` | 10 / min | Customer account registration |
+| `GET` | `/api/branches` | 60 / min | Active branches with GPS coordinates |
+| `GET` | `/api/products` | 60 / min | Catalog listing with localized branch pricing |
+| `POST` | `/api/orders` | 15 / min | Place online retail order |
+| `POST` | `/api/orders/track` | **15 / min** *(v4.1)* | **Two-factor tracking** (`order_number` + phone/email) |
+| `POST` | `/api/custom-cakes` | 15 / min | Submit 3D cake design brief with WebGL snapshot |
+
+### Orders & Custom Cakes:
 | Method | Endpoint | Allowed Roles | Description |
 |---|---|---|---|
-| `GET` | `/api/admin/received-stocks` | Super Admin, Managers, Sellers, Staff | List received stocks for branch (Strictly scoped) |
-| `POST` | `/api/admin/received-stocks` | Super Admin, Branch Manager, Staff | Receive stock delivery at branch (Blocked for Main Branch) |
-| `GET` | `/api/admin/inventory` | Admin, Managers, Sellers, Staff | View on-hand inventory levels |
-| `POST` | `/api/admin/inventory/adjust` | Super Admin, Branch Managers | Adjust physical stock counts with reason code |
-| `GET` | `/api/admin/inventory/transactions` | Admin, Managers, Staff | View immutable transaction ledger |
-| `GET` | `/api/admin/inventory/reconcile` | Admin, Managers | Verify inventory on-hand balance against transaction ledger |
+| `GET` | `/api/admin/orders` | Sellers, Staff, **Managers (Read-only)** | List branch orders *(v4.1)* |
+| `PATCH` | `/api/admin/orders/{id}/status` | Sellers, Staff (Preparation) | Update order milestone along Section 7 flow |
+| `POST` | `/api/admin/orders` | Sellers, Cashiers | Record in-store counter order |
+| `GET` | `/api/admin/custom-cakes` | Sellers, Staff, **Managers (Read-only)** | List branch custom-cake requests *(v4.1)* |
+| `POST` | `/api/admin/custom-cakes/{id}/quote` | Sellers | Set final price quotation and deposit *(v4.1)* |
 
-### Branch & Staff Governance API:
+### Stock Dispatch & Inflow Engine:
+| Method | Endpoint | Allowed Roles | Description |
+|---|---|---|---|
+| `POST` | `/api/admin/dispatches` | Main Branch Manager | Create draft dispatch manifest *(v4.1)* |
+| `POST` | `/api/admin/dispatches/{id}/send` | Main Branch Manager | Confirm shipment; lowers Main stock *(v4.1)* |
+| `GET` | `/api/admin/dispatches` | Super Admin, Managers, Staff | List own-branch dispatches *(v4.1)* |
+| `GET` | `/api/admin/received-stocks` | Super Admin, Managers, Sellers, Staff | List received stocks scoped to branch |
+| `POST` | `/api/admin/received-stocks` | **Branch Manager, Branch Staff** | Receive stock against dispatch *(v4.1)* |
+| `GET` | `/api/admin/inventory` | Admin, Managers, Sellers, Staff | View on-hand inventory levels |
+| `POST` | `/api/admin/inventory/adjust` | Managers | Physical count adjustments with mandatory reason |
+| `GET` | `/api/admin/inventory/transactions` | Admin, Managers, Staff | View immutable transaction ledger |
+| `GET` | `/api/admin/inventory/reconcile` | Admin, Managers | Verify stock balance against transaction history |
+
+### Branch Governance & Personnel:
 | Method | Endpoint | Allowed Roles | Description |
 |---|---|---|---|
 | `GET` | `/api/admin/branches` | Super Admin, Managers | List branches |
-| `POST` | `/api/admin/branches` | Super Admin | Create new branch with fresh zero-data initialization |
-| `PATCH` | `/api/admin/branches/{id}` | Super Admin | Update branch details, manager assignment, or GPS coordinates |
-| `GET` | `/api/admin/users` | Super Admin, Branch Managers | View staff members (Manager restricted to own branch) |
-| `PATCH` | `/api/admin/users/{id}/status` | Super Admin, Branch Managers | Update account status (`Active`, `Inactive`, `Suspended`). Manager self-modification blocked. |
-| `POST` | `/api/admin/users` | Super Admin, Branch Managers | Recruit new staff member |
+| `POST` | `/api/admin/branches` | Super Admin | Create branch with fresh zero-data initialization |
+| `PATCH` | `/api/admin/branches/{id}` | Super Admin | Update branch name, manager, or GPS coordinates |
+| `GET / PUT` | `/api/admin/branch-prices` | Managers | Read and set branch-specific selling prices *(v4.1)* |
+| `GET` | `/api/admin/users` | Super Admin, Managers | Staff directory (Managers see own branch only) |
+| `POST` | `/api/admin/users` | Super Admin, Managers | Recruit staff (Managers restricted to staff roles in own branch) |
+| `PATCH` | `/api/admin/users/{id}/status` | Super Admin, Managers | Update account status (`Active`, `Inactive`, `Suspended`) |
+| `PUT` | `/api/admin/users/{id}/salary` | Super Admin | Manage employee salary in `employee_profiles` *(v4.1)* |
+| `GET` | `/api/admin/audit-logs` | Super Admin | Business-wide audit trail *(v4.1)* |
 
-### Sales Reporting API:
+### Sales Reporting:
 | Method | Endpoint | Allowed Roles | Description |
 |---|---|---|---|
-| `GET` | `/api/admin/reports/seller/today-orders` | Branch Sellers, Cashiers | Auto-fill today's branch transactions |
-| `GET` | `/api/admin/reports/seller/my-reports` | Branch Sellers, Cashiers | View history of submitted daily reports |
-| `POST` | `/api/admin/reports/seller/daily` | Branch Sellers, Cashiers | Save draft or submit Daily Sales Report |
-| `GET` | `/api/admin/reports/manager/seller-reports`| Branch Managers | View seller reports for assigned branch |
-| `POST` | `/api/admin/reports/manager/seller-reports/{id}/verify` | Branch Managers | Approve or return seller report with notes |
+| `GET` | `/api/admin/reports/seller/today-orders` | Sellers, Cashiers | 1-click import of today's branch transactions |
+| `GET` | `/api/admin/reports/seller/my-reports` | Sellers, Cashiers | Historical submitted daily reports |
+| `POST` | `/api/admin/reports/seller/daily` | Sellers, Cashiers | Save draft or submit Daily Sales Report |
+| `GET` | `/api/admin/reports/manager/seller-reports`| Managers | View seller reports for assigned branch |
+| `POST` | `/api/admin/reports/manager/seller-reports/{id}/verify` | Managers | Approve or return seller report with notes |
+| `GET` | `/api/admin/reports/admin/branch-summary` | Super Admin | Read-only summary of approved branch reports *(v4.1)* |
 
 ---
 
-## 12. Verification & Quality Assurance Summary
+## 12. Verification & Quality Assurance Suite
 
-The platform undergoes automated end-to-end testing to verify functional compliance:
+Every rule in this specification is verified through automated test suites:
 
-1. **Stock Receive Verification:**
-   - Attempting stock receive for Main Branch (`branch_id = 1` or `branch_type = 'Main'`) returns HTTP `422 Unprocessable Entity`.
-   - Receiving stock for non-Main branch increments `branch_inventory.quantity_on_hand` and logs `transfer_receive` in `inventory_transactions`.
-   - Data isolation verified: Branch A queries received stock and receives 0 records belonging to Branch B.
-   - Newly created branches immediately support receiving stock without additional configuration.
-2. **Staff Status Governance Verification:**
-   - Super Admin can modify status for any user, including Branch Managers.
-   - Branch Managers attempting to alter their own status are rejected with HTTP `403/422`.
-   - Branch Managers attempting to alter staff belonging to another branch are rejected with HTTP `403`.
-3. **Notification Routing Verification:**
-   - Order notifications route exclusively to the relevant branch sellers. Super Admin receives zero order alerts.
-   - Duplicate notifications are suppressed across all status changes.
-4. **Build & Asset Integrity:**
-   - Frontend production build compiles with Vite in under 2 seconds with zero syntax or compilation errors.
-   - All 23 database migrations are active, clean, and consistent.
+| Area | Test Scenario | Expected Outcome |
+|---|---|---|
+| **Stock Receive** | Receive for Main Branch (`branch_type = 'Main'`) | HTTP 422 Unprocessable Entity |
+| **Stock Receive** | Receive with no dispatch or dispatch for another branch | HTTP 422 (no dispatch) or HTTP 403 (wrong branch) |
+| **Stock Receive** | Valid receive against dispatch at regular branch | `quantity_on_hand` increments; `transfer_receive` transaction; audit log; notification |
+| **Stock Receive** | Receive quantity exceeding dispatched quantity | HTTP 422 Unprocessable Entity |
+| **Stock Dispatch** | Dispatch quantity exceeding Main Branch on-hand | HTTP 422 Unprocessable Entity |
+| **Stock Dispatch** | Valid dispatch confirmed | Main stock decrements; `transfer_dispatch` transaction; status `in_transit` |
+| **Data Isolation** | Branch A queries received stocks, orders, or staff | Exactly 0 records belonging to Branch B, even with query tampering |
+| **Data Isolation** | New branch initialized by Super Admin | All counters, sales, orders, and financial records start at 0 |
+| **Status Governance** | Super Admin changes any user status | 200 OK |
+| **Status Governance** | Any user attempts self-status modification | HTTP 403 Forbidden |
+| **Status Governance** | Manager attempts altering staff of another branch | HTTP 403 Forbidden |
+| **Status Governance** | Account set to `Suspended` without reason | HTTP 422 Unprocessable Entity |
+| **Status Governance** | Manager attempts creating Branch Manager or Admin | HTTP 403 Forbidden |
+| **Session Invalidation**| Account changed to `Inactive` or `Suspended` | Existing Sanctum tokens revoked immediately |
+| **Notifications** | Order milestone updated | Only relevant branch sellers, branch manager, and customer notified |
+| **Notifications** | Identical milestone triggered twice | Duplicate suppressed via unique composite constraint |
+| **Security** | 6th login attempt within 1 minute from same IP/email | HTTP 429 Too Many Requests |
+| **Security** | Order tracking queried with order number alone | Generic not-found response (Requires phone/email factor) |
+| **Build & Assets** | Production frontend build (`npm run build`) | Zero errors and zero warnings |
 
 ---
 
-## 13. System Maintenance & Quick Start Commands
+## 13. System Maintenance & Quick Start
 
 ### Local Development Environment:
 ```bash
-# 1. Start MySQL database service on port 3306 (database: kenan_cake_db)
+# 1. Start MySQL on port 3306 (database: sweetbakes_db)
 
 # 2. Run database migrations
 php Backend/artisan migrate
 
-# 3. Start Laravel Backend API server
+# 3. Start Laravel REST API server
 php Backend/artisan serve --port=8000
 
-# 4. Start Vue 3 Frontend Client (Vite Dev Server)
+# 4. Start Vue 3 Vite Client
 npm --prefix Client run dev
 # Running at: http://localhost:5173
 ```
@@ -536,7 +554,12 @@ npm --prefix Client run dev
 npm --prefix Client run build
 ```
 
-### Default System Accounts:
-- **Super Admin:** `admin@goldencrust.com` / `Password123!`
-- **Main Branch Manager:** `amirhassen2027@gmail.com` / `Password123!`
-- **Branch Seller / Cashier:** `amirhassen2026@gmail.com` / `Password123!`
+### Development Seed Accounts (v4.1):
+| Role | Email |
+|---|---|
+| **Super Admin** | `admin@sweetbakes.test` |
+| **Main Branch Manager** | `main.manager@sweetbakes.test` |
+| **Branch Seller / Cashier** | `seller@sweetbakes.test` |
+
+> [!CAUTION]
+> Seed credentials are for local development and testing only. Passwords are set from the `SEED_DEFAULT_PASSWORD` environment variable and must be changed upon first login.
