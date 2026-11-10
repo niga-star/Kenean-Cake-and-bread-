@@ -145,6 +145,11 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/dispatches/{id}', [StockDispatchController::class, 'show']);
     Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send']);
     Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
+    Route::get('/stock-dispatches', [StockDispatchController::class, 'index']);
+    Route::post('/stock-dispatches', [StockDispatchController::class, 'store']);
+    Route::get('/stock-dispatches/{id}', [StockDispatchController::class, 'show']);
+    Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send']);
+    Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);

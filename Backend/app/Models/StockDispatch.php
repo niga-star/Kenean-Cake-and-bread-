@@ -51,3 +51,4 @@ class StockDispatch extends Model
         return $this->hasMany(ReceivedStock::class, 'dispatch_id', 'dispatch_id');
     }
 }
+
