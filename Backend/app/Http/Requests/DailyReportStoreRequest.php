@@ -58,3 +58,4 @@ class DailyReportStoreRequest extends FormRequest
         ];
     }
 }
+

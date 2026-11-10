@@ -55,3 +55,4 @@ class StockDispatchRequest extends FormRequest
         ];
     }
 }
+

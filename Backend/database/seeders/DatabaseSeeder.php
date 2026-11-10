@@ -130,11 +130,13 @@ class DatabaseSeeder extends Seeder
         }
 
         // 3. Users
+        $defaultPassword = Hash::make(env('SEED_DEFAULT_PASSWORD', 'password123'));
+
         $superAdmin = User::create([
             'full_name' => 'Abebe Kebede',
-            'email' => 'admin@goldencrust.com',
+            'email' => 'admin@sweetbakes.test',
             'phone' => '+251 91 100 0001',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Super Admin',
             'branch_id' => null,
             'status' => 'Active',
@@ -142,9 +144,9 @@ class DatabaseSeeder extends Seeder
 
         $mainManager = User::create([
             'full_name' => 'Dawit Tadesse',
-            'email' => 'main@goldencrust.com',
+            'email' => 'main.manager@sweetbakes.test',
             'phone' => '+251 91 100 0002',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Main Branch Manager',
             'branch_id' => $mainBranch->branch_id,
             'status' => 'Active',
@@ -153,9 +155,9 @@ class DatabaseSeeder extends Seeder
 
         $boleAdmin = User::create([
             'full_name' => 'Almaz Haile',
-            'email' => 'bole.admin@goldencrust.com',
+            'email' => 'bole.admin@sweetbakes.test',
             'phone' => '+251 91 100 0003',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Branch Admin',
             'branch_id' => $boleBranch->branch_id,
             'status' => 'Active',
@@ -164,9 +166,9 @@ class DatabaseSeeder extends Seeder
 
         $megenagnaAdmin = User::create([
             'full_name' => 'Kassahun Bekele',
-            'email' => 'megenagna.admin@goldencrust.com',
+            'email' => 'megenagna.admin@sweetbakes.test',
             'phone' => '+251 91 100 0004',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Branch Admin',
             'branch_id' => $megenagnaBranch->branch_id,
             'status' => 'Active',
@@ -175,9 +177,9 @@ class DatabaseSeeder extends Seeder
 
         $piassaAdmin = User::create([
             'full_name' => 'Tigist Alemu',
-            'email' => 'piassa.admin@goldencrust.com',
+            'email' => 'piassa.admin@sweetbakes.test',
             'phone' => '+251 91 100 0005',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Branch Admin',
             'branch_id' => $piassaBranch->branch_id,
             'status' => 'Active',
@@ -186,19 +188,19 @@ class DatabaseSeeder extends Seeder
 
         $boleStaff = User::create([
             'full_name' => 'Yared Tesfaye',
-            'email' => 'bole.staff@goldencrust.com',
+            'email' => 'seller@sweetbakes.test',
             'phone' => '+251 91 100 0006',
-            'password' => Hash::make('password123'),
-            'role' => 'Branch Staff',
+            'password' => $defaultPassword,
+            'role' => 'Branch Seller',
             'branch_id' => $boleBranch->branch_id,
             'status' => 'Active',
         ]);
 
         $customer1 = User::create([
             'full_name' => 'Sara Mengistu',
-            'email' => 'customer@gmail.com',
+            'email' => 'customer@sweetbakes.test',
             'phone' => '+251 91 234 5678',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Customer',
             'branch_id' => null,
             'status' => 'Active',
@@ -206,9 +208,9 @@ class DatabaseSeeder extends Seeder
 
         $customer2 = User::create([
             'full_name' => 'Daniel Worku',
-            'email' => 'daniel@gmail.com',
+            'email' => 'daniel@sweetbakes.test',
             'phone' => '+251 91 876 5432',
-            'password' => Hash::make('password123'),
+            'password' => $defaultPassword,
             'role' => 'Customer',
             'branch_id' => null,
             'status' => 'Active',

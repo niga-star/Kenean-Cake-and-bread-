@@ -187,13 +187,19 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Three-Level Order & Custom Cake Reporting System
     // Level 1: Branch Seller
     Route::get('/reports/seller/today-orders', [OrderReportController::class, 'sellerTodayOrders']);
+    Route::get('/reports/seller/my-reports', [OrderReportController::class, 'sellerReportsIndex']);
     Route::get('/reports/seller/daily-reports', [OrderReportController::class, 'sellerReportsIndex']);
     Route::get('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportShow']);
+    Route::post('/reports/seller/daily', [OrderReportController::class, 'sellerReportStore']);
     Route::post('/reports/seller/daily-reports', [OrderReportController::class, 'sellerReportStore']);
     Route::put('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportUpdate']);
     Route::delete('/reports/seller/daily-reports/{id}', [OrderReportController::class, 'sellerReportDestroy']);
 
     // Level 2: Branch Manager (Verification & Consolidation - Exclusively for Branch Managers)
+    Route::get('/reports/manager/seller-reports', [OrderReportController::class, 'sellerReportsIndex'])
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+    Route::post('/reports/manager/seller-reports/{id}/verify', [OrderReportController::class, 'managerVerifyReport'])
+        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/reports/manager/verify/{id}', [OrderReportController::class, 'managerVerifyReport'])
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/pending-consolidation', [OrderReportController::class, 'managerPendingConsolidation'])
@@ -232,6 +238,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/products/branch-metrics', [CatalogController::class, 'branchSalesMetrics']);
 
     // Catalog & Pricing Management (Branch Managers & Branch Staff/Sellers manage their own branch)
+    Route::get('/branch-prices', [CatalogController::class, 'getBranchPrices'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Super Admin');
+    Route::put('/branch-prices', [CatalogController::class, 'updateBranchPrices'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Super Admin');
     Route::post('/products', [CatalogController::class, 'store'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
     Route::patch('/products/{id}', [CatalogController::class, 'update'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');
     Route::delete('/products/{id}', [CatalogController::class, 'destroy'])->middleware('role:Main Branch Manager,Branch Manager,Branch Admin,Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff');

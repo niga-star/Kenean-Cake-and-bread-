@@ -670,6 +670,22 @@ assertTest($res->getStatusCode() === 200, "Valid refund processed successfully (
 assertTest($testPayment->fresh()->payment_status === 'Refunded', "Payment status marked as Refunded");
 assertTest($refundOrder->fresh()->order_status === 'Cancelled', "Order status marked as Cancelled upon refund");
 
+// 7.4 Branch Prices & Route Completeness
+$catCtrl = app(\App\Http\Controllers\CatalogController::class);
+$priceReq = Request::create('/api/admin/branch-prices', 'PUT', [
+    'product_id' => $product->product_id,
+    'branch_id' => $branch2->branch_id,
+    'price' => 520.00,
+]);
+$priceReq->setUserResolver(fn() => $manager2);
+$priceRes = $catCtrl->updateBranchPrices($priceReq);
+assertTest($priceRes->getStatusCode() === 200, "Branch price updated via /api/admin/branch-prices (200 OK)");
+
+$listPriceReq = Request::create('/api/admin/branch-prices', 'GET');
+$listPriceReq->setUserResolver(fn() => $manager2);
+$listPriceRes = $catCtrl->getBranchPrices($listPriceReq);
+assertTest($listPriceRes->getStatusCode() === 200, "Branch prices listed via /api/admin/branch-prices (200 OK)");
+
 // -------------------------------------------------------------------------
 // Summary
 // -------------------------------------------------------------------------

@@ -717,6 +717,52 @@ class CatalogController extends Controller
     }
 
     /**
+     * Get branch prices for a branch (GET /api/admin/branch-prices)
+     */
+    public function getBranchPrices(Request $request)
+    {
+        $user = $request->user();
+        $branchId = ($user->role === 'Super Admin')
+            ? ($request->query('branch_id') ?: $user->branch_id)
+            : ($user->branch_id ?? \App\Models\Branch::where('manager_id', $user->user_id)->value('branch_id'));
+
+        if (!$branchId) {
+            return response()->json(['message' => 'Branch ID required.'], 422);
+        }
+
+        $prices = BranchProductPrice::with('product')
+            ->where('branch_id', $branchId)
+            ->get();
+
+        return response()->json(['success' => true, 'branch_id' => (int) $branchId, 'prices' => $prices]);
+    }
+
+    /**
+     * Set/update branch price (PUT /api/admin/branch-prices)
+     */
+    public function updateBranchPrices(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,product_id',
+            'branch_id' => 'nullable|exists:branches,branch_id',
+            'price' => 'required|numeric|min:0',
+            'active' => 'sometimes|boolean',
+        ]);
+
+        $user = $request->user();
+        $targetBranchId = ($user->role === 'Super Admin')
+            ? ($validated['branch_id'] ?? $user->branch_id)
+            : ($user->branch_id ?? \App\Models\Branch::where('manager_id', $user->user_id)->value('branch_id'));
+
+        if (!$targetBranchId) {
+            return response()->json(['message' => 'Branch ID required.'], 422);
+        }
+
+        $request->merge(['branch_id' => $targetBranchId]);
+        return $this->setBranchPrice($request, $validated['product_id']);
+    }
+
+    /**
      * Submit a Product & Price Update Report to the Super Admin.
      * Section 1 requirement: Branch Managers must submit product and price update reports to the Super Admin.
      */
