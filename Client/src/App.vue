@@ -11,11 +11,12 @@
       ></div>
     </div>
 
-    <!-- Router View with Smooth Page Fade Transition -->
-    <router-view v-slot="{ Component }">
-      <transition name="page-fade" mode="out-in">
-        <component :is="Component" />
-      </transition>
+    <!-- Router View with Smooth Page Transition (Layout Level) -->
+    <router-view v-slot="{ Component, route }">
+      <PageTransition
+        :component="Component"
+        :transition-key="route.matched[0]?.path || route.path"
+      />
     </router-view>
 
     <!-- Global SweetBakes Toast Notifications Stack -->
@@ -30,6 +31,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import InitialLoadingScreen from './components/InitialLoadingScreen.vue';
+import PageTransition from './components/PageTransition.vue';
 import ToastNotification from './components/ToastNotification.vue';
 import ModalDialog from './components/ModalDialog.vue';
 

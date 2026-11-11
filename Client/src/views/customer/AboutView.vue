@@ -1,5 +1,5 @@
 <template>
-  <div class="sweetbakes-container py-8 sm:py-12 lg:py-16 space-y-12 sm:space-y-16 lg:space-y-20 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] animate-fade-in-up">
+  <div class="sweetbakes-container py-8 sm:py-12 lg:py-16 space-y-12 sm:space-y-16 lg:space-y-20 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54]">
     <!-- Hero Header -->
     <div class="text-center space-y-3 sm:space-y-4 max-w-3xl mx-auto">
       <div class="inline-flex items-center space-x-1.5 px-3.5 sm:px-4 py-1.5 bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] text-[#DE1B54] text-xs font-bold rounded-full">

@@ -396,11 +396,38 @@
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Background Image URL (8K Ultra HD)</label>
-          <div class="flex items-center space-x-3">
-            <input v-model="form.hero_image_url" type="text" placeholder="/mockup/hero_banner_hq.jpg" class="flex-1 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
-            <img v-if="form.hero_image_url" :src="form.hero_image_url" alt="Preview" class="w-14 h-9 rounded-lg object-cover border border-[#D8CDC0] shadow-xs" />
+          <label class="block text-xs font-bold text-[#4A3B32] mb-1">Hero Background Image (URL or Upload from PC / Mobile)</label>
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+            <img
+              v-if="form.hero_image_url"
+              :src="form.hero_image_url"
+              alt="Hero Preview"
+              class="w-16 h-10 rounded-lg object-cover border border-[#D8CDC0] shadow-xs shrink-0 bg-[#FAF7F5]"
+            />
+            <input
+              v-model="form.hero_image_url"
+              type="text"
+              placeholder="/mockup/hero_banner_hq.jpg"
+              class="flex-1 min-w-[160px] bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"
+            />
+            <label
+              data-testid="upload-hero-image-label"
+              class="px-3.5 py-2 min-h-[38px] inline-flex items-center justify-center space-x-1.5 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg shadow-2xs transition cursor-pointer shrink-0 whitespace-nowrap"
+              :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'hero' }"
+              title="Upload hero photo from PC or mobile"
+            >
+              <span>{{ uploadingSlot === 'hero' ? '⏳ Uploading...' : '📁 Upload' }}</span>
+              <input
+                data-testid="upload-hero-image-input"
+                type="file"
+                accept="image/*"
+                :disabled="uploadingSlot === 'hero'"
+                class="hidden"
+                @change="e => uploadSettingImage(e, form, 'hero_image_url', 'hero', 'hero_image_url')"
+              />
+            </label>
           </div>
+          <p class="text-[11px] text-[#8A7B71] mt-1">Upload from PC or mobile (JPG, PNG, WebP up to 10MB) or enter an image URL.</p>
         </div>
       </div>
 
@@ -453,13 +480,40 @@
         </div>
 
         <!-- Chef Photo & Quote -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef / Bakery Image URL</label>
-            <div class="flex items-center space-x-2">
-              <input v-model="form.about_image_url" type="text" placeholder="/mockup/baker_hires.jpg" class="flex-1 bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]" />
-              <img v-if="form.about_image_url" :src="form.about_image_url" alt="Chef Preview" class="w-10 h-10 rounded-lg object-cover border border-[#D8CDC0] shadow-xs" />
+            <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef / Bakery About Photo (URL or Upload)</label>
+            <div class="flex flex-wrap xs:flex-nowrap items-center gap-2">
+              <img
+                v-if="form.about_image_url"
+                :src="form.about_image_url"
+                alt="Chef Preview"
+                class="w-11 h-11 rounded-lg object-cover border border-[#D8CDC0] shadow-xs shrink-0 bg-[#FAF7F5]"
+              />
+              <input
+                v-model="form.about_image_url"
+                type="text"
+                placeholder="Image URL or upload file"
+                class="flex-1 min-w-[120px] bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-2 text-xs text-[#2D231D] focus:ring-2 focus:ring-[#DE1B54]/20 focus:border-[#DE1B54]"
+              />
+              <label
+                data-testid="upload-about-image-label"
+                class="px-3 py-2 min-h-[38px] inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg shadow-2xs transition cursor-pointer shrink-0 whitespace-nowrap"
+                :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'about' }"
+                title="Upload About photo from PC or mobile"
+              >
+                <span>{{ uploadingSlot === 'about' ? '⏳ Uploading...' : '📁 Upload' }}</span>
+                <input
+                  data-testid="upload-about-image-input"
+                  type="file"
+                  accept="image/*"
+                  :disabled="uploadingSlot === 'about'"
+                  class="hidden"
+                  @change="e => uploadSettingImage(e, form, 'about_image_url', 'about', 'about_image_url')"
+                />
+              </label>
             </div>
+            <p class="text-[11px] text-[#8A7B71] mt-1">Select a photo from PC or mobile (JPG, PNG, WebP up to 10MB) or paste a URL.</p>
           </div>
           <div>
             <label class="block text-xs font-bold text-[#4A3B32] mb-1">Chef Quote (English)</label>
@@ -597,6 +651,25 @@
             <input v-model="form.social_tiktok" type="text" placeholder="https://tiktok.com/@..." class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-2.5 py-1.5 text-xs text-[#2D231D]" />
           </div>
         </div>
+      </div>
+
+      <!-- Bottom Quick Save Bar for Long Business & About Form -->
+      <div class="flex items-center justify-end space-x-3 pt-1">
+        <button
+          type="button"
+          @click="loadSettings"
+          class="dash-btn-secondary text-xs sm:text-sm py-2 px-4"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          @click="saveSettings"
+          :disabled="saving"
+          class="dash-btn-primary text-xs sm:text-sm py-2 px-5 disabled:opacity-50"
+        >
+          {{ saving ? 'Saving...' : 'Save Settings' }}
+        </button>
       </div>
     </div>
 
@@ -820,8 +893,18 @@
             <textarea v-model="newBanner.description_am" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image URL *</label>
-            <input v-model="newBanner.image_url" type="text" required placeholder="/mockup/hero_banner_hq.jpg" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image (URL or Upload) *</label>
+            <div class="flex flex-wrap xs:flex-nowrap items-center gap-2">
+              <img v-if="newBanner.image_url" :src="newBanner.image_url" alt="Banner Preview" class="w-12 h-9 rounded-lg object-cover border border-[#D8CDC0] shrink-0" />
+              <input v-model="newBanner.image_url" type="text" required placeholder="Image URL or upload file" class="flex-1 min-w-[140px] bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+              <label
+                class="px-3 py-1.5 min-h-[34px] inline-flex items-center justify-center text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg shadow-2xs transition cursor-pointer shrink-0 whitespace-nowrap"
+                :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'banner-new' }"
+              >
+                <span>{{ uploadingSlot === 'banner-new' ? '⏳ Uploading...' : '📁 Upload' }}</span>
+                <input type="file" accept="image/*" :disabled="uploadingSlot === 'banner-new'" class="hidden" @change="e => uploadSettingImage(e, newBanner, 'image_url', 'banner-new')" />
+              </label>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -890,8 +973,18 @@
             <textarea v-model="editingBanner.description_am" rows="2" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image URL *</label>
-            <input v-model="editingBanner.image_url" type="text" required placeholder="/mockup/hero_banner_hq.jpg" class="w-full bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+            <label class="block text-xs font-medium text-[#7D6E64] mb-1">Banner Image (URL or Upload) *</label>
+            <div class="flex flex-wrap xs:flex-nowrap items-center gap-2">
+              <img v-if="editingBanner.image_url" :src="editingBanner.image_url" alt="Banner Preview" class="w-12 h-9 rounded-lg object-cover border border-[#D8CDC0] shrink-0" />
+              <input v-model="editingBanner.image_url" type="text" required placeholder="Image URL or upload file" class="flex-1 min-w-[140px] bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D]" />
+              <label
+                class="px-3 py-1.5 min-h-[34px] inline-flex items-center justify-center text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-lg shadow-2xs transition cursor-pointer shrink-0 whitespace-nowrap"
+                :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'banner-edit' }"
+              >
+                <span>{{ uploadingSlot === 'banner-edit' ? '⏳ Uploading...' : '📁 Upload' }}</span>
+                <input type="file" accept="image/*" :disabled="uploadingSlot === 'banner-edit'" class="hidden" @change="e => uploadSettingImage(e, editingBanner, 'image_url', 'banner-edit')" />
+              </label>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -938,6 +1031,7 @@ const toast = useToastStore();
 
 const activeTab = ref('general');
 const saving = ref(false);
+const uploadingSlot = ref(null);
 const successMsg = ref('');
 const errorMsg = ref('');
 
@@ -1178,6 +1272,64 @@ const loadSubscribers = async () => {
   }
 };
 
+const uploadSettingImage = async (event, targetObj, fieldKey, slot, persistSettingKey = null) => {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+
+  if (file.type && !file.type.startsWith('image/')) {
+    const msg = 'Please select a valid image file (JPG, PNG, WebP, or GIF).';
+    errorMsg.value = msg;
+    toast.error(msg);
+    event.target.value = '';
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    const msg = 'Image size exceeds 10MB limit. Please choose a smaller image.';
+    errorMsg.value = msg;
+    toast.error(msg);
+    event.target.value = '';
+    return;
+  }
+
+  uploadingSlot.value = slot;
+  errorMsg.value = '';
+
+  const formData = new FormData();
+  formData.append('image', file);
+  formData.append('slot', slot.replace(/-.+$/, ''));
+  if (persistSettingKey) {
+    formData.append('setting_key', persistSettingKey);
+  }
+
+  try {
+    const res = await api.post('/admin/settings/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    const target = targetObj?.value ?? targetObj;
+    if (target && res.data?.image_url) {
+      target[fieldKey] = res.data.image_url;
+    }
+    const msg = persistSettingKey
+      ? 'Photo uploaded and updated on the live website!'
+      : 'Banner photo uploaded successfully!';
+    successMsg.value = msg;
+    toast.success(msg);
+    setTimeout(() => {
+      if (successMsg.value === msg) successMsg.value = '';
+    }, 3500);
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to upload photo';
+    errorMsg.value = msg;
+    toast.error(msg);
+  } finally {
+    uploadingSlot.value = null;
+    if (event?.target) {
+      event.target.value = '';
+    }
+  }
+};
+
 const loadSettings = async () => {
   try {
     const res = await api.get('/admin/settings');
@@ -1193,10 +1345,14 @@ const saveSettings = async () => {
   errorMsg.value = '';
   try {
     await api.post('/admin/settings', form.value);
-    successMsg.value = 'Settings saved successfully! Homepage and About page have been updated.';
+    const msg = 'Settings saved successfully! Homepage and About page have been updated.';
+    successMsg.value = msg;
+    toast.success(msg);
     setTimeout(() => { successMsg.value = ''; }, 3500);
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to save settings';
+    const msg = err.response?.data?.message || 'Failed to save settings';
+    errorMsg.value = msg;
+    toast.error(msg);
   } finally {
     saving.value = false;
   }

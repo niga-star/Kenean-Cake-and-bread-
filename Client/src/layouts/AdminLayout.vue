@@ -463,9 +463,15 @@
         </div>
       </header>
 
-      <!-- View Slot with Warm Bakery Background & Elevated Padding -->
-      <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#FAF7F2]">
-        <router-view />
+      <!-- View Slot with Warm Bakery Background & Smooth Page Transition -->
+      <main id="admin-main-scroll" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#FAF7F2]">
+        <router-view v-slot="{ Component, route: currentRoute }">
+          <PageTransition
+            :component="Component"
+            :transition-key="currentRoute.path"
+            scroll-container-selector="#admin-main-scroll"
+          />
+        </router-view>
       </main>
     </div>
   </div>
@@ -475,6 +481,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import PageTransition from '../components/PageTransition.vue';
 import api from '../api';
 
 const router = useRouter();

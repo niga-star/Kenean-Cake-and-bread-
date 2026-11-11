@@ -233,6 +233,11 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/reports/summary', [ReportController::class, 'summary']);
     Route::get('/reports/data', [ReportController::class, 'reportData']);
 
+    // System & Website Content Settings (Super Admin Only)
+    Route::get('/settings', [SettingController::class, 'index'])->middleware('role:Super Admin');
+    Route::post('/settings', [SettingController::class, 'update'])->middleware('role:Super Admin');
+    Route::post('/settings/upload-image', [WebsiteSettingController::class, 'uploadImage'])->middleware('role:Super Admin');
+
     // Branch management (Super Admin Only)
     Route::post('/branches', [BranchController::class, 'store'])->middleware('role:Super Admin');
     Route::patch('/branches/{id}', [BranchController::class, 'update'])->middleware('role:Super Admin');

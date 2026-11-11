@@ -652,10 +652,12 @@
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useDialogStore } from '../../stores/dialog';
+import { useBranchStore } from '../../stores/branch';
 import api from '../../api';
 
 const authStore = useAuthStore();
 const dialog = useDialogStore();
+const branchStore = useBranchStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
 const branches = ref([]);
@@ -724,6 +726,7 @@ const loadBranches = async () => {
   try {
     const res = await api.get('/branches');
     branches.value = res.data;
+    branchStore.branches = Array.isArray(res.data) ? res.data : branchStore.branches;
     if (!editingBranch.value && branches.value.length > 0) {
       // Automatically load the first branch details
       selectBranchForEdit(branches.value[0], false);

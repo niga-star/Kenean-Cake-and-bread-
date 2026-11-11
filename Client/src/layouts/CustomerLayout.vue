@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#FAF7F5] dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-hidden w-full relative">
+  <div class="min-h-screen bg-[#FAF7F5] dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-clip w-full relative">
     <!-- Top Bar: Dark Charcoal #1A1412 -->
     <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-1.5 sm:py-2 border-b border-[#281E19] print:hidden">
       <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2">
@@ -65,147 +65,202 @@
     </div>
 
     <!-- Main Navigation Bar: Pure White -->
-    <header class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs print:hidden">
-      <div class="sweetbakes-container h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
+    <header ref="headerRef" class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs print:hidden">
+      <div class="sweetbakes-container h-16 sm:h-20 flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-4">
         <!-- SweetBakes Logo -->
-        <router-link to="/" class="flex items-center space-x-2 sm:space-x-3 shrink-0 group">
+        <router-link to="/" class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial lg:max-w-[200px] xl:max-w-[280px] 2xl:max-w-none group">
           <!-- Cupcake Icon -->
-          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-rose-50 dark:bg-[#331A24] border border-rose-100 dark:border-[#58263A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-            <span class="text-xl sm:text-2xl">🧁</span>
+          <div class="w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 dark:bg-[#331A24] border border-rose-100 dark:border-[#58263A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+            <span class="text-lg xs:text-xl sm:text-2xl">🧁</span>
           </div>
-          <div>
-            <div class="text-2xl sm:text-3xl lg:text-[28px] font-logo font-bold text-[#2A1810] dark:text-[#FBF4ED] leading-none">
+          <div class="min-w-0 flex-1 lg:flex-initial">
+            <div class="text-lg xs:text-xl sm:text-3xl lg:text-[28px] font-logo font-bold text-[#2A1810] dark:text-[#FBF4ED] leading-none truncate">
               <template v-if="businessInfo?.site_name">{{ businessInfo.site_name }}</template>
               <template v-else>Sweet<span class="text-[#DE1B54]">Bakes</span></template>
             </div>
-            <div class="hidden sm:block text-[10px] sm:text-xs tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5">
+            <div class="hidden sm:block text-[10px] sm:text-xs tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5 truncate">
               {{ businessInfo?.site_tagline || 'Cakes · Bread · Happiness' }}
             </div>
           </div>
         </router-link>
 
         <!-- Center Nav Links (Balanced spacing from 1024px to 2560px) -->
-        <nav class="hidden lg:flex items-center space-x-5 xl:space-x-8 2xl:space-x-10 text-[15px] xl:text-base font-bold text-[#2A1810] dark:text-[#F7EFE9]">
+        <nav
+          ref="desktopNavRef"
+          class="relative hidden lg:flex items-center space-x-4 xl:space-x-8 2xl:space-x-10 text-sm xl:text-base font-bold text-[#2A1810] dark:text-[#F7EFE9] shrink-0 whitespace-nowrap"
+        >
           <!-- Home -->
           <router-link
+            :ref="(el) => setNavRef('home', el)"
             to="/"
-            class="relative py-2 transition-colors hover:text-[#DE1B54]"
-            :class="($route.path === '/' || $route.path === '/home') && !$route.hash ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
+            @click="triggerNavPress('home')"
+            class="sweet-nav-link py-2"
+            :class="[
+              activeNavKey === 'home' ? 'sweet-nav-link--active text-[#DE1B54] font-bold' : '',
+              pressedNavKey === 'home' ? 'sweet-nav-link--pressed' : ''
+            ]"
           >
-            {{ localeStore.t('home') }}
+            <span class="sweet-nav-label">{{ localeStore.t('home') }}</span>
+            <span class="sweet-nav-underline" aria-hidden="true"></span>
           </router-link>
 
           <!-- Shop Dropdown -->
-          <div class="relative group py-2" @mouseleave="shopDropdownOpen = false">
+          <div
+            ref="shopWrapperRef"
+            class="relative flex items-center"
+            @mouseenter="openShopDropdown"
+            @mouseleave="scheduleCloseShopDropdown"
+          >
             <router-link
+              :ref="(el) => setNavRef('shop', el)"
               to="/shop"
-              class="flex items-center space-x-1.5 transition-colors hover:text-[#DE1B54]"
-              :class="$route.path.startsWith('/shop') ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
-              @click="shopDropdownOpen = false"
+              class="sweet-nav-link py-2"
+              :class="[
+                activeNavKey === 'shop' ? 'sweet-nav-link--active text-[#DE1B54] font-bold' : '',
+                pressedNavKey === 'shop' ? 'sweet-nav-link--pressed' : '',
+                shopDropdownOpen ? 'sweet-nav-link--open' : ''
+              ]"
+              :aria-expanded="shopDropdownOpen"
+              aria-haspopup="true"
+              @click="triggerNavPress('shop'); closeShopDropdownImmediate()"
+              @focus="openShopDropdown"
             >
-              <span>{{ localeStore.t('shop') }}</span>
-              <span class="text-xs opacity-75">▾</span>
+              <span class="sweet-nav-label">
+                <span>{{ localeStore.t('shop') }}</span>
+                <span
+                  class="text-xs opacity-75 inline-block transition-transform duration-250 ease-out"
+                  :class="{ 'rotate-180 opacity-100': shopDropdownOpen }"
+                >▾</span>
+              </span>
+              <span class="sweet-nav-underline" aria-hidden="true"></span>
             </router-link>
 
-            <!-- Dropdown Menu -->
-            <div
-              class="absolute left-0 mt-2 w-64 bg-white dark:bg-[#221610] rounded-2xl shadow-2xl border border-gray-100/90 dark:border-[#3D261B] p-2 hidden group-hover:block z-50 animate-in fade-in zoom-in-95 duration-150"
-            >
-              <router-link
-                to="/shop"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+            <!-- Dropdown Menu (Smooth Fade & Slide-Down + Outside Click Close) -->
+            <Transition name="sweet-dropdown">
+              <div
+                v-if="shopDropdownOpen"
+                class="absolute left-0 top-full pt-2 z-50"
               >
-                <span class="text-base">✨</span>
-                <span>{{ localeStore.t('all_products') }}</span>
-              </router-link>
+                <div class="w-64 bg-white dark:bg-[#221610] rounded-2xl shadow-2xl border border-gray-100/90 dark:border-[#3D261B] p-2">
+                  <router-link
+                    to="/shop"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">✨</span>
+                    <span>{{ localeStore.t('all_products') }}</span>
+                  </router-link>
 
-              <router-link
-                to="/shop?category=Cakes"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
-              >
-                <span class="text-base">🎂</span>
-                <span>{{ localeStore.t('cakes') }}</span>
-              </router-link>
+                  <router-link
+                    to="/shop?category=Cakes"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.query.category === 'Cakes' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">🎂</span>
+                    <span>{{ localeStore.t('cakes') }}</span>
+                  </router-link>
 
-              <router-link
-                to="/shop?category=Bread"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
-              >
-                <span class="text-base">🥖</span>
-                <span>{{ localeStore.t('bread') }}</span>
-              </router-link>
+                  <router-link
+                    to="/shop?category=Bread"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.query.category === 'Bread' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">🥖</span>
+                    <span>{{ localeStore.t('bread') }}</span>
+                  </router-link>
 
-              <router-link
-                to="/shop?category=Pastries"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
-              >
-                <span class="text-base">🥐</span>
-                <span>{{ localeStore.t('cupcakes_croissants') }}</span>
-              </router-link>
+                  <router-link
+                    to="/shop?category=Pastries"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.query.category === 'Pastries' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#2A1810] dark:text-gray-200 hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#DE1B54]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">🥐</span>
+                    <span>{{ localeStore.t('cupcakes_croissants') }}</span>
+                  </router-link>
 
-              <router-link
-                to="/shop?yetsom=1"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.query.yetsom === '1' || $route.query.fasting === '1' ? 'bg-emerald-100/70 dark:bg-emerald-950/60 text-[#075e43] dark:text-emerald-300 font-black' : 'text-[#0b6b4e] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#06503b]'"
-              >
-                <span class="text-base">🌿</span>
-                <span>{{ localeStore.t('yetsom') }}</span>
-              </router-link>
+                  <router-link
+                    to="/shop?yetsom=1"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.query.yetsom === '1' || $route.query.fasting === '1' ? 'bg-emerald-100/70 dark:bg-emerald-950/60 text-[#075e43] dark:text-emerald-300 font-black' : 'text-[#0b6b4e] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:text-[#06503b]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">🌿</span>
+                    <span>{{ localeStore.t('yetsom') }}</span>
+                  </router-link>
 
-              <router-link
-                to="/custom-cake"
-                @click="shopDropdownOpen = false"
-                class="flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold transition"
-                :class="$route.path === '/custom-cake' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#DE1B54] hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#C51345]'"
-              >
-                <span class="text-base">✍️</span>
-                <span>{{ localeStore.t('custom_cake') }}</span>
-              </router-link>
-            </div>
+                  <router-link
+                    to="/custom-cake"
+                    @click="closeShopDropdownImmediate()"
+                    class="sweet-dropdown-item group/item flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-bold"
+                    :class="$route.path === '/custom-cake' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54] font-black' : 'text-[#DE1B54] hover:bg-[#FFF5F8] dark:hover:bg-[#2C1720] hover:text-[#C51345]'"
+                  >
+                    <span class="text-base transition-transform duration-200 group-hover/item:scale-110">✍️</span>
+                    <span>{{ localeStore.t('custom_cake') }}</span>
+                  </router-link>
+                </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- About Anchor / Page -->
           <a
+            :ref="(el) => setNavRef('about', el)"
             href="/#about"
-            @click.prevent="goToSection('about')"
-            class="relative py-2 transition-colors hover:text-[#DE1B54]"
-            :class="$route.hash === '#about' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
+            @click.prevent="triggerNavPress('about'); goToSection('about')"
+            class="sweet-nav-link py-2"
+            :class="[
+              activeNavKey === 'about' ? 'sweet-nav-link--active text-[#DE1B54] font-bold' : '',
+              pressedNavKey === 'about' ? 'sweet-nav-link--pressed' : ''
+            ]"
           >
-            {{ localeStore.t('about') }}
+            <span class="sweet-nav-label">{{ localeStore.t('about') }}</span>
+            <span class="sweet-nav-underline" aria-hidden="true"></span>
           </a>
 
           <!-- Reviews Anchor -->
           <a
+            :ref="(el) => setNavRef('reviews', el)"
             href="/#reviews"
-            @click.prevent="goToSection('reviews')"
-            class="relative py-2 transition-colors hover:text-[#DE1B54]"
-            :class="$route.hash === '#reviews' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
+            @click.prevent="triggerNavPress('reviews'); goToSection('reviews')"
+            class="sweet-nav-link py-2"
+            :class="[
+              activeNavKey === 'reviews' ? 'sweet-nav-link--active text-[#DE1B54] font-bold' : '',
+              pressedNavKey === 'reviews' ? 'sweet-nav-link--pressed' : ''
+            ]"
           >
-            {{ localeStore.t('reviews') }}
+            <span class="sweet-nav-label">{{ localeStore.t('reviews') }}</span>
+            <span class="sweet-nav-underline" aria-hidden="true"></span>
           </a>
 
           <!-- Contact -->
           <a
+            :ref="(el) => setNavRef('contact', el)"
             href="/#contact"
-            @click.prevent="goToSection('contact')"
-            class="relative py-2 transition-colors hover:text-[#DE1B54] cursor-pointer"
-            :class="$route.hash === '#contact' || $route.path === '/contact' ? 'text-[#DE1B54] font-bold border-b-2 border-[#DE1B54]' : ''"
+            @click.prevent="triggerNavPress('contact'); goToSection('contact')"
+            class="sweet-nav-link py-2 cursor-pointer"
+            :class="[
+              activeNavKey === 'contact' ? 'sweet-nav-link--active text-[#DE1B54] font-bold' : '',
+              pressedNavKey === 'contact' ? 'sweet-nav-link--pressed' : ''
+            ]"
           >
-            {{ localeStore.t('contact') }}
+            <span class="sweet-nav-label">{{ localeStore.t('contact') }}</span>
+            <span class="sweet-nav-underline" aria-hidden="true"></span>
           </a>
+
+          <!-- Sliding Pink Active Navigation Indicator -->
+          <span
+            class="sweet-nav-active-bar"
+            aria-hidden="true"
+            :style="activeBarInlineStyle"
+          ></span>
         </nav>
 
-        <!-- Right Side: Search, Language, Theme, Account & Cart -->
-        <div class="flex items-center space-x-1.5 sm:space-x-2.5 lg:space-x-3 shrink-0">
+        <!-- Right Side: Branch, Language, Theme, Account, Cart & Mobile Menu -->
+        <div class="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 lg:gap-3 shrink-0">
           <!-- Choose Your Branch Sticky Control (Desktop / Tablet) -->
           <button
             @click="branchStore.openPicker()"
@@ -217,10 +272,11 @@
             <span class="text-[10px] text-gray-400 group-hover:text-[#DE1B54]">▾</span>
           </button>
 
-          <!-- Bilingual Language Toggle Button: EN | አማ -->
+          <!-- Bilingual Language Toggle Button: EN | አማ (Always Accessible) -->
           <button
             @click="localeStore.toggleLocale()"
-            class="flex items-center px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-h-[32px] sm:min-h-[36px]"
+            data-testid="header-lang-toggle"
+            class="flex items-center px-1.5 xs:px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0"
             :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
             aria-label="Language Switcher"
           >
@@ -229,10 +285,11 @@
             <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
           </button>
 
-          <!-- Theme Toggle Button: Sun & Moon -->
+          <!-- Theme Toggle Button: Sun & Moon (Always Accessible) -->
           <button
             @click="themeStore.toggleTheme()"
-            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] flex items-center justify-center text-xs sm:text-sm transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-w-[32px] min-h-[32px]"
+            data-testid="header-theme-toggle"
+            class="w-8 h-8 xs:w-9 xs:h-9 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] flex items-center justify-center text-xs sm:text-sm transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] shrink-0"
             :title="themeStore.isDark ? (localeStore.isAmharic ? 'ወደ ብሩህ ገጽታ ቀይር (Light Mode)' : 'Switch to Light Mode') : (localeStore.isAmharic ? 'ወደ ጨለማ ገጽታ ቀይር (Dark Mode)' : 'Switch to Dark Mode')"
             aria-label="Theme Toggle"
           >
@@ -240,21 +297,23 @@
             <span v-else class="text-gray-600 dark:text-gray-300 text-sm sm:text-base">🌙</span>
           </button>
 
-          <!-- Single Dedicated "Sign In" Button for Guests / New Customers (Zero Ambiguity) -->
+          <!-- Single Dedicated "Sign In" Button for Guests / New Customers -->
           <router-link
             v-if="!authStore.user"
             to="/login"
-            class="flex items-center space-x-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            data-testid="header-account-btn"
+            class="flex items-center space-x-1 sm:space-x-1.5 px-2 xs:px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white text-[11px] xs:text-xs sm:text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap active:scale-95 min-h-[34px] sm:min-h-[36px] shrink-0"
             :title="localeStore.t('sign_in')"
+            :aria-label="localeStore.t('sign_in')"
           >
             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
             </svg>
-            <span>{{ localeStore.t('sign_in') }}</span>
+            <span class="hidden min-[360px]:inline">{{ localeStore.t('sign_in') }}</span>
           </router-link>
 
           <!-- Authenticated Customer Menu (Visible when logged in) -->
-          <div v-else class="relative">
+          <div v-else class="relative shrink-0">
             <!-- Click-away backdrop to easily close dropdown -->
             <div
               v-if="accountMenuOpen"
@@ -264,10 +323,13 @@
 
             <button
               @click="accountMenuOpen = !accountMenuOpen"
-              class="relative z-50 flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] hover:border-[#DE1B54] text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#E8DED8] transition shadow-2xs cursor-pointer min-h-[34px] sm:min-h-[36px]"
+              data-testid="header-account-btn"
+              class="relative z-50 flex items-center space-x-1 sm:space-x-1.5 px-1.5 xs:px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] hover:border-[#DE1B54] text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#E8DED8] transition shadow-2xs cursor-pointer min-h-[34px] sm:min-h-[36px]"
               :title="localeStore.t('account')"
+              :aria-expanded="accountMenuOpen"
+              aria-label="User Profile Menu"
             >
-              <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0">
+              <div class="w-6 h-6 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-[11px] sm:text-xs font-black shrink-0">
                 <img
                   v-if="authStore.user.avatar_url"
                   :src="authStore.user.avatar_url"
@@ -277,99 +339,90 @@
                 <span v-else>{{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}</span>
               </div>
               <span class="hidden md:inline max-w-[100px] truncate">{{ authStore.user.full_name.split(' ')[0] }}</span>
-              <span class="text-[10px] opacity-60">▾</span>
+              <span class="hidden xs:inline text-[10px] opacity-60">▾</span>
             </button>
 
             <!-- Dropdown Menu -->
-            <div
-              v-if="accountMenuOpen"
-              class="absolute right-0 mt-2 w-52 bg-white dark:bg-[#221610] rounded-2xl shadow-xl border border-gray-100 dark:border-[#3D261B] py-2 z-50 animate-in fade-in"
-            >
-              <div class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B] flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold shrink-0">
-                  <img
-                    v-if="authStore.user.avatar_url"
-                    :src="authStore.user.avatar_url"
-                    alt="Avatar"
-                    class="w-full h-full object-cover"
-                  />
-                  <span v-else>{{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}</span>
+            <Transition name="sweet-dropdown">
+              <div
+                v-if="accountMenuOpen"
+                class="absolute right-0 mt-2 w-52 max-w-[calc(100vw-1rem)] bg-white dark:bg-[#221610] rounded-2xl shadow-xl border border-gray-100 dark:border-[#3D261B] py-2 z-50"
+              >
+                <div class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B] flex items-center space-x-2.5">
+                  <div class="w-8 h-8 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                    <img
+                      v-if="authStore.user.avatar_url"
+                      :src="authStore.user.avatar_url"
+                      alt="Avatar"
+                      class="w-full h-full object-cover"
+                    />
+                    <span v-else>{{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
+                    <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
-                  <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
+
+                <div class="py-1 text-xs font-medium">
+                  <!-- Customer specific links -->
+                  <template v-if="!authStore.isStaff">
+                    <router-link
+                      to="/account"
+                      @click="accountMenuOpen = false"
+                      class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                    >
+                      <span>👤 {{ localeStore.t('my_orders') }}</span>
+                    </router-link>
+
+                    <router-link
+                      to="/account?tab=wishlist"
+                      @click="accountMenuOpen = false"
+                      class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                    >
+                      <div class="flex items-center space-x-2">
+                        <span>❤️</span>
+                        <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
+                      </div>
+                      <span v-if="wishlistStore.count > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54]">
+                        {{ wishlistStore.count }}
+                      </span>
+                    </router-link>
+                  </template>
+
+                  <!-- Staff specific links (Section 8: Employee account resides in Admin Dashboard) -->
+                  <template v-else>
+                    <router-link
+                      to="/admin/my-account"
+                      @click="accountMenuOpen = false"
+                      class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
+                    >
+                      <span>💼 {{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }}</span>
+                    </router-link>
+                    <router-link
+                      to="/admin/overview"
+                      @click="accountMenuOpen = false"
+                      class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24]"
+                    >
+                      <span>⚙️ {{ localeStore.t('staff_portal') }}</span>
+                    </router-link>
+                  </template>
+
+                  <button
+                    @click="handleLogout"
+                    class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border-t border-gray-100 dark:border-[#3D261B] mt-1 cursor-pointer"
+                  >
+                    <span>🚪 {{ localeStore.t('logout') }}</span>
+                  </button>
                 </div>
               </div>
-
-              <div class="py-1 text-xs font-medium">
-                <!-- Customer specific links -->
-                <template v-if="!authStore.isStaff">
-                  <router-link
-                    to="/account"
-                    @click="accountMenuOpen = false"
-                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                  >
-                    <span>👤 {{ localeStore.t('my_orders') }}</span>
-                  </router-link>
-
-                  <router-link
-                    to="/account?tab=wishlist"
-                    @click="accountMenuOpen = false"
-                    class="flex items-center justify-between px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                  >
-                    <div class="flex items-center space-x-2">
-                      <span>❤️</span>
-                      <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
-                    </div>
-                    <span v-if="wishlistStore.count > 0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54]">
-                      {{ wishlistStore.count }}
-                    </span>
-                  </router-link>
-                </template>
-
-                <!-- Staff specific links (Section 8: Employee account resides in Admin Dashboard) -->
-                <template v-else>
-                  <router-link
-                    to="/admin/my-account"
-                    @click="accountMenuOpen = false"
-                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24] hover:text-[#DE1B54]"
-                  >
-                    <span>💼 {{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }}</span>
-                  </router-link>
-                  <router-link
-                    to="/admin/overview"
-                    @click="accountMenuOpen = false"
-                    class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-200 font-semibold hover:bg-rose-50 dark:hover:bg-[#331A24]"
-                  >
-                    <span>⚙️ {{ localeStore.t('staff_portal') }}</span>
-                  </router-link>
-                </template>
-
-                <button
-                  @click="handleLogout"
-                  class="w-full text-left flex items-center px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border-t border-gray-100 dark:border-[#3D261B] mt-1 cursor-pointer"
-                >
-                  <span>🚪 {{ localeStore.t('logout') }}</span>
-                </button>
-              </div>
-            </div>
+            </Transition>
           </div>
 
-          <!-- Mobile Branch Quick Switcher -->
-          <button
-            @click="branchStore.openPicker()"
-            class="md:hidden flex items-center space-x-1 px-2.5 py-1 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] text-[11px] font-bold text-[#DE1B54] transition cursor-pointer shrink-0"
-            :title="localeStore.t('select_branch') || 'Choose Your Branch'"
-          >
-            <span>📍</span>
-            <span class="truncate max-w-[70px] xs:max-w-[95px]">{{ activeBranchLabelShort }}</span>
-            <span class="text-[9px] opacity-70">▾</span>
-          </button>
-
-          <!-- Quick Wishlist Heart Button -->
+          <!-- Quick Wishlist Heart Button (Tablet & Desktop header; also inside mobile drawer on phones) -->
           <router-link
             :to="authStore.user ? '/account?tab=wishlist' : '/shop'"
-            class="relative flex items-center justify-center p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 min-w-[36px] min-h-[36px]"
+            class="hidden sm:flex relative items-center justify-center p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 w-9 h-9 shrink-0"
             :title="localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Favorites'"
             aria-label="Wishlist & Favorites"
           >
@@ -384,10 +437,11 @@
             </span>
           </router-link>
 
-          <!-- Quick Cart Drawer Trigger Button -->
+          <!-- Quick Cart Drawer Trigger Button (Always Accessible) -->
           <button
             @click="cartStore.toggleDrawer()"
-            class="relative flex items-center justify-center p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 min-w-[36px] min-h-[36px]"
+            data-testid="header-cart-btn"
+            class="relative flex items-center justify-center p-1.5 xs:p-2 rounded-full hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer text-gray-700 dark:text-gray-200 w-8 h-8 xs:w-9 xs:h-9 shrink-0"
             title="Shopping Cart"
             aria-label="Shopping Cart"
           >
@@ -406,9 +460,11 @@
           <!-- Mobile Hamburger Trigger Button (visible < 1024px) -->
           <button
             @click="mobileNavOpen = !mobileNavOpen"
-            class="lg:hidden p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:text-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+            data-testid="header-hamburger-btn"
+            class="lg:hidden p-1.5 xs:p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:text-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#331A24] transition cursor-pointer w-9 h-9 flex items-center justify-center shrink-0"
             title="Menu"
             aria-label="Open Navigation Menu"
+            :aria-expanded="mobileNavOpen"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path v-if="!mobileNavOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -419,40 +475,43 @@
       </div>
 
       <!-- Mobile Navigation Drawer -->
-      <div
-        v-if="mobileNavOpen"
-        class="lg:hidden bg-white dark:bg-[#1C110C] border-t border-gray-100 dark:border-[#3D261B] px-4 sm:px-6 py-4 space-y-3 shadow-xl max-h-[85vh] overflow-y-auto animate-in slide-in-from-top duration-200"
-      >
+      <Transition name="sweet-mobile-drawer">
+        <div
+          v-if="mobileNavOpen"
+          data-testid="mobile-nav-drawer"
+          class="lg:hidden bg-white dark:bg-[#1C110C] border-t border-gray-100 dark:border-[#3D261B] px-4 sm:px-6 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-3 shadow-xl max-h-[82dvh] overflow-y-auto overscroll-contain"
+        >
         <!-- Mobile Drawer Active Branch Banner -->
         <div class="p-3 bg-rose-50/60 dark:bg-[#25150E] rounded-2xl border border-rose-100 dark:border-[#3D261B] flex items-center justify-between gap-2 shadow-2xs">
           <div class="flex items-center space-x-2.5 min-w-0">
-            <span class="text-lg text-[#DE1B54]">📍</span>
-            <div class="truncate">
+            <span class="text-lg text-[#DE1B54] shrink-0">📍</span>
+            <div class="min-w-0">
               <div class="text-[10px] uppercase font-bold text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.t('select_branch') || 'Selected Branch' }}</div>
               <div class="text-xs font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] truncate">{{ activeBranchLabelShort }} Branch</div>
             </div>
           </div>
           <button
             @click="branchStore.openPicker(); mobileNavOpen = false"
-            class="px-3 py-1.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-[11px] font-bold rounded-xl shadow-xs cursor-pointer active:scale-95 shrink-0"
+            class="px-3 py-1.5 min-h-[36px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-[11px] font-bold rounded-xl shadow-xs cursor-pointer active:scale-95 shrink-0"
           >
-            Change
+            {{ localeStore.isAmharic ? 'ቀይር' : 'Change' }}
           </button>
         </div>
 
         <!-- Mobile Search Bar (Only on phones < 768px) -->
-        <div class="md:hidden pb-2">
+        <div class="md:hidden pb-1">
           <div class="relative w-full">
             <input
               v-model="searchKeyword"
               @keyup.enter="handleSearch(); mobileNavOpen = false"
               type="text"
               :placeholder="localeStore.t('search_placeholder')"
-              class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#3D261B] rounded-full py-2 pl-4 pr-10 text-xs text-gray-800 dark:text-[#F7EFE9] placeholder:text-gray-400 focus:outline-none"
+              class="w-full bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#3D261B] rounded-full py-2.5 pl-4 pr-10 text-xs text-gray-800 dark:text-[#F7EFE9] placeholder:text-gray-400 focus:outline-none min-h-[42px]"
             />
             <button
               @click="handleSearch(); mobileNavOpen = false"
-              class="absolute right-3 top-2.5 text-gray-400 hover:text-[#DE1B54] cursor-pointer"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[#DE1B54] cursor-pointer"
+              aria-label="Search"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -462,12 +521,12 @@
         </div>
 
         <!-- Mobile Language & Theme Switcher Row -->
-        <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-[#3D261B]">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100 dark:border-[#3D261B]">
           <div class="flex items-center space-x-2">
             <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">🌐</span>
             <button
               @click="localeStore.toggleLocale()"
-              class="flex items-center px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] text-xs font-bold transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
+              class="flex items-center px-3 py-1.5 min-h-[38px] rounded-full border border-gray-200 dark:border-[#3D261B] text-xs font-bold transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
             >
               <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
               <span class="mx-1 text-gray-300 dark:text-gray-600">|</span>
@@ -480,6 +539,7 @@
             <button
               @click="themeStore.toggleTheme()"
               class="w-9 h-9 rounded-full border border-gray-200 dark:border-[#3D261B] flex items-center justify-center text-sm transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
+              aria-label="Toggle Color Theme"
             >
               <span v-if="themeStore.isDark">☀️</span>
               <span v-else>🌙</span>
@@ -487,106 +547,150 @@
           </div>
         </div>
 
-        <router-link
-          to="/"
-          @click="mobileNavOpen = false"
-          class="block py-2 text-sm font-bold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
-        >
-          {{ localeStore.t('home') }}
-        </router-link>
+        <!-- Main Mobile Navigation Links: Home, Shop (Touch Dropdown), About, Reviews, Contact -->
+        <nav aria-label="Mobile Navigation" class="space-y-1">
+          <router-link
+            to="/"
+            @click="mobileNavOpen = false"
+            class="flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all duration-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54] active:scale-[0.99]"
+            :class="activeNavKey === 'home' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54]' : 'text-[#2A1810] dark:text-[#F7EFE9]'"
+          >
+            <span>{{ localeStore.t('home') }}</span>
+            <span v-if="activeNavKey === 'home'" class="w-1.5 h-1.5 rounded-full bg-[#DE1B54]"></span>
+          </router-link>
 
-        <div class="space-y-1.5 pl-3 border-l-2 border-rose-200 dark:border-[#DE1B54]/40">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-gray-400 py-1">{{ localeStore.t('categories_label', 'Categories') }}</div>
-          <router-link
-            to="/shop"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
-          >
-            <span>✨</span>
-            <span>{{ localeStore.t('all_products') }}</span>
-          </router-link>
-          <router-link
-            to="/shop?category=Cakes"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
-          >
-            <span>🎂</span>
-            <span>{{ localeStore.t('cakes') }}</span>
-          </router-link>
-          <router-link
-            to="/shop?category=Bread"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
-          >
-            <span>🥖</span>
-            <span>{{ localeStore.t('bread') }}</span>
-          </router-link>
-          <router-link
-            to="/shop?category=Pastries"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-semibold text-gray-800 dark:text-[#E8DED8] hover:text-[#DE1B54]"
-          >
-            <span>🥐</span>
-            <span>{{ localeStore.t('cupcakes_croissants') }}</span>
-          </router-link>
-          <router-link
-            to="/shop?yetsom=1"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-bold text-emerald-800 dark:text-emerald-400 hover:text-emerald-950"
-          >
-            <span>🌿</span>
-            <span>{{ localeStore.t('yetsom') }}</span>
-          </router-link>
-          <router-link
-            to="/custom-cake"
-            @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-xs font-bold text-[#DE1B54] hover:text-[#C51345]"
-          >
-            <span>✍️</span>
-            <span>{{ localeStore.t('custom_cake') }}</span>
-          </router-link>
-        </div>
+          <!-- Touch-Interactive Shop Dropdown Accordion -->
+          <div>
+            <button
+              type="button"
+              data-testid="mobile-shop-toggle"
+              @click="mobileShopOpen = !mobileShopOpen"
+              :aria-expanded="mobileShopOpen"
+              class="w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all duration-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54] cursor-pointer active:scale-[0.99]"
+              :class="activeNavKey === 'shop' || mobileShopOpen ? 'text-[#DE1B54] bg-[#FFF5F8] dark:bg-[#2C1720]' : 'text-[#2A1810] dark:text-[#F7EFE9]'"
+            >
+              <span>{{ localeStore.t('shop') }}</span>
+              <span
+                class="text-xs inline-block transition-transform duration-250 ease-out"
+                :class="{ 'rotate-180': mobileShopOpen }"
+              >▾</span>
+            </button>
 
-        <a
-          href="/#about"
-          @click="goToSection('about'); mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
-        >
-          {{ localeStore.t('about') }}
-        </a>
-        <a
-          href="/#reviews"
-          @click="goToSection('reviews'); mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54]"
-        >
-          {{ localeStore.t('reviews') }}
-        </a>
-        <a
-          href="/#contact"
-          @click="goToSection('contact'); mobileNavOpen = false"
-          class="block py-2 text-sm font-semibold text-[#2A1810] dark:text-[#F7EFE9] hover:text-[#DE1B54] cursor-pointer"
-        >
-          {{ localeStore.t('contact') }}
-        </a>
+            <div
+              class="sweet-accordion pl-3 ml-3 border-l-2 border-rose-200 dark:border-[#DE1B54]/40"
+              :class="{ 'sweet-accordion--open': mobileShopOpen }"
+              data-testid="mobile-shop-submenu"
+            >
+              <div class="sweet-accordion-inner space-y-0.5 py-1.5">
+                <router-link
+                  to="/shop"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-semibold hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
+                  :class="$route.path === '/shop' && !$route.query.category && !$route.query.yetsom && !$route.query.fasting ? 'text-[#DE1B54] font-bold bg-[#FFF0F4] dark:bg-[#341822]' : 'text-gray-800 dark:text-[#E8DED8]'"
+                >
+                  <span>✨</span>
+                  <span>{{ localeStore.t('all_products') }}</span>
+                </router-link>
+                <router-link
+                  to="/shop?category=Cakes"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-semibold hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
+                  :class="$route.query.category === 'Cakes' ? 'text-[#DE1B54] font-bold bg-[#FFF0F4] dark:bg-[#341822]' : 'text-gray-800 dark:text-[#E8DED8]'"
+                >
+                  <span>🎂</span>
+                  <span>{{ localeStore.t('cakes') }}</span>
+                </router-link>
+                <router-link
+                  to="/shop?category=Bread"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-semibold hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
+                  :class="$route.query.category === 'Bread' ? 'text-[#DE1B54] font-bold bg-[#FFF0F4] dark:bg-[#341822]' : 'text-gray-800 dark:text-[#E8DED8]'"
+                >
+                  <span>🥖</span>
+                  <span>{{ localeStore.t('bread') }}</span>
+                </router-link>
+                <router-link
+                  to="/shop?category=Pastries"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-semibold hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
+                  :class="$route.query.category === 'Pastries' ? 'text-[#DE1B54] font-bold bg-[#FFF0F4] dark:bg-[#341822]' : 'text-gray-800 dark:text-[#E8DED8]'"
+                >
+                  <span>🥐</span>
+                  <span>{{ localeStore.t('cupcakes_croissants') }}</span>
+                </router-link>
+                <router-link
+                  to="/shop?yetsom=1"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-400 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 hover:text-emerald-950"
+                >
+                  <span>🌿</span>
+                  <span>{{ localeStore.t('yetsom') }}</span>
+                </router-link>
+                <router-link
+                  to="/custom-cake"
+                  @click="mobileNavOpen = false"
+                  class="sweet-dropdown-item flex items-center space-x-2.5 px-3 py-2 min-h-[40px] rounded-xl text-xs font-bold text-[#DE1B54] hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#C51345]"
+                >
+                  <span>✍️</span>
+                  <span>{{ localeStore.t('custom_cake') }}</span>
+                </router-link>
+              </div>
+            </div>
+          </div>
 
-        <!-- Mobile User Account & Portal Links -->
-        <div class="pt-3 border-t border-gray-100 dark:border-[#3D261B] space-y-1.5 text-xs font-semibold">
+          <a
+            href="/#about"
+            @click.prevent="goToSection('about'); mobileNavOpen = false"
+            class="flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all duration-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54] active:scale-[0.99]"
+            :class="activeNavKey === 'about' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54]' : 'text-[#2A1810] dark:text-[#F7EFE9]'"
+          >
+            <span>{{ localeStore.t('about') }}</span>
+            <span v-if="activeNavKey === 'about'" class="w-1.5 h-1.5 rounded-full bg-[#DE1B54]"></span>
+          </a>
+          <a
+            href="/#reviews"
+            @click.prevent="goToSection('reviews'); mobileNavOpen = false"
+            class="flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all duration-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54] active:scale-[0.99]"
+            :class="activeNavKey === 'reviews' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54]' : 'text-[#2A1810] dark:text-[#F7EFE9]'"
+          >
+            <span>{{ localeStore.t('reviews') }}</span>
+            <span v-if="activeNavKey === 'reviews'" class="w-1.5 h-1.5 rounded-full bg-[#DE1B54]"></span>
+          </a>
+          <a
+            href="/#contact"
+            @click.prevent="goToSection('contact'); mobileNavOpen = false"
+            class="flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm font-bold transition-all duration-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54] active:scale-[0.99] cursor-pointer"
+            :class="activeNavKey === 'contact' ? 'bg-[#FFF0F4] dark:bg-[#341822] text-[#DE1B54]' : 'text-[#2A1810] dark:text-[#F7EFE9]'"
+          >
+            <span>{{ localeStore.t('contact') }}</span>
+            <span v-if="activeNavKey === 'contact'" class="w-1.5 h-1.5 rounded-full bg-[#DE1B54]"></span>
+          </a>
+        </nav>
+
+        <!-- Mobile Wishlist Quick Access + User Account & Portal Links -->
+        <div class="pt-3 border-t border-gray-100 dark:border-[#3D261B] space-y-1 text-xs font-semibold">
+          <router-link
+            :to="authStore.user ? '/account?tab=wishlist' : '/shop'"
+            @click="mobileNavOpen = false"
+            class="flex items-center justify-between px-3 py-2 min-h-[40px] rounded-xl text-gray-700 dark:text-gray-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
+          >
+            <div class="flex items-center space-x-2">
+              <span>❤️</span>
+              <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Favorites' }}</span>
+            </div>
+            <span v-if="wishlistStore.count > 0" class="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#DE1B54] text-[10px] font-bold">
+              {{ wishlistStore.count }}
+            </span>
+          </router-link>
+
           <template v-if="authStore.user && !authStore.isStaff">
             <router-link
               to="/account"
               @click="mobileNavOpen = false"
-              class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+              class="flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-gray-700 dark:text-gray-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
             >
               <span>👤</span>
-              <span>{{ localeStore.t('my_orders') }} ({{ authStore.user.full_name }})</span>
-            </router-link>
-            <router-link
-              to="/account?tab=wishlist"
-              @click="mobileNavOpen = false"
-              class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
-            >
-              <span>❤️</span>
-              <span>{{ localeStore.isAmharic ? 'የምኞት ዝርዝር' : 'Wishlist & Saved' }}</span>
+              <span class="truncate">{{ localeStore.t('my_orders') }} ({{ authStore.user.full_name }})</span>
             </router-link>
           </template>
 
@@ -594,10 +698,10 @@
             <router-link
               to="/admin/my-account"
               @click="mobileNavOpen = false"
-              class="flex items-center space-x-2 py-2 text-[#DE1B54] font-bold"
+              class="flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-[#DE1B54] font-bold hover:bg-rose-50/70 dark:hover:bg-[#2B1710]"
             >
               <span>💼</span>
-              <span>{{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }} ({{ authStore.user.full_name }})</span>
+              <span class="truncate">{{ localeStore.isAmharic ? 'የእኔ ሰራተኛ ፕሮፋይል' : 'My Staff Account' }} ({{ authStore.user.full_name }})</span>
             </router-link>
           </template>
 
@@ -605,7 +709,7 @@
             v-if="!authStore.user"
             to="/login"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-gray-700 dark:text-gray-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
           >
             <span>🔑</span>
             <span>{{ localeStore.t('sign_in') }}</span>
@@ -614,7 +718,7 @@
             v-if="!authStore.user"
             to="/register"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-gray-700 dark:text-gray-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
           >
             <span>✨</span>
             <span>{{ localeStore.t('create_account') }}</span>
@@ -622,7 +726,7 @@
           <router-link
             to="/admin/overview"
             @click="mobileNavOpen = false"
-            class="flex items-center space-x-2 py-2 text-gray-700 dark:text-gray-200 hover:text-[#DE1B54]"
+            class="flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-gray-700 dark:text-gray-200 hover:bg-rose-50/70 dark:hover:bg-[#2B1710] hover:text-[#DE1B54]"
           >
             <span>⚙️</span>
             <span>{{ localeStore.t('staff_portal') }}</span>
@@ -630,18 +734,21 @@
           <button
             v-if="authStore.user"
             @click="handleLogout(); mobileNavOpen = false"
-            class="w-full text-left flex items-center space-x-2 py-2 text-red-600 hover:text-red-700 cursor-pointer"
+            class="w-full text-left flex items-center space-x-2 px-3 py-2 min-h-[40px] rounded-xl text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
           >
             <span>🚪</span>
             <span>{{ localeStore.t('logout') }}</span>
           </button>
         </div>
-      </div>
+        </div>
+      </Transition>
     </header>
 
-    <!-- Main View Slot -->
-    <main class="flex-1 w-full">
-      <router-view />
+    <!-- Main View Slot with Smooth Reusable Page Transition -->
+    <main class="flex-1 w-full min-h-[75vh] bg-[#FAF7F5] dark:bg-[#170E0A]">
+      <router-view v-slot="{ Component, route: currentRoute }">
+        <PageTransition :component="Component" :transition-key="currentRoute.path" />
+      </router-view>
     </main>
 
     <!-- SweetBakes Real GPS Contact Us Section (Above Footer) -->
@@ -836,8 +943,9 @@
       <!-- Floating Scroll to Top Button (Bottom-Right) -->
       <button
         @click="scrollToTop"
-        class="fixed bottom-6 right-6 z-30 w-11 h-11 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer ring-4 ring-white/10"
+        class="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 mb-[env(safe-area-inset-bottom)] mr-[env(safe-area-inset-right)] z-30 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer ring-4 ring-white/10"
         title="Back to Top"
+        aria-label="Back to Top"
       >
         <span class="text-base font-bold">&uarr;</span>
       </button>
@@ -852,7 +960,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, defineAsyncComponent } from 'vue';
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useBranchStore } from '../stores/branch';
 import { useCartStore } from '../stores/cart';
@@ -861,6 +969,8 @@ import { useToastStore } from '../stores/toast';
 import { useThemeStore } from '../stores/theme';
 import { useLocaleStore } from '../stores/locale';
 import { useWishlistStore } from '../stores/wishlist';
+import PageTransition from '../components/PageTransition.vue';
+import { prefersReducedMotion } from '../composables/usePageTransition';
 import api from '../api';
 
 // Standard Asynchronous Code-Splitting for Heavy Components
@@ -883,9 +993,157 @@ const newsletterEmail = ref('');
 const accountMenuOpen = ref(false);
 const branchMenuOpen = ref(false);
 const mobileNavOpen = ref(false);
+const mobileShopOpen = ref(false);
 const shopDropdownOpen = ref(false);
 const businessInfo = ref(null);
 const cartBadgePop = ref(false);
+
+// Navigation Button Interactions & Sliding Active Indicator
+const headerRef = ref(null);
+const desktopNavRef = ref(null);
+const shopWrapperRef = ref(null);
+const navItemRefs = {
+  home: null,
+  shop: null,
+  about: null,
+  reviews: null,
+  contact: null,
+};
+const pressedNavKey = ref(null);
+let pressedNavTimer = null;
+let shopCloseTimer = null;
+let navResizeObserver = null;
+
+function setNavRef(key, el) {
+  navItemRefs[key] = el;
+}
+
+const activeNavKey = computed(() => {
+  if (route.hash === '#about') return 'about';
+  if (route.hash === '#reviews') return 'reviews';
+  if (route.hash === '#contact' || route.path === '/contact') return 'contact';
+  if (route.path.startsWith('/shop')) return 'shop';
+  if ((route.path === '/' || route.path === '/home') && !route.hash) return 'home';
+  return null;
+});
+
+const activeBar = reactive({
+  left: 0,
+  width: 0,
+  opacity: 0,
+  animated: false,
+});
+
+const activeBarInlineStyle = computed(() => ({
+  transform: `translateX(${activeBar.left}px)`,
+  width: `${activeBar.width}px`,
+  opacity: activeBar.opacity,
+  transition: activeBar.animated ? undefined : 'none',
+}));
+
+function getOffsetWithinNav(targetEl, navEl) {
+  let left = 0;
+  let current = targetEl;
+  while (current && current !== navEl) {
+    left += current.offsetLeft;
+    current = current.offsetParent;
+  }
+  return {
+    left: Math.round(left * 100) / 100,
+    width: Math.round(targetEl.offsetWidth * 100) / 100,
+  };
+}
+
+function updateActiveBarPosition({ animate = true } = {}) {
+  const navEl = desktopNavRef.value;
+  const key = activeNavKey.value;
+  const rawTarget = key ? navItemRefs[key] : null;
+  const targetEl = rawTarget?.$el ? rawTarget.$el : rawTarget;
+
+  if (!navEl || !targetEl) {
+    activeBar.opacity = 0;
+    activeBar.animated = false;
+    return;
+  }
+
+  if (navEl.offsetWidth === 0 || targetEl.offsetWidth === 0) {
+    return;
+  }
+
+  // Measure static CSS layout box (offsetLeft/offsetWidth) so activeBar is never
+  // distorted by scale(0.95) click feedback or translateY hover transforms.
+  const { left: nextLeft, width: nextWidth } = getOffsetWithinNav(targetEl, navEl);
+
+  if (!activeBar.opacity || !animate || prefersReducedMotion()) {
+    activeBar.animated = false;
+    activeBar.left = nextLeft;
+    activeBar.width = nextWidth;
+    requestAnimationFrame(() => {
+      activeBar.opacity = 1;
+      requestAnimationFrame(() => {
+        activeBar.animated = !prefersReducedMotion();
+      });
+    });
+  } else {
+    activeBar.animated = true;
+    activeBar.left = nextLeft;
+    activeBar.width = nextWidth;
+    activeBar.opacity = 1;
+  }
+}
+
+function triggerNavPress(key) {
+  pressedNavKey.value = key;
+  clearTimeout(pressedNavTimer);
+  pressedNavTimer = setTimeout(() => {
+    pressedNavKey.value = null;
+  }, 180);
+}
+
+function openShopDropdown() {
+  clearTimeout(shopCloseTimer);
+  shopDropdownOpen.value = true;
+}
+
+function scheduleCloseShopDropdown() {
+  clearTimeout(shopCloseTimer);
+  shopCloseTimer = setTimeout(() => {
+    shopDropdownOpen.value = false;
+  }, 130);
+}
+
+function closeShopDropdownImmediate() {
+  clearTimeout(shopCloseTimer);
+  shopDropdownOpen.value = false;
+}
+
+function handleGlobalPointerDown(event) {
+  if (shopDropdownOpen.value && shopWrapperRef.value && !shopWrapperRef.value.contains(event.target)) {
+    closeShopDropdownImmediate();
+  }
+  if (mobileNavOpen.value && headerRef.value && !headerRef.value.contains(event.target)) {
+    mobileNavOpen.value = false;
+  }
+}
+
+function handleGlobalKeyDown(event) {
+  if (event.key === 'Escape') {
+    closeShopDropdownImmediate();
+    mobileNavOpen.value = false;
+  }
+}
+
+watch([activeNavKey, () => localeStore.currentLocale], async () => {
+  await nextTick();
+  updateActiveBarPosition({ animate: true });
+});
+
+watch(() => route.fullPath, () => {
+  mobileNavOpen.value = false;
+  mobileShopOpen.value = false;
+  accountMenuOpen.value = false;
+  closeShopDropdownImmediate();
+});
 
 watch(() => cartStore.totalItems, (newVal, oldVal) => {
   if (newVal > (oldVal || 0)) {
@@ -952,12 +1210,42 @@ onMounted(() => {
   branchStore.fetchBranches();
   fetchBusinessInfo();
   wishlistStore.init();
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('pointerdown', handleGlobalPointerDown);
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => updateActiveBarPosition({ animate: false }));
+    }
+  }
+
+  nextTick(() => {
+    updateActiveBarPosition({ animate: false });
+    if (typeof ResizeObserver !== 'undefined' && desktopNavRef.value) {
+      navResizeObserver = new ResizeObserver(() => updateActiveBarPosition({ animate: false }));
+      navResizeObserver.observe(desktopNavRef.value);
+    }
+  });
+
   if (window.location.hash) {
     setTimeout(() => {
       const el = document.querySelector(window.location.hash);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     }, 300);
   }
+});
+
+onBeforeUnmount(() => {
+  if (typeof document !== 'undefined') {
+    document.removeEventListener('pointerdown', handleGlobalPointerDown);
+    document.removeEventListener('keydown', handleGlobalKeyDown);
+  }
+  if (navResizeObserver) {
+    navResizeObserver.disconnect();
+    navResizeObserver = null;
+  }
+  clearTimeout(pressedNavTimer);
+  clearTimeout(shopCloseTimer);
 });
 
 function handleSearch() {
@@ -981,23 +1269,28 @@ async function handleSubscribe() {
 }
 
 function goToSection(sectionId) {
+  const targetHash = `#${sectionId}`;
   if (route.path !== '/' && route.path !== '/home') {
-    router.push({ path: '/', hash: `#${sectionId}` }).then(() => {
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 300);
-    });
+    router.push({ path: '/', hash: targetHash });
+  } else if (route.hash !== targetHash) {
+    router.push({ path: route.path, hash: targetHash });
   } else {
     const el = document.getElementById(sectionId);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      const top = el.getBoundingClientRect().top + window.scrollY - 84;
+      window.scrollTo({
+        top: Math.max(0, top),
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
     }
   }
 }
 
 function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  });
 }
 
 function handleLogout() {

@@ -45,8 +45,8 @@ class WebsiteSettingController extends Controller
             'hero_desc_am' => $all['hero_desc_am'] ?? 'የልደትና የሰርግ ኬኮች እንዲሁም ትኩስ የተፈጥሮ ዳቦዎች በሁሉም የአዲስ አበባ ክፍሎች ባሉበት ይደርሳሉ።',
             'hero_button_text_en' => $all['hero_button_text_en'] ?? 'Order Online',
             'hero_button_text_am' => $all['hero_button_text_am'] ?? 'አሁን ይዘዙ',
-            'hero_button_link' => $all['hero_button_link'] ?? '/shop',
-            'hero_image_url' => $all['hero_image_url'] ?? '/mockup/hero_banner_hq.jpg',
+            'hero_button_link' => !empty($all['hero_button_link']) ? $all['hero_button_link'] : '/shop',
+            'hero_image_url' => !empty($all['hero_image_url']) ? $all['hero_image_url'] : '/mockup/hero_banner_hq.jpg',
 
             // About Page & Section Customization
             'about_tag_en' => $all['about_tag_en'] ?? 'About SweetBakes',
@@ -55,7 +55,7 @@ class WebsiteSettingController extends Controller
             'about_title_am' => $all['about_title_am'] ?? 'የሚተማመኑበት የዳቦና ኬክ መጋገሪያ',
             'about_story_en' => $all['about_story_en'] ?? 'At SweetBakes, we believe every celebration starts with the aroma of freshly baked butter, warm vanilla, and handcrafted pastries.',
             'about_story_am' => $all['about_story_am'] ?? 'በስዊትቤክስ እያንዳንዱ በዓል የሚጀምረው አዲስ በተጋገረ ቅቤ፣ ሞቅ ባለ ቫኒላ እና በእጅ በተዘጋጁ ኬኮች መዓዛ ነው።',
-            'about_image_url' => $all['about_image_url'] ?? '/mockup/baker_hires.jpg',
+            'about_image_url' => !empty($all['about_image_url']) ? $all['about_image_url'] : '/mockup/baker_hires.jpg',
             'about_chef_quote_en' => $all['about_chef_quote_en'] ?? '“Making life sweeter, one cake and bread at a time.”',
             'about_chef_quote_am' => $all['about_chef_quote_am'] ?? '“እያንዳንዱን ኬክ እና ዳቦ በፍቅር እና በጥንቃቄ እያዘጋጀን ህይወትዎን እናጣፍጣለን::”',
             'about_chef_title_en' => $all['about_chef_title_en'] ?? '— SweetBakes Master Pastry Chef',
@@ -119,6 +119,77 @@ class WebsiteSettingController extends Controller
             ->get();
 
         return response()->json($banners);
+    }
+
+    /**
+     * Upload a custom photo (from PC or mobile) for About section, Hero background, or Banners.
+     */
+    public function uploadImage(Request $request)
+    {
+        $fileKey = null;
+        foreach (['image', 'photo', 'file'] as $candidate) {
+            if ($request->hasFile($candidate)) {
+                $fileKey = $candidate;
+                break;
+            }
+        }
+
+        if (!$fileKey) {
+            return response()->json(['message' => 'Please select an image file to upload.'], 422);
+        }
+
+        $request->validate([
+            $fileKey => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240',
+            'slot' => 'nullable|string|max:40',
+            'setting_key' => 'nullable|string|in:about_image_url,hero_image_url',
+        ]);
+
+        $file = $request->file($fileKey);
+        $rawExt = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'jpg');
+        $safeExtension = in_array($rawExt, ['jpeg', 'png', 'jpg', 'webp', 'gif']) ? $rawExt : 'jpg';
+        $slotPrefix = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $request->input('slot', 'setting'))) ?: 'setting';
+
+        $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $safeExtension;
+        $targetDir = public_path('uploads/settings');
+
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $file->move($targetDir, $filename);
+        $imageUrl = '/uploads/settings/' . $filename;
+
+        $settingKey = $request->input('setting_key');
+        if ($settingKey) {
+            AppSetting::updateOrCreate(
+                ['key' => $settingKey],
+                ['value' => $imageUrl]
+            );
+
+            if ($settingKey === 'hero_image_url') {
+                $primaryBanner = Banner::find(1);
+                if ($primaryBanner) {
+                    $primaryBanner->update(['image_url' => $imageUrl]);
+                }
+            }
+
+            AuditLog::create([
+                'user_id' => $request->user()?->user_id,
+                'user_name' => $request->user()?->full_name ?? 'Super Admin',
+                'action' => 'Website photo uploaded',
+                'record' => $settingKey,
+                'entity_type' => 'AppSetting',
+                'entity_id' => $settingKey,
+                'old_value' => '—',
+                'new_value' => $imageUrl,
+                'created_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Photo uploaded successfully',
+            'image_url' => $imageUrl,
+        ]);
     }
 
     /**

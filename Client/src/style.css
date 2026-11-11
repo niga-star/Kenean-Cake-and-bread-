@@ -81,20 +81,26 @@
     max-width: 80rem; /* 1280px */
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: max(0.875rem, env(safe-area-inset-left));
+    padding-right: max(0.875rem, env(safe-area-inset-right));
     box-sizing: border-box;
+  }
+  @media (min-width: 376px) {
+    .sweetbakes-container {
+      padding-left: max(1rem, env(safe-area-inset-left));
+      padding-right: max(1rem, env(safe-area-inset-right));
+    }
   }
   @media (min-width: 480px) {
     .sweetbakes-container {
-      padding-left: 1.25rem;
-      padding-right: 1.25rem;
+      padding-left: max(1.25rem, env(safe-area-inset-left));
+      padding-right: max(1.25rem, env(safe-area-inset-right));
     }
   }
   @media (min-width: 640px) {
     .sweetbakes-container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
+      padding-left: max(1.5rem, env(safe-area-inset-left));
+      padding-right: max(1.5rem, env(safe-area-inset-right));
     }
   }
   @media (min-width: 1024px) {
@@ -120,24 +126,24 @@
 
   /* Fluid Typography Clamps for Flawless Headings on 320px - 2560px */
   .text-fluid-hero {
-    font-size: clamp(2.35rem, 4.6vw + 0.85rem, 4.85rem);
-    line-height: 1.12;
+    font-size: clamp(1.85rem, 4.4vw + 0.65rem, 4.85rem);
+    line-height: 1.14;
   }
   .text-fluid-hero-sub {
-    font-size: clamp(1.75rem, 3.2vw + 0.75rem, 3.35rem);
-    line-height: 1.18;
-  }
-  .text-fluid-h2 {
-    font-size: clamp(1.75rem, 2.8vw + 0.75rem, 2.85rem);
+    font-size: clamp(1.375rem, 3.3vw + 0.55rem, 3.35rem);
     line-height: 1.2;
   }
+  .text-fluid-h2 {
+    font-size: clamp(1.45rem, 2.8vw + 0.6rem, 2.85rem);
+    line-height: 1.22;
+  }
   .text-fluid-h3 {
-    font-size: clamp(1.4rem, 2.3vw + 0.65rem, 2.25rem);
+    font-size: clamp(1.25rem, 2.3vw + 0.55rem, 2.25rem);
     line-height: 1.25;
   }
   .text-fluid-body {
-    font-size: clamp(1rem, 0.5vw + 0.85rem, 1.2rem);
-    line-height: 1.7;
+    font-size: clamp(0.95rem, 0.5vw + 0.85rem, 1.2rem);
+    line-height: 1.68;
   }
 
   /* Section spacing */
@@ -242,7 +248,7 @@
   /* Global Amharic Language Activation: Enhanced Optical Size for Ge'ez Script */
   html[lang="am"],
   html.lang-am {
-    font-size: 17px;
+    font-size: 16px;
     --font-serif: "Noto Serif Ethiopic", "Nyala", serif;
     --font-sans: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
     --font-display: "Noto Serif Ethiopic", "Nyala", serif;
@@ -270,8 +276,9 @@
   html[lang="am"] p,
   html.lang-am p {
     font-family: "Noto Sans Ethiopic", "Nyala", system-ui, sans-serif;
-    line-height: 1.6;
+    line-height: 1.62;
     letter-spacing: 0.005em;
+    overflow-wrap: break-word;
   }
 
   /* Amharic Headings & Hero Titles: Classic Elegant Serif Ethiopic */
@@ -730,20 +737,244 @@ html.dark .shimmer-wave::after {
   animation: sweetFadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Route Page Transition */
-.page-fade-enter-active,
+/* Global Reusable Route Page Transition (Exit: 220ms | Entrance: 460ms) */
+.sweet-page-enter-active {
+  transition:
+    opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.sweet-page-leave-active {
+  transition:
+    opacity 220ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+  pointer-events: none;
+}
+
+.sweet-page-enter-from {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.sweet-page-enter-to,
+.sweet-page-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sweet-page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Reduced-Motion Page Transition */
+.sweet-page-reduced-enter-active,
+.sweet-page-reduced-leave-active {
+  transition: opacity 1ms linear;
+}
+
+.sweet-page-reduced-enter-from,
+.sweet-page-reduced-leave-to {
+  opacity: 0;
+}
+
+/* Route Page Transition (Legacy compatibility alias) */
+.page-fade-enter-active {
+  transition:
+    opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .page-fade-leave-active {
-  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    opacity 220ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-fade-enter-from {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(14px);
 }
 
 .page-fade-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+/* Premium Navigation Button Hover, Tactile Click & Sliding Underline */
+.sweet-nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  transition:
+    color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center center;
+}
+
+.sweet-nav-link:hover,
+.sweet-nav-link:focus-visible,
+.sweet-nav-link--open {
+  color: #DE1B54;
+}
+
+.sweet-nav-link:active,
+.sweet-nav-link--pressed {
+  transform: scale(0.95);
+  transition-duration: 130ms;
+}
+
+.sweet-nav-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sweet-nav-link:hover .sweet-nav-label,
+.sweet-nav-link:focus-visible .sweet-nav-label,
+.sweet-nav-link--open .sweet-nav-label {
+  transform: translateY(-2.5px);
+}
+
+.sweet-nav-link:active .sweet-nav-label,
+.sweet-nav-link--pressed .sweet-nav-label {
+  transform: translateY(-1px);
+  transition-duration: 130ms;
+}
+
+/* Left-to-right animated pink hover underline */
+.sweet-nav-underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: #DE1B54;
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.sweet-nav-link:not(.sweet-nav-link--active):hover .sweet-nav-underline,
+.sweet-nav-link:not(.sweet-nav-link--active):focus-visible .sweet-nav-underline,
+.sweet-nav-link--open:not(.sweet-nav-link--active) .sweet-nav-underline {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Sliding Active Pink Underline Bar across Nav Buttons */
+.sweet-nav-active-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 9999px;
+  background-color: #DE1B54;
+  pointer-events: none;
+  transition:
+    transform 290ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 290ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+/* Shop Dropdown Fade & Slide-Down Transition */
+.sweet-dropdown-enter-active {
+  transition:
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top left;
+}
+
+.sweet-dropdown-leave-active {
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.sweet-dropdown-enter-from {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.sweet-dropdown-enter-to,
+.sweet-dropdown-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.sweet-dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+.sweet-dropdown-item {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sweet-dropdown-item:hover {
+  transform: translateX(4px);
+}
+
+.sweet-dropdown-item:active {
+  transform: translateX(4px) scale(0.98);
+}
+
+/* Mobile Navigation Drawer Smooth Expand / Slide */
+.sweet-mobile-drawer-enter-active {
+  transition:
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top center;
+}
+
+.sweet-mobile-drawer-leave-active {
+  transition:
+    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top center;
+}
+
+.sweet-mobile-drawer-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.sweet-mobile-drawer-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* Mobile Accordion Collapse / Expand for Shop Dropdown */
+.sweet-accordion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.sweet-accordion--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.sweet-accordion-inner {
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* Top Route Loading Bar */
@@ -921,10 +1152,34 @@ html.dark .shimmer-wave::after {
   .animate-hero-stamp,
   .animate-fade-in-up,
   .animate-cart-pop,
-  .btn-sweet-primary {
+  .btn-sweet-primary,
+  .sweet-page-enter-active,
+  .sweet-page-leave-active,
+  .sweet-page-enter-from,
+  .sweet-page-leave-to,
+  .page-fade-enter-active,
+  .page-fade-leave-active,
+  .page-fade-enter-from,
+  .page-fade-leave-to {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
     animation: none !important;
+  }
+  .sweet-nav-link,
+  .sweet-nav-label,
+  .sweet-nav-underline,
+  .sweet-dropdown-item,
+  .sweet-dropdown-enter-active,
+  .sweet-dropdown-leave-active,
+  .sweet-mobile-drawer-enter-active,
+  .sweet-mobile-drawer-leave-active,
+  .sweet-accordion {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .sweet-nav-active-bar {
+    transition: none !important;
   }
 }

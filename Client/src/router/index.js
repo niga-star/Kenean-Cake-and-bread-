@@ -1,5 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { nextTick } from 'vue';
 import { useToastStore } from '../stores/toast';
+import { beginPageTransition, waitForPageLeave, prefersReducedMotion } from '../composables/usePageTransition';
+
+async function waitForHashElement(hash, maxFrames = 15) {
+  if (typeof document === 'undefined' || !hash) return false;
+  for (let i = 0; i < maxFrames; i++) {
+    if (document.querySelector(hash)) return true;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  return !!document.querySelector(hash);
+}
 
 // Core Layouts (Lazy Loaded)
 const AdminLayout = () => import('../layouts/AdminLayout.vue');
@@ -118,18 +129,43 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (to.hash) {
+  async scrollBehavior(to, from, savedPosition) {
+    const scrollStyle = prefersReducedMotion() ? 'auto' : 'smooth';
+    const isRoutePathChange = from.matched.length > 0 && to.path !== from.path;
+
+    // Wait until the exiting page finishes its fade-out so it stays stationary while leaving
+    if (isRoutePathChange) {
+      await waitForPageLeave();
+      await nextTick();
+    }
+
+    if (savedPosition) {
       return {
-        el: to.hash,
-        behavior: 'smooth',
+        ...savedPosition,
+        behavior: isRoutePathChange ? 'auto' : scrollStyle,
       };
     }
-    if (savedPosition) {
-      return savedPosition;
+
+    if (to.hash) {
+      await waitForHashElement(to.hash);
+      return {
+        el: to.hash,
+        top: 84,
+        behavior: isRoutePathChange ? 'auto' : scrollStyle,
+      };
     }
-    return { top: 0, behavior: 'smooth' };
+
+    return {
+      top: 0,
+      behavior: isRoutePathChange ? 'auto' : scrollStyle,
+    };
   },
+});
+
+router.beforeResolve((to, from) => {
+  if (from.matched.length > 0 && to.path !== from.path) {
+    beginPageTransition();
+  }
 });
 
 // Navigation Guard for Role Enforcement
