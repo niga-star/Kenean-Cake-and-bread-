@@ -510,7 +510,7 @@ Every rule in this specification is verified through an automated test suite ([`
 
 ```bash
 php Backend/test_v41_comprehensive.php
-# Verification Result: Total Passed: 41 | Total Failed: 0
+# Verification Result: Total Passed: 52 | Total Failed: 0
 ```
 
 | Area | Test Scenario | Expected Outcome |
@@ -533,6 +533,11 @@ php Backend/test_v41_comprehensive.php
 | **Notifications** | Identical milestone triggered twice | Duplicate suppressed via unique composite constraint |
 | **Security** | 6th login attempt within 1 minute from same IP/email | HTTP 429 Too Many Requests |
 | **Security** | Order tracking queried with order number alone | Generic not-found response (Requires phone/email factor) |
+| **Database** | High-cardinality composite indexes active | `idx_orders_branch_status_placed`, `idx_inv_tx_branch_prod_created`, `idx_reports_branch_date_status` verified |
+| **Guest Linking**| Customer registers with phone used for guest orders | Historical orders & custom cakes automatically linked to user ID |
+| **Financial** | Refund amount exceeding recorded payment | HTTP 422 Unprocessable Entity ($amount <= $payment->amount) |
+| **Inventory** | Order cancelled / refunded | Reserved stock released cleanly (`quantity = 0`) with zero phantom drift |
+| **Pricing** | Branch price update & read via `/api/admin/branch-prices` | HTTP 200 OK with scoped branch pricing |
 | **Build & Assets** | Production frontend build (`npm run build`) | Zero errors and zero warnings |
 
 ---
@@ -541,7 +546,8 @@ php Backend/test_v41_comprehensive.php
 
 ### Local Development Environment:
 ```bash
-# 1. Start MySQL on port 3306 (database: sweetbakes_db)
+# 1. Start MySQL in XAMPP on port 3306 (database: kenean-cake-and-bread or sweetbakes_db)
+# Ensure Backend/.env has DB_CONNECTION=mysql, DB_DATABASE=kenean-cake-and-bread (or sweetbakes_db), DB_USERNAME=root, DB_PASSWORD=
 
 # 2. Run database migrations
 php Backend/artisan migrate
@@ -568,3 +574,303 @@ npm --prefix Client run build
 
 > [!CAUTION]
 > Seed credentials are for local development and testing only. Passwords are set from the `SEED_DEFAULT_PASSWORD` environment variable and must be changed upon first login.
+
+---
+
+## 14. Complete Website Functionality & Feature Catalog
+
+This section provides an exhaustive, screen-by-screen, and role-by-role functional catalog of the entire SweetBakes platform, detailing user workflows, interactive components, data inputs, automated validations, and state machines across both the customer-facing storefront and administrative operations portals.
+
+### 14.1. Customer-Facing E-Commerce Storefront (`/`)
+
+#### 1. Global Navigation & Header ([`CustomerLayout.vue`](file:///c:/Kenan%20Cake/Client/src/layouts/CustomerLayout.vue))
+- **Brand Identity & Home Link:** SweetBakes gold & terracotta luxury logo routing to `/`.
+- **Navigation Links:** Instant access to `Home`, `Shop`, `Custom Cake Studio`, `Branches`, `About`, `FAQ`, and `Contact`.
+- **Active Branch Selector Dropdown:**
+  - Displays currently selected bakery branch (e.g., "Bole Medhanialem Branch").
+  - Dropdown modal reveals all active company branches with physical addresses, phone numbers, and live operational status (`Open Now` / `Closed`).
+  - Switching branches automatically recalibrates catalog product availability, stock counters, delivery fees, and estimated fulfillment times without clearing selected cart items.
+- **Header Actions & Utilities:**
+  - **Live Search Bar:** Real-time debounced typeahead searching product titles, descriptions, and categories.
+  - **Wishlist Trigger:** Quick-access modal displaying customer saved favorites with 1-click "Move to Cart".
+  - **Slide-Out Cart Drawer Trigger:** Displays badge counter of total cart items. Clicking opens the high-speed slide-out cart drawer without navigating away from the current page.
+  - **Authentication / Account Menu:** Dynamically toggles between "Sign In / Register" buttons and an authenticated customer profile dropdown ("My Account", "Order History", "Saved Addresses", "Logout").
+
+#### 2. Homepage & Brand Showcase ([`CustomerHomeView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomerHomeView.vue))
+- **Hero Presentation:**
+  - High-impact luxury bakery banner utilizing deep chocolate (`#3D251E`) and warm cream tones.
+  - Dynamic Typewriter Headline: Cycles through bespoke artisanal slogans ("Handcrafted with Passion", "Artisanal Breads Baked Fresh Daily", "Bespoke Celebration Cakes") with authentic humanized typing cadence, blinking cursor, and smooth pause intervals.
+  - Motion Accessibility: Automatically honors `prefers-reduced-motion` OS settings by rendering clean static typography.
+  - Dual Primary CTAs: "Explore Menu" (routes to `/shop`) and "Design 3D Cake" (routes to `/custom-cake`).
+- **Signature Category Showcase:**
+  - Visual category cards: *Artisan Cakes & Gateaux*, *Viennoiserie & Pastries*, *Sourdough & Artisan Breads*, *Savory Delights*, and *Bespoke Celebration Cakes*.
+  - Hover micro-interactions with elevation lift and category badge counters.
+- **Featured Best-Sellers Grid:**
+  - Dynamic product cards featuring high-resolution photography, localized branch pricing, dietary indicators (e.g. Vegetarian, Nut-Free, Eggless), and instant "Add to Cart" actions.
+- **Quality & Craftsmanship Pillars:**
+  - Highlights bakery core values: 100% Pure Butter Pastries, 24-Hour Cold Fermentation Sourdoughs, Fresh Daily Baking, Master Pâtissiers, and Halal-Certified Ingredients.
+- **Customer Testimonials & Social Proof:**
+  - Authentic customer reviews with star ratings, occasion tags (e.g. "Wedding Cake", "Corporate Catering"), and reviewer location.
+- **Interactive Branch Locator & Operating Hours:**
+  - Quick-lookup directory of all branches with interactive map triggers, opening hours, direct phone dialing, and "Set as My Branch" buttons.
+- **Comprehensive Footer:**
+  - Brand mission statement, quick navigation links, newsletter subscription, payment partner badges, copyright, and social media channels.
+
+#### 3. Menu & Product Catalog ([`ShopView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/ShopView.vue))
+- **Category Filter Pills:** Seamless filtering across `All Products`, `Cakes`, `Pastries`, `Breads`, `Savory`, and `Specialty Occasions`.
+- **Search & Multi-Facet Sorting:**
+  - Instant text filter by keyword.
+  - Sorting options: *Featured / Best Sellers*, *Price: Low to High*, *Price: High to Low*, and *Newest Arrivals*.
+- **Real-Time Stock Availability Indicators:**
+  - `In Stock` (Forest Emerald badge): Product is plentiful at selected branch.
+  - `Only X Left` (Warm Amber badge): Inventory count is below 5 units, indicating scarcity.
+  - `Out of Stock` (Muted Gray badge): Add-to-cart button is disabled with an optional "Notify When Available" prompt.
+- **Interactive Product Cards:**
+  - Image preview with subtle zoom on hover.
+  - Quick-add button with quantity selector.
+  - Localized Branch Pricing: Displays branch-specific pricing if configured by the branch manager; falls back to company base price.
+
+#### 4. Product Detail View ([`ProductDetailView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/ProductDetailView.vue))
+- **Product Media Gallery:** High-resolution main image with zoom and alternate thumbnails.
+- **Product Overview & Metadata:** Full description, serving size recommendations, weight/dimensions, and storage instructions.
+- **Nutritional Information & Allergen Disclosures:** Explicit allergen flags (Gluten, Dairy, Eggs, Tree Nuts, Soy).
+- **Branch Stock & Quantity Selector:**
+  - Dynamic quantity counter clamped strictly between 1 and the selected branch's on-hand inventory.
+  - Real-time subtotal calculation.
+- **Related Products Carousel:** Intelligent recommendations based on complementary categories (e.g. suggesting pastries when browsing cakes).
+
+#### 5. Interactive 3D Custom Cake Studio ([`CustomCakeBuilderView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue))
+- **Interactive Three.js WebGL 3D Canvas:**
+  - Real-time 3D rendering of custom cake geometry with physically based lighting and studio environment reflections.
+  - Full 360-degree orbit rotation, vertical tilt control, touch pinch-to-zoom, and auto-turntable spin mode.
+- **Customization Options & Layers:**
+  - **Tier Configuration:** Single Tier (1 kg / 2 kg), Two Tiers (3 kg / 4 kg), or Three Tiers (5 kg+ grand celebration).
+  - **Sponge Flavors:** Belgian Dark Chocolate, Bourbon Vanilla Bean, Red Velvet, Funfetti Confetti, Spiced Carrot Walnut, and Zesty Lemon.
+  - **Frosting Textures & Finishes:** Satin Smooth Fondant, Rustic Buttercream Swirls, Naked / Semi-Naked Crumb Coat, Horizontal Ribbed Lines, and Cascading Chocolate/Caramel Drip.
+  - **Frosting Color Palette:** Interactive hex color picker plus curated bakery swatches (Champagne Cream, Dusty Rose, Lavender Mist, Sage Green, Midnight Navy, White Pearl).
+  - **Accents & 3D Toppers:** Animated 3D birthday candles with procedural flickering flame, Wedding Rings, Golden Celebration Crest, and Edible Pearl Sprinkles.
+  - **Custom Piped Inscription:** Text box allowing customers to type personalized greeting (e.g. "Happy 30th Birthday Sarah!"); text is dynamically textured onto a sugar ribbon in the 3D scene.
+- **Instant Dynamic Price Estimation:**
+  - Mathematical live quotation calculating base tier cost + premium flavor modifiers + topper additions.
+- **WebGL Snapshot Capture:**
+  - 1-Click snapshot generator captures the current 3D canvas viewport as a high-resolution PNG data blob, automatically bundled with the order request for bakery decorators.
+- **Booking & Request Submission Form:**
+  - Fulfillment branch selector, event date and time picker, contact phone and email, and special dietary/allergen notes.
+  - Submits to `/api/custom-cakes` where it routes directly to the designated branch seller queue.
+
+#### 6. Cart Drawer & Dedicated Cart View ([`CartView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CartView.vue) & [`CartDrawer.vue`](file:///c:/Kenan%20Cake/Client/src/components/cart/CartDrawer.vue))
+- **Slide-Out Drawer & Full Page:** Consistent cart experience whether quickly reviewing via slide-out drawer or visiting `/cart`.
+- **Itemized Ledger:** Product thumbnail, title, selected options, unit price, quantity modifier (`+`/`-` with on-hand stock boundary check), line total, and remove item action.
+- **Branch Change Protection:** Warns customer if changing branches causes any cart item to exceed the new branch's available inventory.
+- **Order Financial Summary:** Itemized subtotal, estimated tax, estimated branch delivery fee, and grand total.
+
+#### 7. Multi-Step Checkout ([`CheckoutView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CheckoutView.vue))
+- **Step 1: Fulfillment Selection:**
+  - *Branch Pickup:* Customer selects pickup date and time window; zero delivery fee applied.
+  - *Doorstep Delivery:* Customer inputs delivery address, city/neighborhood, landmark instructions, recipient name, and active mobile number. Delivery fee dynamically calculated.
+- **Step 2: Customer Contact Information:**
+  - Supports both authenticated customer profiles and guest checkouts.
+  - Phone number validated for SMS notifications and two-factor tracking lookups.
+- **Step 3: Payment Method Selection:**
+  - *Cash on Delivery / Pickup:* Pay cash upon collection or arrival.
+  - *Direct Bank Transfer / Telebirr:* Displays bakery bank account numbers and QR code with receipt upload voucher.
+  - *Online Debit/Credit Card:* Card payment gateway integration.
+  - *Advance Deposit:* For large orders, pay a required minimum advance deposit with remainder due at collection.
+- **Order Placement & Stock Reservation:**
+  - Submits transaction to `/api/orders`.
+  - Atomically reserves on-hand stock and generates an authoritative order number (`ORD-xxxx`).
+  - Redirects customer to immediate Order Confirmation screen with order number and tracking links.
+
+#### 8. Two-Factor Public Order Tracker ([`OrderTrackingView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderTrackingView.vue))
+- **Two-Factor Authentication Security (v4.1):**
+  - Requires both the **Order Reference Number** (`ORD-xxxx` or `CCR-xxxx`) AND matching **Customer Phone Number or Email**.
+  - Prevents public enumeration and brute-force order scraping.
+- **Fulfillment Milestone Stepper:**
+  - Visual 5-step milestone tracking:
+    1. *Order Placed:* Received by bakery system.
+    2. *Confirmed:* Verified by branch seller.
+    3. *In Kitchen / Preparing:* Baked and decorated by master baker.
+    4. *Ready for Pickup / Out for Delivery:* Packaged in bakery box awaiting pickup or dispatched with courier.
+    5. *Delivered / Collected:* Successfully handed to customer.
+- **Itemized Order Receipt:** Displays items ordered, fulfillment branch address, contact phone, and payment status.
+- **Privacy Protection:** Customer phone numbers and emails are masked in tracking API responses to safeguard customer PII.
+
+#### 9. Customer Account & Authentication ([`LoginView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/LoginView.vue), [`RegisterView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/RegisterView.vue), [`AccountView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/AccountView.vue))
+- **Rate-Limited Authentication:** Login throttled to 5 attempts per minute per IP/account to prevent brute-force attacks.
+- **Guest Order Auto-Linking (v4.1):** Registering an account with a mobile phone number automatically queries and links all historical guest retail orders and custom cake requests placed with that phone number.
+- **Customer Dashboard:**
+  - Recent orders directory with 1-click status check and printable PDF receipts.
+  - Custom cake quotation tracker: Review quotes provided by branch sellers, approve quote, and view deposit status.
+  - Saved delivery addresses management.
+  - Saved Wishlist collection.
+
+---
+
+### 14.2. Branch Seller & Cashier Operations Portal (`/admin`)
+
+#### 1. Seller POS & Walk-In Counter Sales ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
+- **Counter Order Entry:** Fast, tactile point-of-sale interface designed for touchscreens and barcode/keyboard entry.
+- **Localized Catalog Search:** Instant search scoped exclusively to the seller's assigned branch inventory and localized pricing.
+- **Transaction Processing:** Add items, adjust quantities with real-time stock clamping, apply line-item or order-level discounts with seller note.
+- **Payment Recording:** Accept cash, card, mobile money (Telebirr), or split payments; automatic change calculator.
+- **Thermal Receipt Printing:** Instant browser print dialog formatted for 80mm thermal receipt printers with company logo, branch tax details, itemized breakdown, and pickup QR code.
+
+#### 2. Online Order Management ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
+- **Scoped Branch Order Queue:** Sellers see only orders assigned to their branch.
+- **Order Milestone Transitions:**
+  - Update status along the strict state machine: `pending` $\rightarrow$ `confirmed` $\rightarrow$ `preparing` $\rightarrow$ `ready_for_pickup` / `out_for_delivery` $\rightarrow$ `completed`.
+  - Trigger automated role-filtered customer notifications and supervisory alerts on each transition.
+- **Order Cancellation:** Allows authorized cancellation with mandatory reason logging; automatically releases reserved stock back into on-hand branch inventory.
+
+#### 3. Custom Cake Inquiries & Quotations ([`CustomCakesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/CustomCakesView.vue))
+- **Bespoke Request Inbox:** Lists all 3D cake requests submitted by customers for the seller's branch.
+- **Design Review Modal:** Inspect customer 3D WebGL snapshot, selected tiers, sponge flavors, frosting colors, piped inscription text, reference photo uploads, and event due date.
+- **Formal Price Quotation Engine:**
+  - Enter total agreed price and required advance deposit (minimum percentage enforced).
+  - Specify cake decorator notes and production prep time.
+  - System notifies customer to review and accept the official quotation.
+- **Deposit & Final Payment Recording:**
+  - Record cash/transfer deposit upon receipt.
+  - Automatic balance calculation: $\text{Remaining Balance} = \text{Agreed Price} - \text{Advance Deposit}$.
+  - Record final balance payment when customer collects cake.
+
+#### 4. Seller Daily Sales Report ([`SellerDailyReportView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/SellerDailyReportView.vue))
+- **1-Click Transaction Import:** Auto-populates all counter sales, online collections, and custom cake deposits completed at the branch today.
+- **Financial Separation of Booked Sales vs Cash Collected (v4.1):**
+  - **Booked Sales:** Total agreed revenue generated today.
+  - **Cash Collected:** Actual currency physically collected (Cash in Till + Card Slips + Verified Bank Transfers + Cake Deposits).
+- **Payment Method Reconciliation:** Separate input buckets for Cash, POS Card, and Bank/Mobile Transfers.
+- **Discrepancy Audit:** Notes field for any cash over/short differences.
+- **Lifecycle Actions:**
+  - `Save Draft`: Save progress and return later.
+  - `Submit to Manager`: Locks seller edits and submits report to the Branch Manager for formal verification.
+  - `Returned Alert Banner`: If the Branch Manager returns the report, displays an amber warning banner with the manager's mandatory review notes, unlocking all fields for correction and resubmission.
+
+#### 5. Localized Branch Notifications ([`NotificationsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/NotificationsView.vue))
+- Scoped strictly to the seller's branch ID.
+- Real-time alerts for incoming online orders, custom cake submissions, customer cancellations, and manager report decisions.
+- Mark as read, mark all as read, and filter by unread status.
+
+---
+
+### 14.3. Branch Manager Supervisory Administration (`/admin`)
+
+#### 1. Branch Executive Overview ([`OverviewView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OverviewView.vue))
+- Real-time KPIs for assigned branch: Today's Total Sales, Month-to-Date Revenue, Pending Order Queue, Low Stock Alerts, and Active Staff Count.
+- Hourly sales distribution and best-selling bakery categories charts.
+
+#### 2. Supervisory Order Oversight ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
+- Read-only supervisory visibility over all branch orders and custom cake requests (v4.1).
+- Allows managers to monitor kitchen throughput and delivery pacing without interfering with seller cash drawer accountability.
+
+#### 3. Branch Staff Governance & Security ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue))
+- **Scoped Staff Directory:** Manager views only employees assigned to their own branch.
+- **Recruit Branch Staff:** Create staff accounts restricted exclusively to operational roles (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`). Attempts to create elevated roles return HTTP 403 Forbidden.
+- **Account Status Management:**
+  - Toggle staff status: `Active`, `Inactive`, or `Suspended`.
+  - Mandatory Reason Requirement: Suspending an employee requires entering a detailed `status_reason`.
+  - Immediate Session Termination: Suspending or deactivating an account immediately revokes all active Sanctum API bearer tokens, terminating active sessions instantly.
+  - Self-Modification Protection: Managers cannot alter their own account status or assign themselves to other branches (enforced by backend validation).
+
+#### 4. Branch Product Pricing Customization ([`ProductsPricesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ProductsPricesView.vue))
+- View base company master catalog alongside branch-specific selling prices.
+- Set or update custom selling prices for any product at their branch (e.g. premium airport branch vs neighborhood branch).
+- Stored with unique composite key `(branch_id, product_id)` in `branch_product_prices`.
+
+#### 5. Inventory Management & Stock Reconciliation ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue))
+- Real-time inventory grid showing SKU, Product Name, Category, Minimum Safety Level, and On-Hand Balance.
+- Color-coded safety alerts: Green (Healthy), Amber (Reorder Warning), Red (Depleted / Critical).
+- **Physical Count Adjustment Modal:**
+  - Perform manual stock adjustments following physical stocktakes.
+  - Mandatory adjustment reason: *Damaged in Kitchen*, *Expired / Spoiled*, *Physical Count Discrepancy*, *Sample / Promotion*.
+  - Every adjustment writes an immutable record to `inventory_transactions` with user ID and timestamp.
+
+#### 6. Stock Receiving Workflow ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue)) *(Regular Branches Only)*
+- **Dedicated "Stock Receive" Button:** Prominently displayed for all regular branches; automatically hidden on the Main Branch.
+- **Incoming Dispatches Modal:**
+  - Lists all pending shipments dispatched by Main Branch to this destination.
+  - Displays Product Name, Category, Dispatched Quantity, Reference Number, and Dispatch Date.
+- **Verified Receiving Input:**
+  - Manager or authorized staff inputs actual received quantity.
+  - Over-Receiving Guard: Blocks entering a quantity greater than dispatched ($Q_{\text{received}} \le Q_{\text{dispatched}}$).
+  - Submission atomically increments branch `quantity_on_hand`, updates dispatch status to `received`, records an audit transaction, and notifies Main Branch.
+
+#### 7. Seller Daily Report Verification ([`ManagerOrderReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ManagerOrderReportsView.vue))
+- Audit queue of daily reports submitted by branch sellers.
+- Side-by-side verification: Recorded physical cash vs system-booked sales.
+- **Manager Actions:**
+  - `Approve Report`: Formally approves the report, permanently locking all numbers from further modification and archiving it for Super Admin review.
+  - `Return for Correction`: Requires entering mandatory review notes explaining discrepancies; changes report status to `Returned` and alerts the seller to rectify errors.
+
+---
+
+### 14.4. Main Branch Distribution & Logistics Engine (`/admin`)
+
+#### 1. Central Distribution Dispatch Hub ([`DistributionView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/DistributionView.vue) & [`NewTransferView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/NewTransferView.vue))
+- Available exclusively to the Main Branch Manager and Super Admin.
+- **Create Stock Dispatch Manifest:**
+  - Select Destination Branch from active branches list.
+  - Multi-Item Dispatch Builder: Add catalog products and specify quantities to transfer.
+  - Stock Safeguard: Validates dispatch quantity against Main Branch available on-hand inventory ($Q_{\text{dispatch}} \le Q_{\text{main}}$). Prevents negative inventory dispatches.
+- **Shipment Confirmation & Tracking:**
+  - "Confirm & Send Dispatch" action immediately deducts inventory from Main Branch with a `transfer_dispatch` audit transaction.
+  - Generates unique dispatch reference code (`DSP-xxxx`).
+  - Sets shipment status to `in_transit`.
+  - Dispatches automated notification to destination branch manager and staff alerting them of incoming stock.
+- **Dispatch Manifest Archive:**
+  - Historical archive of all dispatches, delivery statuses, receiver signatures, and reconciliation notes.
+
+---
+
+### 14.5. Super Admin Headquarters Governance (`/admin`)
+
+#### 1. Master Executive Dashboard ([`OverviewView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OverviewView.vue))
+- Cross-branch enterprise overview: Aggregated Gross Revenue, Total Daily Orders, Network-Wide Inventory Valuation, and Branch Revenue Ranking.
+- Comparative analytics charting branch sales trends side-by-side.
+
+#### 2. Multi-Branch Network Administration ([`BranchManagementView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/BranchManagementView.vue))
+- **Add New Branch Modal:**
+  - Input Branch Name, Unique Branch Code, Branch Type (`Main` vs `Regular`), Physical Address, City, GPS Coordinates (Latitude $\pm 90^\circ$, Longitude $\pm 180^\circ$ with `DECIMAL(11,8)` precision), and Assign Initial Branch Manager.
+  - **Zero-Data Guarantee:** Newly created branches automatically initialize with strictly 0 orders, 0 inventory, 0 custom cakes, and isolated tenant boundaries.
+- **Branch Lifecycle Management:** Edit branch details, update assigned managers, or toggle branch operational status (`Active` / `Inactive`).
+
+#### 3. Enterprise Staff Directory & Manager Governance ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue))
+- Company-wide personnel directory with multi-branch and role filters.
+- Create and assign Branch Managers.
+- Manage Branch Manager account statuses (`Active`, `Inactive`, `Suspended`). Branch Managers can only have their status modified by the Super Admin.
+
+#### 4. Employee Compensation & Payroll ([`SalariesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/SalariesView.vue))
+- Compensation management stored in isolated `employee_profiles` table.
+- View and update monthly salaries, pay grades, and compensation history.
+- Salary data is strictly restricted from regular branch managers and staff.
+
+#### 5. Consolidated Branch Daily Sales Summaries ([`/api/admin/reports/admin/branch-summary`](file:///c:/Kenan%20Cake/Backend/routes/api.php))
+- Super Admin read-only view synthesizing all approved branch daily reports.
+- Comprehensive financial rollup: Aggregates total booked sales, cash collected, card revenue, mobile payments, and advance cake deposits across the entire network.
+
+#### 6. Immutable System Audit Trail ([`AuditLogView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/AuditLogView.vue))
+- Comprehensive tamper-evident audit log recording every critical administrative action:
+  - User status changes and account suspensions with mandatory reason.
+  - Inventory count adjustments with discrepancy reason.
+  - Price overrides and branch-specific pricing updates.
+  - Financial refunds and order cancellations.
+  - Timestamp, actor user ID, client IP address, before/after state diff.
+
+---
+
+### 14.6. Cross-Cutting System Architectural Guarantees
+
+1. **Strict Multi-Branch Tenant Isolation:**
+   - Every database query for branch-scoped models (`Order`, `ReceivedStock`, `StockDispatch`, `SellerDailyReport`, `CustomCakeRequest`) automatically enforces `branch_id` from the authenticated user's session via `BranchIsolationScope`.
+   - Tampered request payloads attempting to pass foreign `branch_id` values are rejected or forced to the authorized branch ID.
+2. **Strict Financial Accounting Integrity:**
+   - All monetary calculations are cast to `decimal:2` in PHP and stored as `DECIMAL(10,2)` in MySQL. Floating-point numbers are strictly prohibited.
+   - Refund ceiling enforcement: Refund amounts are capped by the original payment ($A_{\text{refund}} \le A_{\text{payment}}$).
+   - Order cancellation automatically releases reserved inventory without causing negative inventory phantom drift.
+3. **Double-Hop Inventory Protection:**
+   - On-hand stock is guarded using database row locks (`lockForUpdate()`) during checkout, counter sales, dispatches, and receiving.
+   - Over-receiving and over-dispatching are blocked by backend request validators (`StockDispatchRequest`, `StockReceiveRequest`).
+4. **Targeted Notification Routing & Deduplication:**
+   - Super Admin is explicitly excluded from granular operational order notifications.
+   - Branch sellers receive only order and custom cake alerts for their branch.
+   - 24-hour composite unique constraint prevents duplicate alert spamming for repeated order milestone events.
