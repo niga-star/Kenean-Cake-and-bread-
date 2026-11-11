@@ -240,3 +240,4 @@ echo "Test Run Complete: {$passed} Passed, {$failed} Failed\n";
 echo "=================================================================\n";
 
 exit($failed > 0 ? 1 : 0);
+

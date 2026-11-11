@@ -418,19 +418,22 @@
       </div>
     </section>
 
-    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner (Matching Reference Image) -->
+    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner (Half-Transparency Glassmorphism) -->
     <section class="sweetbakes-container" v-reveal>
-      <div class="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-[#FFF7F6] via-[#FAF3F0] to-[#FDE8EE] dark:from-[#20120D] dark:via-[#1A0E0A] dark:to-[#2B141C] border border-[#F6E1DC] dark:border-[#3E231A] shadow-md hover:shadow-2xl transition-all duration-500 p-6 sm:p-10 lg:p-12 xl:p-14 group">
+      <div class="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-white/70 dark:bg-[#1E120B]/70 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_12px_40px_rgba(222,27,84,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all duration-500 p-6 sm:p-10 lg:p-12 xl:p-14 group">
+        <!-- Half-transparency gradient on left (for crisp text readability), leaving right half 100% rich original image -->
+        <div class="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 via-50% to-transparent dark:from-[#1E120B]/90 dark:via-[#1E120B]/70 dark:via-50% dark:to-transparent pointer-events-none"></div>
+
         <!-- Soft Ambient Pink Glows in Background -->
-        <div class="absolute -right-12 -bottom-16 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F9B4C4]/40 dark:bg-[#DE1B54]/15 blur-2xl pointer-events-none"></div>
-        <div class="absolute right-36 -top-10 w-64 h-64 rounded-full bg-[#FBCFE8]/30 dark:bg-rose-950/20 blur-xl pointer-events-none"></div>
-        <div class="absolute right-0 bottom-0 w-72 h-36 rounded-tl-[100%] bg-[#F59EB5]/25 dark:bg-[#DE1B54]/15 pointer-events-none"></div>
+        <div class="absolute -right-12 -bottom-16 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F9B4C4]/35 dark:bg-[#DE1B54]/15 blur-3xl pointer-events-none"></div>
+        <div class="absolute right-36 -top-10 w-64 h-64 rounded-full bg-[#FBCFE8]/25 dark:bg-rose-950/20 blur-2xl pointer-events-none"></div>
+        <div class="absolute right-0 bottom-0 w-72 h-36 rounded-tl-[100%] bg-[#F59EB5]/20 dark:bg-[#DE1B54]/10 pointer-events-none"></div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <!-- Left Column: Typography & Launch Button (lg:col-span-7) -->
           <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
             <!-- Pill Badge: 🍰 Cake Studio -->
-            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#FDE7EC] dark:bg-[#381B26] text-[#2C1810] dark:text-[#FAF3EE] font-bold text-xs sm:text-sm shadow-2xs">
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/85 dark:bg-[#381B26]/85 backdrop-blur-md text-[#2C1810] dark:text-[#FAF3EE] border border-rose-200/60 dark:border-rose-900/40 font-bold text-xs sm:text-sm shadow-2xs">
               <span class="text-base">🍰</span>
               <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
             </div>
@@ -486,10 +489,13 @@
 
           <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal (lg:col-span-5) -->
           <div class="lg:col-span-5 flex justify-center items-center relative">
+            <!-- Organic Radial Backdrop to gently spotlight the cake -->
+            <div class="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-[#F8B6C7]/40 to-[#FCE3EB]/30 dark:from-[#DE1B54]/20 dark:to-transparent blur-xl pointer-events-none"></div>
+
             <img
               src="/mockup/custom_studio_cake_pure.png"
               alt="SweetBakes 3D Cake Studio Masterpiece"
-              class="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-none h-auto object-contain drop-shadow-xl group-hover:scale-104 group-hover:-translate-y-2 transition-transform duration-500"
+              class="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-none h-auto object-contain drop-shadow-2xl group-hover:scale-104 group-hover:-translate-y-2 transition-transform duration-500 relative z-10"
               loading="lazy"
             />
           </div>
