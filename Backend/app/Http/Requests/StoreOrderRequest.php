@@ -38,6 +38,7 @@ class StoreOrderRequest extends FormRequest
             'branch_id' => 'required|exists:branches,branch_id',
             'customer_name' => 'nullable|string|max:150',
             'customer_phone' => 'nullable|string|max:40',
+            'customer_email' => 'nullable|email|max:150',
             'fulfillment_method' => 'required|in:Delivery,Pickup',
             'address_id' => 'nullable|exists:addresses,address_id',
             'delivery_address' => 'nullable|string',

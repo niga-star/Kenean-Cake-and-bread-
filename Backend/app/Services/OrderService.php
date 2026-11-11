@@ -61,21 +61,24 @@ class OrderService
         // 3. Resolve customer identity
         $customerName = trim($validated['customer_name'] ?? '');
         $customerPhone = trim($validated['customer_phone'] ?? '');
+        $customerEmail = trim($validated['customer_email'] ?? '');
 
         $orderUserId = null;
         if ($user && $user->role === 'Customer') {
             $orderUserId = $user->user_id;
             $customerName = $customerName ?: $user->full_name;
             $customerPhone = $customerPhone ?: $user->phone;
+            $customerEmail = $customerEmail ?: $user->email;
         } elseif (!empty($customerPhone)) {
             $existingCustomer = User::where('phone', $customerPhone)->first();
             if ($existingCustomer) {
                 $orderUserId = $existingCustomer->user_id;
                 $customerName = $customerName ?: $existingCustomer->full_name;
+                $customerEmail = $customerEmail ?: ($existingCustomer->email && !str_ends_with($existingCustomer->email, '@sweetbakes.local') ? $existingCustomer->email : '');
             } else {
                 $realCustomer = User::create([
                     'full_name' => $customerName ?: 'Customer',
-                    'email' => 'customer_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                    'email' => $customerEmail && !User::where('email', $customerEmail)->exists() ? $customerEmail : ('customer_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local'),
                     'phone' => $customerPhone,
                     'password' => Hash::make(bin2hex(random_bytes(16))),
                     'role' => 'Customer',
@@ -87,10 +90,11 @@ class OrderService
             $orderUserId = $user->user_id;
             $customerName = $customerName ?: $user->full_name;
             $customerPhone = $customerPhone ?: $user->phone;
+            $customerEmail = $customerEmail ?: $user->email;
         } else {
             $guestCustomer = User::create([
                 'full_name' => $customerName ?: 'Guest Customer',
-                'email' => 'guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                'email' => $customerEmail && !User::where('email', $customerEmail)->exists() ? $customerEmail : ('guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local'),
                 'phone' => null,
                 'password' => Hash::make(bin2hex(random_bytes(16))),
                 'role' => 'Customer',
@@ -138,7 +142,7 @@ class OrderService
         }
 
         // 6. Execute atomic stock reservation and order creation inside database transaction with retries
-        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $orderUserId, $customerName, $customerPhone, $user, $addressId) {
+        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $orderUserId, $customerName, $customerPhone, $customerEmail, $user, $addressId) {
             $rand = mt_rand(1000, 9999);
             $orderNumber = "ORD-{$rand}";
             while (Order::where('order_number', $orderNumber)->exists()) {
@@ -159,8 +163,8 @@ class OrderService
 
                 $available = $inv ? max(0, $inv->quantity_on_hand - $inv->reserved_quantity) : 0;
 
-                if ($available < $qty) {
-                    throw new Exception("Insufficient stock for {$product->product_name} at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
+                if ($available <= 0 || $available < $qty) {
+                    throw new Exception("Product {$product->product_name} is unavailable for purchase at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
                 }
 
                 $inv->reserved_quantity += $qty;
@@ -239,6 +243,7 @@ class OrderService
                 'user_id' => $orderUserId,
                 'customer_name' => $customerName,
                 'customer_phone' => $customerPhone,
+                'customer_email' => $customerEmail ?: null,
                 'branch_id' => $branch->branch_id,
                 'address_id' => $addressId,
                 'fulfillment_method' => $validated['fulfillment_method'],

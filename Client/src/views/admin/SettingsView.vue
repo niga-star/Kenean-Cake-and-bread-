@@ -929,7 +929,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
+
+const dialog = useDialogStore();
+const toast = useToastStore();
 
 const activeTab = ref('general');
 const saving = ref(false);
@@ -1099,13 +1104,23 @@ const updateBannerSubmit = async () => {
 };
 
 const deleteBanner = async (b) => {
-  if (!confirm(`Delete banner "${b.title_en}"?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Delete Banner',
+    message: `Are you sure you want to delete banner "${b.title_en}"?`,
+    confirmText: 'Delete Banner',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.delete(`/admin/banners/${b.banner_id}`);
-    successMsg.value = 'Banner deleted.';
+    const msg = 'Banner deleted.';
+    successMsg.value = msg;
+    toast.success(msg);
     await loadBanners();
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to delete banner';
+    const msg = err.response?.data?.message || 'Failed to delete banner';
+    errorMsg.value = msg;
+    toast.error(msg);
   }
 };
 
@@ -1121,13 +1136,23 @@ const loadReviews = async () => {
 };
 
 const deleteReview = async (rev) => {
-  if (!confirm('Are you sure you want to delete this review?')) return;
+  const confirmed = await dialog.confirm({
+    title: 'Delete Customer Review',
+    message: 'Are you sure you want to delete this customer review? This cannot be undone.',
+    confirmText: 'Delete Review',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.delete(`/admin/reviews/${rev.review_id}`);
-    successMsg.value = 'Review deleted successfully.';
+    const msg = 'Review deleted successfully.';
+    successMsg.value = msg;
+    toast.success(msg);
     await loadReviews();
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to delete review';
+    const msg = err.response?.data?.message || 'Failed to delete review';
+    errorMsg.value = msg;
+    toast.error(msg);
   }
 };
 

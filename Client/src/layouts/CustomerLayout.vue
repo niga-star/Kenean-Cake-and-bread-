@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#FAF7F5] dark:bg-[#170E0A] text-[#29231F] dark:text-[#F7EFE9] flex flex-col font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] overflow-x-hidden w-full relative">
     <!-- Top Bar: Dark Charcoal #1A1412 -->
-    <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-1.5 sm:py-2 border-b border-[#281E19]">
+    <div class="bg-[#1A1412] text-[#E8DED8] text-xs py-1.5 sm:py-2 border-b border-[#281E19] print:hidden">
       <div class="sweetbakes-container flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2">
         <!-- Left: Location, Phone, Email -->
         <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-2 sm:gap-x-3 gap-y-1 text-[11px] sm:text-xs text-[#D8CDC5] w-full sm:w-auto">
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Main Navigation Bar: Pure White -->
-    <header class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs">
+    <header class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs print:hidden">
       <div class="sweetbakes-container h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-4">
         <!-- SweetBakes Logo -->
         <router-link to="/" class="flex items-center space-x-2 sm:space-x-3 shrink-0 group">
@@ -628,10 +628,10 @@
     </main>
 
     <!-- SweetBakes Real GPS Contact Us Section (Above Footer) -->
-    <ContactSection id="contact" v-if="shouldShowContactAboveFooter" />
+    <ContactSection id="contact" v-if="shouldShowContactAboveFooter" class="print:hidden" />
 
     <!-- Organic Seamless Wave Transition into Deep Chocolate Footer -->
-    <div class="w-full overflow-hidden leading-none select-none pointer-events-none -mb-px">
+    <div class="w-full overflow-hidden leading-none select-none pointer-events-none -mb-px print:hidden">
       <svg
         class="w-full h-8 sm:h-12 lg:h-14 text-[#27160E] fill-current block"
         viewBox="0 0 1440 64"
@@ -643,7 +643,7 @@
     </div>
 
     <!-- Footer: Deep Chocolate Brown #27160E -->
-    <footer class="bg-[#27160E] text-[#E8DED8] pt-8 sm:pt-10 pb-8 relative w-full">
+    <footer class="bg-[#27160E] text-[#E8DED8] pt-8 sm:pt-10 pb-8 relative w-full print:hidden">
       <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
         <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 3 cols tablet) -->
         <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-4">
@@ -827,10 +827,10 @@
     </footer>
 
     <!-- Slide-Out Quick Cart Drawer (Mini-Cart) -->
-    <CartDrawer />
+    <CartDrawer class="print:hidden" />
 
     <!-- Branch Picker Modal (Searchable, All Addis Branches) -->
-    <BranchPickerModal />
+    <BranchPickerModal class="print:hidden" />
   </div>
 </template>
 

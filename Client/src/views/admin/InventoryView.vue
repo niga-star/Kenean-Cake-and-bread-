@@ -995,9 +995,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
 
 const branches = ref([]);
 const selectedBranch = ref('all');
@@ -1308,7 +1310,7 @@ const fetchReceivedStocks = async () => {
 
 const submitStockReceive = async () => {
   if (!stockReceiveForm.value.dispatch_id) {
-    alert('Please select an incoming dispatch manifest to receive against.');
+    toast.warning('Please select an incoming dispatch manifest to receive against.');
     return;
   }
   if (!stockReceiveForm.value.product_id || !stockReceiveForm.value.quantity_received) return;
@@ -1330,7 +1332,9 @@ const submitStockReceive = async () => {
       receivedStocksList.value.unshift(newRecord);
     }
 
-    adjustmentSuccessToast.value = res.data.message || 'Stock successfully received!';
+    const successMessage = res.data.message || 'Stock successfully received!';
+    adjustmentSuccessToast.value = successMessage;
+    toast.success(successMessage);
     showStockReceiveModal.value = false;
 
     // Reset form fields
@@ -1344,7 +1348,7 @@ const submitStockReceive = async () => {
       await loadTransactions();
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to record received stock.');
+    toast.error(err.response?.data?.message || 'Failed to record received stock.');
   } finally {
     isSubmittingReceive.value = false;
   }

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-7xl mx-auto font-poppins">
+  <div class="space-y-6 max-w-7xl mx-auto font-poppins print:hidden">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-2">
@@ -237,14 +237,26 @@
             </p>
           </div>
 
-          <!-- Super Admin Reassign Branch Button -->
-          <button
-            v-if="isSuperAdmin && selectedOrder.order_status !== 'Completed' && selectedOrder.order_status !== 'Cancelled'"
-            @click="openReassignModal"
-            class="text-[11px] text-[#BA5420] font-semibold hover:underline"
-          >
-            Change branch
-          </button>
+          <div class="flex items-center space-x-2">
+            <!-- Staff POS Print Receipt Button -->
+            <button
+              @click="printReceipt(selectedOrder)"
+              class="px-3 py-1.5 bg-white border border-[#D8CDC0] hover:border-[#BA5420] hover:text-[#BA5420] text-xs font-bold text-[#382C24] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+              title="Print Customer Order Receipt"
+            >
+              <span>🖨️</span>
+              <span>Print Receipt</span>
+            </button>
+
+            <!-- Super Admin Reassign Branch Button -->
+            <button
+              v-if="isSuperAdmin && selectedOrder.order_status !== 'Completed' && selectedOrder.order_status !== 'Cancelled'"
+              @click="openReassignModal"
+              class="text-[11px] text-[#BA5420] font-semibold hover:underline"
+            >
+              Change branch
+            </button>
+          </div>
         </div>
 
         <!-- Customer Contact Details -->
@@ -435,14 +447,220 @@
       </div>
     </div>
   </div>
+
+  <!-- Dedicated Staff POS / Counter Order Receipt (Print Media Only) -->
+  <div
+    v-if="selectedOrder"
+    id="order-receipt-container"
+    class="hidden print:block bg-white text-[#1A1412] font-sans antialiased"
+    aria-label="SweetBakes Official Order Receipt"
+  >
+    <div class="receipt-card max-w-[760px] mx-auto p-5 sm:p-6 bg-white border border-[#D4C8BE] rounded-2xl">
+      
+      <!-- 1. Header: Bakery Identity & Receipt Document Title -->
+      <div class="flex items-start justify-between border-b-2 border-[#3D251E] pb-3 mb-3">
+        <div class="space-y-0.5">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl leading-none">🧁</span>
+            <span class="font-serif font-black text-2xl tracking-tight text-[#3D251E]">SweetBakes</span>
+            <span class="text-xs uppercase font-sans font-black tracking-widest text-[#BA5420] ml-1">Bakery</span>
+          </div>
+          <p class="text-[11px] text-[#5C4A3E] font-medium tracking-wide">
+            Artisan Cakes &middot; Fresh Pastries &middot; Handcrafted Daily
+          </p>
+        </div>
+
+        <div class="text-right space-y-1">
+          <div class="inline-block border-2 border-[#3D251E] px-3 py-0.5 rounded text-xs font-black tracking-widest text-[#3D251E] uppercase">
+            ORDER RECEIPT
+          </div>
+          <div class="text-[11px] font-bold text-[#3D251E]">
+            Status: 
+            <span 
+              class="uppercase tracking-wider px-2 py-0.5 rounded text-[10px] font-bold inline-block"
+              :class="{
+                'bg-emerald-100 text-emerald-900 border border-emerald-300': ['Confirmed', 'Ready', 'Completed'].includes(selectedOrder.order_status),
+                'bg-amber-100 text-amber-900 border border-amber-300': ['Pending', 'Preparing'].includes(selectedOrder.order_status),
+                'bg-rose-100 text-rose-900 border border-rose-300': selectedOrder.order_status === 'Cancelled',
+              }"
+            >
+              {{ selectedOrder.order_status || 'Confirmed' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Branch & Order Reference Grid -->
+      <div class="grid grid-cols-2 gap-4 text-xs border-b border-[#E6DED3] pb-3 mb-3">
+        <div class="space-y-0.5">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#8A796E]">Fulfilling Bakery Branch</div>
+          <div class="font-bold text-[#3D251E] text-sm">
+            {{ selectedOrder.branch?.branch_name || userBranchName }}
+            <span v-if="selectedOrder.branch?.branch_type === 'Main'" class="text-[10px] font-normal text-[#BA5420]">(Main HQ)</span>
+          </div>
+          <div class="text-[#5C4A3E] text-[11px]">
+            📍 {{ selectedOrder.branch?.address || 'Addis Ababa, Ethiopia' }}
+          </div>
+          <div class="text-[#5C4A3E] text-[11px]">
+            📞 {{ selectedOrder.branch?.phone || '+251 911 123 456' }} &middot; ✉️ {{ selectedOrder.branch?.email || 'info@sweetbakes.com' }}
+          </div>
+        </div>
+
+        <div class="space-y-0.5 text-right">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#8A796E]">Order Identification</div>
+          <div class="font-mono font-black text-base text-[#3D251E]">
+            #{{ selectedOrder.order_number }}
+          </div>
+          <div class="text-[#5C4A3E] text-[11px]">
+            <span class="font-semibold text-[#8A796E]">Date Placed:</span> {{ formatTime(selectedOrder.placed_at || selectedOrder.created_at) }}
+          </div>
+          <div class="text-[#8A796E] text-[10px]">
+            Receipt Printed: {{ printTimestamp }}
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Customer & Fulfillment Details Box -->
+      <div class="grid grid-cols-2 gap-4 bg-[#FAF7F2] border border-[#E6DED3] rounded-xl p-3 text-xs mb-3">
+        <div class="space-y-0.5">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#8A796E]">Customer Details</div>
+          <div class="font-bold text-[#3D251E] text-sm">
+            {{ getCustomerDisplayName(selectedOrder) }}
+          </div>
+          <div class="text-[#5C4A3E] text-[11px] font-medium">
+            📞 {{ getCustomerPhone(selectedOrder) || 'N/A' }}
+          </div>
+          <div v-if="selectedOrder.user?.email || selectedOrder.customer_email" class="text-[#5C4A3E] text-[11px] truncate">
+            ✉️ {{ selectedOrder.user?.email || selectedOrder.customer_email }}
+          </div>
+        </div>
+
+        <div class="space-y-0.5">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#8A796E]">Fulfillment Mode</div>
+          <div class="font-bold text-[#3D251E] text-xs">
+            <span v-if="selectedOrder.fulfillment_method === 'Delivery'" class="text-[#BA5420]">
+              🚀 Doorstep Courier Delivery
+            </span>
+            <span v-else class="text-[#047857]">
+              🛍️ In-Store Counter Pickup
+            </span>
+          </div>
+          <div class="text-[#5C4A3E] text-[11px] leading-snug pt-0.5">
+            <span class="font-semibold text-[#3D251E]">
+              {{ selectedOrder.fulfillment_method === 'Pickup' ? 'Pickup Location:' : 'Delivery Address:' }}
+            </span>
+            <span class="block text-[#5C4A3E] mt-0.5">{{ selectedOrder.address?.street || selectedOrder.delivery_address || 'Addis Ababa, Ethiopia' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Itemized Items Table -->
+      <div class="mb-3">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b-2 border-[#3D251E] text-[10px] font-bold uppercase tracking-wider text-[#3D251E]">
+              <th class="py-1.5 px-2 w-8 text-center">#</th>
+              <th class="py-1.5 px-2">Item Description</th>
+              <th class="py-1.5 px-3 text-right">Unit Price</th>
+              <th class="py-1.5 px-3 text-center">Qty</th>
+              <th class="py-1.5 px-2 text-right">Line Total</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#E6DED3]">
+            <tr 
+              v-for="(item, idx) in selectedOrder.items" 
+              :key="item.order_item_id || idx"
+              class="text-[#3D251E]"
+            >
+              <td class="py-1.5 px-2 text-center text-[#8A796E] font-mono text-[11px]">{{ idx + 1 }}</td>
+              <td class="py-1.5 px-2">
+                <div class="font-bold text-[11px]">{{ item.product_name || item.product?.product_name }}</div>
+              </td>
+              <td class="py-1.5 px-3 text-right font-mono text-[#5C4A3E] text-[11px]">
+                ETB {{ Number(item.unit_price || (item.subtotal / (item.quantity || 1)) || 0).toFixed(2) }}
+              </td>
+              <td class="py-1.5 px-3 text-center font-bold text-[11px]">
+                {{ item.quantity }}
+              </td>
+              <td class="py-1.5 px-2 text-right font-mono font-bold text-[#3D251E] text-[11px]">
+                ETB {{ Number(item.subtotal || 0).toFixed(2) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 5. Payment Details & Financial Totals Breakdown -->
+      <div class="grid grid-cols-12 gap-3 border-t-2 border-[#3D251E] pt-2.5 mb-3">
+        <div class="col-span-7 space-y-1 text-xs text-[#5C4A3E]">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-[#8A796E]">Payment Information</div>
+          <div class="flex items-center space-x-1.5 text-[11px]">
+            <span class="font-semibold text-[#3D251E]">Method:</span>
+            <span>{{ selectedOrder.payment?.payment_method || 'Cash / Counter' }}</span>
+          </div>
+          <div class="flex items-center space-x-1.5 text-[11px]">
+            <span class="font-semibold text-[#3D251E]">Status:</span>
+            <span class="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 text-[10px]">
+              {{ (selectedOrder.payment?.payment_status || 'Paid').toUpperCase() }} ✓
+            </span>
+          </div>
+          <div v-if="selectedOrder.payment?.transaction_reference" class="flex items-center space-x-1.5 text-[10px]">
+            <span class="font-semibold text-[#3D251E]">Ref:</span>
+            <span class="font-mono text-[#3D251E]">{{ selectedOrder.payment.transaction_reference }}</span>
+          </div>
+        </div>
+
+        <div class="col-span-5 space-y-1 text-xs">
+          <div class="flex justify-between items-center text-[#5C4A3E] text-[11px]">
+            <span>Subtotal:</span>
+            <span class="font-mono font-semibold">
+              ETB {{ Number(selectedOrder.total_amount - (selectedOrder.delivery_fee || 0)).toFixed(2) }}
+            </span>
+          </div>
+
+          <div class="flex justify-between items-center text-[#5C4A3E] text-[11px]">
+            <span>Delivery Fee:</span>
+            <span class="font-mono font-semibold">
+              {{ Number(selectedOrder.delivery_fee) > 0 ? `ETB ${Number(selectedOrder.delivery_fee).toFixed(2)}` : 'ETB 0.00 (Free)' }}
+            </span>
+          </div>
+
+          <div class="border-t border-[#3D251E] pt-1 mt-1 flex justify-between items-center">
+            <span class="text-xs font-black text-[#3D251E] uppercase">Grand Total:</span>
+            <span class="text-sm font-black font-mono text-[#3D251E]">
+              ETB {{ Number(selectedOrder.total_amount).toFixed(2) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Receipt Footer & Thank-You Message -->
+      <div class="border-t border-dashed border-[#E6DED3] pt-2.5 text-center space-y-0.5">
+        <div class="text-xs font-serif font-bold text-[#3D251E]">
+          ❤️ Thank you for choosing SweetBakes Bakery!
+        </div>
+        <p class="text-[10px] text-[#7A6B60] max-w-lg mx-auto leading-tight">
+          We appreciate your business and hope you enjoy our freshly baked delicacies. For inquiries, contact the branch quoting your Order Number.
+        </p>
+        <div class="text-[9px] text-[#A6978C] uppercase tracking-wider pt-0.5">
+          SweetBakes Bakery Management &middot; Addis Ababa, Ethiopia &middot; www.sweetbakes.com
+        </div>
+      </div>
+
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const dialog = useDialogStore();
+const toast = useToastStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 const isManager = computed(() => ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(authStore.user?.role));
 const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
@@ -544,23 +762,36 @@ const updateOrderStatus = async (ord, newStatus) => {
       note: `Updated to ${newStatus} by admin`,
     });
     selectedOrder.value = res.data;
-    successMsg.value = `Order ${ord.order_number} status updated to ${newStatus}!`;
+    const msg = `Order ${ord.order_number} status updated to ${newStatus}!`;
+    successMsg.value = msg;
+    toast.success(msg);
     await loadOrders();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update order status');
+    const msg = err.response?.data?.message || 'Failed to update order status';
+    toast.error(msg);
   }
 };
 
 const cancelOrder = async (ord) => {
-  const reason = prompt(`Enter reason for cancelling order ${ord.order_number}:`, 'Cancelled by branch manager with stock release');
+  const reason = await dialog.prompt({
+    title: `Cancel Order #${ord.order_number}`,
+    message: 'Please enter a reason for cancelling this order and releasing its stock reservation:',
+    defaultValue: 'Cancelled by branch manager with stock release',
+    placeholder: 'Cancellation justification...',
+    confirmText: 'Cancel Order',
+    variant: 'danger',
+  });
   if (reason === null) return;
   try {
     const res = await api.post(`/orders/${ord.order_id}/cancel`, { reason });
     selectedOrder.value = res.data.order;
-    successMsg.value = `Order ${ord.order_number} cancelled and reservation released.`;
+    const msg = `Order ${ord.order_number} cancelled and reservation released.`;
+    successMsg.value = msg;
+    toast.success(msg);
     await loadOrders();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to cancel order');
+    const msg = err.response?.data?.message || 'Failed to cancel order';
+    toast.error(msg);
   }
 };
 
@@ -574,18 +805,21 @@ const openReassignModal = () => {
 const submitReassignBranch = async () => {
   if (!selectedOrder.value || !reassignForm.value.new_branch_id) return;
   if (!reassignForm.value.reason.trim()) {
-    alert('Please provide a reason for the audit trail.');
+    toast.warning('Please provide a reason for the audit trail.');
     return;
   }
 
   try {
     const res = await api.patch(`/admin/orders/${selectedOrder.value.order_id}/branch`, reassignForm.value);
     selectedOrder.value = res.data;
-    successMsg.value = `Order ${selectedOrder.value.order_number} reassigned to ${res.data.branch?.branch_name}!`;
+    const msg = `Order ${selectedOrder.value.order_number} reassigned to ${res.data.branch?.branch_name}!`;
+    successMsg.value = msg;
+    toast.success(msg);
     reassignModalOpen.value = false;
     await loadOrders();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to reassign branch');
+    const msg = err.response?.data?.message || 'Failed to reassign branch';
+    toast.error(msg);
   }
 };
 
@@ -631,4 +865,85 @@ onMounted(async () => {
   } catch (e) {}
   loadOrders();
 });
+
+const printTimestamp = computed(() => {
+  return new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+});
+
+function printReceipt(order) {
+  if (order) {
+    selectedOrder.value = order;
+  }
+  const originalTitle = document.title;
+  if (selectedOrder.value?.order_number) {
+    document.title = `SweetBakes-Receipt-${selectedOrder.value.order_number}`;
+  }
+  window.print();
+  setTimeout(() => {
+    document.title = originalTitle;
+  }, 1000);
+}
 </script>
+
+<style>
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    background: #ffffff !important;
+    color: #1a1412 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide admin layout and screen components */
+  aside,
+  header,
+  nav,
+  .print\:hidden,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+  }
+
+  #order-receipt-container {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 760px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #1a1412 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+  }
+
+  #order-receipt-container .receipt-card {
+    border: 1px solid #d4c8be !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    background-color: #ffffff !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+</style>

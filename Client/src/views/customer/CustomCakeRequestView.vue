@@ -15,6 +15,52 @@
     </div>
 
     <form @submit.prevent="submitCakeRequest" class="bg-white dark:bg-[#1E120B] p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-[#382318] shadow-xs space-y-5">
+      <!-- Contact Information -->
+      <div class="p-4 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] space-y-3">
+        <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
+          <span>👤</span>
+          <span>{{ localeStore.isAmharic ? 'የእውቂያ መረጃ (ለዋጋ መረጃና ክትትል)' : 'Contact Information (For Quotation & Order Tracking)' }}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'ሙሉ ስም *' : 'Full Name *' }}
+            </label>
+            <input
+              v-model="form.customer_name"
+              type="text"
+              required
+              :placeholder="localeStore.isAmharic ? 'ስምዎን ያስገቡ' : 'Your name'"
+              class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none min-h-[38px]"
+            />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *' }}
+            </label>
+            <input
+              v-model="form.customer_phone"
+              type="tel"
+              required
+              placeholder="+251 9XX XXX XXX"
+              class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none min-h-[38px]"
+            />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">
+              {{ localeStore.isAmharic ? 'ኢሜይል አድራሻ *' : 'Email Address *' }}
+            </label>
+            <input
+              v-model="form.customer_email"
+              type="email"
+              required
+              placeholder="customer@domain.com"
+              class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#29231F] dark:text-[#FAF3EE] focus:outline-none min-h-[38px]"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- 1. Preparing Branch -->
       <div>
         <label class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.t('select_prep_branch') }}</label>
@@ -126,11 +172,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useBranchStore } from '../../stores/branch';
+import { useAuthStore } from '../../stores/auth';
 import { useLocaleStore } from '../../stores/locale';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const branchStore = useBranchStore();
+const authStore = useAuthStore();
 const localeStore = useLocaleStore();
+const toast = useToastStore();
 const branches = ref([]);
 
 watch(() => branchStore.selectedBranchId, (newId) => {
@@ -144,6 +194,9 @@ tomorrow.setDate(tomorrow.getDate() + 1);
 const minDate = tomorrow.toISOString().split('T')[0];
 
 const form = ref({
+  customer_name: authStore.user?.full_name || '',
+  customer_phone: authStore.user?.phone || '',
+  customer_email: authStore.user?.email || '',
   branch_id: branchStore.selectedBranchId || 2,
   cake_size: 'Medium',
   flavor: 'Chocolate',
@@ -176,9 +229,12 @@ const submitCakeRequest = async () => {
       image_urls: referenceImageUrl.value ? [referenceImageUrl.value] : [],
     };
     const res = await api.post('/custom-cakes', payload);
-    successMsg.value = `Custom Cake Request ${res.data.request_number} submitted successfully!`;
+    const msg = `Custom Cake Request ${res.data.request_number} submitted successfully!`;
+    successMsg.value = msg;
+    toast.success(msg);
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to submit cake request');
+    const errMsg = err.response?.data?.message || 'Failed to submit cake request';
+    toast.error(errMsg);
   } finally {
     submitting.value = false;
   }
@@ -186,61 +242,10 @@ const submitCakeRequest = async () => {
 
 onMounted(() => {
   loadBranches();
-});
-</script>
-
-watch(() => branchStore.selectedBranchId, (newId) => {
-  if (newId) {
-    form.value.branch_id = newId;
+  if (authStore.user) {
+    if (authStore.user.full_name) form.value.customer_name = authStore.user.full_name;
+    if (authStore.user.phone) form.value.customer_phone = authStore.user.phone;
+    if (authStore.user.email) form.value.customer_email = authStore.user.email;
   }
-});
-
-const tomorrow = new Date();
-tomorrow.setDate(tomorrow.getDate() + 1);
-const minDate = tomorrow.toISOString().split('T')[0];
-
-const form = ref({
-  branch_id: branchStore.selectedBranchId || 2,
-  cake_size: 'Medium',
-  flavor: 'Chocolate',
-  message: '',
-  needed_by: minDate,
-  design: '',
-});
-
-const referenceImageUrl = ref('');
-const submitting = ref(false);
-const successMsg = ref('');
-
-const loadBranches = async () => {
-  try {
-    const res = await api.get('/branches');
-    branches.value = res.data;
-    if (branchStore.selectedBranchId) {
-      form.value.branch_id = branchStore.selectedBranchId;
-    }
-  } catch (e) {}
-};
-
-const submitCakeRequest = async () => {
-  submitting.value = true;
-  successMsg.value = '';
-
-  try {
-    const payload = {
-      ...form.value,
-      image_urls: referenceImageUrl.value ? [referenceImageUrl.value] : [],
-    };
-    const res = await api.post('/custom-cakes', payload);
-    successMsg.value = `Custom Cake Request ${res.data.request_number} submitted successfully!`;
-  } catch (err) {
-    alert(err.response?.data?.message || 'Failed to submit cake request');
-  } finally {
-    submitting.value = false;
-  }
-};
-
-onMounted(() => {
-  loadBranches();
 });
 </script>

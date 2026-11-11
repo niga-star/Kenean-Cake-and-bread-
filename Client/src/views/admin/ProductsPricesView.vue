@@ -688,8 +688,12 @@
 import { ref, computed, onMounted } from 'vue';
 import api from '../../api';
 import { useAuthStore } from '../../stores/auth';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 
 const authStore = useAuthStore();
+const dialog = useDialogStore();
+const toast = useToastStore();
 
 const products = ref([]);
 const categories = ref([]);
@@ -927,28 +931,48 @@ const submitNewCategory = async () => {
 
 const deleteCategory = async (cat) => {
   if (!isBranchManager.value) return;
-  if (!confirm(`Are you sure you want to delete category "${cat.category_name}"?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Delete Category',
+    message: `Are you sure you want to delete category "${cat.category_name}"? Products inside must be reassigned first.`,
+    confirmText: 'Delete Category',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     const res = await api.delete(`/admin/categories/${cat.category_id}`);
-    successMsg.value = res.data.message || 'Category deleted.';
+    const msg = res.data.message || 'Category deleted.';
+    successMsg.value = msg;
+    toast.success(msg);
     await loadCatalog();
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to delete category';
+    const msg = err.response?.data?.message || 'Failed to delete category';
+    errorMsg.value = msg;
+    toast.error(msg);
   }
 };
 
 const confirmDeleteProduct = async (prod) => {
   if (!isBranchManager.value) return;
-  if (!confirm(`Are you sure you want to delete "${prod.product_name}"?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Delete Product',
+    message: `Are you sure you want to delete "${prod.product_name}"? This removes it from the catalog.`,
+    confirmText: 'Delete Product',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     const res = await api.delete(`/admin/products/${prod.product_id}`);
-    successMsg.value = res.data.message || 'Product deleted.';
+    const msg = res.data.message || 'Product deleted.';
+    successMsg.value = msg;
+    toast.success(msg);
     if (selectedProduct.value?.product_id === prod.product_id) {
       selectedProduct.value = null;
     }
     await loadCatalog();
   } catch (err) {
-    errorMsg.value = err.response?.data?.message || 'Failed to delete product';
+    const msg = err.response?.data?.message || 'Failed to delete product';
+    errorMsg.value = msg;
+    toast.error(msg);
   }
 };
 

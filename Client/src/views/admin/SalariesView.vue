@@ -508,7 +508,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
+
+const dialog = useDialogStore();
+const toast = useToastStore();
 
 const activeTab = ref('payroll');
 const summary = ref({});
@@ -608,27 +613,40 @@ const submitUpdateSalary = async () => {
   try {
     await api.patch(`/admin/salaries/${selectedEmployee.value.user_id}`, editSalaryForm.value);
     isEditSalaryModalOpen.value = false;
-    successMsg.value = `Salary for ${selectedEmployee.value.full_name} updated successfully to ETB ${Number(editSalaryForm.value.salary).toLocaleString()}.`;
+    const msg = `Salary for ${selectedEmployee.value.full_name} updated successfully to ETB ${Number(editSalaryForm.value.salary).toLocaleString()}.`;
+    successMsg.value = msg;
+    toast.success(msg);
     await loadSalaryData();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update salary.');
+    const msg = err.response?.data?.message || 'Failed to update salary.';
+    toast.error(msg);
   } finally {
     isUpdatingSalary.value = false;
   }
 };
 
 const reviewRequest = async (requestItem, status) => {
-  const notes = prompt(`Enter optional remarks for ${status.toLowerCase()} this salary request:`) || '';
+  const notes = await dialog.prompt({
+    title: `${status} Salary Correction Request`,
+    message: `Enter remarks or justification for marking request as ${status.toLowerCase()}:`,
+    defaultValue: '',
+    placeholder: 'Optional administrative remarks...',
+    confirmText: `Confirm ${status}`,
+    variant: status === 'Approved' ? 'success' : 'warning',
+  });
+  if (notes === null) return; // User cancelled
   try {
     await api.patch(`/admin/salary-requests/${requestItem.request_id}/status`, {
       status,
-      admin_notes: notes,
+      admin_notes: notes || '',
       approved_salary: requestItem.requested_salary,
     });
-    successMsg.value = `Request from ${requestItem.user?.full_name} marked as ${status}.`;
+    const msg = `Request from ${requestItem.user?.full_name} marked as ${status}.`;
+    successMsg.value = msg;
+    toast.success(msg);
     await Promise.all([loadRequests(), loadSalaryData()]);
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to review request.');
+    toast.error(err.response?.data?.message || 'Failed to review request.');
   }
 };
 

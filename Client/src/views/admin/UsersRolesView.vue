@@ -584,9 +584,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const dialog = useDialogStore();
+const toast = useToastStore();
 
 const users = ref([]);
 const branches = ref([]);
@@ -860,17 +864,28 @@ async function submitEditUser() {
 async function deleteUser(id) {
   const target = users.value.find(u => u.user_id === id);
   if (isBranchScoped.value && isManagerUser(target)) {
-    errorMsg.value = 'Access denied: Only the Super Admin can delete or remove Branch Manager accounts.';
+    const msg = 'Access denied: Only the Super Admin can delete or remove Branch Manager accounts.';
+    errorMsg.value = msg;
+    toast.error(msg);
     return;
   }
-  if (!confirm('Are you sure you want to remove this staff account?')) return;
+  const confirmed = await dialog.confirm({
+    title: 'Remove Staff Account',
+    message: target?.full_name ? `Are you sure you want to remove the staff account for "${target.full_name}"?` : 'Are you sure you want to remove this staff account?',
+    confirmText: 'Remove Account',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.delete(`/admin/users/${id}`);
     users.value = users.value.filter(u => u.user_id !== id);
-    successMsg.value = 'Staff account deleted successfully.';
+    const msg = 'Staff account deleted successfully.';
+    successMsg.value = msg;
+    toast.success(msg);
     editingUser.value = null;
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete user.');
+    const msg = err.response?.data?.message || 'Failed to delete user.';
+    toast.error(msg);
   }
 }
 

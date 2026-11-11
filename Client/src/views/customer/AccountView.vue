@@ -36,10 +36,58 @@
               <span class="inline-block px-3 py-0.5 bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] text-[#2A1810] dark:text-[#FAF3EE] text-[11px] font-bold rounded-full">
                 {{ authStore.user?.role || (localeStore.isAmharic ? 'ደንበኛ' : 'Customer') }}
               </span>
-              <span class="inline-block px-2.5 py-0.5 bg-[#387A54]/10 text-[#387A54] dark:text-emerald-400 text-[11px] font-bold rounded-full">
-                Artisan Club
+              <span v-if="authStore.user?.email_verified_at" class="inline-block px-2.5 py-0.5 bg-[#047857]/15 text-[#047857] dark:text-emerald-400 text-[11px] font-bold rounded-full">
+                ✓ Verified
+              </span>
+              <span v-else class="inline-block px-2.5 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 text-[11px] font-bold rounded-full">
+                Unverified
               </span>
             </div>
+          </div>
+        </div>
+
+        <!-- Email Verification Banner / Guest History Linker -->
+        <div v-if="!authStore.user?.email_verified_at" class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 space-y-2 text-xs text-amber-900 dark:text-amber-200">
+          <div class="flex items-center space-x-1.5 font-bold">
+            <span>✉️</span>
+            <span>{{ localeStore.isAmharic ? 'የእንግዳ ትዕዛዞችን ያገናኙ' : 'Link Guest Orders' }}</span>
+          </div>
+          <p class="text-[11px] text-amber-800/90 dark:text-amber-300 leading-snug">
+            {{ localeStore.isAmharic ? 'ከዚህ ቀደም ያለ መለያ ያዘዟቸውን ትዕዛዞችና ኬኮች ለማየት ኢሜይልዎን ያረጋግጡ።' : 'Verify your email to automatically link orders and custom cakes placed as a guest.' }}
+          </p>
+          <div v-if="!showVerificationInput" class="pt-0.5">
+            <button
+              @click="requestVerificationCode"
+              :disabled="sendingCode"
+              class="w-full py-2 px-3 bg-[#BA5420] hover:bg-[#A34617] text-white font-bold rounded-xl text-xs transition cursor-pointer disabled:opacity-50"
+            >
+              {{ sendingCode ? (localeStore.isAmharic ? 'በመላክ ላይ...' : 'Sending Code...') : (localeStore.isAmharic ? 'የማረጋገጫ ኮድ ላክ' : 'Send Verification Code') }}
+            </button>
+          </div>
+          <div v-else class="space-y-2 pt-0.5">
+            <div class="flex space-x-1.5">
+              <input
+                v-model="verificationCode"
+                type="text"
+                maxlength="6"
+                placeholder="6-digit code"
+                class="w-full px-2.5 py-1.5 bg-white dark:bg-[#1E120B] border border-amber-300 dark:border-amber-700 rounded-xl text-xs font-mono font-bold text-center tracking-widest focus:outline-none"
+              />
+              <button
+                @click="submitVerificationCode"
+                :disabled="verifyingCode || !verificationCode"
+                class="px-3 py-1.5 bg-[#047857] hover:bg-[#036045] text-white font-bold rounded-xl text-xs transition cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                {{ verifyingCode ? '...' : (localeStore.isAmharic ? 'አረጋግጥ' : 'Verify') }}
+              </button>
+            </div>
+            <button
+              @click="requestVerificationCode"
+              :disabled="sendingCode"
+              class="text-[10px] text-amber-700 dark:text-amber-400 underline hover:no-underline cursor-pointer"
+            >
+              {{ localeStore.isAmharic ? 'እንደገና ላክ' : 'Resend code' }}
+            </button>
           </div>
         </div>
 
@@ -500,6 +548,17 @@
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <!-- Action Bar for Receipt & Tracking -->
+                <div class="flex items-center justify-end space-x-3 pt-2 border-t border-gray-100 dark:border-[#382318]">
+                  <router-link
+                    :to="`/orders/${order.order_number}`"
+                    class="px-4 py-2 bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] hover:text-[#DE1B54] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] rounded-xl transition shadow-2xs flex items-center space-x-1.5 cursor-pointer"
+                  >
+                    <span>🖨️</span>
+                    <span>{{ localeStore.isAmharic ? 'ይፋዊ ደረሰኝ አትም / እይ' : 'View & Print Official Receipt' }}</span>
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -1350,6 +1409,7 @@ import { useAuthStore } from '../../stores/auth';
 import { useBranchStore } from '../../stores/branch';
 import { useCartStore } from '../../stores/cart';
 import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
 import { useWishlistStore } from '../../stores/wishlist';
 import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
@@ -1360,6 +1420,7 @@ const authStore = useAuthStore();
 const branchStore = useBranchStore();
 const cartStore = useCartStore();
 const toast = useToastStore();
+const dialog = useDialogStore();
 const wishlistStore = useWishlistStore();
 const localeStore = useLocaleStore();
 
@@ -1394,6 +1455,46 @@ const savingProfile = ref(false);
 const updatingPassword = ref(false);
 const showAddressModal = ref(false);
 const savingAddress = ref(false);
+
+const showVerificationInput = ref(false);
+const verificationCode = ref('');
+const sendingCode = ref(false);
+const verifyingCode = ref(false);
+
+async function requestVerificationCode() {
+  sendingCode.value = true;
+  try {
+    const res = await api.post('/auth/send-verification-code');
+    toast.success(res.data?.message || 'Verification code sent to your email.');
+    showVerificationInput.value = true;
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to send verification code.');
+  } finally {
+    sendingCode.value = false;
+  }
+}
+
+async function submitVerificationCode() {
+  if (!verificationCode.value) return;
+  verifyingCode.value = true;
+  try {
+    const res = await api.post('/auth/verify-email', {
+      code: verificationCode.value.trim(),
+    });
+    if (res.data?.user) {
+      authStore.user = res.data.user;
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+    }
+    toast.success(res.data?.message || 'Email verified and guest history linked!');
+    showVerificationInput.value = false;
+    verificationCode.value = '';
+    await loadData();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Verification failed. Please check the code.');
+  } finally {
+    verifyingCode.value = false;
+  }
+}
 const addressForm = ref({
   street: '',
   city: 'Addis Ababa',
@@ -1624,8 +1725,13 @@ async function loadData() {
 }
 
 async function handleDeleteOrder(order) {
-  const confirmMsg = `Remove order #${order.order_number} from your order history?`;
-  if (!window.confirm(confirmMsg)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Remove Order',
+    message: `Remove order #${order.order_number} from your order history?`,
+    confirmText: 'Remove',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
 
   try {
     const res = await api.delete(`/orders/${order.order_id || order.order_number}`);
@@ -1641,8 +1747,13 @@ async function handleDeleteOrder(order) {
 async function handleClearFinishedOrders() {
   const totalFinished = completedOrdersCount.value + cancelledOrdersCount.value;
   if (totalFinished === 0) return;
-  const confirmMsg = `Remove all ${totalFinished} finished (completed & cancelled) orders from your history?`;
-  if (!window.confirm(confirmMsg)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Clear Finished Orders',
+    message: `Remove all ${totalFinished} finished (completed & cancelled) orders from your history?`,
+    confirmText: 'Clear All',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
 
   try {
     const res = await api.post('/orders/clear-finished');
@@ -1676,7 +1787,13 @@ async function handleSaveAddress() {
 }
 
 async function deleteAddress(id) {
-  if (!confirm('Remove this delivery address?')) return;
+  const confirmed = await dialog.confirm({
+    title: 'Remove Address',
+    message: 'Remove this delivery address?',
+    confirmText: 'Remove',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.delete(`/addresses/${id}`);
     addresses.value = addresses.value.filter((a) => a.address_id !== id);
@@ -1720,7 +1837,13 @@ async function removeWishlistItem(productId) {
 }
 
 async function clearAllWishlist() {
-  if (!confirm('Are you sure you want to clear all favorited items from your wishlist?')) return;
+  const confirmed = await dialog.confirm({
+    title: 'Clear Wishlist',
+    message: 'Are you sure you want to clear all favorited items from your wishlist?',
+    confirmText: 'Clear All',
+    variant: 'warning',
+  });
+  if (!confirmed) return;
   wishlistStore.clear();
   toast.info('Cleared all items from your wishlist.');
 }
@@ -1825,7 +1948,12 @@ async function acceptQuote(cake, choice) {
 }
 
 async function cancelCake(cake) {
-  const reason = prompt('Please enter cancellation reason:', 'Change of plan');
+  const reason = await dialog.prompt({
+    title: 'Cancel Custom Cake Request',
+    message: 'Please enter cancellation reason:',
+    defaultValue: 'Change of plan',
+    placeholder: 'Reason for cancellation...',
+  });
   if (reason === null) return;
 
   try {

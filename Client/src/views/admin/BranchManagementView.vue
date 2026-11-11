@@ -651,9 +651,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useDialogStore } from '../../stores/dialog';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const dialog = useDialogStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
 const branches = ref([]);
@@ -874,7 +876,13 @@ const submitNewDeliveryZone = async () => {
 };
 
 const deleteDeliveryZone = async (zone) => {
-  if (!confirm(`Are you sure you want to remove delivery zone "${zone.zone_name}"?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Remove Delivery Zone',
+    message: `Are you sure you want to remove delivery zone "${zone.zone_name}"?`,
+    confirmText: 'Remove Zone',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.delete(`/admin/branches/${editingBranch.value.branch_id}/delivery-zones/${zone.zone_id}`);
     editingBranch.value.delivery_zones = editingBranch.value.delivery_zones.filter(z => z.zone_id !== zone.zone_id);

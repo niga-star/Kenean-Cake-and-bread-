@@ -114,18 +114,19 @@ This matrix is the **single source of truth** across the entire platform:
 
 | Role | Operational Scope | Orders & Custom Cakes | Stock Dispatch | Stock Receive | Staff Account Status | Daily Sales Reports |
 |---|---|:---:|:---:|:---:|---|---|
-| **Super Admin** | All branches | None *(Queues removed)* | View only *(Audit)* | View only *(Audit)* | Any user, including managers | Read-only consolidated summary of approved reports |
-| **Main Branch Manager** | Main Branch | **Read-only** *(v4.1)* | **Create & Send** *(v4.1)* | Hidden *(Main never receives)* | Main Branch staff only; not own status | Reviews, approves, or returns Main Branch seller reports |
-| **Branch Manager** | Own branch | **Read-only** *(v4.1)* | None | **Receive & View** | Own-branch staff only; not own status | Reviews, approves, or returns own-branch seller reports |
-| **Branch Seller / Cashier** | Own branch | **Full Daily Recording** | None | View only | None | Records sales, books cakes, submits daily reports |
-| **Branch Staff / Servant** | Own branch | Order prep only | None | **Receive & View** *(v4.1)* | None | Kitchen preparation and shift logs |
+| **Super Admin** | All branches | None *(Queues removed)* | **Full Authority (Create & Send)** *(v4.1)* | View only *(Audit)* | Any user, including managers | Read-only consolidated summary of approved reports |
+| **Main Branch Manager** | Main Branch | **Read-only** *(v4.1)* | **Full Authority (Create & Send)** *(v4.1)* | Hidden *(Main never receives)* | Main Branch staff only; not own status | Reviews, approves, or returns Main Branch seller reports |
+| **Branch Manager** | Own branch | **Read-only** *(v4.1)* | None *(403 Forbidden)* | **Receive & View** | Own-branch staff only; not own status | Reviews, approves, or returns own-branch seller reports |
+| **Branch Seller / Cashier** | Own branch | **Full Daily Recording** | None *(403 Forbidden)* | View only | None | Records sales, books cakes, submits daily reports |
+| **Branch Staff / Servant** | Own branch | Order prep only | None *(403 Forbidden)* | **Receive & View** *(v4.1)* | None | Kitchen preparation and shift logs |
 | **Customer** | Public Storefront | Own orders only | None | None | Own profile only | None |
 
 ### Key Governance Rules:
 1. **Manager Read-Only Order Supervision (v4.1):** Branch Managers have read-only visibility into branch orders and custom cakes. They supervise kitchen preparation and fulfillment milestones without recording retail orders.
-2. **Stock Receive Authority (v4.1):** Branch Managers and Branch Staff at destination branches can receive stock. Super Admin has no assigned branch and cannot receive stock.
-3. **Manager Account Status Protection:** Only the Super Admin can alter a Branch Manager's or Main Branch Manager's account status. Managers attempting self-modification receive **HTTP 403 Forbidden**.
-4. **Cross-Branch Isolation:** Managers attempting to alter staff, modify prices, or view transactions belonging to another branch receive **HTTP 403 Forbidden**.
+2. **Stock Dispatch Authority (v4.1):** Full stock dispatch authority across the platform is granted exclusively to the **Main Branch Manager** and **Super Admin**. Both can create dispatch manifests, add products, validate available stock, confirm shipments, and view dispatch history. Regular Branch Managers and staff cannot create or send dispatches (HTTP 403 Forbidden). All dispatches must originate strictly from the Main Branch.
+3. **Stock Receive Authority (v4.1):** Branch Managers and Branch Staff at destination branches can receive stock. Super Admin has no assigned branch and cannot receive stock.
+4. **Manager Account Status Protection:** Only the Super Admin can alter a Branch Manager's or Main Branch Manager's account status. Managers attempting self-modification receive **HTTP 403 Forbidden**.
+5. **Cross-Branch Isolation:** Managers attempting to alter staff, modify prices, or view transactions belonging to another branch receive **HTTP 403 Forbidden**.
 
 ---
 
@@ -159,9 +160,13 @@ sequenceDiagram
     API-->>Manager: 200 OK (Branch B data)
 ```
 
-### Isolation Guarantees (v4.1):
+### Isolation & Branch Product Pricing Guarantees (v4.1):
 1. **Fresh Start Guarantee:** A new branch created by the Super Admin starts with zero orders, custom cakes, staff members, reports, inventory records, branch prices, and ledger entries. Nothing is copied from existing branches.
-2. **Product Catalog & Availability (v4.1):** Products and categories are shared reference data. A newly created branch displays **no products as available for retail purchase** until the branch receives stock and sets a local selling price in `branch_product_prices`.
+2. **Branch Product Pricing Resolution Hierarchy:**
+   - **Custom Override:** If a branch has a local active selling price configured in `branch_product_prices`, that price is authoritative.
+   - **Base Price Fallback:** If no branch-specific price exists in `branch_product_prices`, the system automatically falls back to the company's base product price (`products.base_price`).
+   - **Zero Available Stock Restriction:** Products remain **strictly unavailable for purchase** whenever the selected branch has zero available stock ($Q_{\text{on\_hand}} - Q_{\text{reserved}} \le 0$), regardless of whether a custom or base price is set.
+   - **Authoritative Server Pricing:** Applied consistently across the storefront catalog, product details, cart sync, checkout, and backend order calculation. The backend always recalculates and validates the authoritative unit price, strictly rejecting client price tampering.
 3. **Server-Side Override:** For every authenticated user except Super Admin, `branch_id` is locked to `$request->user()->branch_id`. Query parameters (`?branch_id=X`) and payload values are discarded.
 4. **Customer Storefront Exception (v4.1):** Customers select a branch from active branches (`status = 'Active'`). Customer requests pass the selected `branch_id`, and customers access only their own order records.
 
@@ -169,7 +174,7 @@ sequenceDiagram
 
 ## 5. Stock Dispatch & Receive Engine (v4.1)
 
-Stock distribution operates as a linked, two-phase supply chain workflow: the Main Branch dispatches, and the regular destination branch receives against that dispatch.
+Stock distribution operates as a linked, two-phase supply chain workflow: the Main Branch dispatches, and the regular destination branch receives against that dispatch. Full dispatch authority across the platform is granted exclusively to the **Main Branch Manager** and **Super Admin**. Regular Branch Managers and staff cannot create or send dispatches (HTTP 403 Forbidden). Dispatches must strictly originate from the Main Branch, and the system never permits dispatching more stock than the Main Branch actually has available on hand.
 
 ```mermaid
 sequenceDiagram
@@ -216,6 +221,12 @@ sequenceDiagram
         API-->>DestStaff: 201 Created (Stock Received & Ledger Updated)
     end
 ```
+
+### Stock Dispatch Authority & Source Rules (v4.1):
+1. **Full Dispatch Authority:** The **Main Branch Manager** and **Super Admin** possess full stock dispatch authority. Both roles can create dispatch manifests, add products, validate available stock, confirm shipments, and view dispatch history.
+2. **Main Branch Source Enforcement:** Stock can only be dispatched from the Main Branch (`branch_type = 'Main'`). Any attempt to dispatch from a regular branch returns **HTTP 422 Unprocessable Entity**.
+3. **Regular Branch Restriction:** Regular Branch Managers and staff cannot create or send dispatches (blocked by navigation UI and API middleware returning **HTTP 403 Forbidden**).
+4. **Over-Dispatch Guard:** Manifest creation and shipment confirmation validate available stock ($Q_{\text{dispatch}} \le Q_{\text{main\_available}}$). Over-dispatch attempts are rejected with **HTTP 422 Unprocessable Entity**.
 
 ### Stock Receive Display Rules:
 1. **Dynamic Button Visibility:** The **Stock Receive** button displays only when the active branch has `branch_type = 'Regular'` (not Main) and the logged-in role has receive authority (`Branch Manager`, `Branch Staff`).
@@ -331,6 +342,21 @@ flowchart LR
 | Inventory at or below Reorder Level | Branch Manager of that branch |
 | Account Suspended | Super Admin (for managers); audit log otherwise |
 
+### 7.1. Frontend Notification & Modal Dialog Architecture (v4.1)
+All native browser dialogs (`window.alert`, `window.confirm`, `window.prompt`) have been replaced across 100% of the storefront, customer portal, seller counter, and branch manager interfaces with a reactive SweetBakes design system:
+
+1. **Toast Notifications ([`ToastNotification.vue`](file:///c:/Kenan%20Cake/Client/src/components/ToastNotification.vue) / [`toast.js`](file:///c:/Kenan%20Cake/Client/src/stores/toast.js)):**
+   - **Success (Green):** Crisp SVG checkmark, emerald border, auto-dismiss in 4.5s.
+   - **Error (Red):** SVG alert circle, rose border, preserves authoritative backend message.
+   - **Warning (Amber):** SVG alert triangle, amber border, alerts validation discrepancies.
+   - **Information (Blue/Navy):** SVG information circle, sky border for operational status updates.
+   - **Deduplication Guard:** Built-in suppression for rapid duplicate triggers within 2 seconds.
+
+2. **Promise-Based Modal Dialogs ([`ModalDialog.vue`](file:///c:/Kenan%20Cake/Client/src/components/ModalDialog.vue) / [`dialog.js`](file:///c:/Kenan%20Cake/Client/src/stores/dialog.js)):**
+   - **Confirmations (`await dialog.confirm(...)`):** Supports `danger` (red), `warning` (amber), `primary` (terracotta), and `success` (emerald) actions with custom action labels and backdrop blur.
+   - **Prompts (`await dialog.prompt(...)`):** Supports input text and multiline textareas (e.g. cancellation reasons, price updates, return notes) with full keyboard accessibility (Escape to dismiss, Enter to submit).
+   - **Keyboard & Accessibility:** Focus auto-trapping, ARIA dialog roles, and smooth enter/exit animations.
+
 ---
 
 ## 8. Customer Storefront & Homepage
@@ -352,6 +378,24 @@ flowchart LR
 - Entering order number alone returns a generic not-found message, preventing order enumeration.
 - Rate-limited to 15 lookups per minute per IP.
 - Displays fulfillment milestone stepper matching Section 7.
+
+### 8.4. Customer Order Receipt & Single-Page Printing Architecture (v4.1)
+The receipt printing engine ([`OrderStatusView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderStatusView.vue)) provides single-click printing constrained to exactly **one A4 page**:
+
+1. **Isolation & Element Suppression:**
+   - Website header, top bar, navigation, mobile drawers, contact section, footer, wave SVGs, buttons ("Print Receipt", "Cancel Order", "Continue Shopping"), and interactive stepper timelines are marked `print:hidden` and suppressed via `@media print`.
+   - Dark mode background colors are overridden to crisp `#FFFFFF` with high-contrast text (`#1A1412` and `#3D251E`) ensuring readability in both color and monochrome printing.
+2. **Essential Information Hierarchy:**
+   - **Bakery Identity & Branch Header:** SweetBakes logo, business name, fulfilling branch name, branch address, contact phone, and email.
+   - **Document Headings & Identifiers:** `ORDER RECEIPT` heading, order number (`#ORD-XXXXX`), placement timestamp, and receipt print timestamp.
+   - **Customer & Fulfillment Box:** Customer name, phone, optional email, fulfillment mode (`Doorstep Courier Delivery` vs `Bakery Counter Pickup`), and delivery address.
+   - **Itemized Breakdown:** Tabular items grid with product name, quantity, unit price, and subtotal.
+   - **Financials & Payment:** Payment method, payment status badge (`PAID ✓`), transaction reference, subtotal, delivery fee, and grand total.
+   - **Appreciation & Support Note:** Warm customer appreciation note and branch support contact prompt.
+3. **Print Layout Rules:**
+   - `@page { size: A4 portrait; margin: 8mm 10mm; }`
+   - `page-break-inside: avoid;` and `break-inside: avoid;` on `#order-receipt-container`.
+   - Browser document title dynamically set to `SweetBakes-Receipt-[Order-Number]` during print for clean default PDF file naming.
 
 ---
 
@@ -438,7 +482,13 @@ erDiagram
 - `received_stock_id` (PK), `branch_id` (FK), `product_id` (FK), `dispatch_id` (FK, nullable in v4.0, **mandatory in v4.1**), `product_name`, `category_name`, `receiver_name`, `quantity_received` (INT UNSIGNED), `date_received` (DATE), `received_by` (FK), `notes` (TEXT).
 
 #### 5. `branch_product_prices` (v4.1)
-- `branch_id` (FK), `product_id` (FK), `price` (`DECIMAL(10,2)`), `updated_by` (FK). Unique composite key `(branch_id, product_id)`.
+- `branch_id` (FK), `product_id` (FK), `price` (`DECIMAL(10,2)`), `active` (`BOOLEAN`), `updated_by` (FK). Unique composite key `(branch_id, product_id)`.
+
+#### 6. Guest Tracking & Email Verification Schema (v4.1)
+- `orders.customer_email`: `VARCHAR(150)`, nullable, indexed for customer order history linking.
+- `custom_cake_requests.customer_email`: `VARCHAR(150)`, nullable, indexed for bespoke cake request linking.
+- `users.email_verified_at`: `TIMESTAMP`, nullable. Authoritative indicator of verified email ownership. Guest records link strictly when this timestamp is present.
+- `email_verifications`: `id`, `email` (`VARCHAR(150)`), `code` (`VARCHAR(10)`), `expires_at` (`TIMESTAMP`), `created_at`. Stores 6-digit OTP codes with 15-minute expiration windows.
 
 ---
 
@@ -451,11 +501,13 @@ All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `Ro
 |---|---|:---:|---|
 | `POST` | `/api/auth/login` | **5 / min** *(v4.1)* | Bearer token authentication with IP/email throttling |
 | `POST` | `/api/auth/register` | 10 / min | Customer account registration |
+| `POST` | `/api/auth/send-verification-code` | 5 / min *(v4.1)* | Request 6-digit email ownership OTP code |
+| `POST` | `/api/auth/verify-email` | 10 / min *(v4.1)* | Verify email OTP code and atomically link guest history |
 | `GET` | `/api/branches` | 60 / min | Active branches with GPS coordinates |
 | `GET` | `/api/products` | 60 / min | Catalog listing with localized branch pricing |
-| `POST` | `/api/orders` | 15 / min | Place online retail order |
+| `POST` | `/api/orders` | 15 / min | Place online retail order (stores `customer_email`) |
 | `POST` | `/api/orders/track` | **15 / min** *(v4.1)* | **Two-factor tracking** (`order_number` + phone/email) |
-| `POST` | `/api/custom-cakes` | 15 / min | Submit 3D cake design brief with WebGL snapshot |
+| `POST` | `/api/custom-cakes` | 15 / min | Submit 3D cake design brief with WebGL snapshot & email |
 
 ### Orders & Custom Cakes:
 | Method | Endpoint | Allowed Roles | Description |
@@ -469,9 +521,10 @@ All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `Ro
 ### Stock Dispatch & Inflow Engine:
 | Method | Endpoint | Allowed Roles | Description |
 |---|---|---|---|
-| `POST` | `/api/admin/dispatches` | Main Branch Manager | Create draft dispatch manifest *(v4.1)* |
-| `POST` | `/api/admin/dispatches/{id}/send` | Main Branch Manager | Confirm shipment; lowers Main stock *(v4.1)* |
-| `GET` | `/api/admin/dispatches` | Super Admin, Managers, Staff | List own-branch dispatches *(v4.1)* |
+| `POST` | `/api/admin/dispatches` | **Main Branch Manager, Super Admin** | Create draft dispatch manifest *(v4.1)* |
+| `POST` | `/api/admin/dispatches/{id}/send` | **Main Branch Manager, Super Admin** | Confirm shipment; lowers Main stock *(v4.1)* |
+| `POST` | `/api/admin/dispatches/{id}/cancel` | **Main Branch Manager, Super Admin** | Cancel draft or in-transit dispatch manifest *(v4.1)* |
+| `GET` | `/api/admin/dispatches` | Super Admin, Managers, Staff | List dispatches *(v4.1)* |
 | `GET` | `/api/admin/received-stocks` | Super Admin, Managers, Sellers, Staff | List received stocks scoped to branch |
 | `POST` | `/api/admin/received-stocks` | **Branch Manager, Branch Staff** | Receive stock against dispatch *(v4.1)* |
 | `GET` | `/api/admin/inventory` | Admin, Managers, Sellers, Staff | View on-hand inventory levels |
@@ -504,13 +557,62 @@ All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `Ro
 
 ---
 
-## 12. Verification & Quality Assurance Suite
+## 12. Guest Customer Order History & Verified Email Linking Engine (v4.1)
+
+To protect customer privacy while providing seamless historical order tracking, the platform manages guest order histories using cryptographic email ownership verification:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Guest as 🛒 Guest Customer
+    participant Storefront as 🖥️ Storefront (Vue 3)
+    participant API as 🛡️ Auth & Order API
+    participant DB as 🗄️ MySQL Database
+
+    Note over Guest,DB: 1. GUEST PURCHASES & BESPOKE CAKE BRIEFS
+    Guest->>Storefront: Places order / submits custom cake brief with email "guest@gmail.com"
+    Storefront->>API: POST /api/orders (customer_email = "guest@gmail.com")
+    API->>DB: INSERT INTO orders (user_id = shadow_id, customer_email = "guest@gmail.com")
+    API-->>Guest: Order Confirmed (ORD-xxxx)
+
+    Note over Guest,DB: 2. CUSTOMER REGISTRATION
+    Guest->>Storefront: Registers new account with email "guest@gmail.com"
+    Storefront->>API: POST /api/auth/register
+    API->>DB: INSERT INTO users (email = "guest@gmail.com", email_verified_at = NULL)
+    API-->>Guest: 201 Created (email unverified; guest records remain unlinked)
+
+    Note over Guest,DB: 3. EMAIL OWNERSHIP VERIFICATION & ATOMIC LINKING
+    Guest->>Storefront: Clicks "Send Verification Code" on Account Dashboard
+    Storefront->>API: POST /api/auth/send-verification-code
+    API->>DB: INSERT INTO email_verifications (code = "729481", expires_at = +15 min)
+    API-->>Guest: OTP delivered to email
+
+    Guest->>Storefront: Submits 6-digit OTP code "729481"
+    Storefront->>API: POST /api/auth/verify-email (code = "729481")
+    API->>DB: Verify code & mark users.email_verified_at = NOW()
+    API->>DB: UPDATE orders SET user_id = new_user_id WHERE customer_email = "guest@gmail.com" AND shadow_user
+    API->>DB: UPDATE custom_cake_requests SET user_id = new_user_id WHERE customer_email = "guest@gmail.com" AND shadow_user
+    API->>DB: Log audit event "Linked historical orders and custom cakes"
+    API-->>Storefront: 200 OK (Email Verified & History Linked)
+    Storefront-->>Guest: Dashboard instantly populates with all past orders & bespoke cakes
+```
+
+### Guest History Security Invariants:
+1. **Mandatory Email Ownership Verification:** Unverified user accounts are strictly forbidden from viewing, claiming, or linking historical guest records. Guest orders are linked **only after `email_verified_at` is confirmed**.
+2. **Duplicate Linking Prevention:** The atomic linking procedure (`linkGuestHistory()`) targets exclusively unlinked records or shadow placeholder accounts (`@sweetbakes.local`). Repeated execution finds 0 newly linked records and produces no side effects.
+3. **Cross-Customer Isolation:** A registered customer cannot link or access records belonging to another registered customer.
+4. **Data Preservation Guarantee:** Linking updates only the relational owner (`user_id`). Order numbers, product lines, quantities, unit prices, applied promotions, delivery fees, payment logs, and fulfillment status histories remain 100% immutable.
+5. **Dashboard Integration:** Authenticated customers see a verified status badge (`✓ Verified`) and direct tab navigation to past orders and custom cakes. Unverified accounts see a dedicated verification banner with 1-click OTP requesting and entry.
+
+---
+
+## 13. Verification & Quality Assurance Suite
 
 Every rule in this specification is verified through an automated test suite ([`Backend/test_v41_comprehensive.php`](file:///c:/Kenan%20Cake/Backend/test_v41_comprehensive.php)):
 
 ```bash
 php Backend/test_v41_comprehensive.php
-# Verification Result: Total Passed: 52 | Total Failed: 0
+# Verification Result: Total Passed: 82 | Total Failed: 0
 ```
 
 | Area | Test Scenario | Expected Outcome |

@@ -47,6 +47,9 @@ echo "=================================================================\n\n";
 // -------------------------------------------------------------------------
 echo "Setting up fixtures...\n";
 
+// 0. Clean up transient test users
+User::where('email', 'like', 'valid_seller_%')->delete();
+
 // 1. Ensure Main Branch exists with branch_type = 'Main'
 $mainBranch = Branch::where('branch_type', 'Main')->first();
 if (!$mainBranch) {
@@ -382,6 +385,7 @@ $req = Request::create('/api/admin/users', 'POST', [
 ]);
 $req->setUserResolver(fn() => $manager2);
 $res = $userCtrl->store($req);
+if ($res->getStatusCode() !== 201) { echo "STATUS: " . $res->getStatusCode() . " BODY: " . $res->getContent() . "\n"; }
 assertTest($res->getStatusCode() === 201, "Manager creating Branch Seller in own branch succeeded (201 Created)");
 
 // -------------------------------------------------------------------------

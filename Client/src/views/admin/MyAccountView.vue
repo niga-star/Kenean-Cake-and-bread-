@@ -758,9 +758,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
 
 const sellerTab = ref('profile');
 const forceManagerMode = ref(null);
@@ -926,9 +928,12 @@ async function updateProfile() {
         authStore.user.email = editForm.email;
       }
       successMsg.value = 'Profile updated successfully!';
+      toast.success('Profile updated successfully!');
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update profile.');
+    const msg = err.response?.data?.message || 'Failed to update profile.';
+    errorMsg.value = msg;
+    toast.error(msg);
   } finally {
     savingProfile.value = false;
   }
@@ -950,11 +955,14 @@ async function submitRequest() {
   try {
     const res = await api.post('/admin/salary-correction-requests', form);
     if (res.data) {
-      successMsg.value = 'Salary correction request submitted to Super Admin.';
+      const msg = 'Salary correction request submitted to Super Admin.';
+      successMsg.value = msg;
+      toast.success(msg);
       showModal.value = false;
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to submit request.');
+    const msg = err.response?.data?.message || 'Failed to submit request.';
+    toast.error(msg);
   } finally {
     submitting.value = false;
   }

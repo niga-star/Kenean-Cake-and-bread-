@@ -153,7 +153,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
+
+const toast = useToastStore();
 
 const payments = ref([]);
 const summary = ref({
@@ -192,10 +195,10 @@ const submitRefund = async () => {
   refunding.value = true;
   try {
     await api.post('/admin/payments/refund', refundForm.value);
-    alert(`Refund issued successfully for ${refundForm.value.order_number} (ETB ${refundForm.value.amount.toLocaleString()})`);
+    toast.success(`Refund issued successfully for ${refundForm.value.order_number} (ETB ${refundForm.value.amount.toLocaleString()})`);
     await loadPayments();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to issue refund');
+    toast.error(err.response?.data?.message || 'Failed to issue refund');
   } finally {
     refunding.value = false;
   }

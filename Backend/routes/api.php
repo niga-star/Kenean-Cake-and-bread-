@@ -31,6 +31,8 @@ use App\Http\Controllers\StockDispatchController;
 // Public Auth with Rate Limiting (v4.1 Section 10 & 11: 5 attempts/min)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
+Route::post('/auth/send-verification-code', [AuthController::class, 'sendEmailVerification'])->middleware('throttle:15,1');
+Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:30,1');
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:30,1');
 Route::post('/auth/switch-role', [AuthController::class, 'switchRole'])->middleware('throttle:30,1');
@@ -141,15 +143,15 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
     // Stock Dispatches (v4.1 Section 5 & 11)
     Route::get('/dispatches', [StockDispatchController::class, 'index']);
-    Route::post('/dispatches', [StockDispatchController::class, 'store']);
+    Route::post('/dispatches', [StockDispatchController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/dispatches/{id}', [StockDispatchController::class, 'show']);
-    Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send']);
-    Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
+    Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/stock-dispatches', [StockDispatchController::class, 'index']);
-    Route::post('/stock-dispatches', [StockDispatchController::class, 'store']);
+    Route::post('/stock-dispatches', [StockDispatchController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/stock-dispatches/{id}', [StockDispatchController::class, 'show']);
-    Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send']);
-    Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
+    Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);

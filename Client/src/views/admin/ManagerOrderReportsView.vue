@@ -811,9 +811,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
+const dialog = useDialogStore();
 
 const activeTab = ref('verify');
 const filterStatus = ref('All');
@@ -888,14 +892,14 @@ async function openVerificationModal(id) {
       reviewNotes.value = verifyingReport.value.manager_notes || '';
     }
   } catch (e) {
-    alert('Failed to load report lines for verification.');
+    toast.error('Failed to load report lines for verification.');
   }
 }
 
 // Submit manager decision (approve or reject)
 async function submitVerification(action) {
   if ((action === 'return' || action === 'reject') && !reviewNotes.value.trim()) {
-    alert('Please enter a note explaining the reason / what needs correction before rejecting this report.');
+    toast.warning('Please enter a note explaining the reason / what needs correction before rejecting this report.');
     return;
   }
 
@@ -903,7 +907,13 @@ async function submitVerification(action) {
     ? 'Confirm direct approval of this seller daily sales report?'
     : 'Return this report to the seller with your correction notes?';
 
-  if (!confirm(confirmMsg)) return;
+  const confirmed = await dialog.confirm({
+    title: action === 'approve' ? 'Approve Report' : 'Return Report',
+    message: confirmMsg,
+    confirmText: action === 'approve' ? 'Approve' : 'Return for Correction',
+    variant: action === 'approve' ? 'success' : 'warning',
+  });
+  if (!confirmed) return;
 
   verifyingSubmitting.value = true;
   try {
@@ -913,13 +923,13 @@ async function submitVerification(action) {
     });
 
     if (res.data && res.data.success) {
-      alert(res.data.message);
+      toast.success(res.data.message || (action === 'approve' ? 'Report approved successfully!' : 'Report returned for correction.'));
       verifyingReport.value = null;
       await fetchSellerReports();
     }
   } catch (err) {
     console.error('Verification failed:', err);
-    alert(err.response?.data?.message || 'Verification failed. Please try again.');
+    toast.error(err.response?.data?.message || 'Verification failed. Please try again.');
   } finally {
     verifyingSubmitting.value = false;
   }
@@ -935,7 +945,7 @@ async function fetchPendingConsolidation() {
     }
   } catch (e) {
     console.error('Failed to load pending consolidation:', e);
-    alert('Failed to gather approved reports.');
+    toast.error('Failed to gather approved reports.');
   } finally {
     loadingConsolidation.value = false;
   }
@@ -944,18 +954,24 @@ async function fetchPendingConsolidation() {
 // Submit consolidated branch report to Super Admin
 async function submitConsolidatedReport() {
   if (!consolidationForm.confirmed_accuracy) {
-    alert('Please check the confirmation box verifying the report accuracy.');
+    toast.warning('Please check the confirmation box verifying the report accuracy.');
     return;
   }
 
   const count = pendingData.value?.seller_reports_count || 0;
   if (count === 0) {
-    alert('No approved seller reports found to consolidate.');
+    toast.warning('No approved seller reports found to consolidate.');
     return;
   }
 
   const confirmMsg = `Finalize consolidated branch sales report with ${count} seller report(s) totaling ETB ${Number(pendingData.value.summary.total_branch_revenue).toFixed(2)}? This action finalizes the report for your branch.`;
-  if (!confirm(confirmMsg)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Finalize Branch Sales Report',
+    message: confirmMsg,
+    confirmText: 'Finalize & Submit',
+    variant: 'primary',
+  });
+  if (!confirmed) return;
 
   submittingConsolidation.value = true;
   try {
@@ -970,7 +986,7 @@ async function submitConsolidatedReport() {
 
     const res = await api.post('/admin/reports/manager/consolidate-and-submit', payload);
     if (res.data && res.data.success) {
-      alert(res.data.message || 'Branch sales report finalized successfully!');
+      toast.success(res.data.message || 'Branch sales report finalized successfully!');
       pendingData.value = null;
       consolidationForm.confirmed_accuracy = false;
       consolidationForm.manager_notes = '';
@@ -980,7 +996,7 @@ async function submitConsolidatedReport() {
     }
   } catch (err) {
     console.error('Consolidation failed:', err);
-    alert(err.response?.data?.message || 'Failed to submit consolidated report.');
+    toast.error(err.response?.data?.message || 'Failed to submit consolidated report.');
   } finally {
     submittingConsolidation.value = false;
   }
@@ -1006,7 +1022,7 @@ async function inspectConsolidated(id) {
       inspectingReport.value = res.data.report;
     }
   } catch (e) {
-    alert('Failed to load consolidated report details.');
+    toast.error('Failed to load consolidated report details.');
   }
 }
 

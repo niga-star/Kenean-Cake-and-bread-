@@ -290,6 +290,18 @@ class StockDispatchController extends Controller
     public function cancel(Request $request, $id)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $mainBranch = Branch::where('branch_type', 'Main')->first();
+        $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+        $isMainManager = in_array($user->role, ['Main Branch Manager']) || ($user->role === 'Branch Manager' && (int) $userBranchId === (int) $mainBranch?->branch_id);
+
+        if (!$isMainManager && $user->role !== 'Super Admin') {
+            return response()->json(['message' => 'Access denied: Only the Main Branch Manager or Super Admin can cancel stock dispatches.'], 403);
+        }
+
         $dispatch = StockDispatch::findOrFail($id);
 
         if ($dispatch->status !== 'draft') {

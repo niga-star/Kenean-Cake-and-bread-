@@ -14,6 +14,7 @@
           Stock requests ({{ data.stock_requests ? data.stock_requests.length : 0 }})
         </button>
         <router-link
+          v-if="canCreateDispatch"
           to="/admin/transfers/new"
           class="dash-btn-primary text-xs sm:text-sm"
         >
@@ -162,32 +163,50 @@
                 <!-- Approved: Dispatch & Cancel -->
                 <template v-else-if="t.status === 'Approved'">
                   <button
+                    v-if="canCreateDispatch"
                     @click="dispatchTransfer(t)"
                     class="px-3 py-1 text-xs font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-md shadow-sm transition"
                   >
                     Dispatch
                   </button>
                   <button
+                    v-if="canCreateDispatch"
                     @click="cancelTransfer(t)"
                     class="px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800"
                   >
                     Cancel
+                  </button>
+                  <button
+                    v-else
+                    @click="openViewModal(t)"
+                    class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
+                  >
+                    View
                   </button>
                 </template>
 
                 <!-- Draft: Approve & Cancel -->
                 <template v-else-if="t.status === 'Draft'">
                   <button
+                    v-if="canCreateDispatch"
                     @click="approveTransfer(t)"
                     class="px-3 py-1 text-xs font-medium bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-md shadow-sm transition"
                   >
                     Approve
                   </button>
                   <button
+                    v-if="canCreateDispatch"
                     @click="cancelTransfer(t)"
                     class="px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800"
                   >
                     Cancel
+                  </button>
+                  <button
+                    v-else
+                    @click="openViewModal(t)"
+                    class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
+                  >
+                    View
                   </button>
                 </template>
 
@@ -484,6 +503,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import api from '../../api';
+import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
+
+const authStore = useAuthStore();
+const toast = useToastStore();
+const dialog = useDialogStore();
+const canCreateDispatch = computed(() => {
+  const role = authStore.user?.role;
+  if (role === 'Super Admin' || role === 'Main Branch Manager') return true;
+  if (role === 'Branch Manager' && authStore.user?.branch?.branch_type === 'Main') return true;
+  return false;
+});
 
 const data = ref({
   main_branch_stock: 0,
@@ -542,10 +574,11 @@ const submitResolve = async () => {
   try {
     await api.post(`/admin/transfers/${activeDispute.value.transfer_id}/resolve`, resolveForm.value);
     successMsg.value = `Dispute for ${activeDispute.value.transfer} resolved successfully!`;
+    toast.success(successMsg.value);
     activeDispute.value = null;
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to resolve dispute');
+    toast.error(err.response?.data?.message || 'Failed to resolve dispute');
   }
 };
 
@@ -569,14 +602,14 @@ const submitReceive = async () => {
   for (const line of receiveLines.value) {
     const sum = (line.quantity_received || 0) + (line.damaged_quantity || 0) + (line.missing_quantity || 0);
     if (sum !== line.quantity_sent) {
-      alert(`For line "${line.product_name}", received (${line.quantity_received}) + damaged (${line.damaged_quantity}) + missing (${line.missing_quantity}) = ${sum}, but sent is ${line.quantity_sent}. The count must strictly equal sent before saving.`);
+      toast.warning(`For line "${line.product_name}", received (${line.quantity_received}) + damaged (${line.damaged_quantity}) + missing (${line.missing_quantity}) = ${sum}, but sent is ${line.quantity_sent}. The count must strictly equal sent before saving.`);
       return;
     }
   }
 
   // Check discrepancy reason
   if (hasDiscrepancyInReceive.value && !receiveDiscrepancyReason.value.trim()) {
-    alert('A discrepancy reason is mandatory when received quantity differs from sent.');
+    toast.warning('A discrepancy reason is mandatory when received quantity differs from sent.');
     return;
   }
 
@@ -594,10 +627,11 @@ const submitReceive = async () => {
 
     const res = await api.post(`/admin/transfers/${activeReceiveTransfer.value.transfer_id}/receive`, payload);
     successMsg.value = `Transfer ${activeReceiveTransfer.value.transfer} receipt confirmed! Status: ${res.data.status}.`;
+    toast.success(successMsg.value);
     activeReceiveTransfer.value = null;
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to confirm receipt');
+    toast.error(err.response?.data?.message || 'Failed to confirm receipt');
   } finally {
     submittingReceive.value = false;
   }
@@ -611,8 +645,9 @@ const sendReminder = async (t) => {
   try {
     const res = await api.post(`/admin/transfers/${t.transfer_id}/remind`);
     successMsg.value = res.data.message || `Reminder dispatched for transfer ${t.transfer}.`;
+    toast.success(successMsg.value);
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to send reminder');
+    toast.error(err.response?.data?.message || 'Failed to send reminder');
   }
 };
 
@@ -620,9 +655,10 @@ const dispatchTransfer = async (t) => {
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/dispatch`);
     successMsg.value = `Transfer ${t.transfer} dispatched! Stock deducted from Main Branch.`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to dispatch transfer');
+    toast.error(err.response?.data?.message || 'Failed to dispatch transfer');
   }
 };
 
@@ -630,20 +666,28 @@ const approveTransfer = async (t) => {
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/approve`);
     successMsg.value = `Transfer ${t.transfer} approved!`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to approve transfer');
+    toast.error(err.response?.data?.message || 'Failed to approve transfer');
   }
 };
 
 const cancelTransfer = async (t) => {
-  if (!confirm(`Are you sure you want to cancel transfer ${t.transfer}?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Cancel Transfer',
+    message: `Are you sure you want to cancel transfer ${t.transfer}?`,
+    confirmText: 'Cancel Transfer',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/cancel`);
     successMsg.value = `Transfer ${t.transfer} cancelled!`;
+    toast.info(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to cancel transfer');
+    toast.error(err.response?.data?.message || 'Failed to cancel transfer');
   }
 };
 
@@ -651,9 +695,10 @@ const convertRequest = async (req) => {
   try {
     const res = await api.post(`/admin/stock-requests/${req.request_id}/convert`);
     successMsg.value = `Stock request #${req.request_id} converted to ${res.data.transfer_number}!`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to convert request');
+    toast.error(err.response?.data?.message || 'Failed to convert request');
   }
 };
 

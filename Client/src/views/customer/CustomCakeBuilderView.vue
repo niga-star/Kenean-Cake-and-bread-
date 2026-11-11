@@ -672,7 +672,7 @@
               <span>👤</span>
               <span>{{ localeStore.isAmharic ? 'የመገኛ አድራሻ (ለዋጋ መረጃ)' : 'Contact Information (For Quotation Updates)' }}</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ሙሉ ስምዎ *' : 'Your Full Name *' }}</label>
                 <input
@@ -690,6 +690,15 @@
                   type="tel"
                   required
                   placeholder="+251 9XX XXX XXX"
+                  class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[40px]"
+                />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address' }}</label>
+                <input
+                  v-model="customerEmail"
+                  type="email"
+                  :placeholder="localeStore.isAmharic ? 'ለክትትል እና ታሪክ' : 'For updates & history link'"
                   class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[40px]"
                 />
               </div>
@@ -831,6 +840,7 @@ const hasRestoredDraft = ref(false);
 
 const customerName = ref(authStore.user?.full_name || '');
 const customerPhone = ref(authStore.user?.phone || '');
+const customerEmail = ref(authStore.user?.email || '');
 
 const preparingBranchId = ref(2); // Bole Flagship default
 const cakeSize = ref('Single Tier 8"');
@@ -1471,6 +1481,7 @@ function saveDraftToStorage() {
       description: description.value,
       customerName: customerName.value,
       customerPhone: customerPhone.value,
+      customerEmail: customerEmail.value,
       referenceSamples: referenceSamples.value,
     };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -1504,6 +1515,11 @@ function restoreDraftFromStorage() {
       } else if (draft.customerPhone) {
         customerPhone.value = draft.customerPhone;
       }
+      if (authStore.user?.email) {
+        customerEmail.value = authStore.user.email;
+      } else if (draft.customerEmail) {
+        customerEmail.value = draft.customerEmail;
+      }
       if (Array.isArray(draft.referenceSamples) && draft.referenceSamples.length > 0) {
         referenceSamples.value = draft.referenceSamples;
       }
@@ -1529,12 +1545,13 @@ function clearSavedDraft() {
   if (authStore.user) {
     customerName.value = authStore.user.full_name || '';
     customerPhone.value = authStore.user.phone || '';
+    customerEmail.value = authStore.user.email || '';
   }
   toast.info('Custom cake draft cleared.');
 }
 
 watch(
-  [preparingBranchId, cakeSize, flavor, filling, isFasting, occasion, neededBy, message, description, customerName, customerPhone, referenceSamples],
+  [preparingBranchId, cakeSize, flavor, filling, isFasting, occasion, neededBy, message, description, customerName, customerPhone, customerEmail, referenceSamples],
   () => {
     saveDraftToStorage();
   },
@@ -1558,6 +1575,7 @@ onMounted(async () => {
   if (authStore.user) {
     if (authStore.user.full_name) customerName.value = authStore.user.full_name;
     if (authStore.user.phone) customerPhone.value = authStore.user.phone;
+    if (authStore.user.email) customerEmail.value = authStore.user.email;
   }
 
   if (!restored && branchStore.selectedBranchId) {
@@ -1657,11 +1675,10 @@ async function handleSubmitCustomCake() {
     return;
   }
 
-  if (!authStore.isAuthenticated) {
-    toast.info(localeStore.isAmharic 
-      ? 'የብጁ ኬክ ጥያቄዎን ለማስገባት እባክዎ ይግቡ ወይም ይመዝገቡ።' 
-      : 'Please sign in or create an account to submit your custom cake order.');
-    router.push({ path: '/login', query: { redirect: '/custom-cake' } });
+  if (!authStore.isAuthenticated && (!customerPhone.value || !customerEmail.value)) {
+    toast.error(localeStore.isAmharic 
+      ? 'እባክዎን ስልክ ቁጥርዎን እና ኢሜይልዎን ያስገቡ።' 
+      : 'Please provide your phone number and email address for order updates.');
     return;
   }
 
@@ -1680,8 +1697,9 @@ async function handleSubmitCustomCake() {
 
     const payload = {
       branch_id: preparingBranchId.value,
-      customer_name: customerName.value ? customerName.value.trim() : '',
-      customer_phone: customerPhone.value ? customerPhone.value.trim() : '',
+      customer_name: customerName.value ? customerName.value.trim() : (authStore.user?.full_name || 'Guest Customer'),
+      customer_phone: customerPhone.value ? customerPhone.value.trim() : (authStore.user?.phone || ''),
+      customer_email: customerEmail.value ? customerEmail.value.trim() : (authStore.user?.email || null),
       cake_size: cakeSize.value,
       flavor: `${flavor.value} with ${filling.value}${isFasting.value ? ' (100% Ye\'Tsom Fasting Certified)' : ''}`,
       needed_by: neededBy.value,

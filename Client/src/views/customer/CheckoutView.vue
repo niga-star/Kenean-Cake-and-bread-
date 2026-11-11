@@ -179,7 +179,7 @@
             </router-link>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                 {{ localeStore.t('full_name_req') }} <span class="text-red-500">*</span>
@@ -201,6 +201,19 @@
                 v-model="customer.phone"
                 type="tel"
                 :placeholder="localeStore.isAmharic ? '+251 9XX XXX XXX ወይም 09XX XXX XXX' : '+251 9XX XXX XXX or 09XX XXX XXX'"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
+                {{ localeStore.t('email_label') || 'Email Address' }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="customer.email"
+                type="email"
+                placeholder="example@gmail.com"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
                 required
               />
@@ -714,6 +727,7 @@ const selectedTimeSlot = ref('Morning (08:00 - 11:00 AM)');
 const customer = ref({
   name: '',
   phone: '',
+  email: '',
   address: '',
   notes: '',
 });
@@ -782,6 +796,7 @@ function saveDraftToStorage() {
     const draft = {
       name: customer.value.name,
       phone: customer.value.phone,
+      email: customer.value.email,
       address: customer.value.address,
       notes: customer.value.notes,
       fulfillmentMethod: fulfillmentMethod.value,
@@ -806,6 +821,7 @@ function restoreDraftFromStorage() {
     if (draft && typeof draft === 'object') {
       if (draft.name) customer.value.name = draft.name;
       if (draft.phone) customer.value.phone = draft.phone;
+      if (draft.email) customer.value.email = draft.email;
       if (draft.address) customer.value.address = draft.address;
       if (draft.notes) customer.value.notes = draft.notes;
       if (draft.fulfillmentMethod) fulfillmentMethod.value = draft.fulfillmentMethod;
@@ -829,9 +845,11 @@ function clearSavedDraft() {
   if (authStore.user) {
     customer.value.name = authStore.user.full_name || '';
     customer.value.phone = authStore.user.phone || '';
+    customer.value.email = authStore.user.email || '';
   } else {
     customer.value.name = '';
     customer.value.phone = '';
+    customer.value.email = '';
   }
   customer.value.address = '';
   customer.value.notes = '';
@@ -1108,6 +1126,7 @@ async function handlePlaceOrder() {
       branch_id: targetBranch,
       customer_name: customer.value.name ? customer.value.name.trim() : '',
       customer_phone: customer.value.phone ? customer.value.phone.trim() : '',
+      customer_email: customer.value.email ? customer.value.email.trim() : (authStore.user?.email || ''),
       fulfillment_method: fulfillmentMethod.value,
       payment_method: mappedPayment,
       address_id: selectedAddressId.value || null,

@@ -68,11 +68,13 @@ class OrderController extends Controller
             }
         }
 
-        // Customer scoping: see own account orders
+        // Customer scoping: see own account orders & verified email historical orders
         if ($user && $user->role === 'Customer') {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->user_id);
-                if (!empty($user->phone)) {
+                if ($user->email_verified_at) {
+                    $q->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
+                } elseif (!empty($user->phone)) {
                     $q->orWhere('customer_phone', $user->phone);
                 }
             });
@@ -161,8 +163,14 @@ class OrderController extends Controller
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
-        if ($user && $user->role === 'Customer' && $order->user_id && $order->user_id != $user->user_id) {
-            return response()->json(['message' => 'Access denied: You can only view your own orders.'], 403);
+        if ($user && $user->role === 'Customer') {
+            $isOwner = ($order->user_id == $user->user_id);
+            if (!$isOwner && $user->email_verified_at && !empty($order->customer_email) && strcasecmp(trim($order->customer_email), trim($user->email)) === 0) {
+                $isOwner = true;
+            }
+            if (!$isOwner) {
+                return response()->json(['message' => 'Access denied: You can only view your own orders.'], 403);
+            }
         }
 
         return response()->json($order);
