@@ -418,56 +418,60 @@
       </div>
     </section>
 
-    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner (Half-Transparency Glassmorphism) -->
+    <!-- 4. BESPOKE 3D CAKE STUDIO: Interactive Experience Banner (Exact Studio Showcase Design) -->
     <section class="sweetbakes-container" v-reveal>
-      <div class="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] bg-white/70 dark:bg-[#1E120B]/70 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_12px_40px_rgba(222,27,84,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all duration-500 p-6 sm:p-10 lg:p-12 xl:p-14 group">
-        <!-- Half-transparency gradient on left (for crisp text readability), leaving right half 100% rich original image -->
-        <div class="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 via-50% to-transparent dark:from-[#1E120B]/90 dark:via-[#1E120B]/70 dark:via-50% dark:to-transparent pointer-events-none"></div>
+      <div class="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] min-h-[380px] sm:min-h-[440px] lg:min-h-[480px] lg:aspect-[1024/562] flex items-center border border-[#F5D2DC]/80 dark:border-[#3E231A] shadow-[0_14px_45px_rgba(222,27,84,0.1)] dark:shadow-[0_14px_45px_rgba(0,0,0,0.55)] hover:shadow-[0_20px_55px_rgba(222,27,84,0.16)] transition-all duration-500 group">
+        <!-- Full-Bleed Ultra-HD Studio Background Image -->
+        <div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+          <img
+            src="/mockup/cake_studio_hero_bg.jpg"
+            alt="SweetBakes 3D Cake Studio Masterpiece"
+            class="w-full h-full object-cover object-[76%_center] sm:object-right lg:object-center group-hover:scale-102 transition-transform duration-700"
+            loading="lazy"
+          />
+          <!-- Half-transparency gradient on left for crisp text readability on mobile & dark mode, leaving right half 100% rich original cake artwork -->
+          <div class="absolute inset-0 bg-gradient-to-r from-[#FFF9FA]/95 via-[#FFF9FA]/80 via-55% to-transparent sm:from-[#FFF9FA]/90 sm:via-[#FFF9FA]/60 sm:via-45% sm:to-transparent lg:from-[#FFF9FA]/35 lg:via-transparent lg:to-transparent dark:from-[#170E0A]/95 dark:via-[#170E0A]/80 dark:via-45% dark:to-[#170E0A]/25 pointer-events-none"></div>
+        </div>
 
-        <!-- Soft Ambient Pink Glows in Background -->
-        <div class="absolute -right-12 -bottom-16 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-[#F9B4C4]/35 dark:bg-[#DE1B54]/15 blur-3xl pointer-events-none"></div>
-        <div class="absolute right-36 -top-10 w-64 h-64 rounded-full bg-[#FBCFE8]/25 dark:bg-rose-950/20 blur-2xl pointer-events-none"></div>
-        <div class="absolute right-0 bottom-0 w-72 h-36 rounded-tl-[100%] bg-[#F59EB5]/20 dark:bg-[#DE1B54]/10 pointer-events-none"></div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
-          <!-- Left Column: Typography & Launch Button (lg:col-span-7) -->
-          <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
+        <!-- Content Container Positioned Over Left Studio Glow -->
+        <div class="relative z-10 w-full px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-14 xl:px-16">
+          <div class="max-w-md lg:max-w-lg xl:max-w-xl space-y-4 sm:space-y-5 text-left">
             <!-- Pill Badge: 🍰 Cake Studio -->
-            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/85 dark:bg-[#381B26]/85 backdrop-blur-md text-[#2C1810] dark:text-[#FAF3EE] border border-rose-200/60 dark:border-rose-900/40 font-bold text-xs sm:text-sm shadow-2xs">
-              <span class="text-base">🍰</span>
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/95 dark:bg-[#2A151B]/95 backdrop-blur-md text-[#26150F] dark:text-[#FAF3EE] border border-[#F5CAD8] dark:border-rose-900/60 font-bold text-xs sm:text-sm shadow-2xs">
+              <span class="text-base leading-none">🍰</span>
               <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
             </div>
 
-            <!-- Big Bold Title with Radiating Sparkle Lines on "Dream Masterpiece" -->
-            <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-sans font-black text-[#26150F] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+            <!-- Big Bold Title with Radiating Pink Sparkle Lines on "Dream Masterpiece" -->
+            <h2 class="text-[28px] xs:text-3xl sm:text-4xl md:text-[42px] lg:text-[48px] xl:text-[56px] font-sans font-black text-[#22120D] dark:text-[#FAF3EE] tracking-tight leading-[1.08]">
               <template v-if="localeStore.isAmharic">
                 <span>የህልምዎን ኬክ</span><br />
-                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                <span class="text-[#E61960] dark:text-rose-400 relative inline-block">
                   በ3D ይንደፉ
-                  <svg class="absolute -top-3.5 -right-7 sm:-top-4 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
-                    <path d="M6 18L10 14" />
-                    <path d="M14 11L17 5" />
-                    <path d="M22 15L27 12" />
+                  <svg class="absolute -top-3 -right-7 sm:-top-3.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#E61960]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M5 17L9 13" />
+                    <path d="M13 10L16 4" />
+                    <path d="M21 14L27 11" />
                   </svg>
                 </span><br />
                 <span>በቀላሉ ያዘጋጁ</span>
               </template>
               <template v-else>
                 <span>Create Your</span><br />
-                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
+                <span class="text-[#E61960] dark:text-rose-400 relative inline-block whitespace-nowrap">
                   Dream Masterpiece
-                  <svg class="absolute -top-3.5 -right-7 sm:-top-4.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
-                    <path d="M6 18L10 14" />
-                    <path d="M14 11L17 5" />
-                    <path d="M22 15L27 12" />
+                  <svg class="absolute -top-3 -right-7 sm:-top-3.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#E61960]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                    <path d="M5 17L9 13" />
+                    <path d="M13 10L16 4" />
+                    <path d="M21 14L27 11" />
                   </svg>
                 </span><br />
                 <span>in 3D</span>
               </template>
             </h2>
 
-            <!-- Clean Subtitle Paragraph -->
-            <p class="text-sm sm:text-base md:text-lg text-[#6E5C54] dark:text-[#C5B7AF] font-medium leading-snug max-w-md mx-auto lg:mx-0 whitespace-pre-line">
+            <!-- Clean 2-Line Subtitle Paragraph -->
+            <p class="text-sm sm:text-base lg:text-[17px] text-[#3A2720] dark:text-[#E5D7CE] font-medium leading-snug max-w-sm sm:max-w-md whitespace-pre-line">
               {{ localeStore.isAmharic
                 ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ።\nሃሳብዎን ወደ እውነት ይለውጡ!'
                 : 'Design stunning cakes with ease.\nMake your ideas come to life!'
@@ -475,29 +479,16 @@
             </p>
 
             <!-- Rocket Launch CTA Button -->
-            <div class="pt-2 flex justify-center lg:justify-start">
+            <div class="pt-2">
               <router-link
                 to="/custom-cake"
-                class="inline-flex items-center space-x-2.5 px-8 sm:px-9 py-3.5 sm:py-4 rounded-full bg-[#DE1B54] hover:bg-[#C51345] text-white font-black text-sm sm:text-base shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer group/btn"
+                class="inline-flex items-center space-x-2.5 px-7 sm:px-8 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-[#EE1D62] to-[#DE1B54] hover:from-[#D81656] hover:to-[#C51345] text-white font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(222,27,84,0.35)] hover:shadow-[0_14px_30px_rgba(222,27,84,0.48)] hover:scale-105 active:scale-95 transition-all cursor-pointer group/btn"
               >
-                <span class="text-base sm:text-lg">🚀</span>
+                <span class="text-base sm:text-lg leading-none">🚀</span>
                 <span>{{ localeStore.isAmharic ? 'የ3D ኬክ ስቱዲዮውን ይክፈቱ' : 'Launch 3D Cake Studio' }}</span>
-                <span class="text-lg group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
+                <span class="text-lg leading-none group-hover/btn:translate-x-1 transition-transform">&rarr;</span>
               </router-link>
             </div>
-          </div>
-
-          <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal (lg:col-span-5) -->
-          <div class="lg:col-span-5 flex justify-center items-center relative">
-            <!-- Organic Radial Backdrop to gently spotlight the cake -->
-            <div class="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-gradient-to-tr from-[#F8B6C7]/40 to-[#FCE3EB]/30 dark:from-[#DE1B54]/20 dark:to-transparent blur-xl pointer-events-none"></div>
-
-            <img
-              src="/mockup/custom_studio_cake_pure.png"
-              alt="SweetBakes 3D Cake Studio Masterpiece"
-              class="w-full max-w-[340px] sm:max-w-[400px] lg:max-w-none h-auto object-contain drop-shadow-2xl group-hover:scale-104 group-hover:-translate-y-2 transition-transform duration-500 relative z-10"
-              loading="lazy"
-            />
           </div>
         </div>
       </div>
