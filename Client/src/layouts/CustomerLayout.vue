@@ -267,8 +267,14 @@
               class="relative z-50 flex items-center space-x-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full border border-rose-200 dark:border-[#3D261B] bg-rose-50/70 dark:bg-[#1E120B] hover:border-[#DE1B54] text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#E8DED8] transition shadow-2xs cursor-pointer min-h-[34px] sm:min-h-[36px]"
               :title="localeStore.t('account')"
             >
-              <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0">
-                {{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}
+              <div class="w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-[10px] sm:text-xs font-black shrink-0">
+                <img
+                  v-if="authStore.user.avatar_url"
+                  :src="authStore.user.avatar_url"
+                  alt="Avatar"
+                  class="w-full h-full object-cover"
+                />
+                <span v-else>{{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}</span>
               </div>
               <span class="hidden md:inline max-w-[100px] truncate">{{ authStore.user.full_name.split(' ')[0] }}</span>
               <span class="text-[10px] opacity-60">▾</span>
@@ -279,9 +285,20 @@
               v-if="accountMenuOpen"
               class="absolute right-0 mt-2 w-52 bg-white dark:bg-[#221610] rounded-2xl shadow-xl border border-gray-100 dark:border-[#3D261B] py-2 z-50 animate-in fade-in"
             >
-              <div class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B]">
-                <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
-                <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
+              <div class="px-4 py-2 border-b border-gray-100 dark:border-[#3D261B] flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-full overflow-hidden bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                  <img
+                    v-if="authStore.user.avatar_url"
+                    :src="authStore.user.avatar_url"
+                    alt="Avatar"
+                    class="w-full h-full object-cover"
+                  />
+                  <span v-else>{{ authStore.user.full_name ? authStore.user.full_name.charAt(0).toUpperCase() : '👤' }}</span>
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-xs text-gray-800 dark:text-gray-100 truncate">{{ authStore.user.full_name }}</div>
+                  <div class="text-[10px] text-[#DE1B54] font-semibold">{{ authStore.user.role }}</div>
+                </div>
               </div>
 
               <div class="py-1 text-xs font-medium">

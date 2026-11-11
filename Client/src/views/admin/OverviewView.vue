@@ -63,21 +63,11 @@
         >
           Reset
         </button>
-
-        <!-- + New Order Dark Pill Button (Only shown to roles handling orders) -->
-        <router-link
-          v-if="canAccessOrders"
-          to="/admin/orders"
-          class="dash-btn-primary py-2 px-4 text-xs sm:text-sm flex items-center space-x-1.5 shadow-xs"
-        >
-          <span class="text-base leading-none font-bold">+</span>
-          <span>New Order</span>
-        </router-link>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- 1. TOP 4 KPI STAT CARDS (Reference Single Source of Truth)-->
+    <!-- 1. TOP 4 KPI STAT CARDS (Real-time Business Data)       -->
     <!-- ======================================================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
       <!-- 1. Daily Orders Card -->
@@ -97,11 +87,11 @@
         <div class="mt-4">
           <div class="dash-subtitle font-medium text-[#7D6E64]">Daily Orders</div>
           <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.orders_today ?? 48 }}
+            {{ data.orders_today ?? 0 }}
           </div>
           <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
             <span class="font-bold">↗</span>
-            <span>+12% vs yesterday</span>
+            <span>{{ data.orders_trend || '0 vs yesterday' }}</span>
           </div>
         </div>
       </div>
@@ -123,11 +113,11 @@
         <div class="mt-4">
           <div class="dash-subtitle font-medium text-[#7D6E64]">Revenue (Today)</div>
           <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            ETB {{ Number(data.revenue_today || 1245).toLocaleString() }}
+            ETB {{ Number(data.revenue_today ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
           </div>
           <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
             <span class="font-bold">↗</span>
-            <span>+8% vs yesterday</span>
+            <span>{{ data.revenue_trend || '0 vs yesterday' }}</span>
           </div>
         </div>
       </div>
@@ -149,11 +139,10 @@
         <div class="mt-4">
           <div class="dash-subtitle font-medium text-[#7D6E64]">Out for Delivery</div>
           <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.out_for_delivery ?? data.delivery_pipeline?.out_for_delivery ?? 16 }}
+            {{ data.out_for_delivery ?? data.delivery_pipeline?.out_for_delivery ?? 0 }}
           </div>
-          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
-            <span class="font-bold">↗</span>
-            <span>+4 vs yesterday</span>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#7E57C2] mt-1.5">
+            <span>In dispatch &amp; transit</span>
           </div>
         </div>
       </div>
@@ -175,11 +164,10 @@
         <div class="mt-4">
           <div class="dash-subtitle font-medium text-[#7D6E64]">Delivered (Today)</div>
           <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.delivered_today ?? data.delivery_pipeline?.delivered ?? 32 }}
+            {{ data.delivered_today ?? data.delivery_pipeline?.delivered ?? 0 }}
           </div>
           <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
-            <span class="font-bold">↗</span>
-            <span>+9 vs yesterday</span>
+            <span>Completed orders today</span>
           </div>
         </div>
       </div>
@@ -337,7 +325,7 @@
 
           <div class="mb-3">
             <div class="dash-metric text-2xl sm:text-3xl font-black text-[#2B1810]">
-              ETB {{ Number(data.revenue_overview?.total_revenue || 8560).toLocaleString() }}
+              ETB {{ Number(data.revenue_overview?.total_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
             </div>
             <div class="text-xs text-[#7D6E64] flex items-center space-x-1.5 mt-0.5">
               <span>Total Revenue</span>

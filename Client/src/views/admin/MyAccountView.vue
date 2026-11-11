@@ -70,18 +70,49 @@
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <!-- Left: Avatar + Identity -->
         <div class="flex items-center space-x-4 sm:space-x-5 min-w-0">
-          <div class="relative shrink-0">
-            <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#57392C] border-2 border-amber-200/60 shadow-xs flex items-center justify-center text-white text-xl sm:text-2xl font-bold font-serif">
+          <div class="relative shrink-0 group">
+            <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-[#57392C] border-2 border-amber-200/60 shadow-xs flex items-center justify-center text-white text-xl sm:text-2xl font-bold font-serif relative">
               <img
-                src="/mockup/avatar_mekdes.jpg"
+                v-if="userProfile.avatar_url || authStore.user?.avatar_url"
+                :src="userProfile.avatar_url || authStore.user?.avatar_url"
                 alt="Avatar"
                 class="w-full h-full object-cover"
-                onerror="this.style.display='none'"
               />
-              <span v-if="!userProfile.avatar">{{ userInitials }}</span>
+              <span v-else>{{ userInitials }}</span>
+
+              <!-- Hover Photo Change Overlay -->
+              <div
+                @click="triggerPhotoPicker"
+                class="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                title="Click to change profile photo"
+              >
+                <svg class="w-5 h-5 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-[9px] font-bold text-amber-100 mt-0.5">Change</span>
+              </div>
+
+              <!-- Uploading state overlay -->
+              <div v-if="uploadingPhoto" class="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
+                <svg class="animate-spin w-6 h-6 text-amber-300" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+              </div>
             </div>
+
             <!-- Online status dot -->
             <span class="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-2xs"></span>
+
+            <!-- Hidden File Input for Avatar Upload -->
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              class="hidden"
+              @change="handlePhotoUpload"
+            />
           </div>
 
           <div class="min-w-0 space-y-1.5">
@@ -121,6 +152,30 @@
                 <span>📍</span>
                 <span>{{ userProfile.branch?.branch_name || 'Main Branch' }}</span>
               </span>
+
+              <!-- Quick Profile Photo Buttons -->
+              <button
+                type="button"
+                @click="triggerPhotoPicker"
+                :disabled="uploadingPhoto"
+                class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FAF7F2] hover:bg-[#F2ECE4] text-[#3D251E] border border-[#E5DACD] transition cursor-pointer flex items-center space-x-1"
+                title="Upload or change profile photo"
+              >
+                <span>📷</span>
+                <span>{{ (userProfile.avatar_url || authStore.user?.avatar_url) ? 'Change Photo' : 'Upload Photo' }}</span>
+              </button>
+
+              <button
+                v-if="userProfile.avatar_url || authStore.user?.avatar_url"
+                type="button"
+                @click="removeProfilePhoto"
+                :disabled="uploadingPhoto"
+                class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer flex items-center space-x-1"
+                title="Remove current photo"
+              >
+                <span>🗑️</span>
+                <span>Remove</span>
+              </button>
             </div>
           </div>
         </div>
@@ -773,6 +828,9 @@ const savingProfile = ref(false);
 const successMsg = ref('');
 const managerActiveToggle = ref(true);
 
+const fileInputRef = ref(null);
+const uploadingPhoto = ref(false);
+
 const userProfile = reactive({
   user_id: authStore.user?.user_id || null,
   full_name: authStore.user?.full_name || '',
@@ -784,6 +842,7 @@ const userProfile = reactive({
   hire_date: authStore.user?.hire_date || authStore.user?.created_at || '',
   status: authStore.user?.status || 'Active',
   branch: authStore.user?.branch || null,
+  avatar_url: authStore.user?.avatar_url || null,
   avatar: null,
 });
 
@@ -891,6 +950,68 @@ const formattedJoinDate = computed(() => {
     return 'Nov 2026';
   }
 });
+
+function triggerPhotoPicker() {
+  fileInputRef.value?.click();
+}
+
+async function handlePhotoUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Image size must be less than 5MB.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  uploadingPhoto.value = true;
+  try {
+    const res = await api.post('/auth/profile-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (res.data && res.data.avatar_url) {
+      userProfile.avatar_url = res.data.avatar_url;
+      if (authStore.user) {
+        authStore.user.avatar_url = res.data.avatar_url;
+      }
+      toast.success(res.data.message || 'Profile photo updated successfully!');
+    }
+  } catch (err) {
+    console.error('Photo upload failed:', err);
+    toast.error(err.response?.data?.message || 'Failed to upload profile photo.');
+  } finally {
+    uploadingPhoto.value = false;
+    if (e.target) e.target.value = '';
+  }
+}
+
+async function removeProfilePhoto() {
+  const confirmed = await dialog.confirm({
+    title: 'Remove Profile Photo',
+    message: 'Are you sure you want to remove your profile photo?',
+    confirmText: 'Remove Photo',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+
+  uploadingPhoto.value = true;
+  try {
+    const res = await api.delete('/auth/profile-photo');
+    userProfile.avatar_url = null;
+    if (authStore.user) {
+      authStore.user.avatar_url = null;
+    }
+    toast.success(res.data.message || 'Profile photo removed.');
+  } catch (err) {
+    console.error('Failed to remove photo:', err);
+    toast.error(err.response?.data?.message || 'Failed to remove profile photo.');
+  } finally {
+    uploadingPhoto.value = false;
+  }
+}
 
 async function loadProfile() {
   try {

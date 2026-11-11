@@ -365,6 +365,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'full_name' => 'required|string|max:150',
+            'avatar_url' => 'nullable|string|max:500',
             'phone' => [
                 'nullable',
                 'string',
@@ -379,6 +380,9 @@ class AuthController extends Controller
         $user->full_name = $validated['full_name'];
         if (array_key_exists('phone', $validated)) {
             $user->phone = $validated['phone'];
+        }
+        if (array_key_exists('avatar_url', $validated)) {
+            $user->avatar_url = $validated['avatar_url'];
         }
         $user->save();
 
@@ -439,6 +443,142 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Your password has been changed successfully.',
         ]);
+    }
+
+    /**
+     * Upload and update user profile photo.
+     * POST /api/auth/profile-photo
+     */
+    public function uploadProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $photoFile = null;
+        if ($request->hasFile('photo')) {
+            $photoFile = $request->file('photo');
+        } elseif ($request->hasFile('avatar')) {
+            $photoFile = $request->file('avatar');
+        } elseif ($request->hasFile('image')) {
+            $photoFile = $request->file('image');
+        } elseif ($request->hasFile('file')) {
+            $photoFile = $request->file('file');
+        }
+
+        $avatarUrl = null;
+
+        if ($photoFile) {
+            $request->validate([
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+                'file' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
+            ]);
+
+            $uploadDir = public_path('uploads/avatars');
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            // Remove old local avatar if present
+            if ($user->avatar_url && str_starts_with($user->avatar_url, '/uploads/avatars/')) {
+                $oldFile = public_path(ltrim($user->avatar_url, '/'));
+                if (file_exists($oldFile)) {
+                    @unlink($oldFile);
+                }
+            }
+
+            $ext = $photoFile->getClientOriginalExtension() ?: 'jpg';
+            $fileName = 'avatar_' . $user->user_id . '_' . time() . '_' . substr(bin2hex(random_bytes(4)), 0, 8) . '.' . $ext;
+            $photoFile->move($uploadDir, $fileName);
+            $avatarUrl = '/uploads/avatars/' . $fileName;
+        } elseif ($request->filled('avatar_url') || $request->filled('photo')) {
+            // Support direct URL or base64 data string
+            $rawInput = $request->input('avatar_url') ?: $request->input('photo');
+            if (preg_match('/^data:image\/(\w+);base64,/', $rawInput, $type)) {
+                $uploadDir = public_path('uploads/avatars');
+                if (!file_exists($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                $data = substr($rawInput, strpos($rawInput, ',') + 1);
+                $decoded = base64_decode($data);
+                if ($decoded === false) {
+                    return response()->json(['message' => 'Invalid base64 image data.'], 422);
+                }
+                $ext = strtolower($type[1]);
+                $fileName = 'avatar_' . $user->user_id . '_' . time() . '_' . substr(bin2hex(random_bytes(4)), 0, 8) . '.' . $ext;
+                file_put_contents($uploadDir . '/' . $fileName, $decoded);
+                $avatarUrl = '/uploads/avatars/' . $fileName;
+            } else {
+                $avatarUrl = $rawInput;
+            }
+        } else {
+            return response()->json(['message' => 'No photo image was provided for upload.'], 422);
+        }
+
+        $oldAvatar = $user->avatar_url;
+        $user->avatar_url = $avatarUrl;
+        $user->save();
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (' . $user->role . ')',
+            'action' => 'Profile photo updated',
+            'record' => $user->email,
+            'entity_type' => 'User',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => $oldAvatar ?: '—',
+            'new_value' => $avatarUrl,
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Profile photo updated successfully.',
+            'avatar_url' => $avatarUrl,
+            'user' => $user->fresh()->load('branch'),
+        ], 200);
+    }
+
+    /**
+     * Remove user profile photo.
+     * DELETE /api/auth/profile-photo
+     */
+    public function deleteProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if ($user->avatar_url && str_starts_with($user->avatar_url, '/uploads/avatars/')) {
+            $oldFile = public_path(ltrim($user->avatar_url, '/'));
+            if (file_exists($oldFile)) {
+                @unlink($oldFile);
+            }
+        }
+
+        $oldAvatar = $user->avatar_url;
+        $user->avatar_url = null;
+        $user->save();
+
+        AuditLog::create([
+            'user_id' => $user->user_id,
+            'user_name' => $user->full_name . ' (' . $user->role . ')',
+            'action' => 'Profile photo removed',
+            'record' => $user->email,
+            'entity_type' => 'User',
+            'entity_id' => (string) $user->user_id,
+            'old_value' => $oldAvatar ?: '—',
+            'new_value' => 'None',
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Profile photo removed successfully.',
+            'user' => $user->fresh()->load('branch'),
+        ], 200);
     }
 
     // Role switcher helper for demonstration & evaluation

@@ -88,6 +88,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/auth/user', [AuthController::class, 'user']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/auth/profile-photo', [AuthController::class, 'uploadProfilePhoto']);
+    Route::delete('/auth/profile-photo', [AuthController::class, 'deleteProfilePhoto']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/mark-read', [NotificationController::class, 'markAllRead']);
@@ -147,11 +149,13 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::get('/dispatches/{id}', [StockDispatchController::class, 'show']);
     Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/dispatches/{id}/receive', [StockDispatchController::class, 'receive']);
     Route::get('/stock-dispatches', [StockDispatchController::class, 'index']);
     Route::post('/stock-dispatches', [StockDispatchController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/stock-dispatches/{id}', [StockDispatchController::class, 'show']);
     Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
     Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/stock-dispatches/{id}/receive', [StockDispatchController::class, 'receive']);
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);
@@ -209,9 +213,9 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/reports/manager/consolidate-and-submit', [OrderReportController::class, 'managerConsolidateAndSubmit'])
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports', [OrderReportController::class, 'managerConsolidatedReports'])
-        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports/{id}', [OrderReportController::class, 'managerConsolidatedShow'])
-        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/reports/manager/consolidated-reports/{id}/resubmit', [OrderReportController::class, 'managerConsolidatedResubmit'])
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
 

@@ -87,17 +87,19 @@ class InventoryService
         $branch = Branch::findOrFail($branchId);
 
         if ($type === 'production') {
-            if ($branch->branch_type !== 'Main') {
-                throw new Exception('Production received can only be recorded at the Main Branch.', 422);
-            }
             if ($quantity <= 0) {
-                throw new Exception('Production received quantity must be greater than zero.', 422);
+                throw new Exception('Production quantity must be greater than zero.', 422);
             }
-        }
-
-        $qtyDelta = $quantity;
-        if (in_array($type, ['damaged', 'expired'])) {
+            $qtyDelta = abs($quantity);
+        } elseif ($type === 'restock') {
+            if ($quantity <= 0) {
+                throw new Exception('Restock quantity must be greater than zero.', 422);
+            }
+            $qtyDelta = abs($quantity);
+        } elseif (in_array($type, ['damaged', 'expired'])) {
             $qtyDelta = -abs($quantity);
+        } else {
+            $qtyDelta = $quantity;
         }
 
         return DB::transaction(function () use ($branchId, $productId, $type, $quantity, $reason, $user, $qtyDelta, $branch) {

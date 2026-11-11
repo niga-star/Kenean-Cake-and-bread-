@@ -354,8 +354,14 @@
                 <!-- Name with Initials Avatar (Image 2) -->
                 <td class="py-3 px-3">
                   <div class="flex items-center space-x-2.5">
-                    <div class="w-7 h-7 rounded-full bg-[#57392C] text-amber-200 font-serif font-bold text-[11px] flex items-center justify-center shrink-0">
-                      {{ getInitials(u.full_name) }}
+                    <div class="w-7 h-7 rounded-full overflow-hidden bg-[#57392C] text-amber-200 font-serif font-bold text-[11px] flex items-center justify-center shrink-0 border border-[#6E4636]">
+                      <img
+                        v-if="u.avatar_url"
+                        :src="u.avatar_url"
+                        alt="Avatar"
+                        class="w-full h-full object-cover"
+                      />
+                      <span v-else>{{ getInitials(u.full_name) }}</span>
                     </div>
                     <span class="font-bold text-[#2B1810] truncate max-w-[130px]">{{ u.full_name }}</span>
                   </div>

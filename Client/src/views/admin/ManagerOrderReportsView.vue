@@ -809,12 +809,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useDialogStore } from '../../stores/dialog';
 import api from '../../api';
 
+const route = useRoute();
 const authStore = useAuthStore();
 const toast = useToastStore();
 const dialog = useDialogStore();
@@ -1017,19 +1019,35 @@ async function fetchBranchSubmissions() {
 // Inspect consolidated report
 async function inspectConsolidated(id) {
   try {
-    const res = await api.get(`/reports/manager/consolidated-reports/${id}`);
+    const res = await api.get(`/admin/reports/manager/consolidated-reports/${id}`);
     if (res.data && res.data.success) {
       inspectingReport.value = res.data.report;
     }
   } catch (e) {
-    toast.error('Failed to load consolidated report details.');
+    try {
+      await openVerificationModal(id);
+      activeTab.value = 'verify';
+    } catch (err) {
+      toast.error('Failed to load report details.');
+    }
   }
 }
+
+watch(() => route.query.report_id, async (newId) => {
+  if (newId) {
+    activeTab.value = 'submissions';
+    await inspectConsolidated(newId);
+  }
+});
 
 onMounted(async () => {
   await fetchSellerReports();
   await fetchBranchSubmissions();
   await fetchPendingConsolidation();
+  if (route.query.report_id) {
+    activeTab.value = 'submissions';
+    await inspectConsolidated(route.query.report_id);
+  }
 });
 </script>
 

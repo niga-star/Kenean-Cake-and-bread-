@@ -309,7 +309,13 @@
           title="View My Account"
         >
           <div class="w-9 h-9 rounded-full overflow-hidden bg-[#57392C] shrink-0 border border-[#6E4636] shadow-xs flex items-center justify-center text-amber-200 text-xs font-bold font-serif">
-            {{ authStore.user?.full_name ? authStore.user.full_name.substring(0, 2).toUpperCase() : 'SB' }}
+            <img
+              v-if="authStore.user?.avatar_url"
+              :src="authStore.user.avatar_url"
+              alt="Avatar"
+              class="w-full h-full object-cover"
+            />
+            <span v-else>{{ authStore.user?.full_name ? authStore.user.full_name.substring(0, 2).toUpperCase() : 'SB' }}</span>
           </div>
           <div class="min-w-0">
             <div class="text-xs sm:text-sm font-bold text-[#FAF4ED] truncate leading-tight group-hover:text-amber-200 transition">
@@ -567,7 +573,7 @@ const roleScope = computed(() => {
 
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices, inventory, and staff reports; Sellers manage daily orders and counter sales)
 const permissions = {
-  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'notifications', 'settings'],
+  'Super Admin': ['overview', 'branches', 'users', 'salaries', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'payments', 'notifications', 'settings'],
   'Main Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'transfers/new', 'notifications'],
   'Branch Manager': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],
   'Branch Admin': ['overview', 'users', 'products', 'orders', 'custom-cakes', 'manager-reports', 'my-account', 'inventory', 'distribution', 'notifications'],

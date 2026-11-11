@@ -897,6 +897,19 @@ class OrderReportController extends Controller
 
             DB::commit();
 
+            // Notify Super Admin with direct link to view the submitted report
+            $superAdmins = User::where('role', 'Super Admin')->get();
+            foreach ($superAdmins as $superAdmin) {
+                Notification::create([
+                    'user_id' => $superAdmin->user_id,
+                    'branch_id' => $branchId,
+                    'category' => 'Reports',
+                    'title' => "New Branch Sales Report: {$ref}",
+                    'message' => "Manager {$manager->full_name} submitted consolidated sales report {$ref} ({$consolidated->period_type}) for your review.",
+                    'link' => "/admin/manager-reports?report_id={$consolidated->id}",
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Branch sales report consolidated and finalized successfully.',
@@ -921,18 +934,16 @@ class OrderReportController extends Controller
             abort(401, 'Unauthenticated.');
         }
 
-        if ($user->role === 'Super Admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Branch sales reports are no longer submitted to Super Admin. Branch Managers manage and review all sales reports directly within their branch.',
-            ], 403);
-        }
-
-        $userBranchId = $user->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
         $query = BranchConsolidatedReport::with(['branch', 'manager:user_id,full_name,email'])
-            ->where('branch_id', $userBranchId ?: -1)
             ->orderBy('period_end', 'desc')
             ->orderBy('id', 'desc');
+
+        if ($user->role !== 'Super Admin') {
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            $query->where('branch_id', $userBranchId ?: -1);
+        } elseif ($request->filled('branch_id') && $request->branch_id !== 'all') {
+            $query->where('branch_id', $request->branch_id);
+        }
 
         if ($request->query('status')) {
             $st = $request->query('status');
@@ -958,7 +969,11 @@ class OrderReportController extends Controller
      */
     public function managerConsolidatedShow(Request $request, $id)
     {
-        $manager = $this->checkManagerAccess($request);
+        $user = $request->user();
+        if (!$user) {
+            abort(401, 'Unauthenticated.');
+        }
+
         $report = BranchConsolidatedReport::with([
             'branch',
             'manager:user_id,full_name,email,phone',
@@ -967,8 +982,11 @@ class OrderReportController extends Controller
             'sellerReports.customCakes.systemCustomCake.images',
         ])->findOrFail($id);
 
-        if ((int) $report->branch_id !== (int) $manager->branch_id) {
-            abort(403, 'Access denied: You can only view reports for your assigned branch.');
+        if ($user->role !== 'Super Admin') {
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if ((int) $report->branch_id !== (int) $userBranchId) {
+                abort(403, 'Access denied: You can only view reports for your assigned branch.');
+            }
         }
 
         return response()->json([

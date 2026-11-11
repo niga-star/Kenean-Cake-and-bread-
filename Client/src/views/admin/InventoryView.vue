@@ -90,6 +90,102 @@
       </div>
     </div>
 
+    <!-- INCOMING SHIPMENTS FROM MAIN BRANCH (Requirement 1: Incoming stock details + Confirm Receiving button) -->
+    <div
+      v-if="showStockReceiveButton && inTransitDispatches && inTransitDispatches.length > 0"
+      class="bg-gradient-to-br from-amber-50/90 via-[#FFFDF8] to-emerald-50/80 border-2 border-amber-300 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4 animate-in fade-in"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/70 pb-4">
+        <div class="flex items-start sm:items-center space-x-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-xs">
+            🚚
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-serif font-black text-lg text-[#2A1D15]">
+                Incoming Stock from Main Branch
+              </h3>
+              <span class="px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider rounded-full bg-amber-200 text-amber-900 border border-amber-300 animate-pulse">
+                {{ inTransitDispatches.length }} Shipment{{ inTransitDispatches.length > 1 ? 's' : '' }} in Transit
+              </span>
+            </div>
+            <p class="text-xs text-[#7A6B60] mt-0.5">
+              Review products dispatched by the Main Production Facility. Click <strong>Confirm Receiving</strong> to verify and immediately add items to {{ userBranchName }} inventory.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <div
+          v-for="dsp in inTransitDispatches"
+          :key="dsp.dispatch_id"
+          class="bg-white border border-amber-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F4ECE3] pb-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono text-xs font-bold px-2.5 py-1 bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1] rounded-lg">
+                  📦 Manifest: {{ dsp.reference_number }}
+                </span>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                  {{ dsp.status === 'partially_received' ? 'Partially Received' : 'In Transit' }}
+                </span>
+                <span class="text-xs text-[#8A7B71] flex items-center gap-1">
+                  <span>🕒 Sent:</span>
+                  <span>{{ formatDateTime(dsp.sent_at) }}</span>
+                </span>
+              </div>
+              <div class="text-xs text-[#55463C]">
+                <strong>Dispatched From:</strong> {{ dsp.from_branch_name || 'Main Production Facility' }}
+                <span v-if="dsp.notes" class="text-stone-500 italic ml-2">&bull; "{{ dsp.notes }}"</span>
+              </div>
+            </div>
+
+            <button
+              @click="openConfirmDispatchModal(dsp)"
+              class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0 border border-emerald-600"
+            >
+              <span>✓</span>
+              <span>Confirm Receiving ({{ dsp.items.reduce((sum, it) => sum + (it.remaining_to_receive ?? it.quantity_dispatched), 0) }} pcs)</span>
+            </button>
+          </div>
+
+          <!-- Line items table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[500px]">
+              <thead class="bg-[#FAF7F2] text-[10px] font-bold text-[#827165] uppercase tracking-wider border-b border-[#EFE8DF]">
+                <tr>
+                  <th class="py-2 px-3">Product Name</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3 text-center">Dispatched</th>
+                  <th class="py-2 px-3 text-center">Already Received</th>
+                  <th class="py-2 px-3 text-center">Remaining to Receive</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#F3EDE4]">
+                <tr v-for="it in dsp.items" :key="it.id" class="hover:bg-[#FCFAF7]">
+                  <td class="py-2.5 px-3 font-product font-bold text-[#2A1D15]">{{ it.product_name }}</td>
+                  <td class="py-2.5 px-3">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-stone-100 text-stone-700 border border-stone-200">
+                      🏷️ {{ it.category_name }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-3 text-center font-bold text-[#2A1D15]">{{ it.quantity_dispatched }} pcs</td>
+                  <td class="py-2.5 px-3 text-center font-medium text-stone-500">{{ it.quantity_received }} pcs</td>
+                  <td class="py-2.5 px-3 text-center">
+                    <span class="font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      +{{ it.remaining_to_receive ?? it.quantity_dispatched }} pcs
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Received Stock Details Widget / Banner (Requirement 2: Displays Product name, Category, Received quantity, Date received) -->
     <div
       v-if="showStockReceiveButton && latestReceivedStock"
@@ -388,16 +484,20 @@
               required
             >
               <template v-if="adjustMode === 'add'">
-                <option value="production">Production received (Main branch only)</option>
-                <option value="restock">Direct Restock / Inflow</option>
-                <option value="manual_adjustment">Manual adjustment (Count addition)</option>
+                <option value="production">🥖 In-House Production (Freshly baked at branch)</option>
+                <option value="restock">📥 Direct Restock / Inflow</option>
+                <option value="manual_adjustment">📋 Manual Count Addition (Inventory adjustment)</option>
+                <option value="correction">⚖️ Inventory Reconciliation Addition</option>
               </template>
               <template v-else>
-                <option value="damaged">Damaged stock (write-off)</option>
-                <option value="expired">Expired perishable (shelf-life write-off)</option>
-                <option value="manual_adjustment">Manual adjustment (Count reduction)</option>
+                <option value="damaged">💥 Damaged Stock (Waste / packaging defect)</option>
+                <option value="expired">⏳ Expired Perishable (Shelf-life exceeded)</option>
+                <option value="manual_adjustment">📋 Manual Count Reduction (Correction / shrink)</option>
               </template>
             </select>
+            <p v-if="adjustMode === 'add' && adjustForm.type === 'production'" class="text-[11px] text-emerald-800 bg-emerald-50/90 p-2 rounded-xl border border-emerald-200 mt-1.5 leading-snug">
+              🥖 <strong>In-House Branch Production:</strong> Directly adds to your branch's product stock for batches produced or baked in-house.
+            </p>
           </div>
 
           <div>
@@ -617,16 +717,20 @@
               required
             >
               <template v-if="adjustMode === 'add'">
-                <option value="production">Production Received (Main Branch Fresh Bake)</option>
-                <option value="restock">Direct Restock / Inflow</option>
-                <option value="manual_adjustment">Manual Adjustment (Count Addition)</option>
+                <option value="production">🥖 In-House Production (Freshly baked at branch)</option>
+                <option value="restock">📥 Direct Restock / Inflow</option>
+                <option value="manual_adjustment">📋 Manual Adjustment (Count Addition)</option>
+                <option value="correction">⚖️ Inventory Reconciliation Addition</option>
               </template>
               <template v-else>
-                <option value="damaged">Damaged Stock (Dropped / Packaging Defect)</option>
-                <option value="expired">Expired Perishable (Shelf-Life Exceeded)</option>
-                <option value="manual_adjustment">Manual Adjustment (Count Reduction)</option>
+                <option value="damaged">💥 Damaged Stock (Dropped / Packaging Defect)</option>
+                <option value="expired">⏳ Expired Perishable (Shelf-Life Exceeded)</option>
+                <option value="manual_adjustment">📋 Manual Adjustment (Count Reduction)</option>
               </template>
             </select>
+            <p v-if="adjustMode === 'add' && adjustForm.type === 'production'" class="text-[11px] text-emerald-800 bg-emerald-50/90 p-2 rounded-xl border border-emerald-200 mt-1.5 leading-snug">
+              🥖 <strong>In-House Branch Production:</strong> Directly adds to your branch's product stock for batches produced or baked in-house.
+            </p>
           </div>
 
           <!-- Quantity Input -->
@@ -989,6 +1093,108 @@
         </div>
       </div>
     </div>
+
+    <!-- Dedicated Confirm Receiving Modal (Requirement 1: Review incoming items & 1-click confirmation) -->
+    <div
+      v-if="activeConfirmDispatch"
+      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+      @click.self="activeConfirmDispatch = null"
+    >
+      <div class="bg-white rounded-3xl border border-[#D8CDC0] max-w-xl w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between border-b border-[#F2EAE0] pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0 font-bold">
+              📥
+            </div>
+            <div>
+              <span class="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded uppercase tracking-wider">
+                Receive Stock Manifest
+              </span>
+              <h3 class="font-serif font-black text-xl text-[#2A1D15] mt-0.5">
+                Confirm Receiving: {{ activeConfirmDispatch.reference_number }}
+              </h3>
+              <p class="text-xs text-[#7A6B60]">
+                Dispatched from {{ activeConfirmDispatch.from_branch_name || 'Main Production Facility' }} &rarr; {{ userBranchName }} Branch
+              </p>
+            </div>
+          </div>
+          <button @click="activeConfirmDispatch = null" class="text-stone-400 hover:text-stone-700 font-bold text-xl cursor-pointer p-1">
+            ✕
+          </button>
+        </div>
+
+        <p class="text-xs text-[#55463C] leading-relaxed">
+          Verify product quantities received. Once confirmed, these items will automatically be added to {{ userBranchName }} product stock and immediately become available for sale.
+        </p>
+
+        <!-- Items verification table with pre-filled quantities -->
+        <div class="overflow-x-auto border border-[#E8DFD5] rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#FAF7F2] text-[10px] font-bold text-[#827165] uppercase tracking-wider border-b border-[#EFE8DF]">
+              <tr>
+                <th class="py-2.5 px-3">Product</th>
+                <th class="py-2.5 px-2 text-center">Dispatched</th>
+                <th class="py-2.5 px-3 text-center w-28">Quantity Received</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-for="it in confirmDispatchLines" :key="it.product_id" class="hover:bg-[#FCFAF7]">
+                <td class="py-2.5 px-3 font-product font-bold text-[#2A1D15]">
+                  <div>{{ it.product_name }}</div>
+                  <div class="text-[10px] text-stone-500 font-normal">🏷️ {{ it.category_name }}</div>
+                </td>
+                <td class="py-2.5 px-2 text-center font-bold text-stone-700">
+                  {{ it.quantity_dispatched }} pcs
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <input
+                    type="number"
+                    min="1"
+                    :max="it.remaining_to_receive"
+                    v-model.number="it.quantity_received"
+                    class="w-20 border border-emerald-400 bg-emerald-50/60 rounded-lg px-2 py-1 text-center font-extrabold text-emerald-900 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+                    required
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Notes field -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+            Delivery / Inspection Notes (Optional)
+          </label>
+          <input
+            v-model="confirmDispatchNotes"
+            type="text"
+            placeholder="e.g. Received intact, delivery crate inspected"
+            class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end space-x-2.5 pt-3 border-t border-[#F2EAE0]">
+          <button
+            type="button"
+            @click="activeConfirmDispatch = null"
+            class="px-4 py-2 border border-[#D8CDC0] text-[#5A4B41] text-xs font-semibold rounded-xl hover:bg-[#FAF7F5] cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="submitConfirmDispatch"
+            :disabled="isSubmittingConfirmDispatch"
+            class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-2"
+          >
+            <span>✓</span>
+            <span>{{ isSubmittingConfirmDispatch ? 'Adding to Stock...' : 'Confirm & Add to Stock' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1113,11 +1319,13 @@ const adjustForm = ref({
 });
 
 const reasonPresets = [
-  'Shelf life inspection write-off',
+  'In-house branch production / fresh daily bake',
+  'Daily morning fresh baking batch',
+  'Branch kitchen batch produced',
+  'Direct supplier restock',
   'Physical shelf count correction',
-  'Daily morning bakery restock',
+  'Shelf life inspection write-off',
   'Damaged box during store handling',
-  'Production batch received',
 ];
 
 const submitting = ref(false);
@@ -1125,10 +1333,59 @@ const errorMessage = ref('');
 const adjustmentSuccessToast = ref('');
 const lastAdjustmentDetails = ref(null);
 
+// State for Dedicated Confirm Receiving Modal (Requirement 1)
+const activeConfirmDispatch = ref(null);
+const confirmDispatchLines = ref([]);
+const confirmDispatchNotes = ref('');
+const isSubmittingConfirmDispatch = ref(false);
+
+const openConfirmDispatchModal = (dsp) => {
+  activeConfirmDispatch.value = dsp;
+  confirmDispatchNotes.value = '';
+  confirmDispatchLines.value = (dsp.items || []).map(it => ({
+    product_id: it.product_id,
+    product_name: it.product_name,
+    category_name: it.category_name,
+    quantity_dispatched: it.quantity_dispatched,
+    quantity_received: it.remaining_to_receive ?? (it.quantity_dispatched - (it.quantity_received || 0)),
+    remaining_to_receive: it.remaining_to_receive ?? (it.quantity_dispatched - (it.quantity_received || 0)),
+  }));
+};
+
+const submitConfirmDispatch = async () => {
+  if (!activeConfirmDispatch.value) return;
+  isSubmittingConfirmDispatch.value = true;
+  try {
+    const payload = {
+      items: confirmDispatchLines.value.map(l => ({
+        product_id: l.product_id,
+        quantity_received: parseInt(l.quantity_received, 10),
+      })),
+      notes: confirmDispatchNotes.value || null,
+    };
+    const res = await api.post(`/admin/dispatches/${activeConfirmDispatch.value.dispatch_id}/receive`, payload);
+    const successMessage = res.data.message || `Shipment ${activeConfirmDispatch.value.reference_number} received successfully!`;
+    adjustmentSuccessToast.value = successMessage;
+    toast.success(successMessage);
+    activeConfirmDispatch.value = null;
+    showStockReceiveModal.value = false;
+
+    await loadInventory();
+    await fetchReceivedStocks();
+    if (activeSubTab.value === 'ledger') {
+      await loadTransactions();
+    }
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to confirm stock receipt.');
+  } finally {
+    isSubmittingConfirmDispatch.value = false;
+  }
+};
+
 const setAdjustMode = (mode) => {
   adjustMode.value = mode;
   if (mode === 'add') {
-    adjustForm.value.type = 'restock';
+    adjustForm.value.type = 'production';
   } else {
     adjustForm.value.type = 'damaged';
   }
@@ -1170,42 +1427,43 @@ const loadInventory = async () => {
     items.value = res.data.items || [];
     summary.value = res.data.summary || summary.value;
 
-    // Build distinct products
-    const seen = new Set();
-    distinctProducts.value = [];
-    (res.data.items || []).forEach((item) => {
-      if (!seen.has(item.product_id)) {
-        seen.add(item.product_id);
-        distinctProducts.value.push({
-          product_id: item.product_id,
-          product_name: item.product_name,
-          category_name: item.category_name || 'Bakery & Pastries',
-        });
-      }
-    });
-
-    // Fallback if branch has 0 inventory rows: fetch from product catalog
-    if (distinctProducts.value.length === 0) {
-      try {
-        const prodRes = await api.get('/products');
-        const prods = Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []);
-        prods.forEach(p => {
-          if (!seen.has(p.product_id)) {
-            seen.add(p.product_id);
-            distinctProducts.value.push({
-              product_id: p.product_id,
-              product_name: p.product_name,
-              category_name: p.category?.category_name || p.category_name || 'Bakery & Pastries',
-            });
-          }
-        });
-      } catch (e) {
-        console.error('Failed to load catalog products fallback', e);
-      }
+    // Load full catalog products so branch managers can produce/adjust ANY product
+    try {
+      const prodRes = await api.get('/products');
+      const prods = Array.isArray(prodRes.data) ? prodRes.data : (prodRes.data.data || []);
+      const seen = new Set();
+      distinctProducts.value = [];
+      prods.forEach(p => {
+        if (!seen.has(p.product_id)) {
+          seen.add(p.product_id);
+          distinctProducts.value.push({
+            product_id: p.product_id,
+            product_name: p.product_name,
+            category_name: p.category?.category_name || p.category_name || 'Bakery & Pastries',
+          });
+        }
+      });
+    } catch (e) {
+      console.error('Failed to load catalog products', e);
+      // Fallback: build from existing items
+      const seen = new Set();
+      distinctProducts.value = [];
+      (res.data.items || []).forEach((item) => {
+        if (!seen.has(item.product_id)) {
+          seen.add(item.product_id);
+          distinctProducts.value.push({
+            product_id: item.product_id,
+            product_name: item.product_name,
+            category_name: item.category_name || 'Bakery & Pastries',
+          });
+        }
+      });
     }
 
     if (items.value.length > 0 && !distinctProducts.value.find(p => p.product_id === adjustForm.value.product_id)) {
       adjustForm.value.product_id = items.value[0].product_id;
+    } else if (distinctProducts.value.length > 0 && !adjustForm.value.product_id) {
+      adjustForm.value.product_id = distinctProducts.value[0].product_id;
     }
   } catch (err) {
     console.error('Failed to load inventory', err);

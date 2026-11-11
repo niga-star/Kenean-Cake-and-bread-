@@ -150,13 +150,16 @@ class StaffReportController extends Controller
         ]);
 
         if ($submittedToId) {
+            $isManager = in_array($currentUser->role, ['Branch Manager', 'Branch Admin', 'Main Branch Manager']);
             Notification::create([
                 'user_id' => $submittedToId,
                 'branch_id' => $branchId ?: 1,
-                'category' => 'Staff Reports',
-                'title' => "New Staff Report: {$report->title}",
-                'message' => "Staff member {$currentUser->full_name} submitted a {$report->report_type} for review.",
-                'link' => '/admin/staff-reports',
+                'category' => $isManager ? 'Reports' : 'Staff Reports',
+                'title' => $isManager ? "New Branch Report: {$report->title}" : "New Staff Report: {$report->title}",
+                'message' => $isManager
+                    ? "Branch Manager {$currentUser->full_name} submitted {$report->report_type} for review."
+                    : "Staff member {$currentUser->full_name} submitted a {$report->report_type} for review.",
+                'link' => $isManager ? "/admin/manager-reports?report_id={$report->report_id}" : '/admin/staff-reports',
             ]);
         }
 
@@ -223,6 +226,20 @@ class StaffReportController extends Controller
             'new_value' => $report->status . ($report->manager_notes ? " - {$report->manager_notes}" : ''),
             'created_at' => now(),
         ]);
+
+        if ($report->status === 'Forwarded to Super Admin') {
+            $superAdmins = User::where('role', 'Super Admin')->get();
+            foreach ($superAdmins as $superAdmin) {
+                Notification::create([
+                    'user_id' => $superAdmin->user_id,
+                    'branch_id' => $report->branch_id,
+                    'category' => 'Reports',
+                    'title' => "Branch Report Forwarded: {$report->title}",
+                    'message' => "Manager {$currentUser->full_name} forwarded report '{$report->title}' for your review.",
+                    'link' => "/admin/manager-reports?report_id={$report->report_id}",
+                ]);
+            }
+        }
 
         if ($report->user_id) {
             Notification::create([

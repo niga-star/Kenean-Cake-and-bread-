@@ -21,12 +21,38 @@
       <aside class="lg:col-span-4 bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] p-5 sm:p-7 space-y-6 shadow-xs">
         <!-- User Avatar & Profile Card -->
         <div class="text-center space-y-3 pb-6 border-b border-gray-100 dark:border-[#382318]">
-          <div class="relative w-20 h-20 rounded-full bg-rose-50 dark:bg-[#341822] border-2 border-[#DE1B54]/40 flex items-center justify-center mx-auto text-3xl shadow-xs">
-            👨‍🍳
+          <div class="relative w-20 h-20 rounded-full bg-rose-50 dark:bg-[#341822] border-2 border-[#DE1B54]/40 flex items-center justify-center mx-auto text-3xl shadow-xs overflow-hidden group">
+            <img
+              v-if="authStore.user?.avatar_url"
+              :src="authStore.user.avatar_url"
+              alt="Profile Photo"
+              class="w-full h-full object-cover"
+            />
+            <span v-else>👨‍🍳</span>
+
+            <!-- Change photo button overlay -->
+            <div
+              @click="customerFileInputRef?.click()"
+              class="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              title="Change Photo"
+            >
+              <span class="text-xs">📷</span>
+              <span class="text-[9px] font-bold">Edit</span>
+            </div>
+
             <span class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-[#387A54] border-2 border-white dark:border-[#1E120B] flex items-center justify-center text-[10px] text-white font-bold" title="Active Account">
               ✓
             </span>
           </div>
+
+          <!-- Hidden photo input -->
+          <input
+            ref="customerFileInputRef"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            @change="uploadCustomerPhoto"
+          />
           <div>
             <h2 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
               {{ userName }}
@@ -982,6 +1008,44 @@
           <div class="border-b border-gray-100 dark:border-[#382318] pb-4">
             <h2 class="text-xl font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የመገለጫ እና የደህንነት ቅንብሮች' : 'Profile & Security Settings' }}</h2>
             <p class="text-xs text-[#786B60] dark:text-[#A8988E] mt-0.5">{{ localeStore.isAmharic ? 'የግል መረጃዎን እና የስልክ ማረጋገጫዎን ያስተዳድሩ' : 'Manage your personal credentials and phone verification' }}</p>
+          </div>
+
+          <!-- Photo Upload in Profile Settings -->
+          <div class="flex items-center space-x-4 p-4 bg-[#FAF7F5] dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] rounded-2xl">
+            <div class="w-16 h-16 rounded-full overflow-hidden bg-rose-50 dark:bg-[#341822] border-2 border-[#DE1B54]/40 flex items-center justify-center text-2xl shrink-0">
+              <img
+                v-if="authStore.user?.avatar_url"
+                :src="authStore.user.avatar_url"
+                alt="Profile"
+                class="w-full h-full object-cover"
+              />
+              <span v-else>👨‍🍳</span>
+            </div>
+            <div class="space-y-1 min-w-0">
+              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'የመገለጫ ፎቶ' : 'Profile Photo' }}
+              </div>
+              <p class="text-[11px] text-[#786B60] dark:text-[#A8988E]">
+                {{ localeStore.isAmharic ? 'JPG, PNG ወይም WEBP ፎቶ ይስቀሉ (እስከ 5 ሜባ)' : 'Upload a clear JPG, PNG or WEBP photo (up to 5MB)' }}
+              </p>
+              <div class="flex items-center space-x-2 pt-1">
+                <button
+                  type="button"
+                  @click="customerFileInputRef?.click()"
+                  class="px-3 py-1 bg-[#DE1B54] hover:bg-[#C01546] text-white text-[11px] font-bold rounded-xl transition cursor-pointer"
+                >
+                  {{ localeStore.isAmharic ? 'ፎቶ ቀይር' : 'Change Photo' }}
+                </button>
+                <button
+                  v-if="authStore.user?.avatar_url"
+                  type="button"
+                  @click="removeCustomerPhoto"
+                  class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-[#DE1B54] border border-rose-200 text-[11px] font-bold rounded-xl transition cursor-pointer"
+                >
+                  {{ localeStore.isAmharic ? 'አስወግድ' : 'Remove' }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <form @submit.prevent="saveProfile" class="space-y-4">
@@ -1964,6 +2028,61 @@ async function cancelCake(cake) {
     await loadData();
   } catch (err) {
     toast.error(err.response?.data?.message || 'Failed to cancel custom cake.');
+  }
+}
+
+const customerFileInputRef = ref(null);
+
+async function uploadCustomerPhoto(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Image size must be less than 5MB.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  try {
+    const res = await api.post('/auth/profile-photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    if (res.data && res.data.avatar_url) {
+      if (authStore.user) {
+        authStore.user.avatar_url = res.data.avatar_url;
+        localStorage.setItem('user', JSON.stringify(authStore.user));
+      }
+      toast.success(res.data.message || 'Profile photo updated successfully!');
+    }
+  } catch (err) {
+    console.error('Photo upload failed:', err);
+    toast.error(err.response?.data?.message || 'Failed to upload photo.');
+  } finally {
+    if (e.target) e.target.value = '';
+  }
+}
+
+async function removeCustomerPhoto() {
+  const confirmed = await dialog.confirm({
+    title: 'Remove Profile Photo',
+    message: 'Are you sure you want to remove your profile photo?',
+    confirmText: 'Remove Photo',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+
+  try {
+    const res = await api.delete('/auth/profile-photo');
+    if (authStore.user) {
+      authStore.user.avatar_url = null;
+      localStorage.setItem('user', JSON.stringify(authStore.user));
+    }
+    toast.success(res.data.message || 'Profile photo removed.');
+  } catch (err) {
+    console.error('Failed to remove photo:', err);
+    toast.error(err.response?.data?.message || 'Failed to remove photo.');
   }
 }
 
