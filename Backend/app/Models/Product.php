@@ -59,10 +59,17 @@ class Product extends Model
             return (float) $this->base_price;
         }
 
-        $override = $this->branchPrices()
-            ->where('branch_id', $branchId)
-            ->where('active', true)
-            ->first();
+        if ($this->relationLoaded('branchPrices')) {
+            $override = $this->branchPrices
+                ->where('branch_id', $branchId)
+                ->where('active', true)
+                ->first();
+        } else {
+            $override = $this->branchPrices()
+                ->where('branch_id', $branchId)
+                ->where('active', true)
+                ->first();
+        }
 
         return $override ? (float) $override->price : (float) $this->base_price;
     }

@@ -536,7 +536,7 @@
             We appreciate your business and hope you enjoy our freshly baked delicacies. For any questions regarding this order, please contact our fulfilling branch quoting your Order Number.
           </p>
           <div class="text-[9px] text-[#A6978C] uppercase tracking-wider pt-0.5">
-            SweetBakes Bakery Management &middot; Addis Ababa, Ethiopia &middot; www.sweetbakes.com
+            SweetBakes &amp; Kenean Cake &middot; Dessie, Ethiopia &middot; www.sweetbakes.com
           </div>
         </div>
 
@@ -740,11 +740,11 @@ const resolvedCustomerEmail = computed(() => {
 });
 
 const resolvedBranchName = computed(() => {
-  return order.value?.branch?.branch_name || 'Bole Flagship Branch';
+  return order.value?.branch?.branch_name || 'Main Branch - Dessie Piazza';
 });
 
 const resolvedBranchAddress = computed(() => {
-  return order.value?.branch?.address || 'Cameroon St, Bole, Addis Ababa, Ethiopia';
+  return order.value?.branch?.address || 'Piazza Commercial Center, Dessie, Ethiopia';
 });
 
 const resolvedBranchPhone = computed(() => {
@@ -781,7 +781,7 @@ const resolvedDeliveryAddress = computed(() => {
     const a = order.value.address;
     return [a.street, a.city, a.region].filter(Boolean).join(', ');
   }
-  return order.value?.delivery_address || 'Addis Ababa, Ethiopia';
+  return order.value?.delivery_address || 'Dessie, Ethiopia';
 });
 </script>
 

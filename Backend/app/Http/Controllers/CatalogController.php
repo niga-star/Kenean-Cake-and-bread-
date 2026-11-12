@@ -82,11 +82,17 @@ class CatalogController extends Controller
         })->groupBy('product_id')->selectRaw('product_id, SUM(quantity) as qty')->pluck('qty', 'product_id');
         $weekSoldMap = $weekQuery->toArray();
 
-        $products = $query->get()->map(function ($product) use ($branchId, $discountedMap, $todaySoldMap, $weekSoldMap) {
-            $resolvedPrice = (float) $product->getPriceForBranch($branchId && $branchId !== 'all' ? $branchId : null);
+        // Preload branch inventory in a single query to avoid N+1 per-product lookups
+        $isSingleBranch = ($branchId && $branchId !== 'all');
+        $inventoryByProduct = $isSingleBranch
+            ? BranchInventory::where('branch_id', $branchId)->get()->keyBy('product_id')
+            : BranchInventory::all()->groupBy('product_id');
+
+        $products = $query->get()->map(function ($product) use ($branchId, $isSingleBranch, $inventoryByProduct, $discountedMap, $todaySoldMap, $weekSoldMap) {
+            $resolvedPrice = (float) $product->getPriceForBranch($isSingleBranch ? $branchId : null);
             $hasOverride = false;
 
-            if ($branchId && $branchId !== 'all') {
+            if ($isSingleBranch) {
                 $override = $product->branchPrices
                     ->where('branch_id', $branchId)
                     ->where('active', true)
@@ -101,17 +107,15 @@ class CatalogController extends Controller
             $dailyRevenue = (float) ($dailySold * $resolvedPrice);
             $weeklyRevenue = (float) ($weeklySold * $resolvedPrice);
 
-            // Get branch stock if branch specified - products are unavailable if branch has 0 available stock
+            // Get preloaded branch stock - products are unavailable if branch has 0 available stock
             $onHand = 0;
             $reserved = 0;
             $available = 0;
             $reorderLevel = 10;
             $stockStatus = 'Out of Stock';
 
-            if ($branchId && $branchId !== 'all') {
-                $inventory = BranchInventory::where('branch_id', $branchId)
-                    ->where('product_id', $product->product_id)
-                    ->first();
+            if ($isSingleBranch) {
+                $inventory = $inventoryByProduct->get($product->product_id);
 
                 if ($inventory) {
                     $onHand = (int) $inventory->quantity_on_hand;
@@ -119,14 +123,9 @@ class CatalogController extends Controller
                     $reorderLevel = (int) $inventory->reorder_level;
                     $available = max(0, $onHand - $reserved);
                     $stockStatus = $available <= 0 ? 'Out of Stock' : ($inventory->status ?? 'Healthy');
-                } else {
-                    $onHand = 0;
-                    $reserved = 0;
-                    $available = 0;
-                    $stockStatus = 'Out of Stock';
                 }
             } else {
-                $inventories = BranchInventory::where('product_id', $product->product_id)->get();
+                $inventories = $inventoryByProduct->get($product->product_id, collect());
                 $onHand = (int) $inventories->sum('quantity_on_hand');
                 $reserved = (int) $inventories->sum('reserved_quantity');
                 $available = max(0, $onHand - $reserved);

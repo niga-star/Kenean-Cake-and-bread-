@@ -147,25 +147,37 @@ class OrderController extends Controller
     /**
      * Show single order by ID or order_number
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to view order details.'], 401);
+        }
+
         $order = Order::with(['branch', 'user', 'address', 'items.product', 'payments', 'payment', 'statusHistory.user'])
-            ->where('order_id', $id)
-            ->orWhere('order_number', $id)
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('order_id', $id)->orWhere('order_number', $id);
+                } else {
+                    $q->where('order_number', $id);
+                }
+            })
             ->firstOrFail();
 
-        $user = request()->user();
-        if ($user && $user->role === 'Super Admin') {
+        if ($user->role === 'Super Admin') {
             return response()->json(['message' => 'Operational order management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
         }
-        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Customer' && (!$userBranchId || $order->branch_id != $userBranchId)) {
+        $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+        if ($user->role !== 'Customer' && (!$userBranchId || $order->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
-        if ($user && $user->role === 'Customer') {
+        if ($user->role === 'Customer') {
             $isOwner = ($order->user_id == $user->user_id);
             if (!$isOwner && $user->email_verified_at && !empty($order->customer_email) && strcasecmp(trim($order->customer_email), trim($user->email)) === 0) {
+                $isOwner = true;
+            }
+            if (!$isOwner && !empty($user->phone) && !empty($order->customer_phone) && trim($order->customer_phone) === trim($user->phone)) {
                 $isOwner = true;
             }
             if (!$isOwner) {
@@ -538,11 +550,39 @@ class OrderController extends Controller
      */
     public function cancel(Request $request, $id)
     {
-        $order = Order::with(['items', 'payment', 'branch'])->where('order_id', $id)->orWhere('order_number', $id)->firstOrFail();
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to cancel an order.'], 401);
+        }
 
-        // Check if customer cancellation rule applies
-        $isCustomer = (!$user || $user->role === 'Customer' || $order->user_id === $user?->user_id);
+        $order = Order::with(['items', 'payment', 'branch'])
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('order_id', $id)->orWhere('order_number', $id);
+                } else {
+                    $q->where('order_number', $id);
+                }
+            })
+            ->firstOrFail();
+
+        if ($user->role === 'Super Admin') {
+            return response()->json(['message' => 'Operational order management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
+        }
+
+        $isCustomer = ($user->role === 'Customer');
+        if ($isCustomer) {
+            $isOwner = ($order->user_id == $user->user_id)
+                || ($user->email_verified_at && !empty($order->customer_email) && strcasecmp(trim($order->customer_email), trim($user->email)) === 0)
+                || (!empty($user->phone) && !empty($order->customer_phone) && trim($order->customer_phone) === trim($user->phone));
+            if (!$isOwner) {
+                return response()->json(['message' => 'Access denied: You can only cancel your own orders.'], 403);
+            }
+        } else {
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$userBranchId || $order->branch_id != $userBranchId) {
+                return response()->json(['message' => 'Access denied: You can only cancel orders for your assigned branch.'], 403);
+            }
+        }
 
         if ($isCustomer && in_array($order->order_status, ['Preparing', 'Ready', 'Out for delivery', 'Completed'])) {
             return response()->json([
@@ -801,8 +841,13 @@ class OrderController extends Controller
         return $releasedCount;
     }
 
-    public function releaseExpiredEndpoint()
+    public function releaseExpiredEndpoint(Request $request)
     {
+        $user = $request->user();
+        if (!$user || !in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+            return response()->json(['message' => 'Unauthorized to trigger reservation cleanup.'], 403);
+        }
+
         $count = self::releaseExpiredReservations();
         return response()->json([
             'message' => "Successfully released reservations for {$count} expired orders.",

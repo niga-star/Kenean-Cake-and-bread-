@@ -134,28 +134,28 @@ class OverviewController extends Controller
         $transfersList = $inTransitTransfers->get();
         $unitsInTransit = (int) StockTransferItem::whereIn('transfer_id', $transfersList->pluck('transfer_id'))->sum('quantity_sent');
 
-        // 3. Sales by Branch this week (Stacked Bar Chart: Cakes vs Bread & Pastries)
+        // 3. Sales by Branch this week (Single grouped query instead of N+1 per branch)
         $branches = Branch::where('status', 'Active')->get();
+        $branchSalesRows = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.order_id')
+            ->join('products', 'order_items.product_id', '=', 'products.product_id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.category_id')
+            ->where('orders.placed_at', '>=', $startOfWeek)
+            ->where('orders.order_status', '!=', 'Cancelled')
+            ->selectRaw("
+                orders.branch_id,
+                SUM(CASE WHEN categories.slug = 'cakes' OR categories.category_name LIKE '%Cake%' THEN order_items.subtotal ELSE 0 END) as cakes_revenue,
+                SUM(CASE WHEN COALESCE(categories.slug, '') != 'cakes' AND COALESCE(categories.category_name, '') NOT LIKE '%Cake%' THEN order_items.subtotal ELSE 0 END) as bread_revenue
+            ")
+            ->groupBy('orders.branch_id')
+            ->get()
+            ->keyBy('branch_id');
+
         $salesByBranch = [];
-
         foreach ($branches as $branch) {
-            $branchWeekOrders = Order::where('branch_id', $branch->branch_id)
-                ->where('placed_at', '>=', $startOfWeek)
-                ->where('order_status', '!=', 'Cancelled')
-                ->pluck('order_id');
-
-            $cakesRevenue = (float) OrderItem::whereIn('order_id', $branchWeekOrders)
-                ->whereHas('product.category', function ($q) {
-                    $q->where('slug', 'cakes')->orWhere('category_name', 'like', '%Cake%');
-                })
-                ->sum('subtotal');
-
-            $breadRevenue = (float) OrderItem::whereIn('order_id', $branchWeekOrders)
-                ->whereHas('product.category', function ($q) {
-                    $q->where('slug', '!=', 'cakes')->where('category_name', 'not like', '%Cake%');
-                })
-                ->sum('subtotal');
-
+            $row = $branchSalesRows->get($branch->branch_id);
+            $cakesRevenue = (float) ($row->cakes_revenue ?? 0);
+            $breadRevenue = (float) ($row->bread_revenue ?? 0);
             $totalBranchSales = $cakesRevenue + $breadRevenue;
 
             $salesByBranch[] = [

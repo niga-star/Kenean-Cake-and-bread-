@@ -22,11 +22,31 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if (!$user || $user->role === 'Customer') {
+            return response()->json(['message' => 'Unauthorized access to payments.'], 403);
+        }
+
+        $scopedBranchId = null;
+        if ($user->role !== 'Super Admin') {
+            $scopedBranchId = $user->branch_id ?? \App\Models\Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$scopedBranchId) {
+                return response()->json([
+                    'payments' => [],
+                    'summary' => [
+                        'online_revenue_today' => 0,
+                        'pay_on_pickup_delivery' => 0,
+                        'failed_today' => 0,
+                        'refunds_this_week' => 0,
+                    ],
+                ]);
+            }
+        }
+
         $query = Payment::with(['order.branch', 'order.user'])->latest('created_at');
 
-        if ($user && in_array($user->role, ['Branch Admin', 'Branch Staff']) && $user->branch_id) {
-            $query->whereHas('order', function ($q) use ($user) {
-                $q->where('branch_id', $user->branch_id);
+        if ($scopedBranchId) {
+            $query->whereHas('order', function ($q) use ($scopedBranchId) {
+                $q->where('branch_id', $scopedBranchId);
             });
         }
 
@@ -46,25 +66,32 @@ class PaymentController extends Controller
             ];
         });
 
-        // Real metric calculations from MySQL database
+        // Real metric calculations from database (scoped by branch for non-Super Admin)
         $today = Carbon::today();
         $week = Carbon::now()->startOfWeek();
 
-        $onlineRevenueToday = (float) Payment::whereIn('payment_method', ['Chapa', 'Telebirr'])
+        $scopeBranch = function ($q) use ($scopedBranchId) {
+            if ($scopedBranchId) {
+                $q->whereHas('order', fn ($oq) => $oq->where('branch_id', $scopedBranchId));
+            }
+            return $q;
+        };
+
+        $onlineRevenueToday = (float) $scopeBranch(Payment::whereIn('payment_method', ['Chapa', 'Telebirr'])
             ->where('payment_status', 'Paid')
-            ->whereDate('updated_at', $today)
+            ->whereDate('updated_at', $today))
             ->sum('amount');
 
-        $payOnPickupPending = (float) Payment::whereIn('payment_method', ['Pay on pickup', 'Pay on delivery'])
-            ->where('payment_status', 'Pending')
+        $payOnPickupPending = (float) $scopeBranch(Payment::whereIn('payment_method', ['Pay on pickup', 'Pay on delivery'])
+            ->where('payment_status', 'Pending'))
             ->sum('amount');
 
-        $failedToday = Payment::where('payment_status', 'Failed')
-            ->whereDate('updated_at', $today)
+        $failedToday = $scopeBranch(Payment::where('payment_status', 'Failed')
+            ->whereDate('updated_at', $today))
             ->count();
 
-        $refundsThisWeek = (float) Payment::where('payment_status', 'Refunded')
-            ->where('updated_at', '>=', $week)
+        $refundsThisWeek = (float) $scopeBranch(Payment::where('payment_status', 'Refunded')
+            ->where('updated_at', '>=', $week))
             ->sum('refund_amount');
 
         return response()->json([
@@ -118,6 +145,12 @@ class PaymentController extends Controller
         }
 
         $user = $request->user();
+        if ($user && $user->role !== 'Super Admin') {
+            $userBranchId = $user->branch_id ?? \App\Models\Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$userBranchId || $order->branch_id != $userBranchId) {
+                return response()->json(['message' => 'Access denied: You can only refund orders belonging to your assigned branch.'], 403);
+            }
+        }
 
         DB::transaction(function () use ($order, $payment, $validated, $user) {
             $payment->payment_status = 'Refunded';
@@ -217,8 +250,11 @@ class PaymentController extends Controller
             return response()->json(['message' => 'Missing transaction reference'], 400);
         }
 
-        // Webhook signature verification (Section 12: Gateway webhooks are verified by signature)
-        $secret = env('CHAPA_WEBHOOK_SECRET') ?? AppSetting::get('webhook_secret', 'whsec_live_89f21a9chapa2026');
+        // Webhook signature verification (Gateway webhooks are verified by HMAC-SHA256 / secret header)
+        $secret = config('services.chapa.webhook_secret') ?: AppSetting::get('webhook_secret');
+        if (empty($secret)) {
+            return response()->json(['message' => 'Webhook signature verification is not configured.'], 503);
+        }
         $signature = $request->header('x-chapa-signature')
             ?? $request->header('chapa-signature')
             ?? $request->header('signature')

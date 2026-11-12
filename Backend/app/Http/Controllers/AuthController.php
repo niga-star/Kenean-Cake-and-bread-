@@ -581,22 +581,19 @@ class AuthController extends Controller
         ], 200);
     }
 
-    // Role switcher helper for demonstration & evaluation
+    // Role switcher helper for authenticated Super Admin persona simulation
     public function switchRole(Request $request)
     {
-        // In production, ensure only authenticated Super Admin can switch personas
-        if (app()->environment('production')) {
-            $currentUser = $request->user();
-            if (!$currentUser) {
-                $tokenString = $request->bearerToken();
-                if ($tokenString) {
-                    $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
-                    $currentUser = $token?->tokenable;
-                }
+        $currentUser = $request->user();
+        if (!$currentUser) {
+            $tokenString = $request->bearerToken();
+            if ($tokenString) {
+                $token = \Laravel\Sanctum\PersonalAccessToken::findToken($tokenString);
+                $currentUser = $token?->tokenable;
             }
-            if (!$currentUser || $currentUser->role !== 'Super Admin') {
-                return response()->json(['message' => 'Unauthorized persona simulation.'], 403);
-            }
+        }
+        if (!$currentUser || $currentUser->role !== 'Super Admin' || $currentUser->status !== 'Active') {
+            return response()->json(['message' => 'Unauthorized persona simulation.'], 403);
         }
 
         $validated = $request->validate([

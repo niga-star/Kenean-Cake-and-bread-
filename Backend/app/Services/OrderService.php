@@ -39,9 +39,17 @@ class OrderService
         // 1. Release expired unpaid orders before processing
         $this->inventoryService->releaseExpiredReservations();
 
-        // 2. Check idempotency replay
+        $branch = Branch::findOrFail($validated['branch_id']);
+        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
+            throw new Exception('Sorry, this branch is currently unavailable for shopping.', 422);
+        }
+
+        // 2. Check idempotency replay scoped to caller & branch
+        $idempotencyCacheKey = null;
         if ($idempotencyKey) {
-            $cachedOrderId = Cache::get("order_idempotency:{$idempotencyKey}");
+            $actorScope = $user?->user_id ?? ('guest:' . sha1((string) ($validated['customer_phone'] ?? $validated['customer_email'] ?? 'anon')));
+            $idempotencyCacheKey = "order_idempotency:{$actorScope}:{$branch->branch_id}:" . sha1($idempotencyKey);
+            $cachedOrderId = Cache::get($idempotencyCacheKey);
             if ($cachedOrderId) {
                 $existingOrder = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory'])->find($cachedOrderId);
                 if ($existingOrder) {
@@ -51,11 +59,6 @@ class OrderService
                     ];
                 }
             }
-        }
-
-        $branch = Branch::findOrFail($validated['branch_id']);
-        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
-            throw new Exception('Sorry, this branch is currently unavailable for shopping.', 422);
         }
 
         // 3. Resolve customer identity
@@ -105,8 +108,16 @@ class OrderService
 
         $customerName = $customerName ?: 'Customer';
 
-        // 4. Resolve delivery address
+        // 4. Resolve and authorize delivery address
         $addressId = $validated['address_id'] ?? null;
+        if (!empty($addressId)) {
+            $ownedAddress = Address::where('address_id', $addressId)
+                ->where('user_id', $orderUserId)
+                ->first();
+            if (!$ownedAddress) {
+                throw new Exception('Selected delivery address does not belong to this account.', 403);
+            }
+        }
         if ($validated['fulfillment_method'] === 'Delivery' && empty($addressId)) {
             $address = Address::create([
                 'user_id' => $orderUserId,
@@ -143,10 +154,10 @@ class OrderService
 
         // 6. Execute atomic stock reservation and order creation inside database transaction with retries
         $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $orderUserId, $customerName, $customerPhone, $customerEmail, $user, $addressId) {
-            $rand = mt_rand(1000, 9999);
+            $rand = random_int(1000, 9999);
             $orderNumber = "ORD-{$rand}";
             while (Order::where('order_number', $orderNumber)->exists()) {
-                $orderNumber = "ORD-" . mt_rand(1000, 9999);
+                $orderNumber = "ORD-" . random_int(1000, 9999);
             }
 
             $subtotal = 0;
@@ -279,7 +290,7 @@ class OrderService
                 : ($validated['payment_method'] === 'Telebirr' 
                     ? 'TB-' 
                     : ($validated['payment_method'] === 'CBE Birr' ? 'CBE-' : 'PAY-'));
-            $txRef = $isOnline ? ($txPrefix . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6))) : null;
+            $txRef = $isOnline ? ($txPrefix . strtoupper(bin2hex(random_bytes(3)))) : null;
 
             Payment::create([
                 'order_id' => $order->order_id,
@@ -333,8 +344,8 @@ class OrderService
 
         $loadedOrder = $order->fresh(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
-        if ($idempotencyKey) {
-            Cache::put("order_idempotency:{$idempotencyKey}", $order->order_id, 86400);
+        if ($idempotencyCacheKey) {
+            Cache::put($idempotencyCacheKey, $order->order_id, 86400);
         }
 
         return [

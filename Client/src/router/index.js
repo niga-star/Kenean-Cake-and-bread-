@@ -12,6 +12,16 @@ async function waitForHashElement(hash, maxFrames = 15) {
   return !!document.querySelector(hash);
 }
 
+function getStoredUser() {
+  try {
+    const rawUser = localStorage.getItem('user');
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+}
+
 // Core Layouts (Lazy Loaded)
 const AdminLayout = () => import('../layouts/AdminLayout.vue');
 const CustomerLayout = () => import('../layouts/CustomerLayout.vue');
@@ -59,8 +69,7 @@ const routes = [
     path: '/admin',
     component: AdminLayout,
     redirect: () => {
-      const rawUser = localStorage.getItem('user');
-      const user = rawUser ? JSON.parse(rawUser) : null;
+      const user = getStoredUser();
       if (user?.role === 'Branch Staff') {
         return '/admin/orders';
       }
@@ -94,24 +103,24 @@ const routes = [
     path: '/',
     component: CustomerLayout,
     children: [
-      { path: '', component: CustomerHomeView },
-      { path: 'home', component: CustomerHomeView },
-      { path: 'shop', component: ShopView },
+      { path: '', component: CustomerHomeView, meta: { title: 'Kenean Cake & Bread | Artisan Bakery in Dessie, Ethiopia', description: 'Fresh custom celebration cakes, sourdough breads, pastries, and same-day branch delivery across Dessie.' } },
+      { path: 'home', component: CustomerHomeView, meta: { title: 'Kenean Cake & Bread | Artisan Bakery in Dessie, Ethiopia', description: 'Fresh custom celebration cakes, sourdough breads, pastries, and same-day branch delivery across Dessie.' } },
+      { path: 'shop', component: ShopView, meta: { title: 'Shop Cakes, Bread & Pastries | Kenean Cake', description: 'Browse fresh daily pastries, birthday cakes, wedding cakes, and artisanal bread by branch.' } },
       { path: 'cakes-and-bread', redirect: '/shop' },
-      { path: 'product/:id', component: ProductDetailView },
-      { path: 'cart', component: CartView },
-      { path: 'checkout', component: CheckoutView },
-      { path: 'custom-cake', component: CustomCakeBuilderView },
+      { path: 'product/:id', component: ProductDetailView, meta: { title: 'Product Details | Kenean Cake' } },
+      { path: 'cart', component: CartView, meta: { title: 'Shopping Bag | Kenean Cake' } },
+      { path: 'checkout', component: CheckoutView, meta: { title: 'Checkout | Kenean Cake' } },
+      { path: 'custom-cake', component: CustomCakeBuilderView, meta: { title: '3D Custom Cake Studio | Kenean Cake', description: 'Design your custom birthday or wedding cake in 3D and request a bespoke bakery quote.' } },
       { path: 'custom-cakes-builder', redirect: '/custom-cake' },
-      { path: 'branches', component: BranchesView },
-      { path: 'orders/:order_number', component: OrderStatusView },
-      { path: 'track-order', component: OrderTrackingView },
-      { path: 'login', component: LoginView },
-      { path: 'register', component: RegisterView },
-      { path: 'contact', component: ContactView },
+      { path: 'branches', component: BranchesView, meta: { title: 'Bakery Branches in Dessie | Kenean Cake', description: 'Explore interactive Dessie branch locations, delivery coverage zones, and opening hours.' } },
+      { path: 'orders/:order_number', component: OrderStatusView, meta: { title: 'Order Status & Receipt | Kenean Cake' } },
+      { path: 'track-order', component: OrderTrackingView, meta: { title: 'Track Your Order | Kenean Cake', description: 'Check live preparation, baking, and delivery progress for your bakery order.' } },
+      { path: 'login', component: LoginView, meta: { title: 'Sign In | Kenean Cake' } },
+      { path: 'register', component: RegisterView, meta: { title: 'Create Account | Kenean Cake' } },
+      { path: 'contact', component: ContactView, meta: { title: 'Contact Us | Kenean Cake', description: 'Reach our Dessie bakery branches for custom cake inquiries, catering, and customer support.' } },
       { path: 'about', redirect: '/#about' },
-      { path: 'faq', component: FAQView },
-      { path: 'account', component: AccountView },
+      { path: 'faq', component: FAQView, meta: { title: 'Frequently Asked Questions | Kenean Cake', description: 'Answers on cake customization, delivery zones in Dessie, ordering lead times, and payments.' } },
+      { path: 'account', component: AccountView, meta: { title: 'My Account | Kenean Cake' } },
       { path: 'my-orders', redirect: '/account' },
     ],
   },
@@ -170,9 +179,8 @@ router.beforeResolve((to, from) => {
 
 // Navigation Guard for Role Enforcement
 router.beforeEach((to, from, next) => {
-  const rawUser = localStorage.getItem('user');
   const token = localStorage.getItem('token');
-  const user = rawUser ? JSON.parse(rawUser) : null;
+  const user = getStoredUser();
 
   // Protect Customer Account from unauthenticated guest access;
   // If staff/admin visits customer /account, redirect them to their staff portal /admin/my-account (Section 8)
@@ -253,6 +261,18 @@ router.beforeEach((to, from, next) => {
   }
 
   next();
+});
+
+router.afterEach((to) => {
+  if (typeof document === 'undefined') return;
+  const pageTitle = to.meta?.title || (to.path.startsWith('/admin') ? 'Management Portal | Kenean Cake' : 'Kenean Cake & Bread | Artisan Bakery');
+  document.title = pageTitle;
+
+  const defaultDesc = 'Kenean Cake & Bread (SweetBakes) in Dessie, Ethiopia — freshly baked celebration cakes, custom 3D cake studio, pastries, and branch delivery.';
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) {
+    metaDesc.setAttribute('content', to.meta?.description || defaultDesc);
+  }
 });
 
 export default router;

@@ -15,6 +15,9 @@ export default defineConfig({
           if (id.includes('three')) {
             return 'vendor-three';
           }
+          if (id.includes('leaflet')) {
+            return 'vendor-leaflet';
+          }
         }
       }
     },

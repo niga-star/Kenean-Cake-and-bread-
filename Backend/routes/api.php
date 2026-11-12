@@ -28,6 +28,22 @@ use App\Http\Controllers\OrderReportController;
 use App\Http\Controllers\ReceivedStockController;
 use App\Http\Controllers\StockDispatchController;
 
+// Lightweight API Health Check Endpoint
+Route::get('/health', function () {
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+        $dbOk = true;
+    } catch (\Throwable $e) {
+        $dbOk = false;
+    }
+    return response()->json([
+        'status' => $dbOk ? 'ok' : 'degraded',
+        'service' => 'kenean-cake-api',
+        'database' => $dbOk ? 'connected' : 'error',
+        'timestamp' => now()->toIso8601String(),
+    ], $dbOk ? 200 : 503);
+});
+
 // Public Auth with Rate Limiting (v4.1 Section 10 & 11: 5 attempts/min)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
@@ -187,8 +203,9 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
         ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
 
     // Payments & Refunds
-    Route::get('/payments', [PaymentController::class, 'index']);
+    Route::get('/payments', [PaymentController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/payments/refund', [PaymentController::class, 'refund'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
 
     // Three-Level Order & Custom Cake Reporting System
     // Level 1: Branch Seller
@@ -293,22 +310,25 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
 // Customer Storefront Order & Cake Endpoints
 Route::post('/orders/track', [OrderController::class, 'trackOrder'])->middleware('throttle:15,1');
-Route::get('/orders', [OrderController::class, 'index']);
-Route::get('/orders/{id}', [OrderController::class, 'show']);
-Route::post('/orders', [OrderController::class, 'store']);
-Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
-Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
-Route::post('/orders/clear-finished', [OrderController::class, 'clearFinishedHistory']);
-Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint']);
-Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
-Route::post('/custom-cakes', [CustomCakeController::class, 'store']);
+Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:30,1');
+Route::post('/custom-cakes', [CustomCakeController::class, 'store'])->middleware('throttle:30,1');
 Route::post('/custom-cakes/upload-image', [CustomCakeController::class, 'uploadImage'])->middleware('throttle:60,1');
-Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
-Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
-Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);
 
-// Customer Addresses
-Route::get('/addresses', [\App\Http\Controllers\AddressController::class, 'index']);
-Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store']);
-Route::delete('/addresses/{id}', [\App\Http\Controllers\AddressController::class, 'destroy']);
-Route::post('/addresses/{id}/default', [\App\Http\Controllers\AddressController::class, 'makeDefault']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+    Route::post('/orders/clear-finished', [OrderController::class, 'clearFinishedHistory']);
+
+    Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
+    Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
+    Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
+    Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);
+
+    // Customer Addresses
+    Route::get('/addresses', [\App\Http\Controllers\AddressController::class, 'index']);
+    Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store']);
+    Route::delete('/addresses/{id}', [\App\Http\Controllers\AddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [\App\Http\Controllers\AddressController::class, 'makeDefault']);
+});

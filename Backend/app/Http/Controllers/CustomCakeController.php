@@ -127,6 +127,11 @@ class CustomCakeController extends Controller
 
     public function show(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to view custom cake details.'], 401);
+        }
+
         $cakeRequest = CustomCakeRequest::with(['branch', 'user', 'images'])
             ->where(function ($q) use ($id) {
                 if (is_numeric($id)) {
@@ -137,19 +142,18 @@ class CustomCakeController extends Controller
             })
             ->firstOrFail();
 
-        $user = $request->user();
-        if ($user && $user->role === 'Super Admin') {
+        if ($user->role === 'Super Admin') {
             return response()->json(['message' => 'Custom cake management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
         }
-        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Customer' && (!$userBranchId || $cakeRequest->branch_id != $userBranchId)) {
+        $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+        if ($user->role !== 'Customer' && (!$userBranchId || $cakeRequest->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only view custom cake requests for your assigned branch.'], 403);
         }
-        if ($user && $user->role === 'Customer' && $cakeRequest->user_id && $cakeRequest->user_id != $user->user_id) {
-            $isOwner = false;
-            if ($user->email_verified_at && !empty($cakeRequest->customer_email) && strcasecmp(trim($cakeRequest->customer_email), trim($user->email)) === 0) {
+        if ($user->role === 'Customer') {
+            $isOwner = ($cakeRequest->user_id && $cakeRequest->user_id == $user->user_id);
+            if (!$isOwner && $user->email_verified_at && !empty($cakeRequest->customer_email) && strcasecmp(trim($cakeRequest->customer_email), trim($user->email)) === 0) {
                 $isOwner = true;
-            } elseif ($user->phone && $cakeRequest->customer_phone === $user->phone) {
+            } elseif (!$isOwner && !empty($user->phone) && !empty($cakeRequest->customer_phone) && trim($cakeRequest->customer_phone) === trim($user->phone)) {
                 $isOwner = true;
             }
             if (!$isOwner) {
@@ -576,14 +580,19 @@ class CustomCakeController extends Controller
 
     public function acceptQuote(Request $request, $id)
     {
-        $cakeReq = CustomCakeRequest::findOrFail($id);
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to accept a quote.'], 401);
+        }
 
-        if ($user && $cakeReq->user_id && $cakeReq->user_id != $user->user_id && !in_array($user->role, ['Super Admin', 'Main Branch Manager'])) {
-            $isOwner = ($user->email_verified_at && !empty($cakeReq->customer_email) && strcasecmp(trim($cakeReq->customer_email), trim($user->email)) === 0);
-            if (!$isOwner) {
-                return response()->json(['message' => 'Unauthorized: You can only accept quotes for your own custom cake orders.'], 403);
-            }
+        $cakeReq = CustomCakeRequest::findOrFail($id);
+
+        $isOwner = ($cakeReq->user_id && $cakeReq->user_id == $user->user_id)
+            || ($user->email_verified_at && !empty($cakeReq->customer_email) && strcasecmp(trim($cakeReq->customer_email), trim($user->email)) === 0)
+            || (!empty($user->phone) && !empty($cakeReq->customer_phone) && trim($cakeReq->customer_phone) === trim($user->phone));
+
+        if (!$isOwner) {
+            return response()->json(['message' => 'Unauthorized: You can only accept quotes for your own custom cake orders.'], 403);
         }
 
         if ($cakeReq->status !== 'Quoted') {
@@ -664,13 +673,26 @@ class CustomCakeController extends Controller
 
     public function cancel(Request $request, $id)
     {
-        $cakeReq = CustomCakeRequest::findOrFail($id);
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to cancel a custom cake request.'], 401);
+        }
 
-        if ($user && $cakeReq->user_id && $cakeReq->user_id != $user->user_id && !in_array($user->role, ['Super Admin', 'Main Branch Manager'])) {
-            $isOwner = ($user->email_verified_at && !empty($cakeReq->customer_email) && strcasecmp(trim($cakeReq->customer_email), trim($user->email)) === 0);
+        $cakeReq = CustomCakeRequest::findOrFail($id);
+
+        if ($user->role === 'Customer') {
+            $isOwner = ($cakeReq->user_id && $cakeReq->user_id == $user->user_id)
+                || ($user->email_verified_at && !empty($cakeReq->customer_email) && strcasecmp(trim($cakeReq->customer_email), trim($user->email)) === 0)
+                || (!empty($user->phone) && !empty($cakeReq->customer_phone) && trim($cakeReq->customer_phone) === trim($user->phone));
             if (!$isOwner) {
                 return response()->json(['message' => 'Unauthorized: You can only cancel your own custom cake orders.'], 403);
+            }
+        } elseif ($user->role === 'Super Admin') {
+            return response()->json(['message' => 'Custom cake management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
+        } else {
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$userBranchId || $cakeReq->branch_id != $userBranchId) {
+                return response()->json(['message' => 'Unauthorized: You can only cancel custom cake requests for your assigned branch.'], 403);
             }
         }
 
