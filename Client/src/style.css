@@ -1343,3 +1343,309 @@ html.dark .shimmer-wave::after {
     transition: none !important;
   }
 }
+
+/* ========================================================================== */
+/* UNIVERSAL LUXURY DARK THEME SYSTEM FOR ADMIN DASHBOARD & MODALS           */
+/* Deep Dark Roasted Cocoa (#120B07 / #1C120C) + Cream Ivory + Berry Accents   */
+/* ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #120B07;
+  color: #FAF4ED;
+}
+
+/* Global Smooth Theme Transition (Smooth fade without jarring flashes) */
+html,
+body,
+.admin-dashboard,
+.admin-dashboard header,
+.admin-dashboard aside,
+.admin-dashboard main,
+.dash-card,
+.dash-card-compact,
+.dash-table-container {
+  transition: background-color 0.22s ease-in-out, border-color 0.22s ease-in-out, color 0.18s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  .admin-dashboard,
+  .admin-dashboard header,
+  .admin-dashboard aside,
+  .admin-dashboard main,
+  .dash-card,
+  .dash-card-compact,
+  .dash-table-container {
+    transition: none !important;
+  }
+}
+
+/* 1. Admin Canvas & Base Containers */
+.dark .admin-dashboard,
+.dark .admin-dashboard #admin-main-scroll {
+  background-color: #120B07 !important;
+  color: #FAF4ED !important;
+}
+
+/* 2. Admin Cards & Floating Panels (Eliminate all white rectangular blocks) */
+.dark .admin-dashboard .bg-white:not(button):not(a):not(.btn-sweet-primary):not([class*="bg-rose-"]):not([class*="bg-emerald-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="text-white"]),
+.dark .admin-dashboard .dash-card,
+.dark .admin-dashboard .dash-card-compact,
+.dark .admin-dashboard .dash-table-container,
+.dark [role="dialog"] .bg-white,
+.dark .fixed.inset-0 .bg-white:not(button):not(a):not(.btn-sweet-primary):not([class*="bg-rose-"]):not([class*="bg-emerald-"]):not([class*="bg-amber-"]):not([class*="bg-blue-"]):not([class*="bg-red-"]) {
+  background-color: #1C120C !important;
+  border-color: #352117 !important;
+  color: #FAF4ED !important;
+}
+
+/* Modal Dialog Containers in Dark Mode */
+.dark .fixed.inset-0 > div.bg-white,
+.dark .fixed.inset-0 .bg-white.rounded-2xl,
+.dark .fixed.inset-0 .bg-white.rounded-3xl,
+.dark .fixed.inset-0 .bg-white.rounded-xl {
+  background-color: #1C120C !important;
+  border: 1px solid #382419 !important;
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8) !important;
+  color: #FAF4ED !important;
+}
+
+/* 3. Warm Cream Tinted Sub-Panels -> Dark Warm Cocoa Surfaces */
+.dark .admin-dashboard [class*="bg-[#FAF7F2]"],
+.dark .admin-dashboard [class*="bg-[#FAF6F0]"],
+.dark .admin-dashboard [class*="bg-[#FDFBF7]"],
+.dark .admin-dashboard [class*="bg-[#FCFAF7]"],
+.dark .admin-dashboard [class*="bg-[#FAF3EC]"],
+.dark .admin-dashboard [class*="bg-[#F6EFE7]"],
+.dark .admin-dashboard [class*="bg-[#F4ECE3]"],
+.dark .admin-dashboard [class*="bg-[#F8F4EE]"],
+.dark .admin-dashboard [class*="bg-[#FAF7F5]"],
+.dark .admin-dashboard [class*="bg-[#F7F2EA]"],
+.dark .admin-dashboard [class*="bg-[#F3ECE1]"],
+.dark .fixed.inset-0 [class*="bg-[#FAF7F2]"],
+.dark .fixed.inset-0 [class*="bg-[#FAF6F0]"],
+.dark .fixed.inset-0 [class*="bg-[#FDFBF7]"],
+.dark .fixed.inset-0 [class*="bg-[#FCFAF7]"],
+.dark .fixed.inset-0 [class*="bg-[#F7F2EA]"] {
+  background-color: #160E09 !important;
+  border-color: #311E14 !important;
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard [class*="bg-[#FAF0E6]"] {
+  background-color: #24150D !important;
+  border-color: #3D2316 !important;
+  color: #E8A585 !important;
+}
+
+/* 4. Table Headers, Bands & Rows */
+.dark .admin-dashboard thead,
+.dark .admin-dashboard thead tr,
+.dark .admin-dashboard thead th,
+.dark .admin-dashboard th.dash-th,
+.dark .fixed.inset-0 thead th {
+  background-color: #160E09 !important;
+  border-color: #311E14 !important;
+  color: #BDB0A6 !important;
+}
+
+.dark .admin-dashboard tbody tr {
+  border-bottom-color: #271710 !important;
+}
+
+.dark .admin-dashboard tbody td,
+.dark .admin-dashboard td.dash-td {
+  border-color: #271710 !important;
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard tbody tr:hover,
+.dark .admin-dashboard tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.dark .admin-dashboard .divide-y > *,
+.dark .admin-dashboard [class*="divide-[#"] > * {
+  border-color: #271710 !important;
+}
+
+/* 5. Inputs, Selects, Textareas & Search Bars */
+.dark .admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="file"]),
+.dark .admin-dashboard select,
+.dark .admin-dashboard textarea,
+.dark .fixed.inset-0 input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="file"]),
+.dark .fixed.inset-0 select,
+.dark .fixed.inset-0 textarea {
+  background-color: #170E0A !important;
+  border-color: #382419 !important;
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard input:focus,
+.dark .admin-dashboard select:focus,
+.dark .admin-dashboard textarea:focus,
+.dark .fixed.inset-0 input:focus,
+.dark .fixed.inset-0 select:focus,
+.dark .fixed.inset-0 textarea:focus {
+  background-color: #1F130E !important;
+  border-color: #DE1B54 !important;
+  box-shadow: 0 0 0 3px rgba(222, 27, 84, 0.2) !important;
+}
+
+.dark .admin-dashboard select option,
+.dark .fixed.inset-0 select option {
+  background-color: #1C120C !important;
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard input::placeholder,
+.dark .admin-dashboard textarea::placeholder,
+.dark .fixed.inset-0 input::placeholder,
+.dark .fixed.inset-0 textarea::placeholder {
+  color: #7A695C !important;
+}
+
+/* 6. Subtle Dividers and Borders */
+.dark .admin-dashboard [class*="border-[#EFE8DE]"],
+.dark .admin-dashboard [class*="border-[#E9E0D4]"],
+.dark .admin-dashboard [class*="border-[#E2D8CC]"],
+.dark .admin-dashboard [class*="border-[#EFE8DF]"],
+.dark .admin-dashboard [class*="border-[#F2EAE1]"],
+.dark .admin-dashboard [class*="border-[#F4EFEA]"],
+.dark .admin-dashboard [class*="border-[#DDD2C5]"],
+.dark .admin-dashboard [class*="border-[#DDD3C7]"],
+.dark .admin-dashboard [class*="border-[#E8DFD3]"],
+.dark .admin-dashboard [class*="border-[#E8DFD5]"],
+.dark .admin-dashboard [class*="border-[#D8CDC0]"],
+.dark .admin-dashboard [class*="border-[#DCD0C2]"],
+.dark .admin-dashboard [class*="border-[#E5DACD]"],
+.dark .admin-dashboard [class*="border-[#E5DCD0]"],
+.dark .admin-dashboard [class*="border-[#DACDC0]"],
+.dark .fixed.inset-0 .border-gray-200,
+.dark .fixed.inset-0 .border-gray-300 {
+  border-color: #352117 !important;
+}
+
+/* 7. Text Hierarchy & Readable Contrast */
+.dark .admin-dashboard [class*="text-[#2B1810]"],
+.dark .admin-dashboard [class*="text-[#2D231D]"],
+.dark .admin-dashboard [class*="text-[#3D251E]"],
+.dark .admin-dashboard [class*="text-[#2A1810]"],
+.dark .admin-dashboard [class*="text-[#2A1D15]"],
+.dark .admin-dashboard [class*="text-[#241710]"],
+.dark .admin-dashboard [class*="text-[#3E3027]"],
+.dark .admin-dashboard [class*="text-[#1C120C]"],
+.dark .fixed.inset-0 .text-gray-900,
+.dark .fixed.inset-0 .text-gray-800 {
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard [class*="text-[#4A3A30]"],
+.dark .admin-dashboard [class*="text-[#55463C]"],
+.dark .admin-dashboard [class*="text-[#5A4B41]"],
+.dark .admin-dashboard [class*="text-[#5A4A3E]"],
+.dark .admin-dashboard [class*="text-[#6A5A4E]"],
+.dark .admin-dashboard [class*="text-[#6A5A50]"],
+.dark .admin-dashboard [class*="text-[#6E5D52]"],
+.dark .admin-dashboard [class*="text-[#6B5A4E]"],
+.dark .admin-dashboard [class*="text-[#65554B]"],
+.dark .fixed.inset-0 .text-gray-700,
+.dark .fixed.inset-0 .text-gray-600 {
+  color: #D8CDC5 !important;
+}
+
+.dark .admin-dashboard [class*="text-[#7D6E64]"],
+.dark .admin-dashboard [class*="text-[#7A6B60]"],
+.dark .admin-dashboard [class*="text-[#827165]"],
+.dark .admin-dashboard [class*="text-[#8A7B71]"],
+.dark .admin-dashboard [class*="text-[#8C7D73]"],
+.dark .admin-dashboard [class*="text-[#8C7A6D]"],
+.dark .admin-dashboard [class*="text-[#9C8E84]"],
+.dark .admin-dashboard [class*="text-[#A8988E]"],
+.dark .fixed.inset-0 .text-gray-500,
+.dark .fixed.inset-0 .text-gray-400 {
+  color: #A69284 !important;
+}
+
+/* 8. Secondary Buttons & Pill Badges */
+.dark .admin-dashboard button.bg-white,
+.dark .admin-dashboard a.bg-white,
+.dark .fixed.inset-0 button.bg-white,
+.dark .fixed.inset-0 a.bg-white {
+  background-color: #22150E !important;
+  border-color: #3A2419 !important;
+  color: #FAF4ED !important;
+}
+
+.dark .admin-dashboard button.bg-white:hover,
+.dark .admin-dashboard a.bg-white:hover,
+.dark .fixed.inset-0 button.bg-white:hover,
+.dark .fixed.inset-0 a.bg-white:hover {
+  background-color: #2D1C13 !important;
+  border-color: #4A2E20 !important;
+  color: #FAF4ED !important;
+}
+
+/* 9. Alert Banners in Dark Mode */
+.dark .admin-dashboard [class*="bg-[#EBF7EB]"],
+.dark .admin-dashboard [class*="bg-[#EDF7ED]"],
+.dark .admin-dashboard [class*="bg-[#EAF5EA]"],
+.dark .admin-dashboard [class*="bg-emerald-50"] {
+  background-color: #0E2916 !important;
+  border-color: #1E5930 !important;
+  color: #66CC7C !important;
+}
+
+.dark .admin-dashboard [class*="bg-[#FEECEC]"],
+.dark .admin-dashboard [class*="bg-[#FDEAEA]"],
+.dark .admin-dashboard [class*="bg-[#FDF2F2]"],
+.dark .admin-dashboard [class*="bg-rose-50"] {
+  background-color: #331215 !important;
+  border-color: #612028 !important;
+  color: #F87171 !important;
+}
+
+.dark .admin-dashboard [class*="bg-[#FEF7E6]"],
+.dark .admin-dashboard [class*="bg-amber-50"],
+.dark .admin-dashboard [class*="bg-[#FFF3E0]"] {
+  background-color: #2D1B07 !important;
+  border-color: #573711 !important;
+  color: #F8C36A !important;
+}
+
+.dark .admin-dashboard [class*="bg-[#EEF4FD]"],
+.dark .admin-dashboard [class*="bg-[#EBF5FB]"],
+.dark .admin-dashboard [class*="bg-blue-50"] {
+  background-color: #101F33 !important;
+  border-color: #1E3D66 !important;
+  color: #74B1F0 !important;
+}
+
+/* 10. Users & Staff Banner in Dark Mode */
+.dark .admin-dashboard .bg-gradient-to-r.from-\[\#FFF5F2\] {
+  background-image: linear-gradient(to right, #24140D, #2B170F, #1E1009) !important;
+  border-color: #3D251A !important;
+}
+
+/* 11. Dark Scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.dark ::-webkit-scrollbar-track {
+  background-color: #140C08;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #382318;
+  border-radius: 9999px;
+  border: 2px solid #140C08;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #4D3224;
+}
+

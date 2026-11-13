@@ -13,6 +13,20 @@
     <meta property="og:description" content="Order fresh custom cakes, bread, and pastries online across all Dessie bakery branches." />
     <meta property="og:image" content="/mockup/hero_banner_hq.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('sweetbakes_theme');
+          if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
