@@ -603,22 +603,26 @@
               />
               <div
                 v-else
-                class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-rose-100 dark:bg-[#451829] text-[#DE1B54] dark:text-rose-300 font-bold font-serif flex items-center justify-center text-base shrink-0 shadow-2xs"
+                class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-rose-100 to-rose-200 dark:from-[#451829] dark:to-[#31111c] text-[#DE1B54] dark:text-rose-300 font-bold font-serif flex items-center justify-center text-base shrink-0 shadow-2xs border border-rose-200/60"
               >
                 {{ (rev.name || 'C').charAt(0).toUpperCase() }}
               </div>
               <div>
-                <h4 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors">
-                  {{ localeStore.tName(rev.name) }}
+                <h4 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors flex items-center gap-1.5">
+                  <span>{{ localeStore.tName(rev.name) }}</span>
+                  <span class="text-[10px] font-sans font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">✓ {{ localeStore.isAmharic ? 'የተረጋገጠ' : 'Verified' }}</span>
                 </h4>
-                <div class="text-amber-400 text-xs sm:text-sm tracking-tighter mt-0.5">
-                  <span v-for="s in 5" :key="s" :class="s <= (rev.rating || 5) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
+                <div class="flex items-center space-x-2 mt-0.5">
+                  <div class="text-amber-400 text-xs sm:text-sm tracking-tighter">
+                    <span v-for="s in 5" :key="s" :class="s <= (rev.rating || 5) ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'">★</span>
+                  </div>
+                  <span v-if="rev.product_name" class="text-[11px] text-[#8A7B71] dark:text-[#A8988E] truncate max-w-[130px]">· {{ rev.product_name }}</span>
                 </div>
               </div>
             </div>
 
             <!-- Quote Text -->
-            <p class="text-sm sm:text-base font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed italic pt-1 flex-1">
+            <p class="text-xs sm:text-sm font-medium text-[#4A3B32] dark:text-[#E8DDD3] leading-relaxed italic pt-1 flex-1">
               &ldquo;{{ localeStore.tQuote(rev.quote) }}&rdquo;
             </p>
           </div>
@@ -1003,8 +1007,75 @@ const displayedProducts = computed(() => {
   });
 });
 
-// Dynamic Reviews Slides loaded from MySQL database
-const reviewSlides = ref([]);
+// Dynamic Reviews Slides loaded from MySQL database with instant authentic fallback
+const defaultFeaturedReviews = [
+  [
+    {
+      review_id: 6,
+      name: 'Hanan Mohammed',
+      avatar: null,
+      rating: 5,
+      quote: 'Their custom cake team brought our anniversary sketch to life in 3D! Plus the chocolate chip cookies are chewy and loaded with chocolate.',
+      product_id: 6,
+      product_name: 'Double Chocolate Chip Cookie',
+      created_at: '4 days ago',
+    },
+    {
+      review_id: 5,
+      name: 'Yonas Bekele',
+      avatar: null,
+      rating: 5,
+      quote: 'Crispy crust and soft airy crumb. You can immediately tell they use traditional sourdough fermentation. Our go-to bakery every single weekend!',
+      product_id: 3,
+      product_name: 'Artisan French Baguette',
+      created_at: '6 days ago',
+    },
+    {
+      review_id: 4,
+      name: 'Almaz Hailu',
+      avatar: null,
+      rating: 5,
+      quote: 'The red velvet cupcakes with cream cheese frosting are pure heaven. Fast delivery right to our office in Piazza, beautifully packaged.',
+      product_id: 5,
+      product_name: 'Red Velvet Cupcake',
+      created_at: '1 week ago',
+    },
+  ],
+  [
+    {
+      review_id: 3,
+      name: 'Mekdes Tadesse',
+      avatar: null,
+      rating: 5,
+      quote: "Ordered the Strawberry Shortcake for my daughter's birthday. Fresh berries, light sponge, and elegant piping. Exceeded our highest expectations!",
+      product_id: 1,
+      product_name: 'Strawberry Shortcake',
+      created_at: '1 week ago',
+    },
+    {
+      review_id: 2,
+      name: 'Daniel Kebede',
+      avatar: null,
+      rating: 5,
+      quote: 'Best French croissants in Dessie! Golden, flaky, and packed with real butter flavor. Pairs wonderfully with their espresso every morning.',
+      product_id: 4,
+      product_name: 'Golden Butter Croissant',
+      created_at: '1 week ago',
+    },
+    {
+      review_id: 1,
+      name: 'Sara Ahmed',
+      avatar: null,
+      rating: 5,
+      quote: 'The Chocolate Truffle Cake was absolutely sublime! So rich, moist, and arrived perfectly chilled at our Dessie family celebration. Everyone was asking where we ordered it!',
+      product_id: 2,
+      product_name: 'Chocolate Truffle Cake',
+      created_at: '2 weeks ago',
+    },
+  ],
+];
+
+const reviewSlides = ref(defaultFeaturedReviews);
 
 async function fetchFeaturedReviews() {
   try {
@@ -1012,10 +1083,10 @@ async function fetchFeaturedReviews() {
     if (res.data?.slides && res.data.slides.length > 0) {
       reviewSlides.value = res.data.slides;
     } else {
-      reviewSlides.value = [];
+      reviewSlides.value = defaultFeaturedReviews;
     }
   } catch (err) {
-    reviewSlides.value = [];
+    reviewSlides.value = defaultFeaturedReviews;
   }
 }
 

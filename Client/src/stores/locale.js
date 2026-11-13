@@ -852,7 +852,13 @@ export const useLocaleStore = defineStore('locale', () => {
     'Great service and tasty bread. Will order again soon!': 'ጥሩ አገልግሎት እና ጣፋጭ ዳቦ። በቅርቡ እንደገና አዛለሁ!',
     'Best bakery in Addis! The custom cake exceeded my expectations.': 'በአዲስ አበባ ምርጡ ዳቦ ቤት! ያዘዝኩት ልዩ ኬክ ከጠበቅኩት በላይ ሆኖልኛል።',
     'Ordered for my birthday party and everyone loved it. The crust was perfection.': 'ለልደት ድግሴ አዝዤ ሁሉም ሰው ወደደው። የዳቦው እና ኬኩ አሰራር ፍጹም ነበር።',
-    'Consistently fresh and delivered right on time across Bole!': 'ሁልጊዜ ትኩስ እና በቦሌ አካባቢ በትክክለኛው ሰዓት ደርሷል!'
+    'Consistently fresh and delivered right on time across Bole!': 'ሁልጊዜ ትኩስ እና በቦሌ አካባቢ በትክክለኛው ሰዓት ደርሷል!',
+    'The Chocolate Truffle Cake was absolutely sublime! So rich, moist, and arrived perfectly chilled at our Dessie family celebration. Everyone was asking where we ordered it!': 'የቸኮሌት ትራፍል ኬኩ እጅግ በጣም ልዩ እና ጣፋጭ ነበር! በጣም ትኩስ፣ ለስላሳ እና ለቤተሰብ ድግሳችን በሚገባ ደርሶልናል። ሁሉም ሰው ከየት እንዳዘዝነው ሲጠይቀን ነበር!',
+    'Best French croissants in Dessie! Golden, flaky, and packed with real butter flavor. Pairs wonderfully with their espresso every morning.': 'በደሴ ከተማ ምርጡ የፈረንሳይ ክሮሳን! በጣም የሚሰባበር፣ በቅቤ የተዘጋጀ እና በየማለዳው ከኤስፕሬሶ ቡና ጋር ድንቅ ነው።',
+    'Ordered the Strawberry Shortcake for my daughter\'s birthday. Fresh berries, light sponge, and elegant piping. Exceeded our highest expectations!': 'ለልጄ የልደት ቀን የስትሮውበሪ ሾርትኬክ አዝዘን ነበር። ትኩስ ፍራፍሬ፣ ለስላሳ ስፖንጅ እና ውብ አቀራረብ። ከጠበቅነው በላይ ሆኖ አግኝተነዋል!',
+    'The red velvet cupcakes with cream cheese frosting are pure heaven. Fast delivery right to our office in Piazza, beautifully packaged.': 'የሬድ ቬልቬት ካፕኬክ ከክሬም ቺዝ ጋር እጅግ ጣፋጭ ነው። በፒያሳ ወደሚገኘው ቢሯችን በፍጥነት እና በሚያምር ማሸጊያ ደርሶናል።',
+    'Crispy crust and soft airy crumb. You can immediately tell they use traditional sourdough fermentation. Our go-to bakery every single weekend!': 'የሚሰባበር ቅርፊት እና ለስላሳ ውስጠኛ ክፍል ያለው ድንቅ ቦጎት። ሁልጊዜ ቅዳሜና እሁድ ዳቦ የምንገዛው ከዚህ ብቻ ነው!',
+    'Their custom cake team brought our anniversary sketch to life in 3D! Plus the chocolate chip cookies are chewy and loaded with chocolate.': 'የልዩ ኬክ ባለሙያዎቹ ለሰርግ መታሰቢያችን የፈለግነውን ዲዛይን በሚያምር ሁኔታ ሰርተውልናል። ቸኮሌት ቺፕ ኩኪዎቹም በጣም ልዩ ናቸው።',
   };
 
   const nameTranslations = {
@@ -860,7 +866,8 @@ export const useLocaleStore = defineStore('locale', () => {
     'Daniel Kebede': 'ዳንኤል ከበደ',
     'Mekdes Tadesse': 'መቅደስ ታደሰ',
     'Almaz Hailu': 'አልማዝ ኃይሉ',
-    'Yonas Bekele': 'ዮናስ በቀለ'
+    'Yonas Bekele': 'ዮናስ በቀለ',
+    'Hanan Mohammed': 'ሃናን መሀመድ',
   };
 
   const branchTranslations = {

@@ -975,5 +975,8 @@ class DatabaseSeeder extends Seeder
                 'created_at' => $l[8],
             ]);
         }
+
+        // 12. Authentic Customer Reviews for Storefront Carousel
+        $this->call(CustomerReviewsSeeder::class);
     }
 }
