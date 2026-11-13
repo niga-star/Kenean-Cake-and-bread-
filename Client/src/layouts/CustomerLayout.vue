@@ -279,32 +279,18 @@
             <span class="text-[10px] text-gray-400 group-hover:text-[#DE1B54]">▾</span>
           </button>
 
-          <!-- Bilingual Language Toggle Button: EN | አማ + Amharic-to-English Translator -->
-          <div class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
-            <button
-              @click="localeStore.toggleLocale()"
-              data-testid="header-lang-toggle"
-              class="flex items-center px-1.5 xs:px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0"
-              :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
-              aria-label="Language Switcher"
-            >
-              <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
-              <span class="mx-0.5 sm:mx-1 text-gray-300 dark:text-gray-600">|</span>
-              <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
-            </button>
-
-            <!-- Amharic-to-English Translator Button -->
-            <button
-              @click="localeStore.openTranslator()"
-              data-testid="header-translator-btn"
-              class="flex items-center space-x-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-rose-200 dark:border-[#58263A] bg-rose-50/70 hover:bg-rose-100 dark:bg-[#331A24] dark:hover:bg-[#451829] text-[#DE1B54] dark:text-rose-300 text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0 active:scale-95"
-              title="Open Amharic-to-English Translator (አማርኛ ወደ እንግሊዝኛ ተርጓሚ)"
-              aria-label="Amharic-to-English Translator"
-            >
-              <span class="select-none">🌐</span>
-              <span class="hidden md:inline">{{ localeStore.isAmharic ? 'ተርጓሚ' : 'Translator' }}</span>
-            </button>
-          </div>
+          <!-- Bilingual Language Toggle Button: EN | አማ (Always Accessible) -->
+          <button
+            @click="localeStore.toggleLocale()"
+            data-testid="header-lang-toggle"
+            class="flex items-center px-1.5 xs:px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white dark:bg-[#1E120B] min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0"
+            :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
+            aria-label="Language Switcher"
+          >
+            <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
+            <span class="mx-0.5 sm:mx-1 text-gray-300 dark:text-gray-600">|</span>
+            <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
+          </button>
 
           <!-- Theme Toggle Button: Sun & Moon (Always Accessible) -->
           <button
@@ -544,22 +530,14 @@
         <!-- Mobile Language & Theme Switcher Row -->
         <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100 dark:border-[#3D261B]">
           <div class="flex items-center space-x-2">
+            <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">🌐</span>
             <button
               @click="localeStore.toggleLocale()"
-              class="flex items-center px-2.5 py-1.5 min-h-[38px] rounded-full border border-gray-200 dark:border-[#3D261B] text-xs font-bold transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
+              class="flex items-center px-3 py-1.5 min-h-[38px] rounded-full border border-gray-200 dark:border-[#3D261B] text-xs font-bold transition cursor-pointer select-none bg-white dark:bg-[#1E120B]"
             >
               <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">EN</span>
               <span class="mx-1 text-gray-300 dark:text-gray-600">|</span>
               <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400 dark:text-gray-500'">አማ</span>
-            </button>
-
-            <!-- Mobile Drawer Translator Button -->
-            <button
-              @click="localeStore.openTranslator(); mobileNavOpen = false;"
-              class="flex items-center space-x-1.5 px-3 py-1.5 min-h-[38px] rounded-full border border-rose-200 dark:border-[#58263A] bg-rose-50 dark:bg-[#331A24] text-[#DE1B54] dark:text-rose-300 text-xs font-bold transition cursor-pointer select-none"
-            >
-              <span>🌐</span>
-              <span>{{ localeStore.isAmharic ? 'አማርኛ ተርጓሚ' : 'Translator' }}</span>
             </button>
           </div>
 
@@ -987,9 +965,6 @@
 
     <!-- Branch Picker Modal (Searchable, All Addis Branches) -->
     <BranchPickerModal class="print:hidden" />
-
-    <!-- Interactive Amharic-to-English Translator Modal (System-wide) -->
-    <AmharicTranslatorModal class="print:hidden" />
   </div>
 </template>
 
@@ -1011,7 +986,6 @@ import api from '../api';
 const CartDrawer = defineAsyncComponent(() => import('../components/CartDrawer.vue'));
 const ContactSection = defineAsyncComponent(() => import('../components/ContactSection.vue'));
 const BranchPickerModal = defineAsyncComponent(() => import('../components/BranchPickerModal.vue'));
-const AmharicTranslatorModal = defineAsyncComponent(() => import('../components/AmharicTranslatorModal.vue'));
 
 const router = useRouter();
 const route = useRoute();

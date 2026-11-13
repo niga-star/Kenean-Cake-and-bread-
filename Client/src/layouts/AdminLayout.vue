@@ -57,13 +57,13 @@
               <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
-              <span>{{ isBranchScoped ? 'Branch Overview' : 'Dashboard' }}</span>
+              <span>{{ isBranchScoped ? localeStore.t('dash_branch_overview') : localeStore.t('dash_overview') }}</span>
             </router-link>
           </div>
 
           <!-- BUSINESS Section -->
           <div v-if="canAccess('branches') || canAccess('users') || canAccess('products')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Business</div>
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_business') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('branches')"
@@ -75,7 +75,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span>Branches</span>
+                <span>{{ localeStore.t('dash_branches') }}</span>
               </router-link>
 
               <router-link
@@ -88,7 +88,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-                <span>{{ isBranchScoped ? 'Branch Staff' : 'Users & Staff' }}</span>
+                <span>{{ isBranchScoped ? localeStore.t('dash_branch_staff') : localeStore.t('dash_users_staff') }}</span>
               </router-link>
 
               <router-link
@@ -101,7 +101,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Salaries &amp; Wages</span>
+                <span>{{ localeStore.t('dash_salaries') }}</span>
               </router-link>
 
               <router-link
@@ -114,14 +114,14 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
-                <span>Products &amp; Prices</span>
+                <span>{{ localeStore.t('dash_products_prices') }}</span>
               </router-link>
             </div>
           </div>
 
           <!-- STOCK Section -->
           <div>
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Stock &amp; Inventory</div>
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_stock_inventory') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('inventory')"
@@ -133,7 +133,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <span>{{ isBranchScoped ? 'My Inventory' : 'Inventory' }}</span>
+                <span>{{ isBranchScoped ? localeStore.t('dash_my_inventory') : localeStore.t('dash_inventory') }}</span>
               </router-link>
 
               <router-link
@@ -147,7 +147,7 @@
                   <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                   </svg>
-                  <span>{{ isBranchScoped ? 'Stock Receiving' : 'Deliveries &amp; Transfers' }}</span>
+                  <span>{{ isBranchScoped ? localeStore.t('dash_stock_receiving') : localeStore.t('dash_distribution') }}</span>
                 </div>
               </router-link>
 
@@ -161,14 +161,14 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
-                <span>New Transfer</span>
+                <span>{{ localeStore.t('dash_new_transfer') }}</span>
               </router-link>
             </div>
           </div>
 
           <!-- ORDERS & SALES Section (Only visible to roles with retail order/sales duties) -->
           <div v-if="canAccess('orders') || canAccess('custom-cakes') || canAccess('payments') || canAccess('seller-reports') || canAccess('manager-reports') || canAccess('reports')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Orders &amp; Sales</div>
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_orders_sales') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('orders')"
@@ -180,7 +180,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span>{{ currentRole === 'Branch Staff' ? 'Order Preparation' : (['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? 'Branch Orders' : (isBranchScoped ? 'My Orders' : 'Orders')) }}</span>
+                <span>{{ currentRole === 'Branch Staff' ? localeStore.t('dash_order_preparation') : (['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? localeStore.t('dash_branch_orders') : localeStore.t('dash_orders')) }}</span>
               </router-link>
 
               <router-link
@@ -193,7 +193,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.5a3.5 3.5 0 01-7 0 3.5 3.5 0 01-7 0M12 4v4m-4-2h8m-9 9.5V20a1 1 0 001 1h16a1 1 0 001-1v-4.5" />
                 </svg>
-                <span>{{ ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? 'Branch Custom Cakes' : (isBranchScoped ? 'Custom Cake Orders' : 'Custom Cakes') }}</span>
+                <span>{{ ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? localeStore.t('dash_branch_custom_cakes') : localeStore.t('dash_custom_cakes') }}</span>
               </router-link>
 
               <router-link
@@ -206,7 +206,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
-                <span>{{ isBranchScoped ? 'Branch Sales' : 'Payments' }}</span>
+                <span>{{ isBranchScoped ? localeStore.t('dash_branch_sales') : localeStore.t('dash_payments') }}</span>
               </router-link>
 
               <!-- Branch Seller: Daily Sales Report Form -->
@@ -220,7 +220,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <span>Daily Sales Report</span>
+                <span>{{ localeStore.t('dash_seller_reports') }}</span>
               </router-link>
 
               <!-- Branch Manager: Seller Reports Review & Verification -->
@@ -234,14 +234,14 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Branch Sales &amp; Seller Reports</span>
+                <span>{{ localeStore.t('dash_manager_reports') }}</span>
               </router-link>
             </div>
           </div>
 
           <!-- SYSTEM Section -->
           <div v-if="canAccess('notifications') || canAccess('settings') || canAccess('my-account')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Settings &amp; Account</div>
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_settings_account') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('my-account')"
@@ -253,7 +253,7 @@
                 <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>My Account</span>
+                <span>{{ localeStore.t('dash_my_account') }}</span>
               </router-link>
 
               <router-link
@@ -267,7 +267,7 @@
                   <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
-                  <span>Notifications</span>
+                  <span>{{ localeStore.t('dash_notifications') }}</span>
                 </div>
                 <span v-if="unreadCount > 0" class="w-5 h-5 rounded-full bg-[#DE1B54] text-white text-xs font-bold flex items-center justify-center shadow-xs">{{ unreadCount }}</span>
               </router-link>
@@ -283,25 +283,11 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Settings</span>
+                <span>{{ localeStore.t('dash_settings') }}</span>
               </router-link>
             </div>
           </div>
 
-          <!-- TOOLS Section: Amharic-to-English Translator (All Staff Roles) -->
-          <div>
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Tools</div>
-            <button
-              @click="localeStore.openTranslator(); sidebarOpen = false;"
-              type="button"
-              data-testid="sidebar-translator-btn"
-              class="w-full flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 text-[#D8CDC5] hover:bg-white/5 hover:text-white cursor-pointer group text-left"
-            >
-              <span class="text-base mr-3 shrink-0 select-none">🌐</span>
-              <span class="flex-1 font-medium">Amharic Translator</span>
-              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#57392C] text-amber-200 group-hover:bg-[#DE1B54] group-hover:text-white transition">አማ → EN</span>
-            </button>
-          </div>
         </nav>
       </div>
 
@@ -323,11 +309,11 @@
           </div>
           <div class="min-w-0">
             <div class="text-xs sm:text-sm font-bold text-[#FAF4ED] truncate leading-tight group-hover:text-amber-200 transition">
-              {{ authStore.user?.full_name || 'Admin User' }}
+              {{ authStore.user?.full_name || (localeStore.isAmharic ? 'የስርዓቱ ተጠቃሚ' : 'Admin User') }}
             </div>
             <div class="text-[11px] text-[#C8B6A6] truncate mt-0.5 leading-tight">
-              <span class="text-amber-200/90 font-medium">{{ displayRole }}</span>
-              <span v-if="authStore.user?.branch"> &middot; {{ authStore.user.branch.branch_name }}</span>
+              <span class="text-amber-200/90 font-medium">{{ localeStore.tRole(displayRole) }}</span>
+              <span v-if="authStore.user?.branch"> &middot; {{ localeStore.tBranch(authStore.user.branch.branch_name) }}</span>
             </div>
           </div>
         </router-link>
@@ -335,8 +321,8 @@
         <button
           @click="handleLogout"
           class="p-2 text-[#C8B6A6] hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
-          title="Sign out of portal"
-          aria-label="Sign out"
+          :title="localeStore.t('dash_sign_out')"
+          :aria-label="localeStore.t('dash_sign_out')"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -366,7 +352,7 @@
 
           <!-- 1. Super Admin Only: Persona Simulator -->
           <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
-            <span class="text-[#7D6E64] font-semibold text-xs hidden sm:inline shrink-0">Simulate Role:</span>
+            <span class="text-[#7D6E64] font-semibold text-xs hidden sm:inline shrink-0">{{ localeStore.t('dash_simulate_role') }}</span>
             <select
               :value="selectedRoleKey"
               @change="handleRoleChange($event.target.value)"
@@ -377,7 +363,7 @@
                 :key="idx"
                 :value="idx"
               >
-                {{ r.label }}
+                {{ formatPersonaLabel(r) }}
               </option>
             </select>
 
@@ -386,13 +372,13 @@
               v-if="authStore.isSimulating"
               class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FEF7E6] text-[#B87A14] border border-[#FBEAC2] flex items-center space-x-1.5 shrink-0 shadow-2xs"
             >
-              <span class="truncate max-w-[120px] sm:max-w-none">Simulating: {{ currentRole }}</span>
+              <span class="truncate max-w-[120px] sm:max-w-none">{{ localeStore.isAmharic ? 'የተመረጠው ሚና:' : 'Simulating:' }} {{ localeStore.tRole(currentRole) }}</span>
               <button
                 @click="handleExitSimulation"
                 class="text-[10px] bg-[#FBEAC2] hover:bg-[#F6DE9F] text-[#8C5D0C] font-bold px-1.5 py-0.5 rounded-md transition cursor-pointer ml-1"
-                title="Return to Super Admin"
+                :title="localeStore.isAmharic ? 'ወደ ዋና አስተዳዳሪ ተመለስ' : 'Return to Super Admin'"
               >
-                Exit ✕
+                {{ localeStore.t('dash_exit') }}
               </button>
             </span>
           </div>
@@ -401,7 +387,7 @@
           <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
             <!-- Logged in as: [AH] [Name] -->
             <div class="flex items-center space-x-1.5 min-w-0">
-              <span class="text-xs text-[#7D6E64] font-medium hidden sm:inline">Logged in as:</span>
+              <span class="text-xs text-[#7D6E64] font-medium hidden sm:inline">{{ localeStore.t('dash_logged_in_as') }}</span>
               <span class="w-6 h-6 rounded-full bg-[#57392C] text-amber-200 text-[10px] font-serif font-bold flex items-center justify-center shrink-0 shadow-2xs">
                 {{ userInitials }}
               </span>
@@ -418,7 +404,7 @@
               }"
             >
               <span v-if="['Super Admin', 'Main Branch Manager'].includes(currentRole)">👑</span>
-              <span>{{ displayRole }}</span>
+              <span>{{ localeStore.tRole(displayRole) }}</span>
             </span>
 
             <!-- Branch Badge (if branch assigned) -->
@@ -426,52 +412,36 @@
               v-if="authStore.user?.branch?.branch_name"
               class="hidden md:inline-flex text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FAF7F2] text-[#6E5D52] border border-[#E5DACD] truncate"
             >
-              📍 {{ authStore.user.branch.branch_name }}
+              📍 {{ localeStore.tBranch(authStore.user.branch.branch_name) }}
             </span>
 
             <!-- Scope Badge -->
             <span class="hidden lg:inline-flex text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#FAF7F2] text-[#6B5A4E] border border-[#E5DCD0] truncate">
-              Scope: {{ roleScope }}
+              {{ localeStore.t('dash_scope') }} {{ roleScope }}
             </span>
           </div>
         </div>
 
-        <!-- Right: Language Toggle, Translator, Notifications & Direct Link to Storefront -->
+        <!-- Right: Language Toggle, Notifications & Direct Link to Storefront -->
         <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          <!-- Amharic-to-English Translator Button Group (All Dashboards & Staff Pages) -->
-          <div class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
-            <!-- Bilingual Toggle EN | አማ -->
-            <button
-              @click="localeStore.toggleLocale()"
-              data-testid="admin-header-lang-toggle"
-              class="flex items-center px-2 sm:px-2.5 py-1.5 rounded-xl border border-[#E5DACD] hover:border-[#DE1B54] text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white text-[#3D251E] shrink-0 min-h-[34px]"
-              :title="localeStore.isAmharic ? 'Switch dashboard language to English' : 'መላውን ዳሽቦርድ ወደ አማርኛ ቀይር'"
-              aria-label="Toggle Language"
-            >
-              <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">EN</span>
-              <span class="mx-0.5 sm:mx-1 text-gray-300">|</span>
-              <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">አማ</span>
-            </button>
-
-            <!-- Amharic-to-English Translator Button -->
-            <button
-              @click="localeStore.openTranslator()"
-              data-testid="admin-header-translator-btn"
-              class="inline-flex items-center space-x-1 sm:space-x-1.5 text-xs sm:text-sm font-bold text-[#DE1B54] bg-[#FFF0F4] hover:bg-[#FFE2EB] active:scale-95 border border-[#FFCCD9] px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-2xs group cursor-pointer shrink-0 min-h-[34px]"
-              title="Open Amharic-to-English Translator (አማርኛ ወደ እንግሊዝኛ ተርጓሚ)"
-              aria-label="Amharic-to-English Translator"
-            >
-              <span class="text-sm select-none">🌐</span>
-              <span class="hidden md:inline font-bold">Translator</span>
-              <span class="text-[10px] font-bold text-rose-500 hidden xl:inline">(አማ → EN)</span>
-            </button>
-          </div>
+          <!-- Bilingual Language Toggle Button: EN | አማ (Identical to Client Page) -->
+          <button
+            @click="localeStore.toggleLocale()"
+            data-testid="admin-header-lang-toggle"
+            class="flex items-center px-1.5 xs:px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white text-[#3D251E] min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0"
+            :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
+            aria-label="Language Switcher"
+          >
+            <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">EN</span>
+            <span class="mx-0.5 sm:mx-1 text-gray-300">|</span>
+            <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">አማ</span>
+          </button>
 
           <!-- Notification Bell -->
           <router-link
             to="/admin/notifications"
             class="relative p-2.5 text-[#6B5A4E] hover:text-[#3D251E] hover:bg-[#FAF7F2] rounded-xl transition cursor-pointer"
-            title="Notifications"
+            :title="localeStore.isAmharic ? 'ማሳወቂያዎች' : 'Notifications'"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -484,11 +454,11 @@
             to="/"
             target="_blank"
             class="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-[#8C4A28] bg-[#FAF0E6] hover:bg-[#F5E5D5] border border-[#EED7C5] px-3.5 py-2 rounded-xl transition shadow-2xs group cursor-pointer"
-            title="Open customer bakery store in new tab"
+            :title="localeStore.isAmharic ? 'የደንበኛ መደብር በአዲስ ገጽ ይክፈቱ' : 'Open customer bakery store in new tab'"
           >
             <span class="text-sm">🍰</span>
-            <span class="hidden sm:inline">View Bakery Store</span>
-            <span class="sm:hidden">Store</span>
+            <span class="hidden sm:inline">{{ localeStore.t('dash_view_store') }}</span>
+            <span class="sm:hidden">{{ localeStore.isAmharic ? 'መደብር' : 'Store' }}</span>
             <svg class="w-3.5 h-3.5 text-[#8C4A28] group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -507,9 +477,6 @@
         </router-view>
       </main>
     </div>
-
-    <!-- Interactive Amharic-to-English Translator Modal (System-wide) -->
-    <AmharicTranslatorModal />
   </div>
 </template>
 
@@ -519,7 +486,6 @@ import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useLocaleStore } from '../stores/locale';
 import PageTransition from '../components/PageTransition.vue';
-import AmharicTranslatorModal from '../components/AmharicTranslatorModal.vue';
 import api from '../api';
 
 const router = useRouter();
@@ -610,12 +576,28 @@ const homePath = computed(() => {
 });
 
 const roleScope = computed(() => {
+  if (localeStore.isAmharic) {
+    if (currentRole.value === 'Super Admin') return 'መላው ንግድ (ሁሉም ቅርንጫፎች)';
+    if (currentRole.value === 'Main Branch Manager') return 'ዋና ቅርንጫፍ እና ስርጭት';
+    const branchName = localeStore.tBranch(authStore.user?.branch?.branch_name) || 'የተመደበ ቅርንጫፍ';
+    if (['Branch Manager', 'Branch Admin'].includes(currentRole.value)) return `${branchName} ቅርንጫፍ`;
+    if (isStaffMember.value) return `${branchName} ቅርንጫፍ (${localeStore.tRole(displayRole.value)})`;
+    return 'የደንበኛ መደብር';
+  }
   if (currentRole.value === 'Super Admin') return 'Whole business (All branches)';
   if (currentRole.value === 'Main Branch Manager') return 'Main Branch & Distribution';
   if (['Branch Manager', 'Branch Admin'].includes(currentRole.value)) return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch`;
   if (isStaffMember.value) return `${authStore.user?.branch?.branch_name || 'One assigned'} Branch (${displayRole.value})`;
   return 'Customer Storefront';
 });
+
+const formatPersonaLabel = (roleItem) => {
+  if (!roleItem) return '';
+  if (!localeStore.isAmharic) return roleItem.label;
+  const translatedRole = localeStore.tRole(roleItem.role) || roleItem.role;
+  const branchName = roleItem.branch_name ? ` - ${localeStore.tBranch(roleItem.branch_name)}` : '';
+  return `${translatedRole}${branchName}`;
+};
 
 // Role-based permission map (Super Admin focuses on central oversight; Branch Managers manage local products/prices, inventory, and staff reports; Sellers manage daily orders and counter sales)
 const permissions = {
