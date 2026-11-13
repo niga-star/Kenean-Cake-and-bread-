@@ -305,17 +305,6 @@
         </nav>
       </div>
 
-      <!-- Bottom Quote Card (Reference Design System Feature) -->
-      <div class="px-3.5 mb-3 shrink-0">
-        <div class="bg-[#F6EFE6] text-[#3D251E] rounded-2xl p-3 flex items-center space-x-3 border border-[#E8DFD3] shadow-xs">
-          <span class="text-2xl select-none">🎂</span>
-          <div class="min-w-0">
-            <div class="font-bold text-xs text-[#2B1810] leading-tight truncate">Fresh bakes, happy days! 🤎</div>
-            <div class="text-[10px] text-[#7D6E64] font-medium leading-tight mt-0.5">SweetBakes Portal</div>
-          </div>
-        </div>
-      </div>
-
       <!-- Bottom User Profile Card with Role & Branch -->
       <div class="p-3.5 border-t border-[#4D3227] bg-[#301B14] flex items-center justify-between shrink-0">
         <router-link
