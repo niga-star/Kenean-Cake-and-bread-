@@ -287,6 +287,21 @@
               </router-link>
             </div>
           </div>
+
+          <!-- TOOLS Section: Amharic-to-English Translator (All Staff Roles) -->
+          <div>
+            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">Tools</div>
+            <button
+              @click="localeStore.openTranslator(); sidebarOpen = false;"
+              type="button"
+              data-testid="sidebar-translator-btn"
+              class="w-full flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 text-[#D8CDC5] hover:bg-white/5 hover:text-white cursor-pointer group text-left"
+            >
+              <span class="text-base mr-3 shrink-0 select-none">🌐</span>
+              <span class="flex-1 font-medium">Amharic Translator</span>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#57392C] text-amber-200 group-hover:bg-[#DE1B54] group-hover:text-white transition">አማ → EN</span>
+            </button>
+          </div>
         </nav>
       </div>
 
@@ -432,8 +447,37 @@
           </div>
         </div>
 
-        <!-- Right: Notifications & Direct Link to Customer Storefront -->
-        <div class="flex items-center space-x-3 shrink-0">
+        <!-- Right: Language Toggle, Translator, Notifications & Direct Link to Storefront -->
+        <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          <!-- Amharic-to-English Translator Button Group (All Dashboards & Staff Pages) -->
+          <div class="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
+            <!-- Bilingual Toggle EN | አማ -->
+            <button
+              @click="localeStore.toggleLocale()"
+              data-testid="admin-header-lang-toggle"
+              class="flex items-center px-2 sm:px-2.5 py-1.5 rounded-xl border border-[#E5DACD] hover:border-[#DE1B54] text-xs font-bold transition shadow-2xs cursor-pointer select-none bg-white text-[#3D251E] shrink-0 min-h-[34px]"
+              :title="localeStore.isAmharic ? 'Switch dashboard language to English' : 'መላውን ዳሽቦርድ ወደ አማርኛ ቀይር'"
+              aria-label="Toggle Language"
+            >
+              <span :class="!localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">EN</span>
+              <span class="mx-0.5 sm:mx-1 text-gray-300">|</span>
+              <span :class="localeStore.isAmharic ? 'text-[#DE1B54] font-black' : 'text-gray-400'">አማ</span>
+            </button>
+
+            <!-- Amharic-to-English Translator Button -->
+            <button
+              @click="localeStore.openTranslator()"
+              data-testid="admin-header-translator-btn"
+              class="inline-flex items-center space-x-1 sm:space-x-1.5 text-xs sm:text-sm font-bold text-[#DE1B54] bg-[#FFF0F4] hover:bg-[#FFE2EB] active:scale-95 border border-[#FFCCD9] px-2.5 sm:px-3 py-1.5 rounded-xl transition shadow-2xs group cursor-pointer shrink-0 min-h-[34px]"
+              title="Open Amharic-to-English Translator (አማርኛ ወደ እንግሊዝኛ ተርጓሚ)"
+              aria-label="Amharic-to-English Translator"
+            >
+              <span class="text-sm select-none">🌐</span>
+              <span class="hidden md:inline font-bold">Translator</span>
+              <span class="text-[10px] font-bold text-rose-500 hidden xl:inline">(አማ → EN)</span>
+            </button>
+          </div>
+
           <!-- Notification Bell -->
           <router-link
             to="/admin/notifications"
@@ -474,6 +518,9 @@
         </router-view>
       </main>
     </div>
+
+    <!-- Interactive Amharic-to-English Translator Modal (System-wide) -->
+    <AmharicTranslatorModal />
   </div>
 </template>
 
@@ -481,12 +528,15 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useLocaleStore } from '../stores/locale';
 import PageTransition from '../components/PageTransition.vue';
+import AmharicTranslatorModal from '../components/AmharicTranslatorModal.vue';
 import api from '../api';
 
 const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
+const localeStore = useLocaleStore();
 const unreadCount = ref(0);
 let notificationPollInterval = null;
 

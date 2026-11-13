@@ -950,6 +950,307 @@ export const useLocaleStore = defineStore('locale', () => {
     setLocale(saved);
   };
 
+  // Comprehensive Amharic <-> English Bakery & System Glossary
+  const bakeryGlossary = [
+    // Greetings & Celebration Messages
+    { am: 'መልካም ልደት', en: 'Happy Birthday' },
+    { am: 'እንኳን ደስ አለዎት', en: 'Congratulations' },
+    { am: 'እንኳን ደስ አላችሁ', en: 'Congratulations to you all' },
+    { am: 'መልካም ጋብቻ', en: 'Happy Wedding / Anniversary' },
+    { am: 'መልካም በዓል', en: 'Happy Holiday' },
+    { am: 'እንኳን አደረሳችሁ', en: 'Holiday Greetings' },
+    { am: 'በፍቅር የተዘጋጀ', en: 'Handcrafted with love' },
+    { am: 'በፍቅር', en: 'With love' },
+    { am: 'በጣም አመሰግናለሁ', en: 'Thank you very much' },
+    { am: 'አመሰግናለሁ', en: 'Thank you' },
+    { am: 'እባክዎ', en: 'Please' },
+
+    // Products & Bakery Items
+    { am: 'ቸኮሌት ትራፍል ኬክ', en: 'Chocolate Truffle Cake' },
+    { am: 'ቸኮሌት ኬክ', en: 'Chocolate Cake' },
+    { am: 'ቫኒላ ኬክ', en: 'Vanilla Cake' },
+    { am: 'እንጆሪ ኬክ', en: 'Strawberry Cake' },
+    { am: 'ስትሮውበሪ ሾርትኬክ', en: 'Strawberry Shortcake' },
+    { am: 'ሬድ ቬልቬት ካፕኬክ', en: 'Red Velvet Cupcake' },
+    { am: 'ሬድ ቬልቬት ኬክ', en: 'Red Velvet Cake' },
+    { am: 'ሬድ ቬልቬት', en: 'Red Velvet' },
+    { am: 'የሰርግ ኬክ', en: 'Wedding Cake' },
+    { am: 'የልደት ኬክ', en: 'Birthday Cake' },
+    { am: 'ልዩ ኬክ', en: 'Custom Cake' },
+    { am: 'ትኩስ ዳቦ', en: 'Fresh Bread' },
+    { am: 'የሙሉ ስንዴ ዳቦ', en: 'Whole Wheat Bread' },
+    { am: 'የቦረሌ ዳቦ', en: 'Sourdough Bread' },
+    { am: 'የፈረንሳይ ክሮሳን', en: 'French Croissant' },
+    { am: 'ክሮሳን', en: 'Croissant' },
+    { am: 'ካፕኬክ', en: 'Cupcake' },
+    { am: 'ካፕኬኮች', en: 'Cupcakes' },
+    { am: 'ኩኪ', en: 'Cookie' },
+    { am: 'ኩኪዎች', en: 'Cookies' },
+    { am: 'ቸኮሌት ቺፕ ኩኪ', en: 'Chocolate Chip Cookie' },
+    { am: 'ፓስትሪ', en: 'Pastry' },
+    { am: 'ፓስትሪዎች', en: 'Pastries' },
+    { am: 'ማፊን', en: 'Muffin' },
+    { am: 'ቦጎት', en: 'Baguette' },
+    { am: 'ባጌት', en: 'Baguette' },
+    { am: 'የጾም ቸኮሌት ኬክ', en: "Ye'Tsom Dark Chocolate Cake" },
+    { am: 'የጾም አፕል ዳቦ', en: "Ye'Tsom Cinnamon Apple Loaf" },
+    { am: 'የጾም ኬክ', en: "Ye'Tsom (Fasting / Vegan) Cake" },
+    { am: 'የጾም', en: "Ye'Tsom (Fasting / Vegan)" },
+    { am: 'ኬክ', en: 'Cake' },
+    { am: 'ዳቦ', en: 'Bread' },
+    { am: 'ስንዴ', en: 'Wheat' },
+    { am: 'ቅቤ', en: 'Butter' },
+    { am: 'ክሬም', en: 'Cream' },
+    { am: 'ቺዝ ክሬም', en: 'Cream Cheese' },
+    { am: 'ስኳር', en: 'Sugar' },
+    { am: 'እንጆሪ', en: 'Strawberry' },
+    { am: 'ቸኮሌት', en: 'Chocolate' },
+    { am: 'ቫኒላ', en: 'Vanilla' },
+
+    // Sizing & Structure
+    { am: 'ባለ 1 ፎቅ', en: '1-Tier' },
+    { am: 'ባለ 2 ፎቅ', en: '2-Tier' },
+    { am: 'ባለ 3 ፎቅ', en: '3-Tier' },
+    { am: 'ፎቅ', en: 'Tier' },
+    { am: 'ትንሽ', en: 'Small' },
+    { am: 'መካከለኛ', en: 'Medium' },
+    { am: 'ትልቅ', en: 'Large' },
+    { am: 'ኪሎ', en: 'kg' },
+    { am: 'ክብ', en: 'Round' },
+    { am: 'ካሬ', en: 'Square' },
+    { am: 'የልብ ቅርጽ', en: 'Heart Shape' },
+
+    // Locations & Branches
+    { am: 'ዋና ቅርንጫፍ', en: 'Main Branch' },
+    { am: 'ደሴ ፒያሳ ቅርንጫፍ', en: 'Dessie Piazza Branch' },
+    { am: 'ደሴ ፒያሳ', en: 'Dessie Piazza' },
+    { am: 'ደሴ', en: 'Dessie' },
+    { am: 'ፒያሳ ቅርንጫፍ', en: 'Piazza Branch' },
+    { am: 'ፒያሳ', en: 'Piazza' },
+    { am: 'ቦሌ ቅርንጫፍ', en: 'Bole Branch' },
+    { am: 'ቦሌ', en: 'Bole' },
+    { am: 'መገናኛ ቅርንጫፍ', en: 'Megenagna Branch' },
+    { am: 'መገናኛ', en: 'Megenagna' },
+    { am: 'ሳርቤት ቅርንጫፍ', en: 'Sarbet Branch' },
+    { am: 'ሳርቤት', en: 'Sarbet' },
+    { am: 'አራዳ', en: 'Arada' },
+    { am: 'ቀበሌ', en: 'Kebele' },
+    { am: 'ቅርንጫፍ', en: 'Branch' },
+    { am: 'አድራሻ', en: 'Address' },
+    { am: 'ሆቴል', en: 'Hotel' },
+    { am: 'ሆስፒታል', en: 'Hospital' },
+
+    // Order, Payment & POS
+    { am: 'የትዕዛዝ ቁጥር', en: 'Order Number' },
+    { am: 'ትዕዛዝ', en: 'Order' },
+    { am: 'ትዕዛዞች', en: 'Orders' },
+    { am: 'ክፍያ ተፈጽሟል', en: 'Payment Completed / Paid' },
+    { am: 'ተከፍሏል', en: 'Paid' },
+    { am: 'ያልተከፈለ', en: 'Unpaid' },
+    { am: 'ቅድመ ክፍያ', en: 'Deposit / Advance Payment' },
+    { am: 'ክፍያ', en: 'Payment' },
+    { am: 'በማድረስ ላይ ክፍያ', en: 'Cash on Delivery' },
+    { am: 'ጥሬ ገንዘብ', en: 'Cash' },
+    { am: 'ካሽ', en: 'Cash' },
+    { am: 'ቴሌብር', en: 'Telebirr' },
+    { am: 'ሲቢኢ ብር', en: 'CBE Birr' },
+    { am: 'ቻፓ', en: 'Chapa' },
+    { am: 'ባንክ', en: 'Bank' },
+    { am: 'ዋጋ', en: 'Price' },
+    { am: 'ጠቅላላ ዋጋ', en: 'Total Price' },
+    { am: 'ብር', en: 'ETB (Birr)' },
+    { am: 'ቅናሽ', en: 'Discount' },
+
+    // Fulfillment & Logistics
+    { am: 'በነፃ ቅርንጫፍ መውሰጃ', en: 'Free Shop Pickup' },
+    { am: 'በነፃ መውሰድ', en: 'Free Pickup' },
+    { am: 'ቅርንጫፍ መውሰጃ', en: 'Shop Pickup' },
+    { am: 'መውሰጃ', en: 'Pickup' },
+    { am: 'በፍጥነት ማድረስ', en: 'Fast Delivery' },
+    { am: 'ማድረሻ', en: 'Delivery' },
+    { am: 'ማድረስ', en: 'Delivery' },
+    { am: 'ስልክ ቁጥር', en: 'Phone Number' },
+    { am: 'ስልክ', en: 'Phone' },
+
+    // Order Lifecycle Statuses
+    { am: 'በመጠባበቅ ላይ', en: 'Pending' },
+    { am: 'ተረጋግጧል', en: 'Confirmed' },
+    { am: 'በማዘጋጀት ላይ', en: 'Preparing' },
+    { am: 'በሂደት ላይ', en: 'Processing' },
+    { am: 'ለመወሰድ ዝግጁ', en: 'Ready for Pickup' },
+    { am: 'ዝግጁ', en: 'Ready' },
+    { am: 'በማድረስ ላይ', en: 'Out for Delivery' },
+    { am: 'ተጠናቋል', en: 'Completed' },
+    { am: 'ተሰርዟል', en: 'Cancelled' },
+    { am: 'ተመላሽ ተደርጓል', en: 'Refunded' },
+    { am: 'ተመላሽ', en: 'Refunded' },
+    { am: 'ክምችት አለ', en: 'In Stock' },
+    { am: 'አልቋል', en: 'Sold Out' },
+
+    // Common system terms
+    { am: 'ደንበኛ', en: 'Customer' },
+    { am: 'ስም', en: 'Name' },
+    { am: 'ሙሉ ስም', en: 'Full Name' },
+    { am: 'ቀን', en: 'Date' },
+    { am: 'ሰዓት', en: 'Time' },
+    { am: 'ማስታወሻ', en: 'Note / Instructions' },
+    { am: 'መልዕክት', en: 'Message' },
+    { am: 'ጥያቄ', en: 'Request' },
+    { am: 'አስተያየት', en: 'Review / Feedback' },
+    { am: 'ትኩስ', en: 'Fresh' },
+    { am: 'ጣፋጭ', en: 'Delicious' },
+    { am: 'ጥራት', en: 'Quality' },
+    { am: 'ዛሬ', en: 'Today' },
+    { am: 'ነገ', en: 'Tomorrow' },
+    { am: 'ጠዋት', en: 'Morning' },
+    { am: 'ከሰዓት', en: 'Afternoon' },
+    { am: 'ማታ', en: 'Evening' },
+  ];
+
+  // Interactive Translator Modal State (Accessible system-wide)
+  const isTranslatorModalOpen = ref(false);
+  const translatorInitialText = ref('');
+  const translatorDirection = ref('am-to-en');
+
+  const openTranslator = (text = '', direction = 'am-to-en') => {
+    translatorInitialText.value = text;
+    translatorDirection.value = direction;
+    isTranslatorModalOpen.value = true;
+  };
+
+  const closeTranslator = () => {
+    isTranslatorModalOpen.value = false;
+  };
+
+  const translateText = (input, direction = 'am-to-en') => {
+    if (!input || !input.trim()) {
+      return { translatedText: '', matchedTerms: [], wordCount: 0 };
+    }
+
+    const trimmed = input.trim();
+    const matchedTerms = [];
+
+    if (direction === 'am-to-en') {
+      // 1. Check exact matches in all dictionaries
+      if (productTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: productTranslations[trimmed], type: 'Product' });
+        return { translatedText: productTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (branchTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: branchTranslations[trimmed], type: 'Branch' });
+        return { translatedText: branchTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (nameTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: nameTranslations[trimmed], type: 'Name' });
+        return { translatedText: nameTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (quoteTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: quoteTranslations[trimmed], type: 'Quote' });
+        return { translatedText: quoteTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+
+      // Reverse check in productTranslations (Amharic to English)
+      for (const [enKey, amVal] of Object.entries(productTranslations)) {
+        if (amVal === trimmed) {
+          matchedTerms.push({ original: trimmed, translation: enKey, type: 'Product' });
+          return { translatedText: enKey, matchedTerms, wordCount: 1 };
+        }
+      }
+      for (const [enKey, amVal] of Object.entries(branchTranslations)) {
+        if (amVal === trimmed) {
+          matchedTerms.push({ original: trimmed, translation: enKey, type: 'Branch' });
+          return { translatedText: enKey, matchedTerms, wordCount: 1 };
+        }
+      }
+      for (const [enKey, amVal] of Object.entries(nameTranslations)) {
+        if (amVal === trimmed) {
+          matchedTerms.push({ original: trimmed, translation: enKey, type: 'Name' });
+          return { translatedText: enKey, matchedTerms, wordCount: 1 };
+        }
+      }
+      for (const [enKey, amVal] of Object.entries(quoteTranslations)) {
+        if (amVal === trimmed) {
+          matchedTerms.push({ original: trimmed, translation: enKey, type: 'Quote' });
+          return { translatedText: enKey, matchedTerms, wordCount: 1 };
+        }
+      }
+
+      // 2. Phrase-level matching from longest to shortest
+      let workingText = trimmed;
+      const sortedGlossary = [...bakeryGlossary].sort((a, b) => b.am.length - a.am.length);
+
+      for (const item of sortedGlossary) {
+        if (workingText.includes(item.am)) {
+          matchedTerms.push({ original: item.am, translation: item.en, type: 'Glossary' });
+          workingText = workingText.split(item.am).join(` __GLOSS_${item.en.replace(/\s+/g, '_')}__ `);
+        }
+      }
+
+      // Check productTranslations inside text
+      for (const [enKey, amVal] of Object.entries(productTranslations)) {
+        if (workingText.includes(amVal)) {
+          matchedTerms.push({ original: amVal, translation: enKey, type: 'Product' });
+          workingText = workingText.split(amVal).join(` __GLOSS_${enKey.replace(/\s+/g, '_')}__ `);
+        }
+      }
+
+      // Check branchTranslations inside text
+      for (const [enKey, amVal] of Object.entries(branchTranslations)) {
+        if (workingText.includes(amVal)) {
+          matchedTerms.push({ original: amVal, translation: enKey, type: 'Branch' });
+          workingText = workingText.split(amVal).join(` __GLOSS_${enKey.replace(/\s+/g, '_')}__ `);
+        }
+      }
+
+      // Restore replaced tokens
+      let result = workingText.replace(/__GLOSS_([^_]+(?:_[^_]+)*)__/g, (_, term) => term.replace(/_/g, ' '));
+      result = result.replace(/\s+/g, ' ').trim();
+
+      return {
+        translatedText: result || trimmed,
+        matchedTerms,
+        wordCount: trimmed.split(/\s+/).length
+      };
+    } else {
+      // English to Amharic
+      if (productTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: productTranslations[trimmed], type: 'Product' });
+        return { translatedText: productTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (branchTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: branchTranslations[trimmed], type: 'Branch' });
+        return { translatedText: branchTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (nameTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: nameTranslations[trimmed], type: 'Name' });
+        return { translatedText: nameTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+      if (quoteTranslations[trimmed]) {
+        matchedTerms.push({ original: trimmed, translation: quoteTranslations[trimmed], type: 'Quote' });
+        return { translatedText: quoteTranslations[trimmed], matchedTerms, wordCount: 1 };
+      }
+
+      let workingText = trimmed;
+      const sortedGlossary = [...bakeryGlossary].sort((a, b) => b.en.length - a.en.length);
+
+      for (const item of sortedGlossary) {
+        const regex = new RegExp(`\\b${item.en.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+        if (regex.test(workingText)) {
+          matchedTerms.push({ original: item.en, translation: item.am, type: 'Glossary' });
+          workingText = workingText.replace(regex, ` ${item.am} `);
+        }
+      }
+
+      let result = workingText.replace(/\s+/g, ' ').trim();
+
+      return {
+        translatedText: result || trimmed,
+        matchedTerms,
+        wordCount: trimmed.split(/\s+/).length
+      };
+    }
+  };
+
   return {
     currentLocale,
     isAmharic,
@@ -962,5 +1263,12 @@ export const useLocaleStore = defineStore('locale', () => {
     setLocale,
     toggleLocale,
     initLocale,
+    isTranslatorModalOpen,
+    translatorInitialText,
+    translatorDirection,
+    openTranslator,
+    closeTranslator,
+    translateText,
+    bakeryGlossary,
   };
 });
