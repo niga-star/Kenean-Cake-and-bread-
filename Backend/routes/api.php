@@ -190,6 +190,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Orders (Section 2: Branch Managers & Staff manage; Super Admin blocked from direct order processing)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/pos', [OrderController::class, 'storePOSOrder'])
+        ->middleware('role:Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff,Main Branch Manager,Branch Manager,Branch Admin,Super Admin');
     Route::match(['patch', 'put'], '/orders/{id}/status', [OrderController::class, 'updateStatus'])
         ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
     Route::patch('/orders/{id}/branch', [OrderController::class, 'reassignBranch'])->middleware('role:Super Admin');

@@ -337,6 +337,37 @@ class OrderController extends Controller
     }
 
     /**
+     * Walk-in counter POS order creation for Branch Sellers, Cashiers and Managers
+     */
+    public function storePOSOrder(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $validated = $request->validate([
+            'items' => 'required|array|min:1|max:100',
+            'items.*.product_id' => 'required|integer|exists:products,product_id',
+            'items.*.quantity' => 'required|integer|min:1|max:500',
+            'customer_name' => 'nullable|string|max:100',
+            'customer_phone' => 'nullable|string|max:30',
+            'payment_method' => 'required|string|in:Cash,Card,Telebirr',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'amount_paid' => 'nullable|numeric|min:0',
+            'branch_id' => 'nullable|integer|exists:branches,branch_id',
+        ]);
+
+        try {
+            $result = $this->orderService->createPOSOrder($validated, $user);
+            return response()->json($result, 201);
+        } catch (\Exception $e) {
+            $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;
+            return response()->json(['message' => $e->getMessage()], $code);
+        }
+    }
+
+    /**
      * Update order status with strict lifecycle rules
      * Status Lifecycle:
      * - Pending -> Confirmed, Cancelled

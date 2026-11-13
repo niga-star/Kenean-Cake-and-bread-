@@ -265,6 +265,39 @@ class OrderReportController extends Controller
         // Sequential Reference Number: DSR-BR{id}-YYYYMMDD-{SEQ}
         $ref = $this->generateDsrReference($branchId, $date);
 
+        // Cashier shift payment method reconciliation breakdown (Master Prompt Section 8 & 12)
+        $cashTotal = 0.0;
+        $cardTotal = 0.0;
+        $telebirrTotal = 0.0;
+        $otherPaymentTotal = 0.0;
+
+        foreach ($orders as $order) {
+            $paymentMethod = $order->payment?->payment_method ?? 'Cash';
+            $amount = (float) $order->total_amount;
+            if (strcasecmp($paymentMethod, 'Cash') === 0 || strcasecmp($paymentMethod, 'Pay on delivery') === 0 || strcasecmp($paymentMethod, 'Pay on pickup') === 0) {
+                $cashTotal += $amount;
+            } elseif (strcasecmp($paymentMethod, 'Card') === 0 || strcasecmp($paymentMethod, 'POS Card') === 0) {
+                $cardTotal += $amount;
+            } elseif (strcasecmp($paymentMethod, 'Telebirr') === 0) {
+                $telebirrTotal += $amount;
+            } else {
+                $otherPaymentTotal += $amount;
+            }
+        }
+
+        $cakeAdvanceTotal = array_sum(array_column($customCakeRows, 'advance_payment'));
+
+        $shiftSummary = [
+            'orders_count' => count($orders),
+            'cash_total' => round($cashTotal, 2),
+            'card_total' => round($cardTotal, 2),
+            'telebirr_total' => round($telebirrTotal, 2),
+            'other_total' => round($otherPaymentTotal, 2),
+            'cake_deposits_total' => round($cakeAdvanceTotal, 2),
+            'total_cash_collected' => round($cashTotal + $cakeAdvanceTotal, 2),
+            'total_booked_sales' => round($cashTotal + $cardTotal + $telebirrTotal + $otherPaymentTotal + array_sum(array_column($customCakeRows, 'total_price')), 2),
+        ];
+
         return response()->json([
             'success' => true,
             'branch' => $branch,
@@ -275,6 +308,7 @@ class OrderReportController extends Controller
             ],
             'report_date' => $date,
             'suggested_reference' => $ref,
+            'shift_summary' => $shiftSummary,
             'regular_orders' => $regularRows,
             'custom_cakes' => $customCakeRows,
         ]);

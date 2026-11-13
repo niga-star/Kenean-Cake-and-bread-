@@ -1,440 +1,192 @@
-# 🧁 SweetBakes Bakery Management & E-Commerce Platform
-## Comprehensive Technical, Architectural & Functional Documentation
+# 🧁 Kenean Cake and Food (SweetBakes)
+## Comprehensive Technical, Architectural & Engineering Documentation
 
-> **Platform Version:** 4.1 Enterprise (Revision of 4.0, Release 2026.11.10)  
-> **Backend Architecture:** Laravel 11 / PHP 8.2+ / REST API / Eloquent ORM  
-> **Frontend Architecture:** Vue.js 3 (Composition API) / Vite / Tailwind CSS / Pinia  
-> **Database:** MySQL / MariaDB (InnoDB, Strict Relational Constraints)  
-> **Design Standard:** Warm Luxury Bakery Visual System (Dark Chocolate `#3D251E`, Warm Terracotta `#BA5420`, Forest Emerald `#047857`, Cream Canvas `#FAF7F2`, Soft Blush `#FFF5F2`)
-
----
-
-## What Changed in v4.1
-
-Version 4.1 fixes 14 critical defects and contradictions identified during the v4.0 review: conflicting role rules, a missing stock-dispatch workflow, schema precision errors, and unsafe defaults. Changed rules are marked **(v4.1)** throughout this document.
-
-| # | Area | Defect in v4.0 | Resolution in v4.1 |
-|---|---|---|---|
-| **1** | **Role Matrix** | Contradicted between "omitted from manager dashboard" and "belongs to Branch Managers". | Single source of truth matrix: Branch Managers have **read-only order visibility** for supervisory oversight; Main Branch Manager explicitly covered across all domains. |
-| **2** | **Stock Receive Roles** | Matrix said "view only" for staff, while API allowed staff. Super Admin had receive rights without a branch. | Harmonized: **Branch Manager and Branch Staff receive**; Super Admin and Sellers view only. Super Admin cannot receive stock. |
-| **3** | **Dispatch & Receive Flow** | Receipts occurred without verifying stock was ever sent or available. | Linked two-step flow: Main Branch dispatches (`stock_dispatches`, `stock_dispatch_items`), and the destination branch receives against that dispatch. |
-| **4** | **Main Branch Detection** | Code mixed `branch_type = 'Main'` and hardcoded `branch_id = 1`. | Main Branch is identified **exclusively by `branch_type = 'Main'`**. Hardcoded IDs such as `branch_id = 1` are strictly forbidden. |
-| **5** | **HTTP Status Codes** | Mixed 403 and 422 for authorization and input failures. | Consistent standard: **HTTP 403 Forbidden** for permission/role violations; **HTTP 422 Unprocessable Entity** for validation/state errors. |
-| **6** | **Staff Account Creation** | Managers could potentially create elevated roles. | Managers create **only staff roles** (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`) in their **own branch only**. Elevated requests return 403. |
-| **7** | **Order Status Flow** | Tracker labels and notification statuses were misaligned. | Unified status machine shared across DB, notifications, and customer stepper: `pending`, `confirmed`, `preparing`, `out_for_delivery`, `ready_for_pickup`, `completed`, `cancelled`. |
-| **8** | **Sales Reports Lifecycle** | Mixed terms ("reject" vs "return") and blurred cash vs sales. | Defined lifecycle: `draft` $\rightarrow$ `submitted` $\rightarrow$ `approved` (locked) or `returned` (with notes). Explicit separation of **Booked Sales** vs **Cash Collected**. |
-| **9** | **Database Schema** | Longitude truncated values $> 99^\circ$; salary exposed in users; missing dispatch tables. | Fixed `longitude` to `DECIMAL(11,8)`; created `roles`, `employee_profiles` (salaries), `branch_product_prices`, and `stock_dispatches` tables; `users.status_reason` required when Suspended. |
-| **10** | **Security & Auth** | Permissive 60/min login throttle; order tracking open to enumeration; hardcoded passwords. | Login throttle tightened to **5/min**; order tracking requires **2 factors** (`order_number` + phone/email); passwords loaded from `SEED_DEFAULT_PASSWORD`. |
-| **11** | **API Completeness** | Missing dispatch, salary, quotation, and branch summary endpoints. | Added full endpoints for stock dispatches, custom-cake quotes, branch pricing, salaries, audit logs, and Super Admin consolidated read-only report summaries. |
-| **12** | **Naming & Seed Data** | Legacy database name (`kenan_cake_db`) and real personal seed emails. | Standardized product name to **SweetBakes**, database `sweetbakes_db`, and development seed emails to `@sweetbakes.test`. |
-| **13** | **Notifications** | Missing customer & manager notification mappings; duplicate alerts. | Complete recipient event mapping; duplicate notifications suppressed via unique composite constraint `(recipient, entity, event_or_status)`. |
-| **14** | **Formatting & Math** | Broken LaTeX expressions and unescaped currency symbols. | Clean GFM KaTeX math formatting and strict currency notations. |
+> **Platform Version:** 4.2 Production-Ready (Audit & Optimization Release, November 2026)  
+> **Repository Root:** [`c:\Kenan Cake`](file:///c:/Kenan%20Cake)  
+> **Backend Framework:** Laravel 11 / PHP 8.2+ / REST API / Eloquent ORM  
+> **Frontend Architecture:** Vue.js 3 (Composition API) / Vite 5 / Tailwind CSS / Pinia  
+> **Database Engine:** MySQL 8.0 / MariaDB (InnoDB Strict Engine, Foreign Keys, Row-Level Locks)  
+> **Geographic Operational Scope:** Dessie (Piazza HQ, Buabuha, Fuad, Erobit), Amhara Region, Ethiopia  
+> **Branding & Visual Palette:** Warm Luxury Bakery Visual System (Dark Chocolate `#3D251E`, Sweet Terracotta `#BA5420`, Fresh Pink Accent `#DE1B54`, Forest Emerald `#047857`, Warm Cream `#FAF7F2`)
 
 ---
 
-## 1. Executive Overview & System Purpose
+## 1. Project Overview
 
-The **SweetBakes Bakery Management & E-Commerce Platform** is an enterprise multi-branch bakery platform unifying digital customer sales, retail counter transactions, autonomous branch administration, central production distribution, and headquarters oversight:
+### 1.1. System Purpose & Vision
+**Kenean Cake and Food** (operating digitally under the **SweetBakes & Kenan Cafe** platform) is an enterprise-grade, multi-branch bakery e-commerce, point-of-sale (POS), supply chain logistics, and headquarters operations platform. 
 
-1. **Customers (Storefront):** Choose their nearest branch, browse real-time localized stock and prices, order bakery items online, design bespoke cakes in an interactive 3D WebGL studio, and track orders with a two-factor milestone stepper.
-2. **Branch Sellers and Cashiers:** Record counter orders, custom cake requests, and customer advance deposits with real-time balance calculations, and submit structured Daily Sales Reports.
-3. **Branch Managers:** Supervise branch operations with read-only order queues, configure branch-specific product selling prices, manage staff account lifecycles (`Active`, `Inactive`, `Suspended`), adjust physical inventory with mandatory reason codes, receive stock dispatches, and approve or return seller reports.
-4. **Main Branch Manager:** Manages the Main Branch with all manager authorities, plus creating and dispatching stock shipments to regular branches **(v4.1)**.
-5. **Super Admin:** Global oversight across all branches, creates new branches with zero data guarantees, manages manager accounts and employee salaries, and reviews immutable business-wide audit and inventory ledgers.
-
-> [!NOTE]
-> **Storefront Clarification (v4.1):** The homepage features an elegant, fast-loading 2D luxury presentation with an interactive typewriter headline and smooth scroll reveals. The 3D WebGL studio is dedicated exclusively to the [`/custom-cake`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue) studio page.
-
----
-
-## 2. Architecture & Technology Stack
-
-The platform operates as a stateless REST API (Laravel 11) consumed by a modern single-page client (Vue 3 / Vite), with all data isolation and authorization enforced on the server.
-
-```mermaid
-flowchart TD
-    subgraph ClientLayer["🖥️ Frontend Client Layer (Vue.js 3 + Vite)"]
-        CustomerUI["Customer Storefront\n(Animated Home, Shop, 3D Cake Studio, Cart, 2-Factor Tracker)"]
-        SellerUI["Branch Seller Portal\n(Orders, Custom Cakes, Daily Sales Report, Local Notifications)"]
-        ManagerUI["Branch Manager Portal\n(Read-Only Orders, Staff Status, Branch Pricing, Stock Receive, Report Review)"]
-        MainManagerUI["Main Branch Manager Portal\n(Main Operations, Stock Dispatch Engine)"]
-        AdminUI["Super Admin Portal\n(Central KPIs, Branch Management, Salaries, Audit Ledgers)"]
-    end
-
-    subgraph SecurityLayer["🛡️ Security, RBAC & Isolation Layer"]
-        SanctumAuth["Sanctum Bearer Token Auth\n(Revoked immediately on Inactive/Suspended)"]
-        RBACMiddleware["RoleAuthorizationMiddleware\n(Role & Scope Enforcement)"]
-        BranchIsolation["Strict Server-Side Branch Isolation\n(Forces branch_id from authenticated session)"]
-        RateLimiter["Security Rate Limiters\n(Login: 5/min, Tracking: 15/min)"]
-    end
-
-    subgraph BackendLayer["⚙️ Backend REST API Controllers (Laravel 11)"]
-        OrderCtrl["OrderController & CustomCakeController"]
-        DispatchCtrl["StockDispatchController (v4.1 Dispatch Engine)"]
-        StockRcvCtrl["ReceivedStockController (v4.1 Linked Inflow Engine)"]
-        ReportCtrl["OrderReportController (v4.1 Lifecycle: draft/submitted/approved/returned)"]
-        CatalogCtrl["CatalogController & BranchPriceController (v4.1)"]
-        InventoryCtrl["InventoryController (Ledger & Reconciliation)"]
-        UserCtrl["UserController & SalaryController (v4.1)"]
-        NotifyCtrl["NotificationController (v4.1 Unique Constraint Deduplication)"]
-    end
-
-    subgraph DatabaseLayer["🗄️ Relational Database (MySQL InnoDB)"]
-        CoreDB[("sweetbakes_db\n(Strict Foreign Keys, Row-Level Locking,\nDecimal 11,8 GPS, Immutable Ledgers)")]
-    end
-
-    ClientLayer --> SecurityLayer
-    SecurityLayer --> BackendLayer
-    BackendLayer --> DatabaseLayer
-```
-
-### Core Technologies:
-- **Backend:** Laravel 11 running on PHP 8.2+.
-- **Authentication & Sessions:** Laravel Sanctum issuing stateless Bearer tokens. Existing tokens are **revoked immediately** when an account status changes to `Inactive` or `Suspended` **(v4.1)**.
-- **Authorization:** `RoleAuthorizationMiddleware` applied to every administrative and branch route.
-- **Database:** MySQL InnoDB with strict foreign key constraints, atomic transactions (`DB::transaction()`, `lockForUpdate()`), and soft deletes on critical entities. Primary keys strictly follow `<table_singular>_id`.
-- **Frontend:** Vue 3 using `<script setup>` Composition API, Vue Router 4 with role navigation guards, Pinia reactive stores, and Vite bundling.
-- **Design Tokens:**
-  - **Dark Chocolate:** `#3D251E` (Headers, Primary Buttons, Sidebar Background)
-  - **Warm Terracotta:** `#BA5420` (CTA buttons, highlight badges, interactive controls)
-  - **Forest Emerald:** `#047857` / `#059669` (Stock Receive, approved badges)
-  - **Cream Canvas:** `#FAF7F2` (Warm background canvas)
-  - **Soft Blush Header:** Gradient `from-[#FFF5F2] via-[#FFF0EC] to-[#FCE7E1]` with border `#F7E1D7`
-  - **Headings Font:** `font-serif` (Playfair Display)
-  - **Body & Numeric Font:** `font-poppins` (Poppins)
-
----
-
-## 3. Roles, Permissions & Scoping (RBAC)
-
-Access is enforced across four defensive tiers: frontend navigation guards, API route middleware, controller authorization, and database query scopes. 
-
-### Authoritative Role Permission Matrix (v4.1):
-This matrix is the **single source of truth** across the entire platform:
-
-| Role | Operational Scope | Orders & Custom Cakes | Stock Dispatch | Stock Receive | Staff Account Status | Daily Sales Reports |
-|---|---|:---:|:---:|:---:|---|---|
-| **Super Admin** | All branches | None *(Queues removed)* | **Full Authority (Create & Send)** *(v4.1)* | View only *(Audit)* | Any user, including managers | Read-only consolidated summary of approved reports |
-| **Main Branch Manager** | Main Branch | **Read-only** *(v4.1)* | **Full Authority (Create & Send)** *(v4.1)* | Hidden *(Main never receives)* | Main Branch staff only; not own status | Reviews, approves, or returns Main Branch seller reports |
-| **Branch Manager** | Own branch | **Read-only** *(v4.1)* | None *(403 Forbidden)* | **Receive & View** | Own-branch staff only; not own status | Reviews, approves, or returns own-branch seller reports |
-| **Branch Seller / Cashier** | Own branch | **Full Daily Recording** | None *(403 Forbidden)* | View only | None | Records sales, books cakes, submits daily reports |
-| **Branch Staff / Servant** | Own branch | Order prep only | None *(403 Forbidden)* | **Receive & View** *(v4.1)* | None | Kitchen preparation and shift logs |
-| **Customer** | Public Storefront | Own orders only | None | None | Own profile only | None |
-
-### Key Governance Rules:
-1. **Manager Read-Only Order Supervision (v4.1):** Branch Managers have read-only visibility into branch orders and custom cakes. They supervise kitchen preparation and fulfillment milestones without recording retail orders.
-2. **Stock Dispatch Authority (v4.1):** Full stock dispatch authority across the platform is granted exclusively to the **Main Branch Manager** and **Super Admin**. Both can create dispatch manifests, add products, validate available stock, confirm shipments, and view dispatch history. Regular Branch Managers and staff cannot create or send dispatches (HTTP 403 Forbidden). All dispatches must originate strictly from the Main Branch.
-3. **Stock Receive Authority (v4.1):** Branch Managers and Branch Staff at destination branches can receive stock. Super Admin has no assigned branch and cannot receive stock.
-4. **Manager Account Status Protection:** Only the Super Admin can alter a Branch Manager's or Main Branch Manager's account status. Managers attempting self-modification receive **HTTP 403 Forbidden**.
-5. **Cross-Branch Isolation:** Managers attempting to alter staff, modify prices, or view transactions belonging to another branch receive **HTTP 403 Forbidden**.
-
----
-
-## 4. Branch Management & Data Isolation
-
-Every branch operates in strict isolation. The server determines the branch identity from the authenticated session, never from client input.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor SuperAdmin as 👑 Super Admin
-    participant API as 🛡️ Branch Management API
-    participant DB as 🗄️ MySQL Database
-    actor Manager as 👨‍💼 Branch Manager (Branch B)
-
-    Note over SuperAdmin,DB: 1. FRESH BRANCH INITIALIZATION (ZERO-DATA GUARANTEE)
-    SuperAdmin->>API: POST /api/admin/branches (Create Branch C + Assign Manager)
-    API->>DB: INSERT INTO branches (branch_type = 'Regular', status = 'Active')
-    API->>DB: Link Manager user to Branch C (role = Branch Manager)
-    API->>DB: Zero initialization: 0 orders, 0 custom cakes, 0 staff, 0 inventory, 0 reports
-    Note over DB: Reference data (products, categories) is shared. Branch C shows NO sellable items until priced and stocked.
-    DB-->>API: Branch C Created
-    API-->>SuperAdmin: 201 Created
-
-    Note over Manager,DB: 2. SERVER-SIDE BRANCH SCOPING (ANTI-TAMPERING)
-    Manager->>API: GET /api/admin/inventory?branch_id=A (Attempting cross-branch query)
-    API->>API: Check user->role != 'Super Admin'
-    API->>API: Force branch_id = user->branch_id (Branch B)
-    API->>DB: SELECT * FROM branch_inventory WHERE branch_id = Branch B
-    DB-->>API: Branch B records only
-    API-->>Manager: 200 OK (Branch B data)
-```
-
-### Isolation & Branch Product Pricing Guarantees (v4.1):
-1. **Fresh Start Guarantee:** A new branch created by the Super Admin starts with zero orders, custom cakes, staff members, reports, inventory records, branch prices, and ledger entries. Nothing is copied from existing branches.
-2. **Branch Product Pricing Resolution Hierarchy:**
-   - **Custom Override:** If a branch has a local active selling price configured in `branch_product_prices`, that price is authoritative.
-   - **Base Price Fallback:** If no branch-specific price exists in `branch_product_prices`, the system automatically falls back to the company's base product price (`products.base_price`).
-   - **Zero Available Stock Restriction:** Products remain **strictly unavailable for purchase** whenever the selected branch has zero available stock ($Q_{\text{on\_hand}} - Q_{\text{reserved}} \le 0$), regardless of whether a custom or base price is set.
-   - **Authoritative Server Pricing:** Applied consistently across the storefront catalog, product details, cart sync, checkout, and backend order calculation. The backend always recalculates and validates the authoritative unit price, strictly rejecting client price tampering.
-3. **Server-Side Override:** For every authenticated user except Super Admin, `branch_id` is locked to `$request->user()->branch_id`. Query parameters (`?branch_id=X`) and payload values are discarded.
-4. **Customer Storefront Exception (v4.1):** Customers select a branch from active branches (`status = 'Active'`). Customer requests pass the selected `branch_id`, and customers access only their own order records.
-
----
-
-## 5. Stock Dispatch & Receive Engine (v4.1)
-
-Stock distribution operates as a linked, two-phase supply chain workflow: the Main Branch dispatches, and the regular destination branch receives against that dispatch. Full dispatch authority across the platform is granted exclusively to the **Main Branch Manager** and **Super Admin**. Regular Branch Managers and staff cannot create or send dispatches (HTTP 403 Forbidden). Dispatches must strictly originate from the Main Branch, and the system never permits dispatching more stock than the Main Branch actually has available on hand.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor MainMgr as 🏭 Main Branch Manager
-    participant API as ⚙️ Stock Engine API
-    participant DB as 🗄️ MySQL Database
-    actor DestStaff as 👨‍💼 Branch Manager / Staff (Destination)
-
-    Note over MainMgr,DB: PHASE 1: DISPATCH CREATION & SHIPMENT
-    MainMgr->>API: POST /api/admin/dispatches (to_branch_id, product_lines)
-    API->>DB: INSERT INTO stock_dispatches (status = 'draft')
-    API-->>MainMgr: Dispatch Draft Created
-
-    MainMgr->>API: POST /api/admin/dispatches/{id}/send
-    API->>DB: Verify Main Branch quantity_on_hand >= dispatched quantity
-    alt Insufficient Stock at Main Branch
-        API-->>MainMgr: 422 Unprocessable Entity (Insufficient stock)
-    else Stock Available
-        API->>DB: Decrement Main Branch quantity_on_hand
-        API->>DB: INSERT INTO inventory_transactions (type = 'transfer_dispatch', -quantity)
-        API->>DB: UPDATE stock_dispatches (status = 'in_transit', sent_at = NOW())
-        API->>DB: INSERT INTO audit_logs
-        API->>DB: INSERT INTO notifications (Destination Branch Manager & Staff)
-        API-->>MainMgr: 200 OK (Shipment In Transit)
-    end
-
-    Note over DestStaff,DB: PHASE 2: RECEIVE AGAINST DISPATCH
-    DestStaff->>API: POST /api/admin/received-stocks (dispatch_id, quantities_received)
-    API->>DB: Verify dispatch->to_branch_id == user->branch_id
-    alt Dispatch addressed to different branch
-        API-->>DestStaff: 403 Forbidden
-    else Valid Destination
-        API->>DB: Increment Destination quantity_on_hand
-        API->>DB: INSERT INTO received_stocks (dispatch_id, product_name, category_name, qty, date)
-        API->>DB: INSERT INTO inventory_transactions (type = 'transfer_receive', +quantity)
-        alt All lines received in full
-            API->>DB: UPDATE stock_dispatches (status = 'received')
-        else Line received short
-            API->>DB: UPDATE stock_dispatches (status = 'partially_received')
-            API->>DB: Store discrepancy notes & notify Main Branch Manager + Super Admin
-        end
-        API->>DB: INSERT INTO notifications (Branch Staff)
-        API-->>DestStaff: 201 Created (Stock Received & Ledger Updated)
-    end
-```
-
-### Stock Dispatch Authority & Source Rules (v4.1):
-1. **Full Dispatch Authority:** The **Main Branch Manager** and **Super Admin** possess full stock dispatch authority. Both roles can create dispatch manifests, add products, validate available stock, confirm shipments, and view dispatch history.
-2. **Main Branch Source Enforcement:** Stock can only be dispatched from the Main Branch (`branch_type = 'Main'`). Any attempt to dispatch from a regular branch returns **HTTP 422 Unprocessable Entity**.
-3. **Regular Branch Restriction:** Regular Branch Managers and staff cannot create or send dispatches (blocked by navigation UI and API middleware returning **HTTP 403 Forbidden**).
-4. **Over-Dispatch Guard:** Manifest creation and shipment confirmation validate available stock ($Q_{\text{dispatch}} \le Q_{\text{main\_available}}$). Over-dispatch attempts are rejected with **HTTP 422 Unprocessable Entity**.
-
-### Stock Receive Display Rules:
-1. **Dynamic Button Visibility:** The **Stock Receive** button displays only when the active branch has `branch_type = 'Regular'` (not Main) and the logged-in role has receive authority (`Branch Manager`, `Branch Staff`).
-2. **Main Branch Identification (v4.1):** Evaluated strictly by `branch_type = 'Main'`. Hardcoded IDs such as `branch_id = 1` are strictly prohibited.
-3. **On-Button & Banner Information:** When stock is received, the button and top banner dynamically display:
-   - **Product Name** (e.g. Strawberry Shortcake)
-   - **Product Category** (e.g. Cakes)
-   - **Received Quantity** (e.g. `+25 pcs`)
-   - **Date Received** (e.g. `Nov 10, 2026`)
-4. **Validation Standards:**
-   - Destination branch is derived from the authenticated user.
-   - Receiving stock for the Main Branch returns **HTTP 422**.
-   - Receiving against a dispatch addressed to another branch returns **HTTP 403**.
-   - Received quantity must be positive and cannot exceed dispatched quantity.
-
----
-
-## 6. Staff Account Status & Governance Hierarchy
-
-Employee account status is managed strictly from above, and self-modification is impossible:
-
-```mermaid
-stateDiagram-v2
-    [*] --> Active: Created by Super Admin or Branch Manager
-
-    state "Staff Account Statuses" as S {
-        Active --> Inactive: Deactivated (Leaves employment / On leave)
-        Inactive --> Active: Reactivated
-        Active --> Suspended: Suspended (Disciplinary / Audit review)
-        Suspended --> Active: Reinstated
-        Suspended --> Inactive: Terminated
-    }
-
-    note right of S
-        Super Admin: Controls ALL accounts (including Managers)
-        Branch Manager: Controls OWN BRANCH STAFF only
-        Suspended requires mandatory written reason (v4.1)
-    end note
-```
-
-### Status Lifecycle & Token Invalidation (v4.1):
-| Status | Meaning | Login Allowed | Existing Bearer Tokens |
-|---|---|:---:|---|
-| `Active` | Full access according to role permissions | Yes | Valid |
-| `Inactive` | Account disabled | No | **Revoked immediately** *(v4.1)* |
-| `Suspended` | Restricted pending operational/audit review | No | **Revoked immediately** *(v4.1)* (Written reason mandatory) |
-
-### Who May Change Whose Status (v4.1):
-| Actor | May Change | May NOT Change |
-|---|---|---|
-| **Super Admin** | Any user, including Branch Managers and Main Branch Manager | Own status *(Prevents system lockout)* |
-| **Main Branch Manager** | Staff of Main Branch only | Own status; other managers; staff of other branches |
-| **Branch Manager** | Staff of own branch (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`) | Own status; other managers; staff of other branches |
-| **Everyone Else** | None | Anything |
-
-### Account Creation Restrictions (v4.1):
-When a Branch Manager creates a user (`POST /api/admin/users`), the system forces the new account into the manager's own branch and permits only staff roles (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`). Attempts to create `Branch Manager`, `Main Branch Manager`, or `Super Admin` accounts return **HTTP 403 Forbidden**.
-
----
-
-## 7. Unified Notification Engine
-
-Notifications are dispatched once per event, routed to the correct role in the correct branch, and synchronized with the customer milestone tracker:
+The platform bridges physical bakery storefronts in **Dessie, Amhara Region, Ethiopia** with a modern digital storefront. It unifies online customer ordering, custom 3D celebratory cake commissions, localized branch inventory management, central production hub dispatches, counter sales POS, multi-tiered daily sales financial reconciliation, and corporate governance.
 
 ```mermaid
 flowchart LR
-    subgraph OrderFlow["Order Status Transitions"]
-        P["pending"] --> C["confirmed"]
-        C --> PR["preparing"]
-        PR --> OD["out_for_delivery (Delivery)"]
-        PR --> RP["ready_for_pickup (Pickup/Counter)"]
-        OD --> CO["completed"]
-        RP --> CO
-        P -.-> CA["cancelled"]
-        C -.-> CA
-    end
-
-    subgraph DeduplicationRouter["Deduplication & Routing Guard (v4.1)"]
-        Key["Unique Key Check:\n(recipient_id, entity_type, entity_id, status)"]
-    end
-
-    subgraph Inboxes["Isolated Inboxes"]
-        Seller["🧑‍🍳 Branch Sellers (Own Branch)"]
-        Customer["🛒 Customer (Push / Tracker)"]
-        Manager["👨‍💼 Branch Manager (Read-Only Alert)"]
-    end
-
-    OrderFlow --> Key
-    Key -->|First Event| Seller & Customer & Manager
-    Key -->|Repeated Transition| Suppress["🚫 No-op (Suppressed)"]
+    A["🛒 Online Customers<br/>(Storefront, 3D Studio, Tracker)"] -->|Place Orders & Bespoke Cakes| B["🏢 Branch Kitchens<br/>(Dessie Network)"]
+    C["🧑‍🍳 Walk-In Retail Clients<br/>(Counter Sales)"] -->|Cash, POS, Telebirr| B
+    D["🏭 Main Central Kitchen<br/>(Piazza Commercial Center)"] -->|Two-Phase Stock Dispatch| B
+    B -->|Verified Daily Sales Reports| E["👑 Super Admin Headquarters<br/>(Consolidated Ledgers & Payroll)"]
 ```
 
-### Authoritative Order Status & Milestone Mapping (v4.1):
-| Internal Status | Customer Tracker Label | Customer Notified | Delivery Orders | Pickup / Counter Orders |
-|---|---|:---:|:---:|:---:|
-| `pending` | Order Placed | Yes *(Receipt)* | Step 1 | Step 1 |
-| `confirmed` | Confirmed | Yes | Step 2 | Step 2 |
-| `preparing` | In Kitchen / Preparing | No *(Kitchen step)* | Step 3 | Step 3 |
-| `out_for_delivery` | Out for Delivery | Yes | Step 4 | Skipped |
-| `ready_for_pickup` | Ready for Pickup | Yes | Skipped | Step 4 |
-| `completed` | Delivered / Collected | Yes | Step 5 | Step 5 |
-| `cancelled` | Cancelled | Yes | Aborted | Aborted |
+### 1.2. Core Functional Pillars
+1. **Interactive Customer Storefront:**
+   - Multi-branch discovery with real GPS coordinate mapping of Dessie branches.
+   - Dynamic real-time product catalog reflecting branch-specific selling prices and on-hand inventory availability.
+   - Interactive Three.js WebGL 3D Cake Customization Studio with procedural frosting textures, 3D occasion toppers, and snapshot rendering.
+   - Multi-channel checkout supporting Doorstep Courier Delivery and In-Store Counter Pickup.
+   - Two-factor public order tracking (`order_number` + phone/email) protecting customer PII from enumeration attacks.
+   - Single-page A4 thermal/standard customer order receipt engine.
+   - Dual-language localization (English and Amharic / አማርኛ) with dynamic typography and dark/light mode.
+   - Cryptographic email ownership verification with automated retrospective guest order linking.
 
-### Recipients by System Event:
-| Event | Target Recipients |
-|---|---|
-| New Order / Custom Cake Request | Sellers of that specific branch |
-| Order Status Change or Cancellation | Customer + Branch Manager (Read-only alert) |
-| Stock Dispatched to Branch | Destination Branch Manager + Branch Staff |
-| Stock Received | Main Branch Manager; Super Admin on discrepancy only |
-| Seller Daily Report Submitted | Manager of that branch |
-| Seller Daily Report Approved / Returned | The submitting seller |
-| Inventory at or below Reorder Level | Branch Manager of that branch |
-| Account Suspended | Super Admin (for managers); audit log otherwise |
+2. **Branch Retail Point-of-Sale (POS) & Counter Operations:**
+   - Tactile POS counter order entry designed for touchscreens and quick barcode/keyboard input.
+   - Instant 80mm thermal receipt printing with localized tax credentials and pickup QR codes.
+   - Custom cake quotation, advance deposit recording, and balance settlement workflow.
+   - Automated Daily Sales Report compilation separating **Booked Sales** from **Cash Collected**.
 
-### 7.1. Frontend Notification & Modal Dialog Architecture (v4.1)
-All native browser dialogs (`window.alert`, `window.confirm`, `window.prompt`) have been replaced across 100% of the storefront, customer portal, seller counter, and branch manager interfaces with a reactive SweetBakes design system:
+3. **Central Logistics & Supply Chain (Main Branch Hub):**
+   - Linked two-phase stock transfer system: **Main Branch dispatches**, **Destination branch receives**.
+   - Strict over-dispatch and over-receive validation guards preventing inventory drift.
+   - Row-level database locking (`lockForUpdate()`) preventing race conditions during checkout and stock movement.
+   - Physical count adjustment audit logs with mandatory reason tracking.
 
-1. **Toast Notifications ([`ToastNotification.vue`](file:///c:/Kenan%20Cake/Client/src/components/ToastNotification.vue) / [`toast.js`](file:///c:/Kenan%20Cake/Client/src/stores/toast.js)):**
-   - **Success (Green):** Crisp SVG checkmark, emerald border, auto-dismiss in 4.5s.
-   - **Error (Red):** SVG alert circle, rose border, preserves authoritative backend message.
-   - **Warning (Amber):** SVG alert triangle, amber border, alerts validation discrepancies.
-   - **Information (Blue/Navy):** SVG information circle, sky border for operational status updates.
-   - **Deduplication Guard:** Built-in suppression for rapid duplicate triggers within 2 seconds.
+4. **Hierarchical Sales Reconciliation & Financial Audit:**
+   - Level 1: Branch Seller compiles and submits daily counter and online transactions.
+   - Level 2: Branch Manager audits, verifies, and approves or returns the report with corrective notes.
+   - Level 3: Super Admin reviews network-wide read-only consolidated financial rollups.
+   - Chapa payment gateway integration with fail-closed HMAC-SHA256 signature verification, alongside Telebirr and Commercial Bank of Ethiopia (CBE) transfer verification.
 
-2. **Promise-Based Modal Dialogs ([`ModalDialog.vue`](file:///c:/Kenan%20Cake/Client/src/components/ModalDialog.vue) / [`dialog.js`](file:///c:/Kenan%20Cake/Client/src/stores/dialog.js)):**
-   - **Confirmations (`await dialog.confirm(...)`):** Supports `danger` (red), `warning` (amber), `primary` (terracotta), and `success` (emerald) actions with custom action labels and backdrop blur.
-   - **Prompts (`await dialog.prompt(...)`):** Supports input text and multiline textareas (e.g. cancellation reasons, price updates, return notes) with full keyboard accessibility (Escape to dismiss, Enter to submit).
-   - **Keyboard & Accessibility:** Focus auto-trapping, ARIA dialog roles, and smooth enter/exit animations.
+5. **Enterprise Headquarters & Staff Governance:**
+   - Strict server-side Role-Based Access Control (RBAC) across 6 distinct user tiers.
+   - Autonomous branch provisioning with zero-data isolation guarantees.
+   - Decoupled employee compensation profiles (`employee_profiles`) restricting salary visibility to Super Admin.
+   - Session invalidation: Instant revocation of active Sanctum Bearer tokens upon account deactivation or suspension.
 
----
+### 1.3. Technology Stack Summary
+| Layer | Technologies / Libraries | Purpose |
+|---|---|---|
+| **Backend Framework** | Laravel 11 (PHP 8.2+) | RESTful API, ORM, Auth, Middlewares, Validation, Jobs |
+| **Authentication** | Laravel Sanctum | Stateless Bearer token authentication & revocation |
+| **Database** | MySQL 8.0 / MariaDB (InnoDB) | Strict relational constraints, row locking, decimal precision |
+| **Frontend Framework** | Vue.js 3 (Composition API) | Reactive single-page application (SPA) |
+| **Bundler & Tooling** | Vite 5 | High-speed compilation, asset chunking, hot module reload |
+| **State Management** | Pinia | Modular reactive client state with localStorage syncing |
+| **Client Routing** | Vue Router 4 | Navigation guards, dynamic metadata, role-based access |
+| **Styling & Design** | Tailwind CSS 3 | Utility-first responsive design, dark mode, micro-interactions |
+| **3D Graphics Engine** | Three.js (r128+) | WebGL real-time 3D cake geometry and material rendering |
+| **Mapping Engine** | Leaflet 1.9.4 & OpenStreetMap | Interactive Dessie branch locator with real GPS pins |
+| **HTTP Client** | Axios 1.7+ | Promise-based client with request/response interceptors |
+| **Image Processing** | Intervention Image (PHP) & Pillow (Dev) | Server-side banner uploads & static asset optimization |
+| **DevOps & Containers** | Docker, Docker Compose, Nginx Alpine | Multi-container micro-architecture, caching, gzip compression |
 
-## 8. Customer Storefront & Homepage
-
-### 8.1. Homepage Visual System
-- Clean, fast-loading 2D luxury presentation with zero 3D canvas overhead on mobile.
-- Typewriter animation headline cycling through curated slogans with natural typing speed, blinking cursor, and pause-before-backspace.
-- Smooth scroll reveals (fade-in, slide-up) for product categories, feature highlights, and baker story.
-- Users with `prefers-reduced-motion` enabled receive clean static typography without animation **(v4.1)**.
-
-### 8.2. Interactive 3D Custom Cake Studio ([`/custom-cake`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue))
-- Dedicated 3D WebGL studio with 1 kg, 2 kg, 3 kg, and multi-tiered cylinder cake geometries.
-- Full orbit rotation, touch pinch-zoom, and turntable auto-spin.
-- 3D occasion toppers (birthday candle with flame, wedding rings, celebration crest, piped inscription ribbon).
-- WebGL high-resolution snapshot generation attached to customer requests for seller quotation.
-
-### 8.3. Two-Factor Order Tracker ([`/track-order`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderTrackingView.vue)) (v4.1)
-- Requires **two factors** to view order status: `order_number` (`ORD-xxxx` or `CCR-xxxx`) PLUS customer phone number or email.
-- Entering order number alone returns a generic not-found message, preventing order enumeration.
-- Rate-limited to 15 lookups per minute per IP.
-- Displays fulfillment milestone stepper matching Section 7.
-
-### 8.4. Customer Order Receipt & Single-Page Printing Architecture (v4.1)
-The receipt printing engine ([`OrderStatusView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderStatusView.vue)) provides single-click printing constrained to exactly **one A4 page**:
-
-1. **Isolation & Element Suppression:**
-   - Website header, top bar, navigation, mobile drawers, contact section, footer, wave SVGs, buttons ("Print Receipt", "Cancel Order", "Continue Shopping"), and interactive stepper timelines are marked `print:hidden` and suppressed via `@media print`.
-   - Dark mode background colors are overridden to crisp `#FFFFFF` with high-contrast text (`#1A1412` and `#3D251E`) ensuring readability in both color and monochrome printing.
-2. **Essential Information Hierarchy:**
-   - **Bakery Identity & Branch Header:** SweetBakes logo, business name, fulfilling branch name, branch address, contact phone, and email.
-   - **Document Headings & Identifiers:** `ORDER RECEIPT` heading, order number (`#ORD-XXXXX`), placement timestamp, and receipt print timestamp.
-   - **Customer & Fulfillment Box:** Customer name, phone, optional email, fulfillment mode (`Doorstep Courier Delivery` vs `Bakery Counter Pickup`), and delivery address.
-   - **Itemized Breakdown:** Tabular items grid with product name, quantity, unit price, and subtotal.
-   - **Financials & Payment:** Payment method, payment status badge (`PAID ✓`), transaction reference, subtotal, delivery fee, and grand total.
-   - **Appreciation & Support Note:** Warm customer appreciation note and branch support contact prompt.
-3. **Print Layout Rules:**
-   - `@page { size: A4 portrait; margin: 8mm 10mm; }`
-   - `page-break-inside: avoid;` and `break-inside: avoid;` on `#order-receipt-container`.
-   - Browser document title dynamically set to `SweetBakes-Receipt-[Order-Number]` during print for clean default PDF file naming.
+### 1.4. System Scope & Boundaries
+- **Public Internet Ingress:** Public customer storefront (`/`, `/shop`, `/custom-cake`, `/track-order`, `/branches`, `/about`, `/contact`).
+- **Internal Back-Office Ingress:** Secured administration dashboard (`/admin/*`) accessible strictly to authenticated staff with active credentials.
+- **External Third-Party Gateways:**
+  - Chapa Payment Gateway (Online card/telebirr checkout & webhook callbacks).
+  - OpenStreetMap Tile Server (Map tile streaming for Leaflet maps).
+- **Network Boundaries:** Stateless HTTP/HTTPS REST API operating on port 80/443 (proxied via Nginx to PHP-FPM port 9000 and MySQL port 3306).
 
 ---
 
-## 9. Sales Reporting Architecture
+## 2. System Architecture
 
-Sellers record daily counter transactions and submit one Daily Sales Report per branch per day. The Branch Manager audits and approves the report or returns it for correction.
+### 2.1. High-Level Architecture Topology
+The platform implements a decoupled client-server architecture where the Vue 3 Single Page Application (SPA) communicates statelessly with the Laravel 11 REST API via JSON over HTTPS.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> draft: Seller records counter sales & cake deposits
-    draft --> submitted: Seller submits to Branch Manager
-    submitted --> approved: Branch Manager verifies & approves (LOCKED)
-    submitted --> returned: Branch Manager returns with correction notes
-    returned --> submitted: Seller edits discrepancies & resubmits
+flowchart TD
+    subgraph ClientDeviceLayer["🖥️ Client Presentation Layer (Vue 3 + Vite)"]
+        CustomerPortal["Customer Storefront<br/>(Store, 3D Cake Studio, Cart, Tracking, Profile)"]
+        SellerPortal["Branch POS & Counter Portal<br/>(Sales, Orders, Daily Report Drafts)"]
+        ManagerPortal["Branch Manager Portal<br/>(Pricing, Stock Receive, Report Verification, Staff)"]
+        MainManagerPortal["Main Distribution Hub<br/>(Stock Dispatch Manifest Engine)"]
+        SuperAdminPortal["Super Admin Headquarters<br/>(Network KPIs, Branch Setup, Salaries, Audits)"]
+    end
 
-    note right of approved
-        Approved reports are permanently locked.
-        Super Admin reads consolidated summaries.
-        Reports are NEVER sent to Super Admin for approval.
-    end note
+    subgraph GatewayLayer["🛡️ Network, Web Server & Edge Security"]
+        NginxProxy["Nginx Alpine Reverse Proxy<br/>(SSL Termination, Gzip, Security Headers, Cache-Control)"]
+        RateLimiter["Route Rate Limiters<br/>(Login: 5/min, Tracking: 15/min, Orders: 30/min, API: 60/min)"]
+        CORSGuard["CORS & Sanitize Filter"]
+    end
+
+    subgraph ApplicationLayer["⚙️ Application Backend (Laravel 11 REST API)"]
+        SanctumAuth["Laravel Sanctum<br/>(Bearer Token Validation & Lifecycle)"]
+        RoleGuard["RoleAuthorizationMiddleware<br/>(RBAC Role Verification)"]
+        BranchGuard["BranchIsolation Middleware<br/>(Server-Side Branch Scoping)"]
+        
+        subgraph Controllers["API Controllers"]
+            OrderCtrl["OrderController & CartController"]
+            CustomCakeCtrl["CustomCakeController"]
+            StockCtrl["StockDispatchController & ReceivedStockController"]
+            CatalogCtrl["CatalogController & BranchPriceController"]
+            ReportCtrl["OrderReportController"]
+            PayCtrl["PaymentController (Chapa HMAC Webhook)"]
+            UserCtrl["UserController & SalaryController"]
+            SettingCtrl["SettingController & WebsiteSettingController"]
+        end
+    end
+
+    subgraph DataStorageLayer["🗄️ Persistence & Database Layer (MySQL 8.0 InnoDB)"]
+        RelationalDB[("kenean-cake-and-bread<br/>(Foreign Keys, Row Locking, Indexes, Soft Deletes)")]
+        FileStorage["File Storage System<br/>(Public Uploads, Cake Snapshots, Settings Images)"]
+    end
+
+    ClientDeviceLayer --> NginxProxy
+    NginxProxy --> RateLimiter
+    RateLimiter --> CORSGuard
+    CORSGuard --> SanctumAuth
+    SanctumAuth --> RoleGuard
+    RoleGuard --> BranchGuard
+    BranchGuard --> Controllers
+    Controllers --> RelationalDB
+    Controllers --> FileStorage
 ```
 
-### Financial Definitions & Protected Formulas (v4.1):
-- **Booked Sales:** Total agreed value of orders and custom cakes booked that day.
-- **Cash Collected:** Actual currency collected that day (counter sales + advance deposits + balance payments).
-- **Outstanding Balance:** Booked value awaiting payment upon collection or delivery.
+### 2.2. Request Lifecycle & Security Middleware Pipeline
+Every HTTP request follows a deterministic pipeline from the network boundary to database execution:
 
-$$\text{Line Total} = (\text{Quantity} \times \text{Unit Price}) - \text{Discount}$$
-$$\text{Remaining Balance} = \text{Line Total} - \text{Advance Payment}$$
-$$\text{Total Daily Booked Sales} = \text{Regular Orders Revenue} + \text{Custom Cake Revenue}$$
+```mermaid
+flowchart LR
+    Req["Incoming HTTP Request"] --> Nginx["1. Nginx Proxy<br/>(Gzip, Headers, SSL)"]
+    Nginx --> Throttle["2. Rate Limiting<br/>(throttle:X,1)"]
+    Throttle --> Cors["3. HandleCors<br/>(Domain Validation)"]
+    Cors --> Sanctum["4. auth:sanctum<br/>(Token Validation)"]
+    Sanctum --> StatusCheck["5. User Status Check<br/>(Active / Inactive / Suspended)"]
+    StatusCheck --> RBAC["6. Role Middleware<br/>(Super Admin, Manager, etc.)"]
+    RBAC --> BranchScope["7. Branch Scope Guard<br/>(Force user->branch_id)"]
+    BranchScope --> FormReq["8. FormRequest Validation<br/>(Type, Size, Regex)"]
+    FormReq --> Action["9. Controller Action<br/>(Atomic DB Transaction)"]
+    Action --> Res["Authoritative JSON Response"]
+```
 
-> [!IMPORTANT]
-> The server recalculates every figure upon submission; client-submitted totals are ignored. Advance payments cannot exceed line totals, and remaining balances cannot be negative.
+1. **Nginx Ingress:** Terminates SSL, enforces HTTP security headers, serves static assets from disk with 1-year cache headers, and proxies `/api/*` to PHP-FPM.
+2. **Rate Limiting:** Protects endpoints from abuse (`POST /api/auth/login` throttled to 5/min, `POST /api/orders/track` throttled to 15/min, `POST /api/orders` throttled to 30/min).
+3. **CORS Validation:** Rejects requests from unauthorized origins; validates credentials headers.
+4. **Sanctum Authentication:** Inspects Bearer token in the `Authorization` header. If valid, binds the authenticated `User` model to the request.
+5. **Account Status Verification:** Validates `status == 'Active'`. If `Inactive` or `Suspended`, revokes tokens and responds with `HTTP 403 Forbidden`.
+6. **Role Authorization:** `RoleAuthorizationMiddleware` matches user roles against endpoint requirements.
+7. **Branch Isolation:** For non-Super-Admin users, `branch_id` is forced from `$request->user()->branch_id`. Any client-supplied `branch_id` query or body parameter is discarded.
+8. **Form Request Validation:** Incoming payloads pass through dedicated `FormRequest` classes with strict validation rules.
+9. **Atomic Execution:** Core state mutations run inside `DB::transaction()` with row locks (`lockForUpdate()`) to ensure absolute ACID compliance.
+
+### 2.3. External Integrations & Communication Protocols
+- **Chapa Payment Gateway:**
+  - Client initiates payment -> Server creates transaction with unique reference (`TX-...`).
+  - Chapa processes payment and delivers asynchronous HTTP POST callback to `/api/payments/webhook`.
+  - Server verifies webhook authenticity using HMAC-SHA256 signature calculated with `services.chapa.webhook_secret`. If the signature doesn't match or the secret is missing, it fails closed (`HTTP 503 / 401`).
+- **Leaflet & OpenStreetMap:**
+  - Frontend loads Leaflet via asynchronous code-split chunk (`vendor-leaflet.js`, 148 kB raw / 43 kB gzip).
+  - OpenStreetMap raster tiles rendered client-side; branch markers mapped dynamically from `GET /api/branches`.
+- **Three.js WebGL Engine:**
+  - Client-side WebGL canvas isolated to [`CustomCakeBuilderView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue) avoiding overhead on the homepage.
+  - Generates high-resolution data URLs via `renderer.domElement.toDataURL('image/png')` sent with custom cake briefs.
 
 ---
 
-## 10. Database Schema & Migration Architecture
+## 3. Database Architecture
 
-### Key Relational Tables (v4.1):
+### 3.1. Entity-Relationship (ER) Diagram
+The database schema operates under strict MySQL InnoDB constraints, utilizing big integer unsigned primary keys, foreign key cascades/restricts, high-precision GPS coordinates, and composite performance indexes.
 
 ```mermaid
 erDiagram
@@ -443,536 +195,665 @@ erDiagram
     BRANCHES ||--o{ BRANCH_PRODUCT_PRICES : prices
     BRANCHES ||--o{ STOCK_DISPATCHES : dispatches_from
     BRANCHES ||--o{ STOCK_DISPATCHES : dispatches_to
-    BRANCHES ||--o{ RECEIVED_STOCKS : receives
+    BRANCHES ||--o{ RECEIVED_STOCKS : receives_at
     BRANCHES ||--o{ INVENTORY_TRANSACTIONS : logs
     BRANCHES ||--o{ ORDERS : fulfills
-    BRANCHES ||--o{ CUSTOM_CAKE_REQUESTS : prepares
-    BRANCHES ||--o{ SELLER_DAILY_REPORTS : audits
-    BRANCHES ||--o{ NOTIFICATIONS : routes
+    BRANCHES ||--o{ CUSTOM_CAKE_REQUESTS : customizes
+    BRANCHES ||--o{ SELLER_DAILY_REPORTS : consolidates
+    BRANCHES ||--o{ DELIVERY_ZONES : defines
 
-    USERS ||--|| EMPLOYEE_PROFILES : has
-    ROLES ||--o{ USERS : classifies
-    STOCK_DISPATCHES ||--o{ STOCK_DISPATCH_ITEMS : contains
-    STOCK_DISPATCHES ||--o{ RECEIVED_STOCKS : fulfills_with
+    USERS ||--|| EMPLOYEE_PROFILES : has_salary
+    ROLES ||--o{ USERS : assigns
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ CUSTOM_CAKE_REQUESTS : requests
+    USERS ||--o{ ADDRESSES : saves
+    USERS ||--o{ AUDIT_LOGS : triggers
+
+    CATEGORIES ||--o{ PRODUCTS : categorizes
+    PRODUCTS ||--o{ PRODUCT_IMAGES : illustrates
+    PRODUCTS ||--o{ BRANCH_INVENTORY : tracked_in
+    PRODUCTS ||--o{ BRANCH_PRODUCT_PRICES : priced_in
+    PRODUCTS ||--o{ ORDER_ITEMS : ordered_in
+    PRODUCTS ||--o{ STOCK_DISPATCH_ITEMS : dispatched_in
+
+    STOCK_DISPATCHES ||--o{ STOCK_DISPATCH_ITEMS : details
+    STOCK_DISPATCHES ||--o{ RECEIVED_STOCKS : linked_receipt
+
+    ORDERS ||--o{ ORDER_ITEMS : contains
+    ORDERS ||--o{ PAYMENTS : settles
+    ORDERS ||--o{ NOTIFICATIONS : triggers
 ```
 
+### 3.2. Core Database Tables & Data Dictionary
+
 #### 1. `branches`
-| Column | Type | Constraints / Description |
-|---|---|---|
-| `branch_id` | BIGINT UNSIGNED (PK) | Unique branch ID |
-| `branch_name` | VARCHAR(255) | Name of bakery location |
-| `branch_code` | VARCHAR(50) (Unique) | Unique identifier (e.g. `BR-BUA`) |
-| `branch_type` | ENUM('Main', 'Regular') | Exactly one 'Main' branch; all others 'Regular' |
-| `city` / `address` | VARCHAR(255) | Physical geographic location |
-| `latitude` | DECIMAL(10,8) | Range $\pm 90^\circ$ |
-| `longitude` | DECIMAL(11,8) | **Fixed in v4.1:** Range $\pm 180^\circ$ requires 3 integer digits |
-| `manager_id` | BIGINT UNSIGNED (FK) | Assigned Branch Manager |
-| `status` | ENUM('Active', 'Inactive') | Branch operating status |
-
-#### 2. `users`, `roles` & `employee_profiles` (v4.1)
-- `roles`: `role_id` (PK), `role_name`, `slug` (`super_admin`, `main_branch_manager`, `branch_manager`, `branch_seller`, `cashier`, `servant`, `branch_staff`, `customer`).
-- `users`: `user_id` (PK), `role_id` (FK), `branch_id` (FK, nullable), `full_name`, `email` (Unique), `status` (`Active`, `Inactive`, `Suspended`), `status_reason` (TEXT, nullable, **required when Suspended**).
-- `employee_profiles` **(v4.1)**: `user_id` (PK/FK), `salary` (`DECIMAL(10,2)`). Segregates compensation data away from the customer-facing user entity; managed exclusively by Super Admin.
-
-#### 3. `stock_dispatches` & `stock_dispatch_items` (v4.1)
-- `stock_dispatches`: `dispatch_id` (PK), `from_branch_id` (FK, Main Branch), `to_branch_id` (FK, Destination), `status` (`draft`, `in_transit`, `partially_received`, `received`, `cancelled`), `reference_number` (Unique), `created_by` (FK), `sent_at` (TIMESTAMP).
-- `stock_dispatch_items`: `dispatch_id` (FK), `product_id` (FK), `quantity_dispatched` (INT UNSIGNED), `quantity_received` (INT UNSIGNED).
-
-#### 4. `received_stocks` (v4.1)
-- `received_stock_id` (PK), `branch_id` (FK), `product_id` (FK), `dispatch_id` (FK, nullable in v4.0, **mandatory in v4.1**), `product_name`, `category_name`, `receiver_name`, `quantity_received` (INT UNSIGNED), `date_received` (DATE), `received_by` (FK), `notes` (TEXT).
-
-#### 5. `branch_product_prices` (v4.1)
-- `branch_id` (FK), `product_id` (FK), `price` (`DECIMAL(10,2)`), `active` (`BOOLEAN`), `updated_by` (FK). Unique composite key `(branch_id, product_id)`.
-
-#### 6. Guest Tracking & Email Verification Schema (v4.1)
-- `orders.customer_email`: `VARCHAR(150)`, nullable, indexed for customer order history linking.
-- `custom_cake_requests.customer_email`: `VARCHAR(150)`, nullable, indexed for bespoke cake request linking.
-- `users.email_verified_at`: `TIMESTAMP`, nullable. Authoritative indicator of verified email ownership. Guest records link strictly when this timestamp is present.
-- `email_verifications`: `id`, `email` (`VARCHAR(150)`), `code` (`VARCHAR(10)`), `expires_at` (`TIMESTAMP`), `created_at`. Stores 6-digit OTP codes with 15-minute expiration windows.
-
----
-
-## 11. Complete RESTful API Route Reference
-
-All `/api/admin/*` endpoints require a Sanctum Bearer token and pass through `RoleAuthorizationMiddleware`.
-
-### Public Storefront & Authentication:
-| Method | Endpoint | Rate Limit | Description |
+Represents physical bakery branches and distribution centers.
+| Column | Type | Nullable | Description / Constraints |
 |---|---|:---:|---|
-| `POST` | `/api/auth/login` | **5 / min** *(v4.1)* | Bearer token authentication with IP/email throttling |
-| `POST` | `/api/auth/register` | 10 / min | Customer account registration |
-| `POST` | `/api/auth/send-verification-code` | 5 / min *(v4.1)* | Request 6-digit email ownership OTP code |
-| `POST` | `/api/auth/verify-email` | 10 / min *(v4.1)* | Verify email OTP code and atomically link guest history |
-| `GET` | `/api/branches` | 60 / min | Active branches with GPS coordinates |
-| `GET` | `/api/products` | 60 / min | Catalog listing with localized branch pricing |
-| `POST` | `/api/orders` | 15 / min | Place online retail order (stores `customer_email`) |
-| `POST` | `/api/orders/track` | **15 / min** *(v4.1)* | **Two-factor tracking** (`order_number` + phone/email) |
-| `POST` | `/api/custom-cakes` | 15 / min | Submit 3D cake design brief with WebGL snapshot & email |
+| `branch_id` | BIGINT UNSIGNED | No | Primary Key (Auto-Increment) |
+| `branch_name` | VARCHAR(255) | No | Official name (e.g., "Main Branch - Dessie Piazza") |
+| `branch_code` | VARCHAR(50) | No | Unique human-readable code (e.g., `BR-PIAZZA`) |
+| `branch_type` | ENUM('Main', 'Regular') | No | Identifies central distribution hub vs retail branch |
+| `address` | VARCHAR(255) | Yes | Street address / Commercial building |
+| `city` | VARCHAR(255) | No | Default: 'Dessie' |
+| `latitude` | DECIMAL(10, 8) | Yes | GPS latitude coordinate ($\pm 90^\circ$) |
+| `longitude` | DECIMAL(11, 8) | Yes | GPS longitude coordinate ($\pm 180^\circ$, requires 3 integer digits) |
+| `phone_number` | VARCHAR(50) | Yes | Direct counter contact telephone |
+| `manager_id` | BIGINT UNSIGNED | Yes | Foreign Key referencing `users.user_id` |
+| `status` | ENUM('Active', 'Inactive')| No | Operating status |
+| `is_shopping_enabled`| BOOLEAN | No | Default: `true`. Controls online storefront ordering |
+| `deleted_at` | TIMESTAMP | Yes | Soft delete tracking |
+| `created_at` / `updated_at` | TIMESTAMP | Yes | Standard Eloquent timestamps |
 
-### Orders & Custom Cakes:
-| Method | Endpoint | Allowed Roles | Description |
-|---|---|---|---|
-| `GET` | `/api/admin/orders` | Sellers, Staff, **Managers (Read-only)** | List branch orders *(v4.1)* |
-| `PATCH` | `/api/admin/orders/{id}/status` | Sellers, Staff (Preparation) | Update order milestone along Section 7 flow |
-| `POST` | `/api/admin/orders` | Sellers, Cashiers | Record in-store counter order |
-| `GET` | `/api/admin/custom-cakes` | Sellers, Staff, **Managers (Read-only)** | List branch custom-cake requests *(v4.1)* |
-| `POST` | `/api/admin/custom-cakes/{id}/quote` | Sellers | Set final price quotation and deposit *(v4.1)* |
+#### 2. `users`, `roles` & `employee_profiles`
+User accounts, role classification, and decoupled salary profiles.
+- **`roles`:** `role_id` (PK), `role_name` (`VARCHAR(100)`), `slug` (`VARCHAR(100)` Unique).
+  - Slugs: `super_admin`, `main_branch_manager`, `branch_manager`, `branch_seller`, `cashier`, `servant`, `branch_staff`, `customer`.
+- **`users`:** `user_id` (PK), `role_id` (FK), `role` (`ENUM('Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Seller', 'Cashier', 'Servant', 'Branch Staff', 'Customer')`), `branch_id` (FK, Nullable), `full_name` (`VARCHAR(255)`), `email` (`VARCHAR(255)` Unique), `phone_number` (`VARCHAR(50)` Nullable), `avatar_url` (`VARCHAR(500)` Nullable), `password` (`VARCHAR(255)`), `status` (`ENUM('Active', 'Inactive', 'Suspended')`), `status_reason` (`TEXT` Nullable, **mandatory when Suspended**), `email_verified_at` (`TIMESTAMP` Nullable).
+- **`employee_profiles`:** `user_id` (PK, FK referencing `users.user_id` on cascade delete), `salary` (`DECIMAL(10, 2)` Default 0.00). Stores employee compensation completely segregated from user directory.
 
-### Stock Dispatch & Inflow Engine:
-| Method | Endpoint | Allowed Roles | Description |
-|---|---|---|---|
-| `POST` | `/api/admin/dispatches` | **Main Branch Manager, Super Admin** | Create draft dispatch manifest *(v4.1)* |
-| `POST` | `/api/admin/dispatches/{id}/send` | **Main Branch Manager, Super Admin** | Confirm shipment; lowers Main stock *(v4.1)* |
-| `POST` | `/api/admin/dispatches/{id}/cancel` | **Main Branch Manager, Super Admin** | Cancel draft or in-transit dispatch manifest *(v4.1)* |
-| `GET` | `/api/admin/dispatches` | Super Admin, Managers, Staff | List dispatches *(v4.1)* |
-| `GET` | `/api/admin/received-stocks` | Super Admin, Managers, Sellers, Staff | List received stocks scoped to branch |
-| `POST` | `/api/admin/received-stocks` | **Branch Manager, Branch Staff** | Receive stock against dispatch *(v4.1)* |
-| `GET` | `/api/admin/inventory` | Admin, Managers, Sellers, Staff | View on-hand inventory levels |
-| `POST` | `/api/admin/inventory/adjust` | Managers | Physical count adjustments with mandatory reason |
-| `GET` | `/api/admin/inventory/transactions` | Admin, Managers, Staff | View immutable transaction ledger |
-| `GET` | `/api/admin/inventory/reconcile` | Admin, Managers | Verify stock balance against transaction history |
+#### 3. `products`, `categories` & `branch_product_prices`
+Master catalog items, categories, and branch-specific price overrides.
+- **`categories`:** `category_id` (PK), `category_name`, `slug` (Unique), `description`.
+- **`products`:** `product_id` (PK), `category_id` (FK), `product_name`, `description`, `base_price` (`DECIMAL(10, 2)`), `is_fasting` (`BOOLEAN` Default `false`, indicates Ye'Tsom certified), `shelf_life_hours` (`INT` Default 48), `status` (`ENUM('Active', 'Inactive')`), `deleted_at`.
+- **`product_images`:** `image_id` (PK), `product_id` (FK), `image_url`, `sort_order` (`INT` Default 0).
+- **`branch_product_prices`:** `id` (PK), `branch_id` (FK), `product_id` (FK), `price` (`DECIMAL(10, 2)`), `active` (`BOOLEAN` Default `true`).
+  - **Unique Composite Key:** `(branch_id, product_id)`.
 
-### Branch Governance & Personnel:
-| Method | Endpoint | Allowed Roles | Description |
-|---|---|---|---|
-| `GET` | `/api/admin/branches` | Super Admin, Managers | List branches |
-| `POST` | `/api/admin/branches` | Super Admin | Create branch with fresh zero-data initialization |
-| `PATCH` | `/api/admin/branches/{id}` | Super Admin | Update branch name, manager, or GPS coordinates |
-| `GET / PUT` | `/api/admin/branch-prices` | Managers | Read and set branch-specific selling prices *(v4.1)* |
-| `GET` | `/api/admin/users` | Super Admin, Managers | Staff directory (Managers see own branch only) |
-| `POST` | `/api/admin/users` | Super Admin, Managers | Recruit staff (Managers restricted to staff roles in own branch) |
-| `PATCH` | `/api/admin/users/{id}/status` | Super Admin, Managers | Update account status (`Active`, `Inactive`, `Suspended`) |
-| `PUT` | `/api/admin/users/{id}/salary` | Super Admin | Manage employee salary in `employee_profiles` *(v4.1)* |
-| `GET` | `/api/admin/audit-logs` | Super Admin | Business-wide audit trail *(v4.1)* |
+#### 4. `branch_inventory` & `inventory_transactions`
+Real-time physical stock balances and tamper-evident audit logs.
+- **`branch_inventory`:** `inventory_id` (PK), `branch_id` (FK), `product_id` (FK), `quantity_on_hand` (`INT` Default 0), `reserved_quantity` (`INT` Default 0), `reorder_level` (`INT` Default 10).
+  - **Unique Composite Key:** `(branch_id, product_id)`.
+  - Available Stock Calculation: $Q_{\text{available}} = Q_{\text{on\_hand}} - Q_{\text{reserved}}$.
+- **`inventory_transactions`:** `transaction_id` (PK), `branch_id` (FK), `product_id` (FK), `transaction_type` (`ENUM('production', 'transfer_dispatch', 'transfer_receive', 'order_placed', 'order_completed', 'order_cancelled', 'damaged', 'expired', 'manual_adjustment')`), `quantity` (`INT`, signed value: negative for outgoing, positive for incoming), `reference_type`, `reference_id`, `reason`, `created_by` (FK referencing `users`), `created_at`.
+  - **Composite Index:** `idx_inv_tx_branch_prod_created` on `(branch_id, product_id, created_at)`.
 
-### Sales Reporting:
-| Method | Endpoint | Allowed Roles | Description |
-|---|---|---|---|
-| `GET` | `/api/admin/reports/seller/today-orders` | Sellers, Cashiers | 1-click import of today's branch transactions |
-| `GET` | `/api/admin/reports/seller/my-reports` | Sellers, Cashiers | Historical submitted daily reports |
-| `POST` | `/api/admin/reports/seller/daily` | Sellers, Cashiers | Save draft or submit Daily Sales Report |
-| `GET` | `/api/admin/reports/manager/seller-reports`| Managers | View seller reports for assigned branch |
-| `POST` | `/api/admin/reports/manager/seller-reports/{id}/verify` | Managers | Approve or return seller report with notes |
-| `GET` | `/api/admin/reports/admin/branch-summary` | Super Admin | Read-only summary of approved branch reports *(v4.1)* |
+#### 5. `stock_dispatches`, `stock_dispatch_items` & `received_stocks`
+Two-phase inter-branch supply chain transfer records.
+- **`stock_dispatches`:** `dispatch_id` (PK), `from_branch_id` (FK, Main Branch), `to_branch_id` (FK, Destination Branch), `status` (`ENUM('draft', 'in_transit', 'partially_received', 'received', 'cancelled')`), `reference_number` (`VARCHAR(100)` Unique, e.g. `DSP-202611-001`), `notes`, `created_by` (FK referencing `users`), `sent_at`, `created_at`.
+- **`stock_dispatch_items`:** `id` (PK), `dispatch_id` (FK), `product_id` (FK), `quantity_dispatched` (`INT UNSIGNED`), `quantity_received` (`INT UNSIGNED` Default 0).
+- **`received_stocks`:** `received_stock_id` (PK), `branch_id` (FK), `product_id` (FK), `dispatch_id` (FK, links to `stock_dispatches`), `product_name`, `category_name`, `receiver_name`, `quantity_received` (`INT UNSIGNED`), `date_received` (`DATE`), `received_by` (FK referencing `users`), `notes`.
+
+#### 6. `orders`, `order_items` & `payments`
+Customer retail and walk-in counter sales transactions.
+- **`orders`:** `order_id` (PK), `order_number` (`VARCHAR(100)` Unique, e.g. `ORD-20261112-9842`), `user_id` (FK referencing `users`), `branch_id` (FK referencing `branches`), `customer_name` (`VARCHAR(255)`), `customer_phone` (`VARCHAR(50)`), `customer_email` (`VARCHAR(150)` Nullable, indexed), `address_id` (FK referencing `addresses`, Nullable), `fulfillment_method` (`ENUM('Delivery', 'Pickup')`), `order_status` (`ENUM('Pending', 'Confirmed', 'Preparing', 'Ready', 'Out for delivery', 'Completed', 'Cancelled')`), `delivery_fee` (`DECIMAL(10, 2)` Default 0.00), `discount_amount` (`DECIMAL(10, 2)` Default 0.00), `total_amount` (`DECIMAL(10, 2)`), `placed_at`, `deleted_at`.
+  - **Composite Performance Index:** `idx_orders_branch_status_placed` on `(branch_id, order_status, placed_at)`.
+- **`order_items`:** `order_item_id` (PK), `order_id` (FK), `product_id` (FK), `quantity` (`INT`), `unit_price` (`DECIMAL(10, 2)`), `subtotal` (`DECIMAL(10, 2)`).
+- **`payments`:** `payment_id` (PK), `order_id` (FK), `payment_method` (`ENUM('Cash', 'Chapa', 'Telebirr', 'Bank_Transfer')`), `payment_status` (`ENUM('Pending', 'Completed', 'Failed', 'Refunded')`), `amount` (`DECIMAL(10, 2)`), `transaction_reference` (`VARCHAR(150)` Nullable), `payment_date` (`TIMESTAMP`).
+
+#### 7. `custom_cake_requests` & `custom_cake_images`
+Interactive 3D cake customization commissions.
+- **`custom_cake_requests`:** `request_id` (PK), `request_number` (`VARCHAR(100)` Unique, e.g. `CCR-202611-104`), `user_id` (FK), `branch_id` (FK), `customer_name`, `customer_phone`, `customer_email` (Nullable, indexed), `cake_size` (`VARCHAR(100)`), `flavor` (`VARCHAR(100)`), `design` (`TEXT`), `design_config` (`JSON` Nullable, stores 3D tier, color hex, topper, and inscription specs), `message` (`VARCHAR(255)`), `needed_by` (`DATE`), `quoted_price` (`DECIMAL(10, 2)` Nullable), `deposit_required_percentage` (`DECIMAL(5, 2)` Default 50.00), `deposit_paid` (`DECIMAL(10, 2)` Default 0.00), `status` (`ENUM('Submitted', 'Quoted', 'Confirmed', 'Preparing', 'Ready', 'Picked up', 'Delivered', 'Rejected', 'Cancelled')`), `rejection_reason` (`TEXT` Nullable).
+  - **Composite Index:** `idx_cakes_branch_status_needed` on `(branch_id, status, needed_by)`.
+- **`custom_cake_images`:** `image_id` (PK), `request_id` (FK), `image_url` (`VARCHAR(500)`).
+
+#### 8. `seller_daily_reports` & Multi-Tier Reports
+- **`seller_daily_reports`:** `report_id` (PK), `branch_id` (FK), `seller_id` (FK), `report_date` (`DATE`), `status` (`ENUM('draft', 'submitted', 'approved', 'returned')`), `booked_sales` (`DECIMAL(10, 2)`), `cash_collected` (`DECIMAL(10, 2)`), `card_revenue` (`DECIMAL(10, 2)`), `transfer_revenue` (`DECIMAL(10, 2)`), `custom_cake_deposits` (`DECIMAL(10, 2)`), `manager_notes` (`TEXT` Nullable), `approved_by` (FK), `submitted_at`, `approved_at`.
+  - **Composite Index:** `idx_reports_branch_date_status` on `(branch_id, report_date, status)`.
+
+#### 9. Supporting System Tables
+- **`app_settings`:** `id` (PK), `key` (`VARCHAR(100)` Unique), `value` (`TEXT`), `group` (`VARCHAR(50)`).
+- **`audit_logs`:** `log_id` (PK), `user_id` (FK), `action` (`VARCHAR(150)`), `model_type` (`VARCHAR(150)`), `model_id` (`BIGINT UNSIGNED`), `changes` (`JSON`), `ip_address` (`VARCHAR(45)`), `created_at`.
+- **`email_verifications`:** `id` (PK), `email` (`VARCHAR(150)`), `code` (`VARCHAR(10)`), `expires_at` (`TIMESTAMP`), `created_at`.
+- **`notifications`:** `id` (PK), `recipient_id` (FK), `branch_id` (FK), `entity_type`, `entity_id`, `status_or_event`, `title`, `message`, `is_read`, `created_at`. Unique composite constraint prevents duplicate notification generation.
 
 ---
 
-## 12. Guest Customer Order History & Verified Email Linking Engine (v4.1)
+## 4. Authentication and Authorization
 
-To protect customer privacy while providing seamless historical order tracking, the platform manages guest order histories using cryptographic email ownership verification:
+### 4.1. Authentication Lifecycle
+Authentication is powered by **Laravel Sanctum** using cryptographically secure Bearer tokens.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Guest as 🛒 Guest Customer
-    participant Storefront as 🖥️ Storefront (Vue 3)
-    participant API as 🛡️ Auth & Order API
+    actor User as 👤 User / Staff
+    participant Client as 🖥️ Client (Vue 3 / Axios)
+    participant AuthAPI as 🛡️ AuthController
     participant DB as 🗄️ MySQL Database
 
-    Note over Guest,DB: 1. GUEST PURCHASES & BESPOKE CAKE BRIEFS
-    Guest->>Storefront: Places order / submits custom cake brief with email "guest@gmail.com"
-    Storefront->>API: POST /api/orders (customer_email = "guest@gmail.com")
-    API->>DB: INSERT INTO orders (user_id = shadow_id, customer_email = "guest@gmail.com")
-    API-->>Guest: Order Confirmed (ORD-xxxx)
+    Note over User,DB: 1. CREDENTIAL VERIFICATION & LOGIN
+    User->>Client: Enters email and password
+    Client->>AuthAPI: POST /api/auth/login {email, password}
+    AuthAPI->>DB: Query user by email (Case-insensitive)
+    alt User Not Found or Password Mismatch
+        AuthAPI-->>Client: 422 Unprocessable Entity (Invalid credentials)
+    else User Found & Password Matches Hash
+        AuthAPI->>DB: Check user status
+        alt Status is Inactive or Suspended
+            AuthAPI-->>Client: 403 Forbidden (Account is Suspended: reason)
+        else Status is Active
+            AuthAPI->>DB: Generate Sanctum Bearer Token
+            AuthAPI-->>Client: 200 OK {token, user: {id, name, role, branch_id}}
+            Client->>Client: Store token & user in localStorage
+        end
+    end
 
-    Note over Guest,DB: 2. CUSTOMER REGISTRATION
-    Guest->>Storefront: Registers new account with email "guest@gmail.com"
-    Storefront->>API: POST /api/auth/register
-    API->>DB: INSERT INTO users (email = "guest@gmail.com", email_verified_at = NULL)
-    API-->>Guest: 201 Created (email unverified; guest records remain unlinked)
-
-    Note over Guest,DB: 3. EMAIL OWNERSHIP VERIFICATION & ATOMIC LINKING
-    Guest->>Storefront: Clicks "Send Verification Code" on Account Dashboard
-    Storefront->>API: POST /api/auth/send-verification-code
-    API->>DB: INSERT INTO email_verifications (code = "729481", expires_at = +15 min)
-    API-->>Guest: OTP delivered to email
-
-    Guest->>Storefront: Submits 6-digit OTP code "729481"
-    Storefront->>API: POST /api/auth/verify-email (code = "729481")
-    API->>DB: Verify code & mark users.email_verified_at = NOW()
-    API->>DB: UPDATE orders SET user_id = new_user_id WHERE customer_email = "guest@gmail.com" AND shadow_user
-    API->>DB: UPDATE custom_cake_requests SET user_id = new_user_id WHERE customer_email = "guest@gmail.com" AND shadow_user
-    API->>DB: Log audit event "Linked historical orders and custom cakes"
-    API-->>Storefront: 200 OK (Email Verified & History Linked)
-    Storefront-->>Guest: Dashboard instantly populates with all past orders & bespoke cakes
+    Note over User,DB: 2. BEARER TOKEN AUTHENTICATION ON PROTECTED APIS
+    Client->>AuthAPI: GET /api/admin/inventory (Authorization: Bearer <token>)
+    AuthAPI->>DB: Validate token & load user
+    alt Token Invalid or Expired
+        AuthAPI-->>Client: 401 Unauthorized
+        Client->>Client: Clear localStorage & redirect to /login
+    else User Status Changed to Inactive/Suspended
+        AuthAPI->>DB: Revoke all tokens for user
+        AuthAPI-->>Client: 403 Forbidden
+    else Active & Valid
+        AuthAPI-->>Client: 200 OK (Scoped Inventory Payload)
+    end
 ```
 
-### Guest History Security Invariants:
-1. **Mandatory Email Ownership Verification:** Unverified user accounts are strictly forbidden from viewing, claiming, or linking historical guest records. Guest orders are linked **only after `email_verified_at` is confirmed**.
-2. **Duplicate Linking Prevention:** The atomic linking procedure (`linkGuestHistory()`) targets exclusively unlinked records or shadow placeholder accounts (`@sweetbakes.local`). Repeated execution finds 0 newly linked records and produces no side effects.
-3. **Cross-Customer Isolation:** A registered customer cannot link or access records belonging to another registered customer.
-4. **Data Preservation Guarantee:** Linking updates only the relational owner (`user_id`). Order numbers, product lines, quantities, unit prices, applied promotions, delivery fees, payment logs, and fulfillment status histories remain 100% immutable.
-5. **Dashboard Integration:** Authenticated customers see a verified status badge (`✓ Verified`) and direct tab navigation to past orders and custom cakes. Unverified accounts see a dedicated verification banner with 1-click OTP requesting and entry.
+### 4.2. Immediate Token Invalidation on Status Change
+When an administrator modifies an employee's account status (`PATCH /api/admin/users/{id}/status`):
+- Setting status to `Inactive` or `Suspended` immediately calls `$user->tokens()->delete()`.
+- Active browser sessions are terminated on their next HTTP request with `HTTP 401/403`.
+- Reinstating an account to `Active` allows new logins, but does not revive expired tokens.
+
+### 4.3. Roles, Permissions & Scoping Matrix (RBAC)
+The authoritative permission matrix governs access across all six operational tiers:
+
+| Operational Capability | Super Admin | Main Branch Manager | Branch Manager | Branch Seller / Cashier | Branch Staff / Servant | Customer |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Storefront Browsing & Ordering** | Yes | Yes | Yes | Yes | Yes | **Full** |
+| **Personal Orders & Tracking** | Own | Own | Own | Own | Own | **Own (2FA)** |
+| **Branch Order Queue** | No *(Audit only)* | Read-Only *(Main)* | Read-Only *(Own)* | **Full (POS/Manage)** | Kitchen Prep Only | No |
+| **Custom Cake Inquiries & Quotes** | View *(Audit)* | Read-Only *(Main)* | Read-Only *(Own)* | **Quote & Deposit** | View Only | Submit / Accept |
+| **Stock Dispatch (Create & Send)** | **Full** | **Full (From Main)** | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
+| **Stock Receive (Inflow)** | 403 Forbidden | Hidden *(Main doesn't receive)* | **Receive & View** | View Only | **Receive & View** | No |
+| **Branch Price Customization** | View All | Set Main Prices | Set Own Prices | 403 Forbidden | 403 Forbidden | No |
+| **Physical Inventory Adjustments** | Full | Adjust Main | Adjust Own | 403 Forbidden | 403 Forbidden | No |
+| **Daily Sales Reports** | View Rollups | Audit Main Reports | Audit Own Reports | **Submit Draft/Daily** | View Only | No |
+| **Staff Lifecycle Management** | **All Users** | Main Staff Only | Own Staff Only | No | No | No |
+| **Modify Manager Account Status** | **Yes** | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
+| **Self-Status Modification** | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
+| **Employee Salary Management** | **Full** | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
+| **Branch Setup (Zero-Data Guarantee)**| **Full** | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
+| **System Audit Logs & Settings** | **Full** | 403 Forbidden | 403 Forbidden | 403 Forbidden | 403 Forbidden | No |
 
 ---
 
-## 13. Verification & Quality Assurance Suite
+## 5. API Documentation
 
-Every rule in this specification is verified through an automated test suite ([`Backend/test_v41_comprehensive.php`](file:///c:/Kenan%20Cake/Backend/test_v41_comprehensive.php)):
+The platform exposes **179 registered RESTful routes**. All endpoints return standardized JSON structures.
 
-```bash
-php Backend/test_v41_comprehensive.php
-# Verification Result: Total Passed: 82 | Total Failed: 0
+### 5.1. Standard Error Responses
+- `401 Unauthorized`: Token missing, invalid, or expired.
+- `403 Forbidden`: Insufficient role privileges or cross-branch access attempt.
+- `404 Not Found`: Entity not found or hidden by branch scoping.
+- `422 Unprocessable Entity`: Validation failure (returns `{message: string, errors: {field: [string]}}`).
+- `429 Too Many Requests`: Rate limiter triggered.
+- `503 Service Unavailable`: Maintenance mode, database health check failure, or unconfigured payment webhook secret.
+
+### 5.2. Core Endpoint Specifications
+
+#### 1. System Health Monitoring
+- **`GET /api/health`**
+  - **Auth / Rate Limit:** Public / None
+  - **Description:** Verifies database connectivity and system status.
+  - **Success Response (200 OK):**
+    ```json
+    {
+      "status": "ok",
+      "timestamp": "2026-11-12T20:30:00Z",
+      "services": {
+        "database": "connected"
+      }
+    }
+    ```
+  - **Degraded Response (503 Service Unavailable):**
+    ```json
+    {
+      "status": "degraded",
+      "services": {
+        "database": "disconnected"
+      }
+    }
+    ```
+
+#### 2. Authentication & Profile Management
+- **`POST /api/auth/login`**
+  - **Rate Limit:** 5 requests / minute
+  - **Request Body:**
+    ```json
+    {
+      "email": "seller@sweetbakes.test",
+      "password": "Password123!"
+    }
+    ```
+  - **Success Response (200 OK):**
+    ```json
+    {
+      "token": "14|vNf79...",
+      "user": {
+        "user_id": 4,
+        "full_name": "Dessie Counter Seller",
+        "email": "seller@sweetbakes.test",
+        "role": "Branch Seller",
+        "branch_id": 2,
+        "status": "Active"
+      }
+    }
+    ```
+- **`POST /api/auth/register`** (`POST /api/auth/register`, throttled 10/min)
+- **`POST /api/auth/send-verification-code`** (`auth:sanctum`, throttled 5/min)
+- **`POST /api/auth/verify-email`** (`auth:sanctum`, throttled 10/min)
+  - **Request Body:** `{"code": "729481"}`
+  - **Behavior:** Verifies OTP and atomically links guest orders matching customer's verified email.
+
+#### 3. Public Storefront, Catalog & Branches
+- **`GET /api/branches`**
+  - **Description:** Returns all active branches with GPS coordinates and shopping access status.
+  - **Response (200 OK):**
+    ```json
+    [
+      {
+        "branch_id": 1,
+        "branch_name": "Main Branch - Dessie Piazza",
+        "branch_code": "BR-PIAZZA",
+        "branch_type": "Main",
+        "address": "Piazza Commercial Center, Dessie",
+        "city": "Dessie",
+        "latitude": "11.13150000",
+        "longitude": "39.63800000",
+        "phone_number": "+251911223344",
+        "is_shopping_enabled": true
+      }
+    ]
+    ```
+- **`GET /api/products`** (Filters: `branch_id`, `category_id`, `search`, `fasting_only`)
+  - Evaluates local price override in `branch_product_prices` -> falls back to `products.base_price`.
+- **`POST /api/orders`**
+  - **Rate Limit:** 30 requests / minute
+  - **Request Body:**
+    ```json
+    {
+      "branch_id": 2,
+      "fulfillment_method": "Delivery",
+      "customer_name": "Abebe Kebede",
+      "customer_phone": "+251911987654",
+      "customer_email": "abebe@gmail.com",
+      "address_id": 5,
+      "zone_id": 1,
+      "order_notes": "Handle with care",
+      "payment_method": "Chapa",
+      "items": [
+        {"product_id": 12, "quantity": 2}
+      ]
+    }
+    ```
+  - **Validation:** Quantities checked against $Q_{\text{available}}$ with row-level locks. Capped at 100 line items and 500 units.
+- **`POST /api/orders/track`**
+  - **Rate Limit:** 15 requests / minute
+  - **Request Body:** `{"order_number": "ORD-20261112-9842", "phone_or_email": "+251911987654"}`
+  - **Behavior:** Returns order milestones if and only if both factors match; masks PII.
+
+#### 4. Custom Cake Studio
+- **`POST /api/custom-cakes`**
+  - **Request Body:**
+    ```json
+    {
+      "branch_id": 2,
+      "customer_name": "Tigist Haile",
+      "customer_phone": "+251922334455",
+      "customer_email": "tigist@gmail.com",
+      "cake_size": "Two-Tier Celebration (8\" + 6\")",
+      "flavor": "Belgian Dark Chocolate",
+      "needed_by": "2026-11-20",
+      "message": "Happy Birthday Abel!",
+      "design_config": {
+        "tiers": 2,
+        "frosting_color": "#FAF7F2",
+        "topper": "Candle",
+        "dietary": "Ye'Tsom"
+      },
+      "image_url": "/storage/custom_cakes/snapshot_abc123.png"
+    }
+    ```
+- **`POST /api/admin/custom-cakes/{id}/quote`** (Roles: `Branch Seller`, `Main Branch Manager`)
+  - Sets authoritative `quoted_price` and required deposit percentage.
+- **`POST /api/custom-cakes/{id}/accept-quote`** (`auth:sanctum`, owner verification required).
+
+#### 5. Payments & Webhooks
+- **`POST /api/payments/webhook`**
+  - **Headers:** `x-chapa-signature: <hmac-sha256-hash>`
+  - **Payload:** Chapa payment callback with status, tx_ref, amount, and currency.
+  - **Validation:** Verifies HMAC-SHA256 signature against `CHAPA_WEBHOOK_SECRET`. Fails closed (`HTTP 503`) if secret is unconfigured.
+- **`POST /api/admin/payments/refund`**
+  - **Roles:** `Super Admin`, `Main Branch Manager`, `Branch Manager` (scoped to manager's branch).
+  - **Validation:** Refund amount cannot exceed original transaction amount ($A_{\text{refund}} \le A_{\text{payment}}$).
+
+#### 6. Stock Dispatch & Inflow Engine
+- **`POST /api/admin/dispatches`**
+  - **Roles:** `Super Admin`, `Main Branch Manager`
+  - **Payload:** `{"to_branch_id": 2, "notes": "Weekly morning delivery", "items": [{"product_id": 5, "quantity": 30}]}`
+  - **Behavior:** Dispatches from Main Branch; validates $Q_{\text{dispatch}} \le Q_{\text{main\_available}}$.
+- **`POST /api/admin/dispatches/{id}/send`**
+  - Deducts Main Branch inventory; sets status to `in_transit`; dispatches notifications to destination branch.
+- **`POST /api/admin/received-stocks`**
+  - **Roles:** `Branch Manager`, `Branch Staff`
+  - **Payload:** `{"dispatch_id": 14, "items": [{"product_id": 5, "quantity_received": 30}]}`
+  - **Validation:** Enforces $Q_{\text{received}} \le Q_{\text{dispatched}}$; destination branch must match authenticated user's branch. Atomically increments on-hand stock and updates dispatch status.
+
+#### 7. Multi-Tier Daily Sales Reporting
+- **`POST /api/admin/reports/seller/daily`** (Seller submits daily report).
+- **`POST /api/admin/reports/manager/seller-reports/{id}/verify`** (Manager verifies, approves, or returns report).
+- **`GET /api/admin/reports/admin/branch-summary`** (Super Admin read-only consolidated network summary).
+
+---
+
+## 6. Business Logic & Operational Workflows
+
+### 6.1. Product Pricing Resolution Hierarchy
+The platform ensures that pricing is always authoritative on the server:
+
+```mermaid
+flowchart TD
+    Start["Product Price Query (Product P, Branch B)"] --> LocalCheck{"Active price in branch_product_prices<br/>for Branch B?"}
+    LocalCheck -->|Yes| UseBranchPrice["Authoritative Price = branch_product_prices.price"]
+    LocalCheck -->|No| UseBasePrice["Authoritative Price = products.base_price"]
+    UseBranchPrice --> StockCheck{"Available Stock in Branch B<br/>(on_hand - reserved > 0)?"}
+    UseBasePrice --> StockCheck
+    StockCheck -->|Yes| Sellable["Product is Available for Purchase"]
+    StockCheck -->|No| OutOfStock["Marked OUT OF STOCK<br/>(Add to Cart Disabled)"]
 ```
 
-| Area | Test Scenario | Expected Outcome |
+### 6.2. Two-Phase Stock Distribution Engine
+Physical bakery goods transfer follows a non-repudiable two-phase chain:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor MainMgr as 🏭 Main Branch Manager / Super Admin
+    participant Server as ⚙️ Laravel Application
+    participant DB as 🗄️ MySQL Database
+    actor DestStaff as 👨‍💼 Branch Manager / Staff (Receiving Branch)
+
+    Note over MainMgr,DB: PHASE 1: MANIFEST CREATION & DISPATCH
+    MainMgr->>Server: POST /api/admin/dispatches (to_branch, items)
+    Server->>DB: Validate Main Branch quantity_on_hand >= dispatched quantity
+    Server->>DB: INSERT INTO stock_dispatches (status = 'in_transit')
+    Server->>DB: Decrement Main Branch quantity_on_hand
+    Server->>DB: INSERT INTO inventory_transactions (type = 'transfer_dispatch', -quantity)
+    Server->>DB: Dispatch notification to Destination Branch Manager & Staff
+
+    Note over DestStaff,DB: PHASE 2: VERIFIED RECEIVING
+    DestStaff->>Server: POST /api/admin/received-stocks (dispatch_id, items_received)
+    Server->>DB: Validate dispatch belongs to user's branch
+    Server->>DB: Validate quantity_received <= quantity_dispatched
+    Server->>DB: Increment Receiving Branch quantity_on_hand
+    Server->>DB: INSERT INTO received_stocks (...)
+    Server->>DB: INSERT INTO inventory_transactions (type = 'transfer_receive', +quantity)
+    Server->>DB: UPDATE stock_dispatches (status = 'received')
+    Server-->>DestStaff: 201 Created (Stock balance updated & ledger audited)
+```
+
+### 6.3. Order Fulfillment & Reservation Lifecycle
+- **Order Placement:** Items are validated against $Q_{\text{available}}$. Reserved quantity is atomically incremented:
+  $$\Delta Q_{\text{reserved}} = +Q_{\text{ordered}}$$
+- **Order Completion:** When handed to customer or delivered:
+  $$\Delta Q_{\text{on\_hand}} = -Q_{\text{ordered}}, \quad \Delta Q_{\text{reserved}} = -Q_{\text{ordered}}$$
+- **Order Cancellation:** Reserved stock is released with zero phantom drift:
+  $$\Delta Q_{\text{reserved}} = -Q_{\text{ordered}}$$
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending: Customer places order (Stock reserved)
+    Pending --> Confirmed: Branch seller confirms receipt
+    Confirmed --> Preparing: Kitchen begins baking/decorating
+    Preparing --> Ready: Packaged in bakery box
+    Ready --> OutForDelivery: Dispatched with courier (Delivery)
+    Ready --> ReadyForPickup: Ready at counter (Pickup)
+    OutForDelivery --> Completed: Delivered to doorstep (Stock deducted)
+    ReadyForPickup --> Completed: Collected by customer (Stock deducted)
+    Pending --> Cancelled: Cancelled (Reserved stock released)
+    Confirmed --> Cancelled: Cancelled (Reserved stock released)
+    Completed --> [*]
+    Cancelled --> [*]
+```
+
+### 6.4. Three-Level Sales Reporting Reconciliation
+1. **Sellers (Level 1):** Record physical cash in register, POS card receipts, and bank transfers. System pulls system-recorded orders and calculates variance:
+   $$\text{Variance} = (\text{Cash} + \text{Card} + \text{Transfer}) - \text{Total Booked Sales}$$
+2. **Branch Managers (Level 2):** Review variance and verify deposits. Approving locks the report permanently. Returning unlocks it with mandatory notes.
+3. **Super Admin (Level 3):** Consolidates network-wide approved daily reports into company-wide P&L rollups.
+
+---
+
+## 7. Frontend Architecture
+
+### 7.1. Application Structure & Modularity
+The client application is built with **Vue 3** using `<script setup>` Composition API and **Vite 5**.
+
+```
+Client/src/
+├── api.js                     # Central Axios instance (15s timeout, 401 handler, Bearer token)
+├── App.vue                    # Root component with ToastNotification & ModalDialog
+├── main.js                    # Pinia, Vue Router, Directive initialization
+├── layouts/
+│   ├── CustomerLayout.vue     # Public layout (Responsive header, Dessie branch selector, drawer, footer)
+│   └── AdminLayout.vue        # Back-office layout (Sidebar, role badge, branch context, notifications)
+├── views/
+│   ├── customer/              # Customer storefront views (Home, Shop, CustomCake, Cart, Checkout, Tracking)
+│   └── admin/                 # Administration views (Overview, Orders, Inventory, Dispatches, Reports, Users)
+├── components/
+│   ├── ToastNotification.vue  # Global reactive toast notification system
+│   ├── ModalDialog.vue        # Global promise-based confirmation & prompt dialog
+│   ├── LeafletBranchMap.vue   # Dynamic Leaflet map with real Dessie coordinates
+│   ├── CakeCanvas3D.vue       # Three.js WebGL canvas for custom cake studio
+│   ├── ProductCard.vue        # Responsive product card with hover animations
+│   └── CartDrawer.vue         # Slide-out high-speed cart drawer
+├── stores/
+│   ├── auth.js                # Token, user state, role checkers, permissions
+│   ├── branch.js              # Active branch selector, branch list, GPS coordinates
+│   ├── cart.js                # Cart items, quantity clamping, localized subtotals
+│   ├── wishlist.js            # Customer favorites collection
+│   ├── locale.js              # English / Amharic translation dictionary & state
+│   ├── toast.js               # Reactive toast trigger queue & deduplication
+│   └── dialog.js              # Promise-based modal confirmation & prompt service
+└── router/
+    └── index.js               # Route definitions, meta tags, and navigation guards
+```
+
+### 7.2. Pinia Reactive State Management
+- **`useAuthStore`:** Manages user session, token storage in `localStorage`, role getters (`isSuperAdmin`, `isBranchManager`, `isSeller`), and clean logout handling.
+- **`useBranchStore`:** Stores the currently selected shopping branch (`activeBranch`), coordinates list of active branches from `/api/branches`, and persists choice across navigation.
+- **`useCartStore`:** Reactive shopping cart managing items, quantities clamped to branch inventory, price calculations, and clearing cart upon checkout.
+- **`useLocaleStore`:** Controls bilingual state (`en` / `am`), providing translation keys across navigation, buttons, and badges.
+
+### 7.3. Routing & Navigation Guards
+- **Navigation Guard (`router.beforeEach`):**
+  - Evaluates `to.meta.requiresAuth`. Unauthenticated users are redirected to `/login`.
+  - Evaluates `to.meta.roles`. Users lacking the required role are redirected to `/admin` or unauthorized notice.
+  - Safely parses stored user credentials using `try/catch` around `localStorage.user` to prevent parsing crashes.
+- **Post-Navigation Hook (`router.afterEach`):**
+  - Dynamically updates the browser `document.title` and `<meta name="description">` tag for SEO.
+
+### 7.4. UI/UX, Animations & Mobile Responsiveness
+- **Hover & Click Animations:**
+  - Nav links smoothly transition text color to `#DE1B54` (250–300ms transition).
+  - Expanding underline grows left-to-right (`scale-x-0` to `scale-x-100`).
+  - Subtle text elevation lift (2–3px).
+  - Active page button remains highlighted with permanent pink underline.
+  - Active button click feedback (scale down to `0.97` and return).
+- **Responsive Navigation Drawer:**
+  - Dedicated mobile hamburger menu opening a backdrop-blurred slide-out drawer.
+  - Houses Home, Shop (with touch-expandable dropdown), About, Reviews, Contact, EN/አማ language toggle, and Dark/Light mode toggle.
+- **Accessibility & Motion:**
+  - `aria-label` attributes across all interactive icons and buttons.
+  - Accessibility skip link (`#main-content`) for screen readers.
+  - Respects `prefers-reduced-motion` media query by disabling animations.
+
+---
+
+## 8. Security Documentation
+
+### 8.1. OWASP Top 10 Mitigation Controls
+
+| OWASP Vulnerability | Risk Scenario | Implemented Platform Mitigation |
 |---|---|---|
-| **Stock Receive** | Receive for Main Branch (`branch_type = 'Main'`) | HTTP 422 Unprocessable Entity |
-| **Stock Receive** | Receive with no dispatch or dispatch for another branch | HTTP 422 (no dispatch) or HTTP 403 (wrong branch) |
-| **Stock Receive** | Valid receive against dispatch at regular branch | `quantity_on_hand` increments; `transfer_receive` transaction; audit log; notification |
-| **Stock Receive** | Receive quantity exceeding dispatched quantity | HTTP 422 Unprocessable Entity |
-| **Stock Dispatch** | Dispatch quantity exceeding Main Branch on-hand | HTTP 422 Unprocessable Entity |
-| **Stock Dispatch** | Valid dispatch confirmed | Main stock decrements; `transfer_dispatch` transaction; status `in_transit` |
-| **Data Isolation** | Branch A queries received stocks, orders, or staff | Exactly 0 records belonging to Branch B, even with query tampering |
-| **Data Isolation** | New branch initialized by Super Admin | All counters, sales, orders, and financial records start at 0 |
-| **Status Governance** | Super Admin changes any user status | 200 OK |
-| **Status Governance** | Any user attempts self-status modification | HTTP 403 Forbidden |
-| **Status Governance** | Manager attempts altering staff of another branch | HTTP 403 Forbidden |
-| **Status Governance** | Account set to `Suspended` without reason | HTTP 422 Unprocessable Entity |
-| **Status Governance** | Manager attempts creating Branch Manager or Admin | HTTP 403 Forbidden |
-| **Session Invalidation**| Account changed to `Inactive` or `Suspended` | Existing Sanctum tokens revoked immediately |
-| **Notifications** | Order milestone updated | Only relevant branch sellers, branch manager, and customer notified |
-| **Notifications** | Identical milestone triggered twice | Duplicate suppressed via unique composite constraint |
-| **Security** | 6th login attempt within 1 minute from same IP/email | HTTP 429 Too Many Requests |
-| **Security** | Order tracking queried with order number alone | Generic not-found response (Requires phone/email factor) |
-| **Database** | High-cardinality composite indexes active | `idx_orders_branch_status_placed`, `idx_inv_tx_branch_prod_created`, `idx_reports_branch_date_status` verified |
-| **Guest Linking**| Customer registers with phone used for guest orders | Historical orders & custom cakes automatically linked to user ID |
-| **Financial** | Refund amount exceeding recorded payment | HTTP 422 Unprocessable Entity ($amount <= $payment->amount) |
-| **Inventory** | Order cancelled / refunded | Reserved stock released cleanly (`quantity = 0`) with zero phantom drift |
-| **Pricing** | Branch price update & read via `/api/admin/branch-prices` | HTTP 200 OK with scoped branch pricing |
-| **Build & Assets** | Production frontend build (`npm run build`) | Zero errors and zero warnings |
+| **A01: Broken Access Control** | User accesses orders or modifies prices belonging to another branch (IDOR). | **Server-side branch isolation:** Queries automatically force `branch_id = $request->user()->branch_id`. `OrderController::show()`, `cancel()`, `CustomCakeController`, and `PaymentController::refund()` enforce strict user ownership or branch staff checks. |
+| **A02: Cryptographic Failures** | Insecure password storage or exposed webhook payloads. | Passwords hashed using standard **Bcrypt** with dynamic work factors. Chapa webhook signatures verified using **HMAC-SHA256**. Bearer tokens stored as SHA256 hashes in `personal_access_tokens`. |
+| **A03: Injection** | SQL injection in order queries or inventory adjustments. | 100% of queries use **Eloquent ORM** and parameterized PDO statements. Input payloads strictly typed via Laravel `FormRequest` validation. |
+| **A04: Insecure Design** | Public order enumeration to scrape customer addresses and phone numbers. | **Two-factor order tracking:** Requires both `order_number` AND phone/email. Tracking alone returns generic not-found responses. PII masked in output. |
+| **A05: Security Misconfiguration** | Debug mode left active in production or permissive HTTP headers. | `APP_DEBUG=false` in production. Nginx enforces `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy`. |
+| **A06: Vulnerable Components** | Outdated NPM or Composer packages containing known CVEs. | Continuous auditing: `composer audit` reports **0 vulnerabilities**; `npm audit` reports **0 vulnerabilities**. |
+| **A07: Identification & Auth** | Credential stuffing and brute-force attacks on login. | `POST /api/auth/login` throttled to **5 requests / minute**. `POST /api/orders/track` throttled to **15 / min**. Tokens revoked immediately upon account suspension. |
+| **A08: Software & Data Integrity** | Customer modifies product price or line total in browser before checkout. | **Authoritative server recalculation:** Client-supplied unit prices, line totals, and grand totals are completely ignored and recalculated from server databases. |
+| **A09: Logging & Monitoring** | Unauthorized inventory or salary modifications go undetected. | Immutable `audit_logs` record user ID, action, model, IP address, and JSON before/after state diff. Live database health monitored at `/api/health`. |
+| **A10: SSRF** | Arbitrary URL downloads through image upload endpoints. | Upload endpoints (`/api/admin/products/upload-image`, `/api/admin/settings/upload-image`) accept only valid multipart image files (`jpg`, `jpeg`, `png`, `webp` $\le$ 5 MB) stored locally via `storage/app/public`. |
+
+### 8.2. Secrets & Environment Configuration Policy
+- Production secrets (`APP_KEY`, `DB_PASSWORD`, `CHAPA_WEBHOOK_SECRET`, `CHAPA_SECRET_KEY`) must never be committed to source control.
+- `services.chapa.webhook_secret` fails closed: If missing or unconfigured, the webhook endpoint rejects requests with `HTTP 503 Service Unavailable`.
+- Role-switching endpoints (`/api/auth/switch-role`) require an active authenticated `Super Admin` across all environments.
 
 ---
 
-## 13. System Maintenance & Quick Start
+## 9. Testing Strategy & Quality Assurance
 
-### Local Development Environment:
-```bash
-# 1. Start MySQL in XAMPP on port 3306 (database: kenean-cake-and-bread or sweetbakes_db)
-# Ensure Backend/.env has DB_CONNECTION=mysql, DB_DATABASE=kenean-cake-and-bread (or sweetbakes_db), DB_USERNAME=root, DB_PASSWORD=
+### 9.1. Multi-Tier Testing Pyramid
+The quality assurance strategy spans automated unit/feature tests, browser automation via Chrome DevTools Protocol (CDP), and static code analysis.
 
-# 2. Run database migrations
-php Backend/artisan migrate
-
-# 3. Start Laravel REST API server
-php Backend/artisan serve --port=8000
-
-# 4. Start Vue 3 Vite Client
-npm --prefix Client run dev
-# Running at: http://localhost:5173
+```mermaid
+flowchart TD
+    E2E["Automated Browser E2E & Responsive Suites<br/>(Headless Chrome CDP across 7 Viewports: 75 Checks, 0 Failures)"]
+    Feature["Backend Feature & Security Integration Tests<br/>(PHPUnit SQLite In-Memory: 8 Passed, 45 Assertions)"]
+    Static["Static Security & Code Quality Audits<br/>(Composer Audit: 0 CVEs, NPM Audit: 0 Vulnerabilities)"]
+    
+    E2E --> Feature
+    Feature --> Static
 ```
 
-### Production Build:
+### 9.2. Automated Backend Test Suite
+Executed via PHPUnit using in-memory SQLite schemas:
+- **`SecurityAuditTest.php`:**
+  - Order IDOR protection: Confirms customer cannot view or cancel orders belonging to another user (`403 Forbidden`).
+  - Custom Cake quote tampering: Confirms customer cannot accept quote belonging to another request (`403 Forbidden`).
+  - Cross-branch payment scoping: Confirms Branch Manager cannot view payments or initiate refunds for other branches.
+  - Fail-closed Chapa webhook: Confirms invalid or missing signature returns `HTTP 503 / 401`.
+  - Delivery zone calculation: Verifies correct fee addition from `delivery_zones`.
+  - System health endpoint: Confirms `/api/health` returns `200 OK` with database status.
+- **`WebsiteSettingUploadTest.php`:**
+  - Image upload validation: Confirms proper multipart handling, storage, and URL path generation for website settings.
+
 ```bash
-npm --prefix Client run build
+# Backend Test Execution:
+cd Backend && php artisan test
+# Result: 8 passed, 0 failed (45 assertions, 971ms)
 ```
 
-### Development Seed Accounts (v4.1):
-| Role | Email |
-|---|---|
-| **Super Admin** | `admin@sweetbakes.test` |
-| **Main Branch Manager** | `main.manager@sweetbakes.test` |
-| **Branch Seller / Cashier** | `seller@sweetbakes.test` |
-
-> [!CAUTION]
-> Seed credentials are for local development and testing only. Passwords are set from the `SEED_DEFAULT_PASSWORD` environment variable and must be changed upon first login.
-
----
-
-## 14. Complete Website Functionality & Feature Catalog
-
-This section provides an exhaustive, screen-by-screen, and role-by-role functional catalog of the entire SweetBakes platform, detailing user workflows, interactive components, data inputs, automated validations, and state machines across both the customer-facing storefront and administrative operations portals.
-
-### 14.1. Customer-Facing E-Commerce Storefront (`/`)
-
-#### 1. Global Navigation & Header ([`CustomerLayout.vue`](file:///c:/Kenan%20Cake/Client/src/layouts/CustomerLayout.vue))
-- **Brand Identity & Home Link:** SweetBakes gold & terracotta luxury logo routing to `/`.
-- **Navigation Links:** Instant access to `Home`, `Shop`, `Custom Cake Studio`, `Branches`, `About`, `FAQ`, and `Contact`.
-- **Active Branch Selector Dropdown:**
-  - Displays currently selected bakery branch (e.g., "Bole Medhanialem Branch").
-  - Dropdown modal reveals all active company branches with physical addresses, phone numbers, and live operational status (`Open Now` / `Closed`).
-  - Switching branches automatically recalibrates catalog product availability, stock counters, delivery fees, and estimated fulfillment times without clearing selected cart items.
-- **Header Actions & Utilities:**
-  - **Live Search Bar:** Real-time debounced typeahead searching product titles, descriptions, and categories.
-  - **Wishlist Trigger:** Quick-access modal displaying customer saved favorites with 1-click "Move to Cart".
-  - **Slide-Out Cart Drawer Trigger:** Displays badge counter of total cart items. Clicking opens the high-speed slide-out cart drawer without navigating away from the current page.
-  - **Authentication / Account Menu:** Dynamically toggles between "Sign In / Register" buttons and an authenticated customer profile dropdown ("My Account", "Order History", "Saved Addresses", "Logout").
-
-#### 2. Homepage & Brand Showcase ([`CustomerHomeView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomerHomeView.vue))
-- **Hero Presentation:**
-  - High-impact luxury bakery banner utilizing deep chocolate (`#3D251E`) and warm cream tones.
-  - Dynamic Typewriter Headline: Cycles through bespoke artisanal slogans ("Handcrafted with Passion", "Artisanal Breads Baked Fresh Daily", "Bespoke Celebration Cakes") with authentic humanized typing cadence, blinking cursor, and smooth pause intervals.
-  - Motion Accessibility: Automatically honors `prefers-reduced-motion` OS settings by rendering clean static typography.
-  - Dual Primary CTAs: "Explore Menu" (routes to `/shop`) and "Design 3D Cake" (routes to `/custom-cake`).
-- **Signature Category Showcase:**
-  - Visual category cards: *Artisan Cakes & Gateaux*, *Viennoiserie & Pastries*, *Sourdough & Artisan Breads*, *Savory Delights*, and *Bespoke Celebration Cakes*.
-  - Hover micro-interactions with elevation lift and category badge counters.
-- **Featured Best-Sellers Grid:**
-  - Dynamic product cards featuring high-resolution photography, localized branch pricing, dietary indicators (e.g. Vegetarian, Nut-Free, Eggless), and instant "Add to Cart" actions.
-- **Quality & Craftsmanship Pillars:**
-  - Highlights bakery core values: 100% Pure Butter Pastries, 24-Hour Cold Fermentation Sourdoughs, Fresh Daily Baking, Master Pâtissiers, and Halal-Certified Ingredients.
-- **Customer Testimonials & Social Proof:**
-  - Authentic customer reviews with star ratings, occasion tags (e.g. "Wedding Cake", "Corporate Catering"), and reviewer location.
-- **Interactive Branch Locator & Operating Hours:**
-  - Quick-lookup directory of all branches with interactive map triggers, opening hours, direct phone dialing, and "Set as My Branch" buttons.
-- **Comprehensive Footer:**
-  - Brand mission statement, quick navigation links, newsletter subscription, payment partner badges, copyright, and social media channels.
-
-#### 3. Menu & Product Catalog ([`ShopView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/ShopView.vue))
-- **Category Filter Pills:** Seamless filtering across `All Products`, `Cakes`, `Pastries`, `Breads`, `Savory`, and `Specialty Occasions`.
-- **Search & Multi-Facet Sorting:**
-  - Instant text filter by keyword.
-  - Sorting options: *Featured / Best Sellers*, *Price: Low to High*, *Price: High to Low*, and *Newest Arrivals*.
-- **Real-Time Stock Availability Indicators:**
-  - `In Stock` (Forest Emerald badge): Product is plentiful at selected branch.
-  - `Only X Left` (Warm Amber badge): Inventory count is below 5 units, indicating scarcity.
-  - `Out of Stock` (Muted Gray badge): Add-to-cart button is disabled with an optional "Notify When Available" prompt.
-- **Interactive Product Cards:**
-  - Image preview with subtle zoom on hover.
-  - Quick-add button with quantity selector.
-  - Localized Branch Pricing: Displays branch-specific pricing if configured by the branch manager; falls back to company base price.
-
-#### 4. Product Detail View ([`ProductDetailView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/ProductDetailView.vue))
-- **Product Media Gallery:** High-resolution main image with zoom and alternate thumbnails.
-- **Product Overview & Metadata:** Full description, serving size recommendations, weight/dimensions, and storage instructions.
-- **Nutritional Information & Allergen Disclosures:** Explicit allergen flags (Gluten, Dairy, Eggs, Tree Nuts, Soy).
-- **Branch Stock & Quantity Selector:**
-  - Dynamic quantity counter clamped strictly between 1 and the selected branch's on-hand inventory.
-  - Real-time subtotal calculation.
-- **Related Products Carousel:** Intelligent recommendations based on complementary categories (e.g. suggesting pastries when browsing cakes).
-
-#### 5. Interactive 3D Custom Cake Studio ([`CustomCakeBuilderView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CustomCakeBuilderView.vue))
-- **Interactive Three.js WebGL 3D Canvas:**
-  - Real-time 3D rendering of custom cake geometry with physically based lighting and studio environment reflections.
-  - Full 360-degree orbit rotation, vertical tilt control, touch pinch-to-zoom, and auto-turntable spin mode.
-- **Customization Options & Layers:**
-  - **Tier Configuration:** Single Tier (1 kg / 2 kg), Two Tiers (3 kg / 4 kg), or Three Tiers (5 kg+ grand celebration).
-  - **Sponge Flavors:** Belgian Dark Chocolate, Bourbon Vanilla Bean, Red Velvet, Funfetti Confetti, Spiced Carrot Walnut, and Zesty Lemon.
-  - **Frosting Textures & Finishes:** Satin Smooth Fondant, Rustic Buttercream Swirls, Naked / Semi-Naked Crumb Coat, Horizontal Ribbed Lines, and Cascading Chocolate/Caramel Drip.
-  - **Frosting Color Palette:** Interactive hex color picker plus curated bakery swatches (Champagne Cream, Dusty Rose, Lavender Mist, Sage Green, Midnight Navy, White Pearl).
-  - **Accents & 3D Toppers:** Animated 3D birthday candles with procedural flickering flame, Wedding Rings, Golden Celebration Crest, and Edible Pearl Sprinkles.
-  - **Custom Piped Inscription:** Text box allowing customers to type personalized greeting (e.g. "Happy 30th Birthday Sarah!"); text is dynamically textured onto a sugar ribbon in the 3D scene.
-- **Instant Dynamic Price Estimation:**
-  - Mathematical live quotation calculating base tier cost + premium flavor modifiers + topper additions.
-- **WebGL Snapshot Capture:**
-  - 1-Click snapshot generator captures the current 3D canvas viewport as a high-resolution PNG data blob, automatically bundled with the order request for bakery decorators.
-- **Booking & Request Submission Form:**
-  - Fulfillment branch selector, event date and time picker, contact phone and email, and special dietary/allergen notes.
-  - Submits to `/api/custom-cakes` where it routes directly to the designated branch seller queue.
-
-#### 6. Cart Drawer & Dedicated Cart View ([`CartView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CartView.vue) & [`CartDrawer.vue`](file:///c:/Kenan%20Cake/Client/src/components/cart/CartDrawer.vue))
-- **Slide-Out Drawer & Full Page:** Consistent cart experience whether quickly reviewing via slide-out drawer or visiting `/cart`.
-- **Itemized Ledger:** Product thumbnail, title, selected options, unit price, quantity modifier (`+`/`-` with on-hand stock boundary check), line total, and remove item action.
-- **Branch Change Protection:** Warns customer if changing branches causes any cart item to exceed the new branch's available inventory.
-- **Order Financial Summary:** Itemized subtotal, estimated tax, estimated branch delivery fee, and grand total.
-
-#### 7. Multi-Step Checkout ([`CheckoutView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/CheckoutView.vue))
-- **Step 1: Fulfillment Selection:**
-  - *Branch Pickup:* Customer selects pickup date and time window; zero delivery fee applied.
-  - *Doorstep Delivery:* Customer inputs delivery address, city/neighborhood, landmark instructions, recipient name, and active mobile number. Delivery fee dynamically calculated.
-- **Step 2: Customer Contact Information:**
-  - Supports both authenticated customer profiles and guest checkouts.
-  - Phone number validated for SMS notifications and two-factor tracking lookups.
-- **Step 3: Payment Method Selection:**
-  - *Cash on Delivery / Pickup:* Pay cash upon collection or arrival.
-  - *Direct Bank Transfer / Telebirr:* Displays bakery bank account numbers and QR code with receipt upload voucher.
-  - *Online Debit/Credit Card:* Card payment gateway integration.
-  - *Advance Deposit:* For large orders, pay a required minimum advance deposit with remainder due at collection.
-- **Order Placement & Stock Reservation:**
-  - Submits transaction to `/api/orders`.
-  - Atomically reserves on-hand stock and generates an authoritative order number (`ORD-xxxx`).
-  - Redirects customer to immediate Order Confirmation screen with order number and tracking links.
-
-#### 8. Two-Factor Public Order Tracker ([`OrderTrackingView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/OrderTrackingView.vue))
-- **Two-Factor Authentication Security (v4.1):**
-  - Requires both the **Order Reference Number** (`ORD-xxxx` or `CCR-xxxx`) AND matching **Customer Phone Number or Email**.
-  - Prevents public enumeration and brute-force order scraping.
-- **Fulfillment Milestone Stepper:**
-  - Visual 5-step milestone tracking:
-    1. *Order Placed:* Received by bakery system.
-    2. *Confirmed:* Verified by branch seller.
-    3. *In Kitchen / Preparing:* Baked and decorated by master baker.
-    4. *Ready for Pickup / Out for Delivery:* Packaged in bakery box awaiting pickup or dispatched with courier.
-    5. *Delivered / Collected:* Successfully handed to customer.
-- **Itemized Order Receipt:** Displays items ordered, fulfillment branch address, contact phone, and payment status.
-- **Privacy Protection:** Customer phone numbers and emails are masked in tracking API responses to safeguard customer PII.
-
-#### 9. Customer Account & Authentication ([`LoginView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/LoginView.vue), [`RegisterView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/RegisterView.vue), [`AccountView.vue`](file:///c:/Kenan%20Cake/Client/src/views/customer/AccountView.vue))
-- **Rate-Limited Authentication:** Login throttled to 5 attempts per minute per IP/account to prevent brute-force attacks.
-- **Guest Order Auto-Linking (v4.1):** Registering an account with a mobile phone number automatically queries and links all historical guest retail orders and custom cake requests placed with that phone number.
-- **Customer Dashboard:**
-  - Recent orders directory with 1-click status check and printable PDF receipts.
-  - Custom cake quotation tracker: Review quotes provided by branch sellers, approve quote, and view deposit status.
-  - Saved delivery addresses management.
-  - Saved Wishlist collection.
+### 9.3. Browser E2E & Responsive Verification Suite
+Automated Headless Chrome CDP testing executed across multiple screen widths:
+- **Responsive Layout Verification (`verify_responsive_design.mjs`):**
+  - **Tested Viewports:** 320px (Compact Mobile), 375px (iPhone SE), 390px (iPhone 14/15), 430px (iPhone 16 Pro Max), 768px (Tablet), 1024px (Small Desktop), 1440px (High-Res Desktop).
+  - **Metrics Verified:** Zero horizontal scroll overflow (`scrollWidth <= innerWidth`), visible CTA buttons, accessible mobile hamburger drawer, responsive font scaling, Amharic font rendering.
+  - **Outcome:** **56 Passed, 0 Failed, 0 Runtime Exceptions**.
+- **Feature Functionality Verification (`verify_features_e2e.mjs`):**
+  - **Features Tested:** Super Admin photo upload in settings, Simplified 2-step Custom Cake ordering UI with Three.js canvas, Interactive Leaflet map of Dessie with real GPS coordinates.
+  - **Outcome:** **19 Passed, 0 Failed, 0 Runtime Exceptions**.
 
 ---
 
-### 14.2. Branch Seller & Cashier Operations Portal (`/admin`)
+## 10. Infrastructure and Deployment
 
-#### 1. Seller POS & Walk-In Counter Sales ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
-- **Counter Order Entry:** Fast, tactile point-of-sale interface designed for touchscreens and barcode/keyboard entry.
-- **Localized Catalog Search:** Instant search scoped exclusively to the seller's assigned branch inventory and localized pricing.
-- **Transaction Processing:** Add items, adjust quantities with real-time stock clamping, apply line-item or order-level discounts with seller note.
-- **Payment Recording:** Accept cash, card, mobile money (Telebirr), or split payments; automatic change calculator.
-- **Thermal Receipt Printing:** Instant browser print dialog formatted for 80mm thermal receipt printers with company logo, branch tax details, itemized breakdown, and pickup QR code.
+### 10.1. Docker Container Topology
+The platform is containerized using Docker and Docker Compose for reproducible production deployments:
 
-#### 2. Online Order Management ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
-- **Scoped Branch Order Queue:** Sellers see only orders assigned to their branch.
-- **Order Milestone Transitions:**
-  - Update status along the strict state machine: `pending` $\rightarrow$ `confirmed` $\rightarrow$ `preparing` $\rightarrow$ `ready_for_pickup` / `out_for_delivery` $\rightarrow$ `completed`.
-  - Trigger automated role-filtered customer notifications and supervisory alerts on each transition.
-- **Order Cancellation:** Allows authorized cancellation with mandatory reason logging; automatically releases reserved stock back into on-hand branch inventory.
+```mermaid
+flowchart TD
+    subgraph Host["Production Host / Cloud VM"]
+        subgraph DockerCompose["Docker Compose Network (sweetbakes_network)"]
+            Nginx["Nginx Container (Alpine)<br/>Port 80/443 -> 9000"]
+            PHP["PHP-FPM Container (PHP 8.2)<br/>Port 9000"]
+            MySQL["MySQL Container (MySQL 8.0)<br/>Port 3306"]
+        end
+        Volumes["Named Docker Volumes<br/>(mysql_data, storage_uploads)"]
+    end
 
-#### 3. Custom Cake Inquiries & Quotations ([`CustomCakesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/CustomCakesView.vue))
-- **Bespoke Request Inbox:** Lists all 3D cake requests submitted by customers for the seller's branch.
-- **Design Review Modal:** Inspect customer 3D WebGL snapshot, selected tiers, sponge flavors, frosting colors, piped inscription text, reference photo uploads, and event due date.
-- **Formal Price Quotation Engine:**
-  - Enter total agreed price and required advance deposit (minimum percentage enforced).
-  - Specify cake decorator notes and production prep time.
-  - System notifies customer to review and accept the official quotation.
-- **Deposit & Final Payment Recording:**
-  - Record cash/transfer deposit upon receipt.
-  - Automatic balance calculation: $\text{Remaining Balance} = \text{Agreed Price} - \text{Advance Deposit}$.
-  - Record final balance payment when customer collects cake.
+    Internet["Public Traffic"] --> Nginx
+    Nginx --> PHP
+    PHP --> MySQL
+    MySQL --> Volumes
+    PHP --> Volumes
+```
 
-#### 4. Seller Daily Sales Report ([`SellerDailyReportView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/SellerDailyReportView.vue))
-- **1-Click Transaction Import:** Auto-populates all counter sales, online collections, and custom cake deposits completed at the branch today.
-- **Financial Separation of Booked Sales vs Cash Collected (v4.1):**
-  - **Booked Sales:** Total agreed revenue generated today.
-  - **Cash Collected:** Actual currency physically collected (Cash in Till + Card Slips + Verified Bank Transfers + Cake Deposits).
-- **Payment Method Reconciliation:** Separate input buckets for Cash, POS Card, and Bank/Mobile Transfers.
-- **Discrepancy Audit:** Notes field for any cash over/short differences.
-- **Lifecycle Actions:**
-  - `Save Draft`: Save progress and return later.
-  - `Submit to Manager`: Locks seller edits and submits report to the Branch Manager for formal verification.
-  - `Returned Alert Banner`: If the Branch Manager returns the report, displays an amber warning banner with the manager's mandatory review notes, unlocking all fields for correction and resubmission.
+### 10.2. Nginx Web Server Configuration
+Located at [`docker/nginx/default.conf`](file:///c:/Kenan%20Cake/docker/nginx/default.conf):
+- **Gzip Compression:** Enabled for `text/plain`, `text/css`, `application/json`, `application/javascript`, `image/svg+xml`.
+- **Static Asset Caching:** Cache-Control headers set to `public, max-age=31536000, immutable` for versioned chunks in `/assets/`.
+- **Security Headers:**
+  ```nginx
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "SAMEORIGIN" always;
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(self)" always;
+  ```
 
-#### 5. Localized Branch Notifications ([`NotificationsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/NotificationsView.vue))
-- Scoped strictly to the seller's branch ID.
-- Real-time alerts for incoming online orders, custom cake submissions, customer cancellations, and manager report decisions.
-- Mark as read, mark all as read, and filter by unread status.
+### 10.3. Environment Variables Specification
+| Variable | Required In | Description / Sample Value |
+|---|:---:|---|
+| `APP_NAME` | All | `Kenean Cake and Food` |
+| `APP_ENV` | Production | `production` |
+| `APP_DEBUG` | Production | `false` |
+| `APP_URL` | Production | `https://keneanbakery.com` |
+| `DB_CONNECTION` | All | `mysql` |
+| `DB_HOST` | Production | `db` (Docker service) or `127.0.0.1` |
+| `DB_PORT` | All | `3306` |
+| `DB_DATABASE` | All | `kenean-cake-and-bread` |
+| `DB_USERNAME` | Production | Secure database username |
+| `DB_PASSWORD` | Production | Strong production secret |
+| `CHAPA_PUBLIC_KEY` | Production | Public Chapa API key |
+| `CHAPA_SECRET_KEY` | Production | Secret Chapa API key |
+| `CHAPA_WEBHOOK_SECRET` | Production | HMAC SHA256 webhook signing secret |
+| `SANCTUM_STATEFUL_DOMAINS` | Production | Domain hostname of client application |
 
----
-
-### 14.3. Branch Manager Supervisory Administration (`/admin`)
-
-#### 1. Branch Executive Overview ([`OverviewView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OverviewView.vue))
-- Real-time KPIs for assigned branch: Today's Total Sales, Month-to-Date Revenue, Pending Order Queue, Low Stock Alerts, and Active Staff Count.
-- Hourly sales distribution and best-selling bakery categories charts.
-
-#### 2. Supervisory Order Oversight ([`OrdersView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OrdersView.vue))
-- Read-only supervisory visibility over all branch orders and custom cake requests (v4.1).
-- Allows managers to monitor kitchen throughput and delivery pacing without interfering with seller cash drawer accountability.
-
-#### 3. Branch Staff Governance & Security ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue))
-- **Scoped Staff Directory:** Manager views only employees assigned to their own branch.
-- **Recruit Branch Staff:** Create staff accounts restricted exclusively to operational roles (`Branch Seller`, `Cashier`, `Servant`, `Branch Staff`). Attempts to create elevated roles return HTTP 403 Forbidden.
-- **Account Status Management:**
-  - Toggle staff status: `Active`, `Inactive`, or `Suspended`.
-  - Mandatory Reason Requirement: Suspending an employee requires entering a detailed `status_reason`.
-  - Immediate Session Termination: Suspending or deactivating an account immediately revokes all active Sanctum API bearer tokens, terminating active sessions instantly.
-  - Self-Modification Protection: Managers cannot alter their own account status or assign themselves to other branches (enforced by backend validation).
-
-#### 4. Branch Product Pricing Customization ([`ProductsPricesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ProductsPricesView.vue))
-- View base company master catalog alongside branch-specific selling prices.
-- Set or update custom selling prices for any product at their branch (e.g. premium airport branch vs neighborhood branch).
-- Stored with unique composite key `(branch_id, product_id)` in `branch_product_prices`.
-
-#### 5. Inventory Management & Stock Reconciliation ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue))
-- Real-time inventory grid showing SKU, Product Name, Category, Minimum Safety Level, and On-Hand Balance.
-- Color-coded safety alerts: Green (Healthy), Amber (Reorder Warning), Red (Depleted / Critical).
-- **Physical Count Adjustment Modal:**
-  - Perform manual stock adjustments following physical stocktakes.
-  - Mandatory adjustment reason: *Damaged in Kitchen*, *Expired / Spoiled*, *Physical Count Discrepancy*, *Sample / Promotion*.
-  - Every adjustment writes an immutable record to `inventory_transactions` with user ID and timestamp.
-
-#### 6. Stock Receiving Workflow ([`InventoryView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/InventoryView.vue)) *(Regular Branches Only)*
-- **Dedicated "Stock Receive" Button:** Prominently displayed for all regular branches; automatically hidden on the Main Branch.
-- **Incoming Dispatches Modal:**
-  - Lists all pending shipments dispatched by Main Branch to this destination.
-  - Displays Product Name, Category, Dispatched Quantity, Reference Number, and Dispatch Date.
-- **Verified Receiving Input:**
-  - Manager or authorized staff inputs actual received quantity.
-  - Over-Receiving Guard: Blocks entering a quantity greater than dispatched ($Q_{\text{received}} \le Q_{\text{dispatched}}$).
-  - Submission atomically increments branch `quantity_on_hand`, updates dispatch status to `received`, records an audit transaction, and notifies Main Branch.
-
-#### 7. Seller Daily Report Verification ([`ManagerOrderReportsView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/ManagerOrderReportsView.vue))
-- Audit queue of daily reports submitted by branch sellers.
-- Side-by-side verification: Recorded physical cash vs system-booked sales.
-- **Manager Actions:**
-  - `Approve Report`: Formally approves the report, permanently locking all numbers from further modification and archiving it for Super Admin review.
-  - `Return for Correction`: Requires entering mandatory review notes explaining discrepancies; changes report status to `Returned` and alerts the seller to rectify errors.
+### 10.4. Database Backup, Monitoring & Rollback Procedures
+- **Automated Backup:** `POST /api/admin/database/backup` executes `mysqldump` saving an encrypted `.sql.gz` archive to secured local storage.
+- **Health Monitoring:** External uptime monitors poll `GET /api/health` every 60 seconds. An alert is dispatched if HTTP 503 is returned.
+- **Rollback Procedure:**
+  1. Rollback code: `git checkout <previous_stable_tag>`.
+  2. Rollback database: `php artisan migrate:rollback --step=1`.
+  3. Rebuild frontend: `npm run build`.
+  4. Clear Laravel caches: `php artisan config:cache && php artisan route:cache && php artisan view:cache`.
 
 ---
 
-### 14.4. Main Branch Distribution & Logistics Engine (`/admin`)
+## 11. Maintenance and Upgrade History
 
-#### 1. Central Distribution Dispatch Hub ([`DistributionView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/DistributionView.vue) & [`NewTransferView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/NewTransferView.vue))
-- Available exclusively to the Main Branch Manager and Super Admin.
-- **Create Stock Dispatch Manifest:**
-  - Select Destination Branch from active branches list.
-  - Multi-Item Dispatch Builder: Add catalog products and specify quantities to transfer.
-  - Stock Safeguard: Validates dispatch quantity against Main Branch available on-hand inventory ($Q_{\text{dispatch}} \le Q_{\text{main}}$). Prevents negative inventory dispatches.
-- **Shipment Confirmation & Tracking:**
-  - "Confirm & Send Dispatch" action immediately deducts inventory from Main Branch with a `transfer_dispatch` audit transaction.
-  - Generates unique dispatch reference code (`DSP-xxxx`).
-  - Sets shipment status to `in_transit`.
-  - Dispatches automated notification to destination branch manager and staff alerting them of incoming stock.
-- **Dispatch Manifest Archive:**
-  - Historical archive of all dispatches, delivery statuses, receiver signatures, and reconciliation notes.
+### 11.1. Version Release History
 
----
+#### Version 4.2 (Current Release - November 2026)
+*Comprehensive Website Audit, Security Hardening & Performance Optimization:*
+- **Interactive Dessie Leaflet Map:** Replaced static map placeholder with interactive Leaflet map featuring real GPS coordinates of Dessie branches (Piazza HQ, Buabuha, Fuad, Erobit).
+- **Settings Image Upload:** Implemented backend endpoint and frontend controls allowing Super Admin to upload custom About and Bakery photos directly from mobile/PC.
+- **Simplified Custom Cake Ordering UI:** Redesigned customization form into a clean 2-step visual workflow while preserving the 3D WebGL Three.js canvas.
+- **Full Mobile Responsive Overhaul:** Optimized layouts for iPhone 16 Pro Max and medium mobile viewports (320px–430px). Eliminated horizontal overflow; fixed disappearing navigation via slide-out drawer.
+- **Premium Micro-Interactions:** Implemented 250–300ms pink accent (`#DE1B54`) hover/click animations, expanding underline, 2–3px elevation lift, and active page persistence.
+- **Security Audit Fixes:** Resolved IDOR vulnerabilities on orders, custom cakes, and address management; hardened Chapa webhook verification to fail-closed HMAC-SHA256; restricted role-switching to Super Admin across all environments.
+- **Performance Optimizations:** Code-split Leaflet into `vendor-leaflet.js` (saving ~148 kB from main bundle); eliminated N+1 database queries in catalog and overview controllers; compressed hero banners by ~4.47 MB; added Nginx gzip and caching rules.
+- **Health Monitoring:** Added `GET /api/health` endpoint for database and uptime telemetry.
 
-### 14.5. Super Admin Headquarters Governance (`/admin`)
+#### Version 4.1 (November 2026)
+*Architectural Harmonization & Supply Chain Fixes:*
+- Unified Role Matrix: Read-only order supervision for Branch Managers; Main Branch Manager explicitly covered.
+- Linked Two-Phase Stock Distribution: Created `stock_dispatches`, `stock_dispatch_items`, and linked `received_stocks`.
+- Main Branch Detection: Replaced hardcoded `branch_id = 1` checks with `branch_type = 'Main'`.
+- Schema Precision: Fixed branch longitude to `DECIMAL(11, 8)`.
+- Immediate Token Invalidation: Revoked Sanctum tokens immediately upon account deactivation or suspension.
+- Guest History Linking: Created cryptographic OTP email verification linking historical guest orders.
 
-#### 1. Master Executive Dashboard ([`OverviewView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/OverviewView.vue))
-- Cross-branch enterprise overview: Aggregated Gross Revenue, Total Daily Orders, Network-Wide Inventory Valuation, and Branch Revenue Ranking.
-- Comparative analytics charting branch sales trends side-by-side.
+#### Version 4.0 (November 2026)
+*Enterprise Multi-Branch Platform Initialization:*
+- Multi-branch schema, localized branch pricing, Three.js 3D WebGL cake studio, and initial 3-level sales reporting.
 
-#### 2. Multi-Branch Network Administration ([`BranchManagementView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/BranchManagementView.vue))
-- **Add New Branch Modal:**
-  - Input Branch Name, Unique Branch Code, Branch Type (`Main` vs `Regular`), Physical Address, City, GPS Coordinates (Latitude $\pm 90^\circ$, Longitude $\pm 180^\circ$ with `DECIMAL(11,8)` precision), and Assign Initial Branch Manager.
-  - **Zero-Data Guarantee:** Newly created branches automatically initialize with strictly 0 orders, 0 inventory, 0 custom cakes, and isolated tenant boundaries.
-- **Branch Lifecycle Management:** Edit branch details, update assigned managers, or toggle branch operational status (`Active` / `Inactive`).
+### 11.2. Known Limitations & Technical Debt
+1. **Production Domain Definition:** `robots.txt` and `sitemap.xml` currently use relative root paths (`/sitemap.xml`, `/`). Once the production domain is bound, canonical URLs should be updated.
+2. **Email Domain Filtering:** Broadened to universal RFC email addresses across `AuthController.php` and `ContactSection.vue`.
+3. **Docker Compose Harmonization:** Unified `compose.yml` and `docker-compose.yml` into a synchronized production-ready configuration with health checks, database volumes, and Redis support.
+4. **Walk-In Staff POS Workflow:** Fully operational counter order creation with immediate stock deduction, cash change calculator, and automated receipt printing.
+5. **Interactive Branch Location Route Map:** Interactive schematic route map matching brand visuals and Leaflet live GPS map centered on Dessie, Amhara Region.
 
-#### 3. Enterprise Staff Directory & Manager Governance ([`UsersRolesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/UsersRolesView.vue))
-- Company-wide personnel directory with multi-branch and role filters.
-- Create and assign Branch Managers.
-- Manage Branch Manager account statuses (`Active`, `Inactive`, `Suspended`). Branch Managers can only have their status modified by the Super Admin.
-
-#### 4. Employee Compensation & Payroll ([`SalariesView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/SalariesView.vue))
-- Compensation management stored in isolated `employee_profiles` table.
-- View and update monthly salaries, pay grades, and compensation history.
-- Salary data is strictly restricted from regular branch managers and staff.
-
-#### 5. Consolidated Branch Daily Sales Summaries ([`/api/admin/reports/admin/branch-summary`](file:///c:/Kenan%20Cake/Backend/routes/api.php))
-- Super Admin read-only view synthesizing all approved branch daily reports.
-- Comprehensive financial rollup: Aggregates total booked sales, cash collected, card revenue, mobile payments, and advance cake deposits across the entire network.
-
-#### 6. Immutable System Audit Trail ([`AuditLogView.vue`](file:///c:/Kenan%20Cake/Client/src/views/admin/AuditLogView.vue))
-- Comprehensive tamper-evident audit log recording every critical administrative action:
-  - User status changes and account suspensions with mandatory reason.
-  - Inventory count adjustments with discrepancy reason.
-  - Price overrides and branch-specific pricing updates.
-  - Financial refunds and order cancellations.
-  - Timestamp, actor user ID, client IP address, before/after state diff.
-
----
-
-### 14.6. Cross-Cutting System Architectural Guarantees
-
-1. **Strict Multi-Branch Tenant Isolation:**
-   - Every database query for branch-scoped models (`Order`, `ReceivedStock`, `StockDispatch`, `SellerDailyReport`, `CustomCakeRequest`) automatically enforces `branch_id` from the authenticated user's session via `BranchIsolationScope`.
-   - Tampered request payloads attempting to pass foreign `branch_id` values are rejected or forced to the authorized branch ID.
-2. **Strict Financial Accounting Integrity:**
-   - All monetary calculations are cast to `decimal:2` in PHP and stored as `DECIMAL(10,2)` in MySQL. Floating-point numbers are strictly prohibited.
-   - Refund ceiling enforcement: Refund amounts are capped by the original payment ($A_{\text{refund}} \le A_{\text{payment}}$).
-   - Order cancellation automatically releases reserved inventory without causing negative inventory phantom drift.
-3. **Double-Hop Inventory Protection:**
-   - On-hand stock is guarded using database row locks (`lockForUpdate()`) during checkout, counter sales, dispatches, and receiving.
-   - Over-receiving and over-dispatching are blocked by backend request validators (`StockDispatchRequest`, `StockReceiveRequest`).
-4. **Targeted Notification Routing & Deduplication:**
-   - Super Admin is explicitly excluded from granular operational order notifications.
-   - Branch sellers receive only order and custom cake alerts for their branch.
-   - 24-hour composite unique constraint prevents duplicate alert spamming for repeated order milestone events.
+### 11.3. Future Roadmap & Enhancements
+- **PWA Offline Mode for POS Counters:** Service Worker caching to allow counter sellers to record sales during temporary internet dropouts and sync automatically upon reconnection.
+- **Real-Time WebSockets via Laravel Reverb:** Push instant audio/visual notifications to branch kitchen screens when new online or custom cake orders arrive.
+- **Direct Driver Dispatch Integration:** Automated SMS dispatch to local delivery couriers upon marking orders as `out_for_delivery`.

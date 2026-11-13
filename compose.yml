@@ -3,72 +3,87 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    container_name: kenan_cake_backend
+    container_name: sweetbakes_backend
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
       - ./Backend:/var/www/html
+      - ./Backend/storage:/var/www/html/storage
     environment:
+      APP_NAME: "SweetBakes"
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: "http://localhost:8000"
+      DB_CONNECTION: mysql
       DB_HOST: database
       DB_PORT: 3306
       DB_DATABASE: kenan_cake_db
-      DB_USERNAME: kenan_user
-      DB_PASSWORD: kenan_secret_password
+      DB_USERNAME: sweetbakes_user
+      DB_PASSWORD: sweetbakes_secure_pass
       CACHE_STORE: redis
       REDIS_HOST: redis
       QUEUE_CONNECTION: redis
     depends_on:
-      - database
-      - redis
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
-      - kenan_network
+      - sweetbakes_network
 
   web:
     image: nginx:alpine
-    container_name: kenan_cake_web
+    container_name: sweetbakes_web
     restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
-      - ./Backend:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./Backend:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - app
     networks:
-      - kenan_network
+      - sweetbakes_network
 
   database:
     image: mysql:8.0
-    container_name: kenan_cake_mysql
+    container_name: sweetbakes_mysql
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: sweetbakes_root_pass
+      MYSQL_DATABASE: kenan_cake_db
+      MYSQL_USER: sweetbakes_user
+      MYSQL_PASSWORD: sweetbakes_secure_pass
     ports:
       - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root_secret_password
-      MYSQL_DATABASE: kenan_cake_db
-      MYSQL_USER: kenan_user
-      MYSQL_PASSWORD: kenan_secret_password
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psweetbakes_root_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
-      - kenan_network
+      - sweetbakes_network
 
   redis:
     image: redis:alpine
-    container_name: kenan_cake_redis
+    container_name: sweetbakes_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - kenan_network
+      - sweetbakes_network
 
 networks:
-  kenan_network:
+  sweetbakes_network:
     driver: bridge
 
 volumes:
   db_data:
+    driver: local
   redis_data:
-
+    driver: local

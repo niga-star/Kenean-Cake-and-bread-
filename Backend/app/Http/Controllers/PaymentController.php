@@ -287,6 +287,27 @@ class PaymentController extends Controller
             ], 200);
         }
 
+        // Amount & Currency Verification (Master Prompt Section 11)
+        $callbackAmount = $request->input('amount') ?? $request->input('data.amount');
+        if ($callbackAmount !== null && is_numeric($callbackAmount)) {
+            if (abs((float) $callbackAmount - (float) $payment->amount) > 0.01) {
+                \Illuminate\Support\Facades\Log::warning("Payment webhook amount mismatch for {$txRef}: expected {$payment->amount}, got {$callbackAmount}");
+                return response()->json([
+                    'message' => 'Payment amount mismatch: Expected ETB ' . number_format($payment->amount, 2) . ' but received ETB ' . number_format($callbackAmount, 2),
+                ], 422);
+            }
+        }
+
+        $callbackCurrency = $request->input('currency') ?? $request->input('data.currency');
+        if ($callbackCurrency !== null && !empty(trim($callbackCurrency))) {
+            if (strtoupper(trim($callbackCurrency)) !== 'ETB') {
+                \Illuminate\Support\Facades\Log::warning("Payment webhook currency mismatch for {$txRef}: expected ETB, got {$callbackCurrency}");
+                return response()->json([
+                    'message' => 'Payment currency mismatch: Expected ETB but received ' . strtoupper(trim($callbackCurrency)),
+                ], 422);
+            }
+        }
+
         DB::transaction(function () use ($payment, $status, $txRef) {
             if (in_array(strtolower($status), ['success', 'paid'])) {
                 $payment->payment_status = 'Paid';

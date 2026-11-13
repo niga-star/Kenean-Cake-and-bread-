@@ -353,4 +353,176 @@ class OrderService
             'is_replay' => false,
         ];
     }
+
+    /**
+     * Create an immediate walk-in counter POS order with immediate stock deduction and payment settlement
+     */
+    public function createPOSOrder(array $validated, object $staffUser): array
+    {
+        $branchId = $staffUser->branch_id ?? Branch::where('manager_id', $staffUser->user_id)->value('branch_id');
+        if (!$branchId && $staffUser->role === 'Super Admin' && !empty($validated['branch_id'])) {
+            $branchId = (int) $validated['branch_id'];
+        }
+
+        if (!$branchId) {
+            throw new Exception('Staff user must be assigned to an active branch to create counter sales.', 403);
+        }
+
+        $branch = Branch::findOrFail($branchId);
+        if ($branch->status !== 'Active') {
+            throw new Exception("Branch {$branch->branch_name} is currently inactive.", 422);
+        }
+
+        $customerName = trim($validated['customer_name'] ?? 'Walk-In Customer') ?: 'Walk-In Customer';
+        $customerPhone = trim($validated['customer_phone'] ?? '');
+        $paymentMethod = $validated['payment_method'] ?? 'Cash';
+        $amountPaid = isset($validated['amount_paid']) ? (float) $validated['amount_paid'] : null;
+
+        $orderData = DB::transaction(function () use ($validated, $branch, $customerName, $customerPhone, $paymentMethod, $amountPaid, $staffUser) {
+            $orderNumber = "ORD-" . random_int(1000, 9999);
+            while (Order::where('order_number', $orderNumber)->exists()) {
+                $orderNumber = "ORD-" . random_int(1000, 9999);
+            }
+
+            $subtotal = 0;
+            $itemsData = [];
+
+            foreach ($validated['items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $qty = (int) $item['quantity'];
+
+                $inv = BranchInventory::where('branch_id', $branch->branch_id)
+                    ->where('product_id', $product->product_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $available = $inv ? max(0, $inv->quantity_on_hand - $inv->reserved_quantity) : 0;
+                if ($available < $qty) {
+                    throw new Exception("Product {$product->product_name} has insufficient stock at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
+                }
+
+                // Direct stock decrement for immediate walk-in counter handoff
+                $inv->quantity_on_hand = max(0, $inv->quantity_on_hand - $qty);
+                $inv->save();
+
+                // Reorder level alert check
+                if ($inv->available_quantity <= $inv->reorder_level) {
+                    $alreadyNotified = Notification::where('branch_id', $branch->branch_id)
+                        ->where('category', 'Stock')
+                        ->where('title', 'like', "%{$product->product_name}%")
+                        ->where('created_at', '>=', now()->subHours(6))
+                        ->exists();
+
+                    if (!$alreadyNotified) {
+                        Notification::create([
+                            'user_id' => null,
+                            'branch_id' => $branch->branch_id,
+                            'category' => 'Stock',
+                            'title' => "Low stock: {$product->product_name}",
+                            'message' => "{$branch->branch_name} has {$inv->available_quantity} {$product->product_name} left (at or below reorder level {$inv->reorder_level}).",
+                            'link' => '/admin/inventory',
+                        ]);
+                    }
+                }
+
+                $unitPrice = $product->getPriceForBranch($branch->branch_id);
+                $lineTotal = $unitPrice * $qty;
+                $subtotal += $lineTotal;
+
+                $itemsData[] = [
+                    'product_id' => $product->product_id,
+                    'product_name' => $product->product_name,
+                    'quantity' => $qty,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $lineTotal,
+                ];
+
+                InventoryTransaction::create([
+                    'branch_id' => $branch->branch_id,
+                    'product_id' => $product->product_id,
+                    'transaction_type' => 'order_completed',
+                    'quantity' => -$qty,
+                    'reference_type' => 'Order',
+                    'reason' => "POS counter sale: {$orderNumber} by {$staffUser->full_name}",
+                    'created_by' => $staffUser->user_id,
+                    'created_at' => now(),
+                ]);
+            }
+
+            $discountAmount = isset($validated['discount_amount']) ? (float) $validated['discount_amount'] : 0.00;
+            $totalAmount = max(0, $subtotal - $discountAmount);
+            $changeDue = $amountPaid !== null ? max(0, $amountPaid - $totalAmount) : 0.00;
+
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'user_id' => $staffUser->user_id,
+                'customer_name' => $customerName,
+                'customer_phone' => $customerPhone,
+                'customer_email' => null,
+                'branch_id' => $branch->branch_id,
+                'address_id' => null,
+                'fulfillment_method' => 'Pickup',
+                'order_status' => 'Completed',
+                'delivery_fee' => 0.00,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'placed_at' => now(),
+            ]);
+
+            foreach ($itemsData as $item) {
+                OrderItem::create([
+                    'order_id' => $order->order_id,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['subtotal'],
+                ]);
+            }
+
+            $txRef = 'POS-' . strtoupper(bin2hex(random_bytes(3)));
+
+            Payment::create([
+                'order_id' => $order->order_id,
+                'payment_method' => $paymentMethod,
+                'amount' => $totalAmount,
+                'payment_status' => 'Paid',
+                'transaction_reference' => $txRef,
+            ]);
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => null,
+                'new_status' => 'Completed',
+                'changed_by' => $staffUser->user_id,
+                'note' => "Walk-in counter sale completed by {$staffUser->full_name} ({$paymentMethod})",
+                'changed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => $staffUser->user_id,
+                'user_name' => $staffUser->full_name,
+                'action' => 'POS counter sale completed',
+                'record' => "{$order->order_number} · {$branch->branch_name}",
+                'entity_type' => 'Order',
+                'entity_id' => (string) $order->order_id,
+                'old_value' => '—',
+                'new_value' => "Total ETB {$totalAmount} ({$paymentMethod})",
+                'created_at' => now(),
+            ]);
+
+            return [
+                'order' => $order,
+                'change_due' => $changeDue,
+            ];
+        }, 3);
+
+        $loadedOrder = $orderData['order']->fresh(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
+
+        return [
+            'order' => $loadedOrder,
+            'change_due' => $orderData['change_due'],
+            'message' => "Counter sale {$loadedOrder->order_number} recorded successfully.",
+        ];
+    }
 }

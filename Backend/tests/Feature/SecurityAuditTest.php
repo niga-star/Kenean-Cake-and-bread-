@@ -6,13 +6,17 @@ use App\Models\Address;
 use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\BranchInventory;
+use App\Models\Cart;
 use App\Models\CustomCakeRequest;
 use App\Models\DeliveryZone;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -248,6 +252,36 @@ class SecurityAuditTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('seller_report_orders', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('report_id')->nullable();
+            $table->unsignedBigInteger('order_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('seller_report_custom_cakes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('report_id')->nullable();
+            $table->unsignedBigInteger('custom_cake_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('seller_daily_reports', function (Blueprint $table) {
+            $table->id('report_id');
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('seller_id');
+            $table->date('report_date');
+            $table->string('reference_number')->nullable();
+            $table->string('status')->default('draft');
+            $table->decimal('booked_sales', 10, 2)->default(0);
+            $table->decimal('cash_collected', 10, 2)->default(0);
+            $table->decimal('card_revenue', 10, 2)->default(0);
+            $table->decimal('transfer_revenue', 10, 2)->default(0);
+            $table->decimal('custom_cake_deposits', 10, 2)->default(0);
+            $table->text('notes')->nullable();
+            $table->timestamps();
+        });
+
         Schema::create('app_settings', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->text('value')->nullable();
@@ -264,6 +298,29 @@ class SecurityAuditTest extends TestCase
             $table->date('end_date')->nullable();
             $table->string('status')->default('Active');
             $table->timestamps();
+        });
+
+        Schema::create('carts', function (Blueprint $table) {
+            $table->id('cart_id');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->string('session_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('cart_items', function (Blueprint $table) {
+            $table->id('item_id');
+            $table->unsignedBigInteger('cart_id');
+            $table->unsignedBigInteger('product_id');
+            $table->integer('quantity');
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+            $table->string('email')->index();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamp('used_at')->nullable();
         });
     }
 
@@ -423,5 +480,203 @@ class SecurityAuditTest extends TestCase
 
         // Health endpoint works
         $this->getJson('/api/health')->assertStatus(200)->assertJsonPath('status', 'ok');
+    }
+
+    public function test_webhook_amount_and_currency_verification_and_broad_email_registration(): void
+    {
+        config(['services.chapa.webhook_secret' => 'whsec_test_secret_2026']);
+
+        $branch = Branch::create(['branch_name' => 'Dessie Main', 'status' => 'Active']);
+        $user = User::create(['full_name' => 'Test User', 'email' => 'tu@gmail.com', 'password' => Hash::make('password'), 'role' => 'Customer', 'status' => 'Active']);
+
+        $order = Order::create([
+            'order_number' => 'ORD-AMOUNT-TEST',
+            'user_id' => $user->user_id,
+            'branch_id' => $branch->branch_id,
+            'customer_name' => 'Test User',
+            'customer_phone' => '+251911000000',
+            'order_status' => 'Pending',
+            'total_amount' => 350.00,
+        ]);
+
+        $payment = Payment::create([
+            'order_id' => $order->order_id,
+            'payment_method' => 'Chapa',
+            'payment_status' => 'Pending',
+            'amount' => 350.00,
+            'transaction_reference' => 'TX-AMOUNT-001',
+        ]);
+
+        $secret = 'whsec_test_secret_2026';
+
+        // 1. Amount mismatch test: callback payload says amount = 200 instead of 350
+        $bodyAmountMismatch = json_encode([
+            'tx_ref' => 'TX-AMOUNT-001',
+            'status' => 'success',
+            'amount' => 200.00,
+            'currency' => 'ETB',
+        ]);
+        $sigAmountMismatch = hash_hmac('sha256', $bodyAmountMismatch, $secret);
+
+        $this->call('POST', '/api/payments/webhook', [], [], [], [
+            'HTTP_X_CHAPA_SIGNATURE' => $sigAmountMismatch,
+            'CONTENT_TYPE' => 'application/json',
+        ], $bodyAmountMismatch)
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Payment amount mismatch: Expected ETB 350.00 but received ETB 200.00');
+
+        // 2. Currency mismatch test: currency = USD instead of ETB
+        $bodyCurrencyMismatch = json_encode([
+            'tx_ref' => 'TX-AMOUNT-001',
+            'status' => 'success',
+            'amount' => 350.00,
+            'currency' => 'USD',
+        ]);
+        $sigCurrencyMismatch = hash_hmac('sha256', $bodyCurrencyMismatch, $secret);
+
+        $this->call('POST', '/api/payments/webhook', [], [], [], [
+            'HTTP_X_CHAPA_SIGNATURE' => $sigCurrencyMismatch,
+            'CONTENT_TYPE' => 'application/json',
+        ], $bodyCurrencyMismatch)
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Payment currency mismatch: Expected ETB but received USD');
+
+        // 3. Valid callback matching amount and currency confirms order
+        $bodyValid = json_encode([
+            'tx_ref' => 'TX-AMOUNT-001',
+            'status' => 'success',
+            'amount' => 350.00,
+            'currency' => 'ETB',
+        ]);
+        $sigValid = hash_hmac('sha256', $bodyValid, $secret);
+
+        $this->call('POST', '/api/payments/webhook', [], [], [], [
+            'HTTP_X_CHAPA_SIGNATURE' => $sigValid,
+            'CONTENT_TYPE' => 'application/json',
+        ], $bodyValid)
+            ->assertStatus(200)
+            ->assertJsonPath('status', 'handled');
+
+        $this->assertEquals('Paid', $payment->fresh()->payment_status);
+        $this->assertEquals('Confirmed', $order->fresh()->order_status);
+
+        // 4. Registration allows standard valid email domains (e.g. @outlook.com, @yahoo.com)
+        $regResponse = $this->postJson('/api/auth/register', [
+            'full_name' => 'Abebe Kebede',
+            'email' => 'abebe@outlook.com',
+            'phone' => '+251911998877',
+            'password' => 'SecurePass123!',
+        ]);
+        $regResponse->assertStatus(201)
+            ->assertJsonPath('user.email', 'abebe@outlook.com');
+    }
+
+    public function test_pos_counter_order_creation_and_stock_deduction(): void
+    {
+        $branch = Branch::create(['branch_name' => 'Dessie Piazza Counter', 'city' => 'Dessie', 'status' => 'Active', 'is_shopping_enabled' => true]);
+        $seller = User::create([
+            'full_name' => 'Counter Cashier',
+            'email' => 'cashier@dessie.et',
+            'password' => Hash::make('secret'),
+            'role' => 'Branch Seller',
+            'branch_id' => $branch->branch_id,
+            'status' => 'Active',
+        ]);
+        $customer = User::create([
+            'full_name' => 'Online Customer',
+            'email' => 'cust@gmail.com',
+            'password' => Hash::make('secret'),
+            'role' => 'Customer',
+            'status' => 'Active',
+        ]);
+
+        $product = Product::create(['product_name' => 'Chocolate Muffin', 'base_price' => 80.00, 'status' => 'Active']);
+        $inv = BranchInventory::create([
+            'branch_id' => $branch->branch_id,
+            'product_id' => $product->product_id,
+            'quantity_on_hand' => 15,
+            'reserved_quantity' => 0,
+            'reorder_level' => 5,
+        ]);
+
+        // 1. Customer cannot access POS endpoint -> 403 Forbidden
+        Sanctum::actingAs($customer);
+        $this->postJson('/api/admin/orders/pos', [
+            'items' => [['product_id' => $product->product_id, 'quantity' => 2]],
+            'payment_method' => 'Cash',
+        ])->assertStatus(403);
+
+        // 2. Seller creates walk-in counter sale
+        Sanctum::actingAs($seller);
+        $response = $this->postJson('/api/admin/orders/pos', [
+            'items' => [['product_id' => $product->product_id, 'quantity' => 3]],
+            'payment_method' => 'Cash',
+            'amount_paid' => 300.00,
+            'customer_name' => 'Walk-In Customer',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('order.order_status', 'Completed')
+            ->assertJsonPath('order.fulfillment_method', 'Pickup')
+            ->assertJsonPath('order.total_amount', '240.00');
+
+        $this->assertEquals(60.0, (float) $response->json('change_due'));
+
+        // 3. Verify stock was directly decremented (15 - 3 = 12)
+        $this->assertEquals(12, $inv->fresh()->quantity_on_hand);
+        $this->assertEquals(0, $inv->fresh()->reserved_quantity);
+
+        // 4. Verify payment was recorded as Paid
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $response->json('order.order_id'),
+            'payment_status' => 'Paid',
+            'payment_method' => 'Cash',
+            'amount' => 240.00,
+        ]);
+
+        // 5. Verify cashier shift summary breakdown
+        $shiftResponse = $this->getJson('/api/admin/reports/seller/today-orders');
+        $shiftResponse->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('shift_summary.cash_total', 240)
+            ->assertJsonPath('shift_summary.total_cash_collected', 240);
+    }
+
+    public function test_automated_scheduler_and_purging_commands(): void
+    {
+        $oldDate = Carbon::now()->subDays(10);
+        $recentDate = Carbon::now()->subDays(2);
+
+        // 1. Setup expired and fresh carts
+        DB::table('carts')->insert([
+            ['session_id' => 'sess_old', 'created_at' => $oldDate, 'updated_at' => $oldDate],
+            ['session_id' => 'sess_new', 'created_at' => $recentDate, 'updated_at' => $recentDate],
+        ]);
+        $expiredCartId = DB::table('carts')->where('session_id', 'sess_old')->value('cart_id');
+        $activeCartId = DB::table('carts')->where('session_id', 'sess_new')->value('cart_id');
+
+        // 2. Setup expired and fresh password reset tokens
+        DB::table('password_reset_tokens')->insert([
+            ['email' => 'old@example.com', 'token' => 'tok1', 'expires_at' => Carbon::now()->subHour(), 'used_at' => null],
+            ['email' => 'used@example.com', 'token' => 'tok2', 'expires_at' => Carbon::now()->addHour(), 'used_at' => Carbon::now()->subMinute()],
+            ['email' => 'valid@example.com', 'token' => 'tok3', 'expires_at' => Carbon::now()->addHour(), 'used_at' => null],
+        ]);
+
+        // Execute purge command
+        $exitCode = Artisan::call('app:purge-expired');
+        $this->assertEquals(0, $exitCode);
+
+        // Verify expired cart is purged, active cart remains
+        $this->assertDatabaseMissing('carts', ['cart_id' => $expiredCartId]);
+        $this->assertDatabaseHas('carts', ['cart_id' => $activeCartId]);
+
+        // Verify expired and used reset tokens are purged, valid token remains
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'old@example.com']);
+        $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'used@example.com']);
+        $this->assertDatabaseHas('password_reset_tokens', ['email' => 'valid@example.com']);
+
+        // Execute release expired reservations command
+        $releaseCode = Artisan::call('orders:release-expired');
+        $this->assertEquals(0, $releaseCode);
     }
 }

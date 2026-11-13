@@ -706,7 +706,7 @@ const submitSuccess = ref(false);
 
 // Validation Regex Constants
 const NAME_REGEX = /^[\p{L}\s]+$/u;
-const GMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const ETHIO_PHONE_REGEX = /^(?:\+251[97]\d{8}|0[97]\d{8})$/;
 
 // Field Validators (Bilingual English / Amharic)
@@ -734,10 +734,10 @@ function validateEmail(val) {
   if (!v) {
     return localeStore.isAmharic ? 'የኢሜይል አድራሻ ማስገባት ግዴታ ነው።' : 'Email Address is required.';
   }
-  if (!GMAIL_REGEX.test(v)) {
+  if (!EMAIL_REGEX.test(v)) {
     return localeStore.isAmharic
-      ? 'ኢሜይል የጂሜይል (Gmail) አድራሻ መሆን አለበት (ለምሳሌ፡ example@gmail.com)።'
-      : 'Must follow the Gmail format (e.g. example@gmail.com).';
+      ? 'እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ (ለምሳሌ፡ example@gmail.com)።'
+      : 'Please enter a valid email address (e.g. example@gmail.com).';
   }
   return '';
 }

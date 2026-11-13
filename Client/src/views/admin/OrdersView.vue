@@ -21,6 +21,14 @@
       </div>
       <div class="flex flex-wrap items-center gap-2.5">
         <button
+          v-if="canCreatePOSOrder"
+          @click="openPOSModal"
+          class="px-4 py-2 bg-[#DE1B54] hover:bg-[#C51345] text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition flex items-center space-x-1.5 cursor-pointer active:scale-95"
+        >
+          <span>🧾</span>
+          <span>New Counter Sale (POS)</span>
+        </button>
+        <button
           @click="exportCSV"
           class="dash-btn-secondary text-xs sm:text-sm"
         >
@@ -446,6 +454,300 @@
         </div>
       </div>
     </div>
+
+    <!-- Dedicated Staff POS / Counter Sale Modal -->
+    <div
+      v-if="posModalOpen"
+      class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-2 sm:p-4 font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54]"
+    >
+      <div
+        class="bg-white dark:bg-[#1E120B] rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] flex flex-col border border-gray-200 dark:border-[#382318] overflow-hidden"
+      >
+        <!-- Modal Header -->
+        <div class="px-5 py-3.5 border-b border-gray-200 dark:border-[#382318] flex items-center justify-between bg-[#FAF7F5] dark:bg-[#25150E]">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-xl">🧾</span>
+            <div>
+              <h3 class="text-base font-bold text-[#2A1810] dark:text-[#FAF3EE]">New Counter Walk-In Sale (POS)</h3>
+              <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF]">
+                Fulfilling at: <strong class="text-[#DE1B54]">{{ currentBranchName }} Branch</strong>
+              </p>
+            </div>
+          </div>
+          <button
+            @click="posModalOpen = false"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold p-1 cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Modal Body (Two Column: Catalog Left, Cart & Payment Right) -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left Column: Catalog & Selection (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col space-y-3.5">
+            <!-- Search & Category Filters -->
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-1">
+                <input
+                  v-model="posSearch"
+                  type="text"
+                  placeholder="Search products by name..."
+                  class="w-full text-xs bg-gray-50 dark:bg-[#170E0A] border border-gray-200 dark:border-[#382318] rounded-xl px-3.5 py-2 text-[#29231F] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
+                />
+                <button
+                  v-if="posSearch"
+                  @click="posSearch = ''"
+                  class="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 text-xs cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <select
+                v-model="posSelectedCategory"
+                class="text-xs bg-gray-50 dark:bg-[#170E0A] border border-gray-200 dark:border-[#382318] rounded-xl px-3 py-2 text-[#29231F] dark:text-[#FAF3EE] focus:outline-none focus:border-[#DE1B54]"
+              >
+                <option v-for="cat in posCategories" :key="cat" :value="cat">{{ cat }}</option>
+              </select>
+            </div>
+
+            <!-- Loading Skeleton -->
+            <div v-if="posLoading" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div v-for="n in 6" :key="n" class="h-24 bg-gray-100 dark:bg-[#25150E] rounded-xl animate-pulse"></div>
+            </div>
+
+            <!-- Products Grid -->
+            <div v-else-if="filteredPOSProducts.length > 0" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
+              <div
+                v-for="p in filteredPOSProducts"
+                :key="p.product_id"
+                @click="addToPOSCart(p)"
+                class="p-2.5 border rounded-xl flex flex-col justify-between transition cursor-pointer text-left"
+                :class="p.available > 0 
+                  ? 'border-gray-200 dark:border-[#382318] bg-white dark:bg-[#25150E] hover:border-[#DE1B54] hover:shadow-xs' 
+                  : 'border-gray-100 dark:border-[#2A160F] bg-gray-50 dark:bg-[#1A0E08] opacity-60 cursor-not-allowed'"
+              >
+                <div>
+                  <div class="flex items-start justify-between gap-1">
+                    <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] line-clamp-2 leading-tight">{{ p.product_name }}</span>
+                    <span v-if="p.is_fasting" class="text-[9px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold px-1 rounded shrink-0">የጾም</span>
+                  </div>
+                  <span class="text-[10px] text-gray-500 dark:text-gray-400 block mt-0.5">{{ p.category?.category_name || 'Bakery' }}</span>
+                </div>
+                <div class="mt-2 pt-1 border-t border-gray-100 dark:border-[#382318] flex items-center justify-between text-xs">
+                  <span class="font-black text-[#DE1B54]">ETB {{ Number(p.price).toFixed(2) }}</span>
+                  <span
+                    class="text-[10px] font-semibold px-1.5 py-0.2 rounded"
+                    :class="p.available > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-rose-50 text-rose-700'"
+                  >
+                    {{ p.available > 0 ? `${p.available} left` : 'Out' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-10 text-gray-400 text-xs">
+              No products found for this search.
+            </div>
+          </div>
+
+          <!-- Right Column: Cart, Tendering & Actions (5 cols) -->
+          <div class="lg:col-span-5 bg-gray-50 dark:bg-[#170E0A] rounded-xl p-3.5 sm:p-4 flex flex-col justify-between border border-gray-200 dark:border-[#382318] space-y-3">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between border-b border-gray-200 dark:border-[#382318] pb-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">Current Sale Items</span>
+                <button
+                  v-if="posCart.length > 0"
+                  @click="posCart = []"
+                  class="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                >
+                  Clear Cart
+                </button>
+              </div>
+
+              <!-- Cart Item List -->
+              <div v-if="posCart.length > 0" class="max-h-[28vh] overflow-y-auto space-y-2 pr-1">
+                <div
+                  v-for="(item, idx) in posCart"
+                  :key="item.product_id"
+                  class="flex items-center justify-between text-xs bg-white dark:bg-[#25150E] p-2 rounded-lg border border-gray-200 dark:border-[#382318]"
+                >
+                  <div class="min-w-0 flex-1 pr-2">
+                    <p class="font-bold text-[#2A1810] dark:text-[#FAF3EE] truncate">{{ item.product_name }}</p>
+                    <p class="text-[10px] text-gray-500">ETB {{ item.unit_price.toFixed(2) }} each</p>
+                  </div>
+                  <div class="flex items-center space-x-1.5 shrink-0">
+                    <button
+                      @click="updatePOSQty(idx, -1)"
+                      class="w-5 h-5 rounded bg-gray-100 dark:bg-[#170E0A] hover:bg-gray-200 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span class="w-6 text-center font-bold text-xs">{{ item.quantity }}</span>
+                    <button
+                      @click="updatePOSQty(idx, 1)"
+                      :disabled="item.quantity >= item.available"
+                      class="w-5 h-5 rounded bg-gray-100 dark:bg-[#170E0A] hover:bg-gray-200 text-gray-700 dark:text-gray-200 font-bold flex items-center justify-center cursor-pointer disabled:opacity-40"
+                    >
+                      +
+                    </button>
+                    <span class="w-16 text-right font-black text-[#DE1B54]">ETB {{ (item.quantity * item.unit_price).toFixed(2) }}</span>
+                    <button
+                      @click="removeFromPOSCart(idx)"
+                      class="text-gray-400 hover:text-rose-500 ml-1 text-sm font-bold cursor-pointer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="text-center py-8 text-gray-400 text-xs">
+                🛒 Cart is empty. Click any item on the left to add.
+              </div>
+            </div>
+
+            <!-- Customer & Payment Form -->
+            <div class="space-y-2.5 pt-2 border-t border-gray-200 dark:border-[#382318] text-xs">
+              <!-- Customer Info -->
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-gray-500 uppercase">Customer Name</label>
+                  <input
+                    v-model="posCustomerName"
+                    type="text"
+                    placeholder="Walk-in Guest"
+                    class="w-full bg-white dark:bg-[#25150E] border border-gray-200 dark:border-[#382318] rounded px-2 py-1 text-xs"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-gray-500 uppercase">Customer Phone</label>
+                  <input
+                    v-model="posCustomerPhone"
+                    type="tel"
+                    placeholder="09... (optional)"
+                    class="w-full bg-white dark:bg-[#25150E] border border-gray-200 dark:border-[#382318] rounded px-2 py-1 text-xs"
+                  />
+                </div>
+              </div>
+
+              <!-- Payment Method Selection -->
+              <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Payment Method</label>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    @click="posPaymentMethod = 'Cash'"
+                    class="py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer"
+                    :class="posPaymentMethod === 'Cash' ? 'bg-[#DE1B54] text-white border-[#DE1B54]' : 'bg-white dark:bg-[#25150E] border-gray-200 dark:border-[#382318] text-gray-700 dark:text-gray-300'"
+                  >
+                    💵 Cash
+                  </button>
+                  <button
+                    type="button"
+                    @click="posPaymentMethod = 'Card'"
+                    class="py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer"
+                    :class="posPaymentMethod === 'Card' ? 'bg-[#DE1B54] text-white border-[#DE1B54]' : 'bg-white dark:bg-[#25150E] border-gray-200 dark:border-[#382318] text-gray-700 dark:text-gray-300'"
+                  >
+                    💳 Card / POS
+                  </button>
+                  <button
+                    type="button"
+                    @click="posPaymentMethod = 'Telebirr'"
+                    class="py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer"
+                    :class="posPaymentMethod === 'Telebirr' ? 'bg-[#DE1B54] text-white border-[#DE1B54]' : 'bg-white dark:bg-[#25150E] border-gray-200 dark:border-[#382318] text-gray-700 dark:text-gray-300'"
+                  >
+                    📱 Telebirr
+                  </button>
+                </div>
+              </div>
+
+              <!-- Cash Tender Calculator -->
+              <div v-if="posPaymentMethod === 'Cash'" class="p-2.5 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 rounded-xl space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-emerald-900 dark:text-emerald-300">Amount Tendered (ETB):</span>
+                  <input
+                    v-model.number="posAmountTendered"
+                    type="number"
+                    min="0"
+                    step="5"
+                    class="w-24 bg-white dark:bg-[#1E120B] border border-emerald-300 rounded px-2 py-0.5 text-right font-bold text-emerald-900 dark:text-emerald-200"
+                  />
+                </div>
+                <!-- Quick Tender Helpers -->
+                <div class="flex items-center justify-end space-x-1">
+                  <button
+                    type="button"
+                    @click="setExactTender"
+                    class="px-1.5 py-0.5 bg-white dark:bg-[#1E120B] border border-emerald-300 rounded text-[10px] font-bold text-emerald-800 dark:text-emerald-200 cursor-pointer"
+                  >
+                    Exact
+                  </button>
+                  <button
+                    type="button"
+                    @click="addTenderAmount(100)"
+                    class="px-1.5 py-0.5 bg-white dark:bg-[#1E120B] border border-emerald-300 rounded text-[10px] font-bold text-emerald-800 dark:text-emerald-200 cursor-pointer"
+                  >
+                    +100
+                  </button>
+                  <button
+                    type="button"
+                    @click="addTenderAmount(500)"
+                    class="px-1.5 py-0.5 bg-white dark:bg-[#1E120B] border border-emerald-300 rounded text-[10px] font-bold text-emerald-800 dark:text-emerald-200 cursor-pointer"
+                  >
+                    +500
+                  </button>
+                </div>
+                <div class="flex items-center justify-between text-xs font-bold text-emerald-900 dark:text-emerald-200 pt-1 border-t border-emerald-200/60 dark:border-emerald-900/40">
+                  <span>Change to Return:</span>
+                  <span class="text-sm">ETB {{ posChangeDue.toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <!-- Subtotal & Discount -->
+              <div class="space-y-1 pt-1">
+                <div class="flex justify-between text-gray-500">
+                  <span>Subtotal:</span>
+                  <span>ETB {{ posSubtotal.toFixed(2) }}</span>
+                </div>
+                <div class="flex items-center justify-between text-gray-500">
+                  <span>Discount (ETB):</span>
+                  <input
+                    v-model.number="posDiscount"
+                    type="number"
+                    min="0"
+                    class="w-20 bg-white dark:bg-[#25150E] border border-gray-200 dark:border-[#382318] rounded px-1.5 py-0.5 text-right text-xs"
+                  />
+                </div>
+                <div class="flex justify-between text-sm font-black text-[#2A1810] dark:text-[#FAF3EE] pt-1 border-t border-gray-200 dark:border-[#382318]">
+                  <span>Total Payable:</span>
+                  <span class="text-[#DE1B54]">ETB {{ posTotal.toFixed(2) }}</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex space-x-2 pt-2">
+                <button
+                  type="button"
+                  @click="posModalOpen = false"
+                  class="flex-1 py-2 text-xs font-bold text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-[#25150E] hover:bg-gray-300 rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  @click="submitPOSOrder"
+                  :disabled="posSubmitting || posCart.length === 0"
+                  class="flex-2 py-2 text-xs font-bold text-white bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 rounded-xl transition cursor-pointer flex items-center justify-center space-x-1.5 shadow-sm"
+                >
+                  <span v-if="posSubmitting">Recording...</span>
+                  <span v-else>Complete Sale & Print 🖨️</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Dedicated Staff POS / Counter Order Receipt (Print Media Only) -->
@@ -865,6 +1167,201 @@ onMounted(async () => {
   } catch (e) {}
   loadOrders();
 });
+
+const canCreatePOSOrder = computed(() =>
+  ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Branch Staff'].includes(authStore.user?.role)
+);
+const currentBranchId = computed(() => userBranchId.value || branches.value[0]?.branch_id || 1);
+const currentBranchName = computed(() => userBranchName.value || branches.value.find(b => b.branch_id === currentBranchId.value)?.branch_name || 'Main');
+
+const posModalOpen = ref(false);
+const posLoading = ref(false);
+const posSubmitting = ref(false);
+const posProducts = ref([]);
+const posSearch = ref('');
+const posSelectedCategory = ref('All');
+const posCart = ref([]);
+const posCustomerName = ref('Walk-in Guest');
+const posCustomerPhone = ref('');
+const posPaymentMethod = ref('Cash');
+const posAmountTendered = ref(0);
+const posDiscount = ref(0);
+const posNotes = ref('');
+
+const posCategories = computed(() => {
+  const cats = new Set(['All']);
+  posProducts.value.forEach(p => {
+    if (p.category?.category_name) cats.add(p.category.category_name);
+  });
+  return Array.from(cats);
+});
+
+const filteredPOSProducts = computed(() => {
+  return posProducts.value.filter(p => {
+    const matchSearch = !posSearch.value || p.product_name.toLowerCase().includes(posSearch.value.toLowerCase());
+    const matchCat = posSelectedCategory.value === 'All' || p.category?.category_name === posSelectedCategory.value;
+    return matchSearch && matchCat;
+  });
+});
+
+const posSubtotal = computed(() => {
+  return posCart.value.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+});
+
+const posTotal = computed(() => {
+  return Math.max(0, posSubtotal.value - (Number(posDiscount.value) || 0));
+});
+
+const posChangeDue = computed(() => {
+  if (posPaymentMethod.value !== 'Cash') return 0;
+  return Math.max(0, (Number(posAmountTendered.value) || 0) - posTotal.value);
+});
+
+function openPOSModal() {
+  posModalOpen.value = true;
+  posCart.value = [];
+  posCustomerName.value = 'Walk-in Guest';
+  posCustomerPhone.value = '';
+  posPaymentMethod.value = 'Cash';
+  posDiscount.value = 0;
+  posAmountTendered.value = 0;
+  loadPOSProducts();
+}
+
+async function loadPOSProducts() {
+  posLoading.value = true;
+  try {
+    const branchId = currentBranchId.value;
+    const res = await api.get('/products', {
+      params: { branch_id: branchId }
+    });
+    const raw = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+    posProducts.value = raw.map(p => {
+      const bp = p.branch_prices?.find(b => b.branch_id === branchId);
+      const price = bp ? Number(bp.price) : Number(p.base_price || p.price || 0);
+      const available = p.available_stock !== undefined ? p.available_stock : (p.branch_inventory?.available_quantity ?? 50);
+      return {
+        product_id: p.product_id,
+        product_name: p.product_name,
+        price,
+        available: available > 0 ? available : 0,
+        category: p.category,
+        is_fasting: p.is_fasting,
+      };
+    });
+  } catch (err) {
+    toast.error('Failed to load products for POS counter sale.');
+  } finally {
+    posLoading.value = false;
+  }
+}
+
+function addToPOSCart(prod) {
+  if (prod.available <= 0) {
+    toast.warning('Product is out of stock at this branch.');
+    return;
+  }
+  const existing = posCart.value.find(i => i.product_id === prod.product_id);
+  if (existing) {
+    if (existing.quantity < prod.available) {
+      existing.quantity += 1;
+    } else {
+      toast.warning(`Only ${prod.available} items available in stock.`);
+    }
+  } else {
+    posCart.value.push({
+      product_id: prod.product_id,
+      product_name: prod.product_name,
+      unit_price: prod.price,
+      quantity: 1,
+      available: prod.available,
+    });
+  }
+  if (posPaymentMethod.value === 'Cash' && posAmountTendered.value < posTotal.value) {
+    posAmountTendered.value = posTotal.value;
+  }
+}
+
+function updatePOSQty(idx, delta) {
+  const item = posCart.value[idx];
+  if (!item) return;
+  const newQty = item.quantity + delta;
+  if (newQty <= 0) {
+    posCart.value.splice(idx, 1);
+  } else if (newQty > item.available) {
+    toast.warning(`Maximum available stock is ${item.available}.`);
+  } else {
+    item.quantity = newQty;
+  }
+  if (posPaymentMethod.value === 'Cash' && posAmountTendered.value < posTotal.value) {
+    posAmountTendered.value = posTotal.value;
+  }
+}
+
+function removeFromPOSCart(idx) {
+  posCart.value.splice(idx, 1);
+  if (posPaymentMethod.value === 'Cash' && posAmountTendered.value < posTotal.value) {
+    posAmountTendered.value = posTotal.value;
+  }
+}
+
+function setExactTender() {
+  posAmountTendered.value = posTotal.value;
+}
+
+function addTenderAmount(val) {
+  posAmountTendered.value = (Number(posAmountTendered.value) || 0) + val;
+}
+
+async function submitPOSOrder() {
+  if (posCart.value.length === 0) {
+    toast.error('Cart is empty. Please select products first.');
+    return;
+  }
+  if (posPaymentMethod.value === 'Cash' && (Number(posAmountTendered.value) || 0) < posTotal.value) {
+    toast.error(`Amount tendered (ETB ${posAmountTendered.value}) is less than total payable (ETB ${posTotal.value}).`);
+    return;
+  }
+
+  posSubmitting.value = true;
+  try {
+    const payload = {
+      branch_id: currentBranchId.value,
+      items: posCart.value.map(i => ({
+        product_id: i.product_id,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+      })),
+      payment_method: posPaymentMethod.value,
+      amount_tendered: posPaymentMethod.value === 'Cash' ? Number(posAmountTendered.value) : posTotal.value,
+      discount_amount: Number(posDiscount.value) || 0,
+      customer_name: posCustomerName.value || 'Walk-in Guest',
+      customer_phone: posCustomerPhone.value || null,
+      notes: posNotes.value || 'POS counter sale',
+    };
+
+    const res = await api.post('/admin/orders/pos', payload);
+    toast.success(res.data.message || 'Counter sale recorded successfully!');
+    if (res.data.low_stock_alerts?.length) {
+      toast.warning(`Low stock alert: ${res.data.low_stock_alerts.map(a => a.product_name).join(', ')}`);
+    }
+
+    posModalOpen.value = false;
+    await loadOrders();
+
+    if (res.data.order) {
+      selectedOrder.value = res.data.order;
+      setTimeout(() => {
+        printReceipt(res.data.order);
+      }, 300);
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Failed to process POS counter sale.';
+    toast.error(msg);
+  } finally {
+    posSubmitting.value = false;
+  }
+}
 
 const printTimestamp = computed(() => {
   return new Date().toLocaleDateString('en-US', {

@@ -79,7 +79,7 @@ class AuthController extends Controller
                 'required',
                 'string',
                 'email',
-                'regex:/^[a-zA-Z0-9._%+-]+@gmail\.com$/i',
+                'max:255',
                 'unique:users,email',
             ],
             'phone' => [
@@ -96,7 +96,6 @@ class AuthController extends Controller
             'full_name.regex' => 'Full name must contain only letters and spaces (no numbers or special characters).',
             'email.required' => 'Email address is required.',
             'email.email' => 'Please enter a valid email address.',
-            'email.regex' => 'Email must follow the Gmail format (e.g. example@gmail.com).',
             'email.unique' => 'This email address is already registered.',
             'phone.regex' => 'Phone numbers must follow valid Ethiopian format: +251 9XX XXX XXX, +251 7XX XXX XXX, or 09XX XXX XXX.',
         ]);

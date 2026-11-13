@@ -24,7 +24,13 @@ class DatabaseBackupCommand extends Command
      */
     public function handle()
     {
-        $this->info('Starting automated database backup for kenan_cake_db...');
+        $dbHost = config('database.connections.mysql.host', '127.0.0.1');
+        $dbPort = config('database.connections.mysql.port', '3306');
+        $dbName = config('database.connections.mysql.database', 'kenan_cake_db');
+        $dbUser = config('database.connections.mysql.username', 'root');
+        $dbPass = config('database.connections.mysql.password', '');
+
+        $this->info("Starting automated database backup for {$dbName}...");
 
         $backupDir = storage_path('app/backups');
         if (!File::exists($backupDir)) {
@@ -32,14 +38,8 @@ class DatabaseBackupCommand extends Command
         }
 
         $timestamp = Carbon::now()->format('Y-m-d_His');
-        $filename = "kenan_cake_db_backup_{$timestamp}.sql";
+        $filename = "{$dbName}_backup_{$timestamp}.sql";
         $filePath = "{$backupDir}/{$filename}";
-
-        $dbHost = config('database.connections.mysql.host', '127.0.0.1');
-        $dbPort = config('database.connections.mysql.port', '3306');
-        $dbName = config('database.connections.mysql.database', 'kenan_cake_db');
-        $dbUser = config('database.connections.mysql.username', 'root');
-        $dbPass = config('database.connections.mysql.password', '');
 
         // Locate mysqldump binary
         $mysqldump = 'C:\\xampp\\mysql\\bin\\mysqldump.exe';
@@ -57,7 +57,7 @@ class DatabaseBackupCommand extends Command
         // Fallback: If mysqldump CLI failed, perform lightweight PDO schema & table dump
         if ($resultCode !== 0 || !file_exists($filePath) || filesize($filePath) === 0) {
             $this->warn('mysqldump CLI exited with code ' . $resultCode . ', falling back to PDO streaming export...');
-            $this->pdoBackup($filePath);
+            $this->pdoBackup($filePath, $dbHost, $dbPort, $dbName, $dbUser, $dbPass);
         }
 
         $sizeKb = round(filesize($filePath) / 1024, 2);
@@ -100,12 +100,13 @@ class DatabaseBackupCommand extends Command
     /**
      * PDO based streaming dump fallback
      */
-    protected function pdoBackup(string $filePath)
+    protected function pdoBackup(string $filePath, string $dbHost, string $dbPort, string $dbName, string $dbUser, string $dbPass)
     {
+        $dsn = "mysql:host={$dbHost};port={$dbPort};dbname={$dbName};charset=utf8mb4";
         $pdo = new \PDO(
-            'mysql:host=127.0.0.1;dbname=kenan_cake_db',
-            'root',
-            '',
+            $dsn,
+            $dbUser,
+            $dbPass,
             [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]
         );
 
@@ -113,7 +114,7 @@ class DatabaseBackupCommand extends Command
         $tables = $tablesStmt->fetchAll(\PDO::FETCH_COLUMN);
 
         $handle = fopen($filePath, 'w');
-        fwrite($handle, "-- Automated Database Backup for kenan_cake_db\n");
+        fwrite($handle, "-- Automated Database Backup for {$dbName}\n");
         fwrite($handle, "-- Created: " . Carbon::now()->toIso8601String() . "\n\n");
 
         foreach ($tables as $table) {

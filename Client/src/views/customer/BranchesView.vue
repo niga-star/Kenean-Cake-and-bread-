@@ -293,6 +293,14 @@
               <div class="inline-flex items-center p-0.5 rounded-lg bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318]">
                 <button
                   type="button"
+                  @click="setMapLayer('route')"
+                  class="px-2.5 py-1 rounded-md font-bold transition cursor-pointer"
+                  :class="mapLayerMode === 'route' ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' : 'text-[#6E5D53] dark:text-[#C5B7AF]'"
+                >
+                  📍 {{ localeStore.isAmharic ? 'የመንገድ ካርታ' : 'Route Map' }}
+                </button>
+                <button
+                  type="button"
                   @click="setMapLayer('street')"
                   class="px-2.5 py-1 rounded-md font-bold transition cursor-pointer"
                   :class="mapLayerMode === 'street' ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' : 'text-[#6E5D53] dark:text-[#C5B7AF]'"
@@ -311,6 +319,7 @@
 
               <div class="flex items-center space-x-1.5">
                 <button
+                  v-if="mapLayerMode !== 'route'"
                   type="button"
                   @click="fitMapToAllBranches"
                   class="px-2.5 py-1 rounded-lg bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] font-semibold transition cursor-pointer"
@@ -330,14 +339,81 @@
               </div>
             </div>
 
-            <!-- Real Leaflet Map Canvas -->
-            <div class="relative w-full h-80 sm:h-[360px] rounded-xl overflow-hidden border border-[#E5DAD1] dark:border-[#382318] bg-[#FFF5F2] dark:bg-[#25150E]">
+            <!-- Map View Container -->
+            <div class="relative w-full h-80 sm:h-[370px] rounded-xl overflow-hidden border border-[#E5DAD1] dark:border-[#382318] bg-[#FFF5F2] dark:bg-[#25150E]">
+              <!-- 1. Schematic Route Map (Exact match of Reference Design) -->
               <div
+                v-if="mapLayerMode === 'route'"
+                class="w-full h-full relative overflow-hidden select-none bg-[#FFF8F5] dark:bg-[#22130C]"
+              >
+                <!-- Subtle warm grid background -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="dessieBakeryGrid" width="34" height="34" patternUnits="userSpaceOnUse">
+                      <path d="M 34 0 L 0 0 0 34" fill="none" stroke="#F6E7E0" class="dark:stroke-[#341822]" stroke-width="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#dessieBakeryGrid)" />
+                  <!-- Stylized connecting road ribbons (soft latte/tan curves) -->
+                  <g fill="none" stroke="#EFE4DC" class="dark:stroke-[#3D251A]" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M -20,240 C 80,180 180,160 320,110 S 480,80 540,40" />
+                    <path d="M 210,-20 C 210,100 230,170 270,320 S 310,400 320,440" />
+                    <path d="M 110,400 C 170,330 260,260 380,210 S 480,190 540,200" />
+                  </g>
+                </svg>
+
+                <!-- Interactive Bakery Pins Plotted on Schematic Grid -->
+                <div class="absolute inset-0">
+                  <div
+                    v-for="(b, idx) in schematicBranchPins"
+                    :key="b.branch_id"
+                    :style="{ left: `${b.x}%`, top: `${b.y}%` }"
+                    @click="onSchematicPinClick(b)"
+                    class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-transform duration-200 hover:scale-110 group z-20"
+                  >
+                    <!-- Pink Halo when active/selected -->
+                    <div
+                      v-if="branchStore.selectedBranchId === b.branch_id || focusedBranchId === b.branch_id"
+                      class="absolute -inset-2.5 rounded-full bg-[#DE1B54]/25 animate-pulse -z-10"
+                    ></div>
+
+                    <!-- Pin Circle -->
+                    <div
+                      class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-md border-2 border-white transition-colors duration-200"
+                      :class="branchStore.selectedBranchId === b.branch_id
+                        ? 'bg-[#DE1B54] text-white'
+                        : b.branch_type === 'Main' || b.is_main
+                          ? 'bg-[#24150D] text-white'
+                          : 'bg-[#3A2518] text-white group-hover:bg-[#DE1B54]'"
+                    >
+                      <span>{{ b.branch_type === 'Main' || b.is_main ? 'HQ' : (idx + 1) }}</span>
+                    </div>
+
+                    <!-- Black Pill Label Underneath (Matching Reference Image) -->
+                    <div
+                      class="mt-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold text-white shadow-md whitespace-nowrap transition-colors duration-200"
+                      :class="branchStore.selectedBranchId === b.branch_id
+                        ? 'bg-[#DE1B54]'
+                        : 'bg-[#24150D] group-hover:bg-[#DE1B54]'"
+                    >
+                      {{ b.shortName }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Real Leaflet Map Canvas (Live GPS Street & Satellite) -->
+              <div
+                v-show="mapLayerMode !== 'route'"
                 ref="leafletMapContainerRef"
                 data-testid="dessie-leaflet-map"
                 class="w-full h-full z-10"
               ></div>
             </div>
+
+            <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] italic text-center py-0.5 select-none">
+              {{ localeStore.isAmharic ? 'ወደ ንቁ መጋገሪያዎ ለመቀየር በካርታው ላይ ማንኛውንም ምልክት ይጫኑ።' : 'Click any pin on the map to switch that kitchen to your active bakery.' }}
+            </p>
 
             <!-- Selected / Focused Branch Spotlight Card -->
             <div
@@ -523,7 +599,7 @@ const modalZones = ref([]);
 
 const leafletMapContainerRef = ref(null);
 const mapCardSectionRef = ref(null);
-const mapLayerMode = ref('street');
+const mapLayerMode = ref('route');
 
 let leafletMap = null;
 let markerLayerGroup = null;
@@ -604,6 +680,39 @@ const mapBranches = computed(() => {
   return resolveBranchesForMap(source);
 });
 
+// Dynamic layout positions corresponding to real Dessie geography and reference layout
+const schematicBranchPins = computed(() => {
+  const branches = mapBranches.value;
+  const defaultLayouts = [
+    { x: 28, y: 46 }, // HQ (Dessie Piazza HQ)
+    { x: 74, y: 34 }, // Pin 1 (Buabuha)
+    { x: 82, y: 66 }, // Pin 2 (Fuad / Hotte)
+    { x: 48, y: 22 }, // Pin 3 (Erobit)
+    { x: 50, y: 76 }, // Pin 4 (Additional branch)
+  ];
+
+  return branches.map((b, idx) => {
+    const isMain = b.branch_type === 'Main' || b.is_main;
+    const pos = isMain ? defaultLayouts[0] : (defaultLayouts[idx + 1] || { x: 30 + ((idx * 18) % 55), y: 30 + ((idx * 22) % 55) });
+    const shortName = (b.branch_name || 'Branch')
+      .replace(/^Main Branch\s*-\s*/i, '')
+      .replace(/Commercial Center/i, '')
+      .trim();
+    return {
+      ...b,
+      x: pos.x,
+      y: pos.y,
+      shortName,
+    };
+  });
+});
+
+function onSchematicPinClick(b) {
+  branchStore.setSelectedBranch(b.branch_id);
+  focusedBranchId.value = b.branch_id;
+  toast.success(`Active bakery branch set to ${b.branch_name}!`);
+}
+
 const focusedBranch = computed(() => {
   const list = mapBranches.value;
   if (list.length === 0) return null;
@@ -678,7 +787,16 @@ function initLeafletMap() {
 
 function setMapLayer(mode) {
   mapLayerMode.value = mode;
-  if (!leafletMap) return;
+  if (mode === 'route') return;
+  if (!leafletMap) {
+    nextTick(() => {
+      initLeafletMap();
+    });
+    return;
+  }
+  nextTick(() => {
+    leafletMap.invalidateSize();
+  });
   if (mode === 'satellite') {
     if (streetTileLayer && leafletMap.hasLayer(streetTileLayer)) leafletMap.removeLayer(streetTileLayer);
     if (satelliteTileLayer && !leafletMap.hasLayer(satelliteTileLayer)) satelliteTileLayer.addTo(leafletMap);
