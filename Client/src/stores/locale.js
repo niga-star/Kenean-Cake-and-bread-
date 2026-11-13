@@ -957,7 +957,15 @@ export const useLocaleStore = defineStore('locale', () => {
     'Piassa Branch': 'ፒያሳ ቅርንጫፍ',
     'Sarbet': 'ሳርቤት',
     'Sarbet Branch': 'ሳርቤት ቅርንጫፍ',
-    'Main Branch': 'ዋናው ቅርንጫፍ'
+    'Main Branch': 'ዋናው ቅርንጫፍ',
+    'Main Branch - Dessie Piazza': 'ዋና ቅርንጫፍ - ደሴ ፒያሳ',
+    'Buabuha': 'ቧቡሃ',
+    'Erobit': 'እሮቢት',
+    'Fuad': 'ፉአድ',
+    'Dessie Piazza': 'ደሴ ፒያሳ',
+    'Arada': 'አራዳ',
+    'Hotte': 'ሆቴ',
+    'Headquarters': 'ዋና መሥሪያ ቤት',
   };
 
   const isAmharic = computed(() => currentLocale.value === 'am');
@@ -1076,12 +1084,14 @@ export const useLocaleStore = defineStore('locale', () => {
     'Opening hours': 'የስራ ሰዓታት',
     'Delivery zones': 'የማድረሻ ክልሎች',
     'Delivery coverage for': 'የማድረሻ ሽፋን ለ',
+    'Delivery coverage for Main Branch - Dessie Piazza': 'የማድረሻ ሽፋን ለዋናው ቅርንጫፍ - ደሴ ፒያሳ',
     '+ Add zone': '+ አዲስ ክልል ጨምር',
     'Add zone': 'ክልል ጨምር',
     'ZONE': 'ክልል',
     'Zone': 'ክልል',
     'FEE': 'የማድረሻ ክፍያ',
     'Fee': 'ክፍያ',
+    'Delivery Fee': 'የማድረሻ ክፍያ',
     'Active': 'ንቁ',
     'Inactive': 'ቦዝኗል',
     'Enabled': 'የተፈቀደ',
@@ -1095,10 +1105,12 @@ export const useLocaleStore = defineStore('locale', () => {
     'CODE': 'ኮድ',
     'Branch': 'ቅርንጫፍ',
     'BRANCH': 'ቅርንጫፍ',
+    'Branches': 'ቅርንጫፎች',
     'Type': 'ዓይነት',
     'TYPE': 'ዓይነት',
     'Manager': 'ስራ አስኪያጅ',
     'MANAGER': 'ስራ አስኪያጅ',
+    'Managers': 'ስራ አስኪያጆች',
     'CITY': 'ከተማ',
     'PHONE': 'ስልክ ቁጥር',
     'STATUS': 'ሁኔታ',
@@ -1109,6 +1121,12 @@ export const useLocaleStore = defineStore('locale', () => {
     'Action': 'ድርጊት',
     'ACTIONS': 'ተግባራት',
     'Actions': 'ተግባራት',
+    'Piazza & Arada (Central Dessie)': 'ፒያሳ እና አራዳ (መሀል ደሴ)',
+    'Hotte & Memhir Akale Wold': 'ሆቴ እና መምህር አካለወልድ',
+    'Buanbua Wuha & Robit Road': 'ቧንቧ ውሃ እና ሮቢት መንገድ',
+    'Segno Gebeya & Shell Area': 'ሰኞ ገበያ እና ሼል አካባቢ',
+    'Dessie Menafesha & Kebele 01-10': 'ደሴ መናፈሻ እና ቀበሌ 01-10',
+    'Wollo Sefer & Tita Area': 'ወሎ ሰፈር እና ጢጣ አካባቢ',
 
     // --- 2. Users & Staff Management (User Screenshot 2) ---
     'Users & Staff Management': 'የተጠቃሚዎች እና ሰራተኞች አስተዳደር',
@@ -1117,8 +1135,6 @@ export const useLocaleStore = defineStore('locale', () => {
     '+ Add User': '+ አዲስ ተጠቃሚ ጨምር',
     'Add User': 'ተጠቃሚ ጨምር',
     'Total Staff': 'ጠቅላላ ሰራተኞች',
-    'Branches': 'ቅርንጫፎች',
-    'Managers': 'ስራ አስኪያጆች',
     'Staff Members': 'የቅርንጫፍ ሰራተኞች',
     'All Users': 'ሁሉም ተጠቃሚዎች',
     'Branch Managers': 'የቅርንጫፍ ስራ አስኪያጆች',
@@ -1143,6 +1159,7 @@ export const useLocaleStore = defineStore('locale', () => {
     'Save User': 'ተጠቃሚ መዝግብ',
     'Manage your team members across branches': 'በሁሉም ቅርንጫፎች ያሉ የቡድን አባላትን ያስተዳድሩ',
     'All Branches': 'ሁሉም ቅርንጫፎች',
+    'All branches': 'ሁሉም ቅርንጫፎች',
     'NAME': 'ስም',
     'Name': 'ስም',
     'EMAIL': 'ኢሜይል',
@@ -1151,6 +1168,19 @@ export const useLocaleStore = defineStore('locale', () => {
     'Showing': 'የሚታየው',
     'of': 'ከ',
     'staff members': 'ሰራተኞች',
+    'employees': 'ሰራተኞች',
+    'units': 'ፍሬዎች',
+    'units sold': 'የተሸጡ ፍሬዎች',
+    'transfers': 'ዝውውሮች',
+    'transfer': 'ዝውውር',
+    'items': 'ዕቃዎች',
+    'item': 'ዕቃ',
+    'orders': 'ትዕዛዞች',
+    'order': 'ትዕዛዝ',
+    'entries': 'መረጃዎች',
+    'records': 'መዝገቦች',
+    'results': 'ውጤቶች',
+    'Page': 'ገጽ',
 
     // --- 3. Salary & Wage Management (User Screenshot 3) ---
     'Salary & Wage Management': 'የደመወዝ እና አበል አስተዳደር',
@@ -1166,43 +1196,62 @@ export const useLocaleStore = defineStore('locale', () => {
     'Pending Correction Requests': 'በመጠባበቅ ላይ ያሉ ጥያቄዎች',
     'PENDING CORRECTION REQUESTS': 'በመጠባበቅ ላይ ያሉ ጥያቄዎች',
     'Total monthly payroll for all branches': 'የሁሉም ቅርንጫፎች ጠቅላላ ወርሃዊ ደመወዝ',
-    'employees': 'ሰራተኞች',
     'Across all operating locations': 'በሁሉም የስራ ቦታዎች',
     'Submitted by branch employees': 'በቅርንጫፍ ሰራተኞች የቀረበ',
     'Click a Branch to View Staff & Salaries': 'ሰራተኞችን እና ደመወዝ ለማየት ቅርንጫፍ ይምረጡ',
     'Click any branch card below to inspect its Branch Manager, staff members, and specific wage breakdown.': 'የስራ አስኪያጅ፣ የሰራተኞች እና ዝርዝር የደመወዝ ክፍያን ለማየት ከስር ያለውን ቅርንጫፍ ይጫኑ።',
     'Combined': 'ጥምር',
     'Showing: Whole Business': 'የሚታየው: መላው ንግድ',
+    'All Branches (Whole Business)': 'ሁሉም ቅርንጫፎች (መላው ንግድ)',
+    'Whole business (All branches)': 'መላው ንግድ (ሁሉም ቅርንጫፎች)',
+    'Whole Business': 'መላው ንግድ',
     'All Employees & Assigned Salaries': 'ሁሉም ሰራተኞች እና የተመደበላቸው ደመወዝ',
     'Click any employee row to inspect complete profile. Salary editing is restricted to Super Admin.': 'የሙሉ መረጃ ለማየት ሰራተኛውን ይጫኑ። ደመወዝ ማስተካከል ለዋና የበላይ አስተዳዳሪ ብቻ የተፈቀደ ነው።',
     'Search by name, amhari': 'በስም ወይም በአማርኛ ስም ይፈልጉ...',
     'Search by name, amharic name, role, or branch...': 'በስም፣ በአማርኛ ስም፣ በሚና ወይም በቅርንጫፍ ይፈልጉ...',
     'EMPLOYEE': 'ሰራተኛ',
     'Employee': 'ሰራተኛ',
+    'AMHARIC (አማርኛ)': 'አማርኛ ስም',
     'AMHARIC': 'አማርኛ ስም',
     'Amharic': 'አማርኛ ስም',
     '(አማርኛ)': '(አማርኛ ስም)',
     'MONTHLY SALARY': 'ወርሃዊ ደመወዝ',
     'Monthly Salary': 'ወርሃዊ ደመወዝ',
+    'Base Salary': 'መሰረታዊ ደመወዝ',
+    'Allowance': 'አበል',
+    'Net Pay': 'የተጣራ ክፍያ',
     'View': 'ተመልከት',
     'Edit Wage': 'ደመወዝ አርም',
+    'Update Wage': 'ደመወዝ አሻሽል',
     'Headquarters': 'ዋና መሥሪያ ቤት',
 
     // --- 4. Orders, POS, and Custom Cakes ---
     'Orders & Sales Management': 'የትዕዛዞች እና ሽያጭ አስተዳደር',
     'Orders Management': 'የትዕዛዞች አስተዳደር',
-    'Orders': 'ትዕዛዞች',
+    'Branch Orders': 'የቅርንጫፍ ትዕዛዞች',
     'All Orders': 'ሁሉም ትዕዛዞች',
     'Order Preparation': 'ትዕዛዝ ማዘጋጀት',
     'New Counter Sale (POS)': 'አዲስ የቀጥታ ሽያጭ (POS)',
+    'New Counter Walk-In Sale (POS)': 'አዲስ የቀጥታ ሽያጭ (POS)',
     'New Counter Sale': 'አዲስ የቀጥታ ሽያጭ',
     'Counter Sale': 'የቀጥታ ሽያጭ',
     'Export CSV': 'CSV አውርድ',
+    'Read-Only Supervision': 'የክትትል እይታ ብቻ (Read-Only)',
+    'Branch Manager Supervisory Mode (Read-Only)': 'የቅርንጫፍ ስራ አስኪያጅ የክትትል ሁኔታ (Read-Only)',
+    'Status changes and customer handovers are performed by Branch Sellers and Staff.': 'የትዕዛዝ ሁኔታ ለውጥ እና ለደንበኛ ማስረከብ የሚከናወነው በቅርንጫፍ ሻጮች እና ሰራተኞች ነው።',
     'Order ID': 'የትዕዛዝ ቁጥር',
+    'Order': 'ትዕዛዝ',
+    'Orders': 'ትዕዛዞች',
     'Customer': 'ደንበኛ',
     'Items': 'ዕቃዎች',
     'Total Amount': 'ጠቅላላ ዋጋ',
     'Total': 'ጠቅላላ',
+    'Subtotal': 'ንዑስ ድምር',
+    'Quantity': 'ብዛት',
+    'Qty': 'ብዛት',
+    'Unit Price': 'የአንዱ ዋጋ',
+    'Price': 'ዋጋ',
+    'Method': 'ዘዴ',
     'Fulfillment': 'ማስረከቢያ',
     'Payment': 'ክፍያ',
     'Payment Method': 'የክፍያ ዘዴ',
@@ -1211,8 +1260,10 @@ export const useLocaleStore = defineStore('locale', () => {
     'Pending': 'በመጠባበቅ ላይ',
     'Confirmed': 'የተረጋገጠ',
     'Preparing': 'በዝግጅት ላይ',
+    'Ready': 'ዝግጁ',
     'Ready for Pickup': 'ለመወሰድ ዝግጁ',
-    'Out for Delivery': 'በማድረስ ላይ',
+    'Out for Delivery': 'በማድረስ ላይ ያለ',
+    'Out for delivery': 'በማድረስ ላይ ያለ',
     'Delivered': 'ደርሷል',
     'Completed': 'ተጠናቋል',
     'Cancelled': 'ተሰርዟል',
@@ -1220,14 +1271,73 @@ export const useLocaleStore = defineStore('locale', () => {
     'Unpaid': 'ያልተከፈለ',
     'Pickup': 'የሱቅ ርክክብ',
     'Delivery': 'ማድረሻ',
+    'Placed': 'የታዘዘበት ሰዓት',
+    'Order number, customer or phone': 'የትዕዛዝ ቁጥር፣ ደንበኛ ወይም ስልክ',
+    'Delivery and pickup': 'ማድረስ እና ከቅርንጫፍ መውሰድ',
+    'Delivery only': 'ማድረስ ብቻ',
+    'Pickup only': 'ከቅርንጫፍ መውሰድ ብቻ',
+    'Date Filter': 'የቀን ማጣሪያ',
+    'Today': 'ዛሬ',
+    'This Week': 'በዚህ ሳምንት',
+    'This Month': 'በዚህ ወር',
+    'Custom Date Range': 'ብጁ የቀን ክልል',
+    'Reset Custom Dates': 'ቀኖችን እንደገና ጀምር',
+    'Reset Dates': 'ቀኖችን እንደገና ጀምር',
+    'No orders found for this view.': 'ለዚህ እይታ የተገኘ ምንም ትዕዛዝ የለም።',
+    'No orders found': 'ምንም ትዕዛዝ አልተገኘም',
+    'Customer Contact': 'የደንበኛ አድራሻ',
+    'Verified Order': 'የተረጋገጠ ትዕዛዝ',
+    'Print Receipt': 'ደረሰኝ አትም',
+    'Change branch': 'ቅርንጫፍ ቀይር',
+    'Branch assignment is mandatory and cannot be changed after payment without Super Admin action.': 'የቅርንጫፍ ምደባ ግዴታ ሲሆን ከክፍያ በኋላ ያለ የበላይ አስተዳዳሪ ፈቃድ መቀየር አይቻልም።',
+    'Status history': 'የትዕዛዝ ሁኔታ ታሪክ',
+    'status updated': 'ሁኔታው ተቀይሯል',
+    'Confirm Order': 'ትዕዛዝ አረጋግጥ',
+    'Bake / Prepare': 'ጋግር / አዘጋጅ',
+    'Mark Ready': 'ዝግጁ መሆኑን አመልክት',
+    'Dispatch Delivery': 'ለማድረስ ላክ',
+    'Complete Delivery': 'ማድረስ አጠናቅቅ',
+    'Handover to Customer': 'ለደንበኛ አስረክብ',
+    'Cancel Order': 'ትዕዛዝ ሰርዝ',
+    'Walk-in Customer': 'በአካል የመጣ ደንበኛ',
+    'Search products by name...': 'ምርቶችን በስም ይፈልጉ...',
+    'Fulfilling at:': 'የሚዘጋጅበት ቅርንጫፍ:',
+    'Add to POS Order': 'ወደ POS ትዕዛዝ ጨምር',
+    'Complete POS Sale': 'የቀጥታ ሽያጩን አጠናቅቅ',
+
+    // --- 5. Custom Cakes Management ---
+    'Custom Cake Requests': 'የልዩ ኬክ ጥያቄዎች',
     'Custom Cake Orders': 'ልዩ የኬክ ትዕዛዞች',
     'Custom Cakes': 'ልዩ ኬኮች',
+    'Manage bespoke cake briefs, quotation lifecycle, and kitchen baking stages.': 'ልዩ የኬክ ንድፎችን፣ የዋጋ ማቅረቢያ ሂደትን እና የኩሽና ዝግጅትን ያስተዳድሩ።',
     'Manage custom designer cake orders, specifications, and approvals.': 'ልዩ የኬክ ንድፎችን፣ ዝርዝሮችን እና ማረጋገጫዎችን ያስተዳድሩ።',
     'New Custom Cake Request': 'አዲስ ልዩ የኬክ ትዕዛዝ',
+    'All Statuses': 'ሁሉም ሁኔታዎች',
+    'Submitted (Waiting Quote)': 'የቀረበ (ዋጋ የሚጠብቅ)',
+    'Quoted (Awaiting Deposit)': 'ዋጋ የቀረበለት (ቅድመ ክፍያ የሚጠብቅ)',
+    'Confirmed (Deposit Paid)': 'የተረጋገጠ (ቅድመ ክፍያ የተከፈለ)',
+    'Preparing (In Oven / Kitchen)': 'በዝግጅት ላይ (በመጋገር ላይ)',
+    'Ready (For Handover)': 'ዝግጁ (ለመረከብ)',
+    'Delivered / Handed Over': 'የተረከበ / የተሰጠ',
+    'Rejected': 'ውድቅ የተደረገ',
+    'Waiting for a quote': 'ዋጋ በመጠባበቅ ላይ',
+    'Awaiting deposit': 'ቅድመ ክፍያ በመጠባበቅ ላይ',
+    'Deposit confirmed': 'ቅድመ ክፍያ ተረጋግጧል',
+    'Baking in progress': 'መጋገር በሂደት ላይ',
+    'Ready for client': 'ለደንበኛ ዝግጁ',
+    'Handed over': 'ተረክቧል',
+    'Submit Quote': 'ዋጋ አቅርብ',
+    'Quotation Price': 'የቀረበ ዋጋ',
+    'Quote Amount': 'የቀረበ ዋጋ መጠን',
+    'Reference Photo': 'የዲዛይን ፎቶ',
+    'Design Notes': 'የዲዛይን ማስታወሻ',
     'Cake Design': 'የኬክ ንድፍ',
+    'Cake Flavor': 'የኬኩ ጣዕም',
+    'Cake Size': 'የኬኩ መጠን',
     'Occasion': 'ክስተት / በዓል',
     'Serving Size': 'የሰው ብዛት',
     'Tier Count': 'የደረጃ ብዛት',
+    'Tiers': 'ደረጃዎች',
     'Flavor': 'ጣዕም',
     'Frosting': 'ክሬም',
     'Message on Cake': 'በኬኩ ላይ የሚጻፍ መልዕክት',
@@ -1235,32 +1345,115 @@ export const useLocaleStore = defineStore('locale', () => {
     'Approve': 'አጽድቅ',
     'Reject': 'ውድቅ አድርግ',
 
-    // --- 5. Products & Inventory ---
+    // --- 6. Products & Prices Management ---
+    'Products and Prices': 'ምርቶች እና ዋጋዎች',
     'Products & Prices': 'ምርቶች እና ዋጋዎች',
+    'Branch Manager Control': 'የቅርንጫፍ ስራ አስኪያጅ ቁጥጥር',
+    'Read-Only (Seller)': 'የንባብ ብቻ ፈቃድ (ሻጭ)',
     'Manage bakery catalog, prices, and availability.': 'የዳቦ ቤት ምርቶችን፣ ዋጋዎችን እና መገኘትን ያስተዳድሩ።',
+    'Set and update product prices independently for': 'ለዚህ ቅርንጫፍ ዋጋዎችን ራሱን ችሎ ያዘጋጁና ያሻሽሉ:',
+    'Changes will not affect other branches.': 'የተደረጉ ለውጦች ሌሎች ቅርንጫፎችን አይነኩም።',
+    'Viewing active catalog and counter prices for': 'የቅርንጫፉን ንቁ ካታሎግ እና የመሸጫ ዋጋዎች በማየት ላይ:',
+    'Only Branch Managers can update prices.': 'ዋጋዎችን ማሻሻል የሚችሉት የቅርንጫፍ ስራ አስኪያጆች ብቻ ናቸው።',
+    'Search products...': 'ምርቶችን ይፈልጉ...',
+    'Report to Super Admin': 'ለዋና አስተዳዳሪ ሪፖርት አድርግ',
+    '📢 Report to Super Admin': '📢 ለዋና አስተዳዳሪ ሪፖርት አድርግ',
+    'Categories': 'ምድቦች',
     'Add Product': 'ምርት ጨምር',
     '+ Add Product': '+ አዲስ ምርት ጨምር',
     'Product Name': 'የምርት ስም',
     'Category': 'ምድብ',
-    'Price': 'ዋጋ',
+    'Assigned Branch:': 'የተመደበ ቅርንጫፍ:',
+    'Independent pricing active: Any price change you save applies exclusively to': 'የተናጠል ዋጋ አወጣጥ ነቅቷል፡ የሚያስቀምጡት ማንኛውም የዋጋ ለውጥ የሚመለከተው',
+    'You have view-only access as a Branch Seller/Staff. To request a price or catalog change, submit a daily report to your Branch Manager.': 'እንደ ቅርንጫፍ ሻጭ/ሰራተኛ የንባብ ብቻ ፈቃድ አለዎት። የዋጋ ወይም የምርት ለውጥ ለመጠየቅ ለቅርንጫፍ ስራ አስኪያጅዎ የዕለት ሪፖርት ያቅርቡ።',
+    'Send Price Notice →': 'የዋጋ ማሳወቂያ ላክ →',
+    'Daily Product Sales': 'የዕለቱ የምርት ሽያጭ',
+    'Weekly Product Sales': 'የሳምንቱ የምርት ሽያጭ',
+    "Today's pastry & cake volume": "የዛሬ የኬክ እና ዳቦ ሽያጭ መጠን",
+    '7-day branch sales volume': 'የ7 ቀናት የቅርንጫፍ ሽያጭ መጠን',
+    'Base Price': 'መነሻ ዋጋ',
+    'Branch Price': 'የቅርንጫፍ ዋጋ',
     'Stock': 'ክምችት',
-    'Inventory Management': 'የዕቃ ክምችት አስተዳደር',
     'Stock Level': 'የክምችት መጠን',
-    'Reorder Level': 'የማስጠንቀቂያ መጠን',
     'In Stock': 'በክምችት አለ',
     'Low Stock': 'አነስተኛ ክምችት',
     'Out of Stock': 'ያለቀ',
 
-    // --- 6. General Common Dashboard Terms ---
+    // --- 7. Inventory & Stock Management ---
+    'Central Multi-Branch Inventory': 'ማዕከላዊ የሁሉም ቅርንጫፎች ክምችት',
+    'Branch Inventory': 'የቅርንጫፍ ክምችት',
+    'Inventory Management': 'የዕቃ ክምችት አስተዳደር',
+    'Real-time physical stock across all branches and live ledger tracking.': 'በሁሉም ቅርንጫፎች ያለ የቀጥታ የዕቃ ክምችት እና የሂሳብ መዝገብ ክትትል።',
+    'Strict branch stock ledger for': 'ትክክለኛ የቅርንጫፍ ክምችት መዝገብ ለ',
+    'Customers can only order what is available at this branch.': 'ደንበኞች ማዘዝ የሚችሉት በዚህ ቅርንጫፍ ያለውን ብቻ ነው።',
+    'Verify History & Balance': 'ታሪክ እና ቀሪ ሂሳብ አረጋግጥ',
+    'View Stock Grid': 'የክምችት ሰንጠረዥ እይ',
+    'Transaction Ledger': 'የዝውውር መዝገብ',
+    'Stock Receive': 'ክምችት መቀበያ',
+    'Branch Inflow': 'የቅርንጫፍ ገቢ ክምችት',
+    'Adjust Stock': 'ክምችት አስተካክል',
+    'View-Only Access (Adjustments restricted to Branch Manager)': 'የንባብ ብቻ ፈቃድ (ክምችት ማስተካከል ለስራ አስኪያጅ ብቻ የተፈቀደ ነው)',
+    'INCOMING SHIPMENTS FROM MAIN BRANCH': 'ከዋና ቅርንጫፍ የሚመጡ ጭነቶች',
+    'Confirm Receiving': 'ርክክብ አረጋግጥ',
+    'Report Discrepancy': 'የልዩነት ሪፖርት አቅርብ',
+    'Batch Number': 'የባች ቁጥር',
+    'Reorder Level': 'የማስጠንቀቂያ መጠን',
+    'Current Balance': 'የአሁን ቀሪ ክምችት',
+
+    // --- 8. Distribution & Transfers ---
+    'Branch Distribution & Stock Transfer': 'የቅርንጫፎች ስርጭት እና የክምችት ዝውውር',
+    'Manage inter-branch dispatch, transit tracking, and branch receiving': 'የቅርንጫፎች መላኪያ፣ የጉዞ ላይ ክትትል እና የርክክብ ሂደትን ያስተዳድሩ',
+    'Stock requests': 'የክምችት ጥያቄዎች',
+    '+ New Transfer': '+ አዲስ ዝውውር',
+    'New Transfer': 'አዲስ ዝውውር',
+    'Main branch stock': 'የዋና ቅርንጫፍ ክምችት',
+    'Sent today': 'ዛሬ የተላከ',
+    'Sent this week': 'በዚህ ሳምንት የተላከ',
+    'Sent this month': 'በዚህ ወር የተላከ',
+    'Awaiting dispatch': 'መላክ የሚጠብቅ',
+    'In transit': 'በጉዞ ላይ ያለ',
+    'Received': 'የደረሰ / የተረከበ',
+    'Missing / damaged': 'የጎደለ / የተበላሸ',
+    'units on hand': 'በእጅ ላይ ያሉ ፍሬዎች',
+    'Draft or approved': 'ረቂቅ ወይም የጸደቀ',
+    'units confirmed': 'የተረጋገጡ ፍሬዎች',
+    'Source Branch': 'መነሻ ቅርንጫፍ',
+    'Destination Branch': 'መዳረሻ ቅርንጫፍ',
+    'Dispatched By': 'የላከው ሰራተኛ',
+    'Received By': 'የተረከበው ሰራተኛ',
+
+    // --- 9. Daily Reports & Manager Reports ---
+    'Daily Sales Report': 'የዕለት የሽያጭ ሪፖርት',
+    'Branch Seller order & custom cake sales recording. Submit completed reports to your Branch Manager for review and approval.': 'የቅርንጫፍ ሻጭ የትዕዛዞች እና ልዩ ኬኮች ሽያጭ መመዝገቢያ። የተጠናቀቁ ሪፖርቶችን ለቅርንጫፍ ስራ አስኪያጅዎ ለግምገማ እና ለማጽደቅ ያቅርቡ።',
+    'Record Daily Sales': 'የዕለት ሽያጭ መዝግብ',
+    'My Submitted Reports': 'ያቀረብኳቸው ሪፖርቶች',
+    'This report was returned by your Branch Manager with correction notes': 'ይህ ሪፖርት ከማረሚያ ማስታወሻ ጋር በቅርንጫፍ ስራ አስኪያጅዎ ተመልሷል',
+    'Review Note:': 'የግምገማ ማስታወሻ:',
+    'Please review the indicated items below, make necessary adjustments, and click "Submit to Branch Manager".': 'እባክዎ የተገለጹትን ነጥቦች በማስተካከል "ለቅርንጫፍ ስራ አስኪያጅ አቅርብ" የሚለውን ይጫኑ።',
+    'General Information (Auto-Assigned)': 'ጠቅላላ መረጃ (በራስ-ሰር የተሞላ)',
+    "Auto-Fill Today's Orders": 'የዛሬ ትዕዛዞችን በራስ-ሰር ሙላ',
+    'Branch Order Reports & Verification': 'የቅርንጫፍ ትዕዛዝ ሪፖርቶች እና ማረጋገጫ',
+    'Review & approve branch seller daily sales reports, and finalize branch sales reports for your branch.': 'የቅርንጫፍ ሻጮችን የዕለት ሽያጭ ሪፖርቶች ይገምግሙ እና ያጽድቁ።',
+    'Verify Seller Reports': 'የሻጭ ሪፖርቶችን አረጋግጥ',
+    'Finalize Branch Report': 'የቅርንጫፍ ሪፖርት አጠናቅቅ',
+    'Branch Sales Reports': 'የቅርንጫፍ ሽያጭ ሪፖርቶች',
+    'Pending Verification': 'ማረጋገጫ የሚጠብቅ',
+    'Approved': 'የጸደቀ',
+    'Returned': 'የተመለሰ',
+    'Draft': 'ረቂቅ',
+    'Submit to Branch Manager': 'ለቅርንጫፍ ስራ አስኪያጅ አቅርብ',
+    'Approve Report': 'ሪፖርት አጽድቅ',
+    'Return for Correction': 'ለማስተካከያ መልስ',
+
+    // --- 10. Overview & Dashboards ---
     'Dashboard': 'ዳሽቦርድ',
+    'Overview': 'ዳሽቦርድ',
     'Branch Overview': 'የቅርንጫፍ ዳሽቦርድ',
     'Business': 'ንግድ እና ቅርንጫፎች',
     'Salaries & Wages': 'ደመወዝ እና አበል',
     'Stock & Inventory': 'የዕቃ እና ምርት ክምችት',
     'Deliveries & Transfers': 'ማድረሻዎች እና ዝውውር',
     'Stock Receiving': 'የክምችት መቀበያ',
-    'New Transfer': 'አዲስ የክምችት ዝውውር',
-    'Daily Sales Report': 'የዕለት የሽያጭ ሪፖርት',
     'Branch Sales & Seller Reports': 'የሽያጭ እና የሰራተኞች ሪፖርት',
     'Branch Sales': 'የቅርንጫፍ ሽያጭ',
     'Payments': 'የክፍያዎች ዝርዝር',
@@ -1268,8 +1461,55 @@ export const useLocaleStore = defineStore('locale', () => {
     'My Account': 'የእኔ መለያ',
     'Notifications': 'ማሳወቂያዎች',
     'Settings': 'ቅንብሮች',
+    "Here's what's happening with your bakery today.": 'ዛሬ በዳቦ ቤትዎ ውስጥ እየተከናወኑ ያሉ ዋና ዋና ክንውኖች።',
+    "Here's what's happening with": 'ዛሬ እየተከናወኑ ያሉ ዋና ዋና ክንውኖች ለ',
+    'Daily Orders': 'የዕለቱ ትዕዛዞች',
+    'Revenue (Today)': 'የዕለቱ ገቢ',
+    'Gross Revenue': 'ጠቅላላ ገቢ',
+    'Revenue': 'ገቢ',
+    'Pending Delivery': 'በማድረስ ላይ ያለ',
+    'Pending Pickup': 'በመወሰድ ላይ ያለ',
+    'Top Selling Products': 'በብዛት የተሸጡ ምርቶች',
+    'Recent Orders': 'የቅርብ ጊዜ ትዕዛዞች',
+    'Quick Actions': 'ፈጣን ተግባራት',
+    'Low Stock Alert': 'አነስተኛ ክምችት ማስጠንቀቂያ',
+    'Branch Performance': 'የቅርንጫፎች አፈጻጸም',
+    'Revenue Comparison': 'የገቢ ንጽጽር',
+    'vs yesterday': 'ከትናንት ጋር ሲነጻጸር',
+    'vs last week': 'ካለፈው ሳምንት ጋር ሲነጻጸር',
+    'vs last month': 'ካለፈው ወር ጋር ሲነጻጸር',
+
+    // --- 11. Payments, Settings, Notifications, Account & Audit ---
+    'Payments & Collections': 'ክፍያዎች እና ገቢዎች',
+    'Track multi-channel payment reconciliation across telebirr, Chapa, and cash': 'የቴሌብር፣ ቻፓ እና ጥሬ ገንዘብ ክፍያዎችን ይከታተሉ',
+    'Online revenue today': 'የዛሬ የኦንላይን ገቢ',
+    'Pay on pickup/delivery': 'በመውሰጃ/በማድረሻ የሚከፈል',
+    'Failed': 'ያልተሳካ',
+    'Refunds': 'የተመላሽ ክፍያዎች',
+    'To be collected': 'የሚሰበሰብ',
+    'Transactions': 'የክፍያ ዝርዝሮች',
+    'Transaction Ref': 'የክፍያ መለያ',
+    'Settings & Content Management': 'ቅንብሮች እና ይዘት አስተዳደር',
+    'Configure system rules, business details, homepage banners, and customer feedback': 'የስርዓት ደንቦችን፣ የንግድ መረጃዎችን፣ ማስታወቂያዎችን እና የደንበኛ አስተያየቶችን ያስተዳድሩ',
+    'System & Orders': 'ስርዓት እና ትዕዛዞች',
+    'Business Info & About': 'የንግድ መረጃ እና ስለ እኛ',
+    'Homepage Banners': 'የመነሻ ገጽ ባነሮች',
+    'Save Settings': 'ቅንብሮችን መዝግብ',
+    'Mark all as read': 'ሁሉንም እንደተነበቡ አመልክት',
+    'My Staff Account': 'የእኔ የስራ መለያ',
+    'Your official employee profile and salary details': 'የእርስዎ የስራ መገለጫ እና የደመወዝ ዝርዝር መረጃ',
+    'Request Correction': 'የማስተካከያ ጥያቄ አቅርብ',
+    'Audit Log': 'የስርዓት ክትትል መዝገብ (Audit Log)',
+    'Immutable chronological record of orders, price changes, custom cake workflows, transfers, and staff actions': 'የትዕዛዞች፣ የዋጋ ለውጦች፣ የልዩ ኬኮች፣ የዝውውር እና የሰራተኞች ተግባራት ቅደም ተከተላዊ መዝገብ',
+    'Scope: All Branches': 'ክልል: ሁሉም ቅርንጫፎች',
+    'Scope:': 'ክልል:',
+    'Read Only': 'የንባብ ብቻ ፈቃድ',
+    'Record, user, or action...': 'መዝገብ፣ ተጠቃሚ ወይም ተግባር...',
+
+    // --- 12. General UI & Utility Terms ---
     'Search': 'ፈልግ',
     'Filter': 'አጣራ',
+    'All': 'ሁሉም',
     'Save': 'አስቀምጥ',
     'Save Changes': 'ለውጦችን መዝግብ',
     'Cancel': 'ይቅር',
@@ -1279,26 +1519,86 @@ export const useLocaleStore = defineStore('locale', () => {
     'Update': 'አሻሽል',
     'Close': 'ዝጋ',
     'Back': 'ተመለስ',
+    'Next': 'ቀጣይ',
+    'Previous': 'ቀዳሚ',
+    'Clear': 'አጽዳ',
+    'Amount': 'መጠን',
+    'Notes': 'ማስታወሻዎች',
+    'Description': 'መግለጫ',
+    'Details': 'ዝርዝር',
+    'Yes': 'አዎ',
+    'No': 'አይደለም',
+    'Success': 'ተሳክቷል',
+    'Error': 'ስህተት',
+    'Warning': 'ማስጠንቀቂያ',
+    'Info': 'መረጃ',
+    'Date': 'ቀን',
+    'Time': 'ሰዓት',
+    'From:': 'ከ:',
+    'To:': 'እስከ:',
+    'Only': 'ብቻ',
     'Loading...': 'በመጫን ላይ...',
     'No records found': 'ምንም መረጃ አልተገኘም',
     'No data available': 'ምንም መረጃ የለም'
   };
 
+  let compiledRegex = null;
+  const lowerLookup = {};
+
+  const buildCompiledRegex = () => {
+    const allEntries = {
+      ...adminDictionary,
+      ...roleTranslations,
+      ...branchTranslations,
+      ...productTranslations,
+    };
+
+    for (const [key, val] of Object.entries(allEntries)) {
+      if (key && val) {
+        lowerLookup[key.toLowerCase()] = val;
+      }
+    }
+
+    // Sort descending by length so longer phrases match first
+    const sortedKeys = Object.keys(allEntries)
+      .filter((k) => k && k.length > 1)
+      .sort((a, b) => b.length - a.length);
+
+    const escaped = sortedKeys.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    compiledRegex = new RegExp(escaped.join('|'), 'gi');
+  };
+
   const translateText = (text) => {
-    if (!text || typeof text !== 'string') return text;
-    if (!isAmharic.value) return text;
+    if (!text || typeof text !== 'string' || !isAmharic.value) return text;
     const trimmed = text.trim();
+    if (!trimmed) return text;
+
+    // Direct whole-match check
     if (adminDictionary[trimmed]) {
       return text.replace(trimmed, adminDictionary[trimmed]);
     }
-    // Case-insensitive match check
-    const lower = trimmed.toLowerCase();
-    for (const [key, val] of Object.entries(adminDictionary)) {
-      if (key.toLowerCase() === lower) {
-        return text.replace(trimmed, val);
-      }
+    const lowerTrimmed = trimmed.toLowerCase();
+    if (lowerLookup[lowerTrimmed]) {
+      return text.replace(trimmed, lowerLookup[lowerTrimmed]);
     }
-    return text;
+
+    // Lazy regex build
+    if (!compiledRegex) {
+      buildCompiledRegex();
+    }
+
+    // Sub-string multi-phrase replacement
+    let result = text.replace(compiledRegex, (match) => {
+      const matchLower = match.toLowerCase();
+      return lowerLookup[matchLower] || match;
+    });
+
+    // Handle currency format: "ETB 27,400" -> "27,400 ብር"
+    result = result.replace(/\bETB\s*([\d,]+(?:\.\d+)?)\b/g, '$1 ብር');
+    // Standalone ETB -> ብር
+    result = result.replace(/\bETB\b/g, 'ብር');
+
+    return result;
   };
 
   return {

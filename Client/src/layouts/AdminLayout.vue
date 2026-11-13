@@ -495,81 +495,147 @@ const localeStore = useLocaleStore();
 const unreadCount = ref(0);
 let notificationPollInterval = null;
 let adminDomObserver = null;
+let bodyModalObserver = null;
 let isTranslating = false;
+let translateTimeout = null;
 
-// Universal Admin DOM Translation Engine for All Dashboards & Pages
-function translateAdminDom() {
-  if (isTranslating || typeof document === 'undefined') return;
-  const container = document.getElementById('admin-main-scroll');
-  if (!container) return;
+const containsAmharic = (str) => /[\u1200-\u137F]/.test(str);
 
-  isTranslating = true;
-  try {
-    const isAm = localeStore.isAmharic;
+// Universal Admin DOM Translation Engine for All Dashboards, Modals & Pages
+function translateAdminElement(root) {
+  if (!root) return;
+  const isAm = localeStore.isAmharic;
 
-    // 1. Walk Text Nodes inside main content area
-    const walker = document.createTreeWalker(
-      container,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode(node) {
-          const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          const tag = parent.tagName;
-          if (['SCRIPT', 'STYLE', 'SVG', 'PATH', 'CODE', 'PRE'].includes(tag)) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          if (!node.nodeValue || !node.nodeValue.trim()) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          return NodeFilter.FILTER_ACCEPT;
+  // 1. Walk Text Nodes inside container
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        const tag = parent.tagName;
+        if (['SCRIPT', 'STYLE', 'SVG', 'PATH', 'CODE', 'PRE'].includes(tag)) {
+          return NodeFilter.FILTER_REJECT;
         }
-      }
-    );
-
-    let node;
-    while ((node = walker.nextNode())) {
-      if (node._origText === undefined) {
-        node._origText = node.nodeValue;
-      }
-      if (isAm) {
-        const translated = localeStore.translateText(node._origText);
-        if (translated !== node.nodeValue) {
-          node.nodeValue = translated;
+        if (!node.nodeValue || !node.nodeValue.trim()) {
+          return NodeFilter.FILTER_REJECT;
         }
-      } else {
-        if (node.nodeValue !== node._origText) {
-          node.nodeValue = node._origText;
-        }
+        return NodeFilter.FILTER_ACCEPT;
       }
     }
+  );
 
-    // 2. Translate Input and Textarea Placeholders
-    const inputs = container.querySelectorAll('input[placeholder], textarea[placeholder]');
-    inputs.forEach((input) => {
-      if (input._origPlaceholder === undefined) {
-        input._origPlaceholder = input.placeholder;
+  let node;
+  while ((node = walker.nextNode())) {
+    if (node._origText === undefined) {
+      node._origText = node.nodeValue;
+    } else if (!containsAmharic(node.nodeValue) && node.nodeValue !== node._origText && node.nodeValue !== node._lastTranslated) {
+      node._origText = node.nodeValue;
+    }
+    if (isAm) {
+      const translated = localeStore.translateText(node._origText);
+      node._lastTranslated = translated;
+      if (translated !== node.nodeValue) {
+        node.nodeValue = translated;
       }
-      if (isAm) {
-        const translated = localeStore.translateText(input._origPlaceholder);
-        if (translated !== input.placeholder) {
-          input.placeholder = translated;
-        }
-      } else {
-        if (input.placeholder !== input._origPlaceholder) {
-          input.placeholder = input._origPlaceholder;
-        }
+    } else {
+      if (node._origText !== undefined && node.nodeValue !== node._origText) {
+        node.nodeValue = node._origText;
       }
+    }
+  }
+
+  // 2. Translate Select Options
+  const options = root.querySelectorAll('option');
+  options.forEach((opt) => {
+    if (opt._origText === undefined) {
+      opt._origText = opt.textContent;
+    } else if (!containsAmharic(opt.textContent) && opt.textContent !== opt._origText && opt.textContent !== opt._lastTranslated) {
+      opt._origText = opt.textContent;
+    }
+    if (isAm) {
+      const translated = localeStore.translateText(opt._origText);
+      opt._lastTranslated = translated;
+      if (opt.textContent !== translated) {
+        opt.textContent = translated;
+      }
+    } else {
+      if (opt._origText !== undefined && opt.textContent !== opt._origText) {
+        opt.textContent = opt._origText;
+      }
+    }
+  });
+
+  // 3. Translate Input and Textarea Placeholders
+  const inputs = root.querySelectorAll('input[placeholder], textarea[placeholder]');
+  inputs.forEach((input) => {
+    if (input._origPlaceholder === undefined) {
+      input._origPlaceholder = input.placeholder;
+    } else if (!containsAmharic(input.placeholder) && input.placeholder !== input._origPlaceholder && input.placeholder !== input._lastTranslated) {
+      input._origPlaceholder = input.placeholder;
+    }
+    if (isAm) {
+      const translated = localeStore.translateText(input._origPlaceholder);
+      input._lastTranslated = translated;
+      if (input.placeholder !== translated) {
+        input.placeholder = translated;
+      }
+    } else {
+      if (input._origPlaceholder !== undefined && input.placeholder !== input._origPlaceholder) {
+        input.placeholder = input._origPlaceholder;
+      }
+    }
+  });
+
+  // 4. Translate Tooltip Titles
+  const titles = root.querySelectorAll('[title]');
+  titles.forEach((el) => {
+    if (el._origTitle === undefined) {
+      el._origTitle = el.title;
+    }
+    if (isAm) {
+      const translated = localeStore.translateText(el._origTitle);
+      if (el.title !== translated) {
+        el.title = translated;
+      }
+    } else {
+      if (el._origTitle !== undefined && el.title !== el._origTitle) {
+        el.title = el._origTitle;
+      }
+    }
+  });
+}
+
+function translateAdminDom() {
+  if (isTranslating || typeof document === 'undefined') return;
+  isTranslating = true;
+  try {
+    const container = document.getElementById('admin-main-scroll');
+    if (container) {
+      translateAdminElement(container);
+    }
+    // Also process any modals or teleported dialogs attached to body
+    const modals = document.querySelectorAll('body > .fixed, body > [role="dialog"], .admin-modal, div.fixed.z-50, div.fixed.z-60');
+    modals.forEach((modal) => {
+      translateAdminElement(modal);
     });
   } finally {
     isTranslating = false;
   }
 }
 
+function scheduleTranslation() {
+  if (translateTimeout) cancelAnimationFrame(translateTimeout);
+  translateTimeout = requestAnimationFrame(() => {
+    translateAdminDom();
+  });
+}
+
 // Watch language toggle to instantly translate or restore all page contents
 watch(() => localeStore.isAmharic, () => {
   nextTick(() => {
-    translateAdminDom();
+    scheduleTranslation();
   });
 });
 
@@ -597,30 +663,53 @@ onMounted(async () => {
   const container = document.getElementById('admin-main-scroll');
   if (container) {
     adminDomObserver = new MutationObserver(() => {
-      if (localeStore.isAmharic && !isTranslating) {
-        requestAnimationFrame(translateAdminDom);
+      if (!isTranslating) {
+        scheduleTranslation();
       }
     });
     adminDomObserver.observe(container, {
       childList: true,
       subtree: true,
-      characterData: false
+      characterData: true
     });
   }
+
+  // Also observe body for teleported dialog modals opening/closing
+  if (document.body) {
+    bodyModalObserver = new MutationObserver((mutations) => {
+      if (isTranslating) return;
+      const hasAddedNodes = mutations.some((m) => m.addedNodes.length > 0);
+      if (hasAddedNodes) {
+        scheduleTranslation();
+      }
+    });
+    bodyModalObserver.observe(document.body, {
+      childList: true
+    });
+  }
+
   if (localeStore.isAmharic) {
     nextTick(() => {
-      setTimeout(translateAdminDom, 60);
+      setTimeout(scheduleTranslation, 60);
     });
   }
 });
 
 onBeforeUnmount(() => {
+  if (translateTimeout) {
+    cancelAnimationFrame(translateTimeout);
+    translateTimeout = null;
+  }
   if (notificationPollInterval) {
     clearInterval(notificationPollInterval);
   }
   if (adminDomObserver) {
     adminDomObserver.disconnect();
     adminDomObserver = null;
+  }
+  if (bodyModalObserver) {
+    bodyModalObserver.disconnect();
+    bodyModalObserver = null;
   }
 });
 
@@ -631,7 +720,7 @@ const sidebarOpen = ref(false);
 watch(() => route.path, () => {
   sidebarOpen.value = false;
   nextTick(() => {
-    setTimeout(translateAdminDom, 80);
+    setTimeout(scheduleTranslation, 80);
   });
 });
 
