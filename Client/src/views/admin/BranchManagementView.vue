@@ -24,8 +24,8 @@
           </svg>
         </div>
         <div>
-          <h2 class="dash-title text-xl sm:text-2xl">Branch Management</h2>
-          <p class="dash-subtitle mt-0.5">Manage your bakery branches efficiently</p>
+          <h2 class="dash-title text-xl sm:text-2xl">{{ localeStore.isAmharic ? 'የቅርንጫፎች አስተዳደር' : 'Branch Management' }}</h2>
+          <p class="dash-subtitle mt-0.5">{{ localeStore.isAmharic ? 'የዳቦ እና ኬክ ቅርንጫፎችን በብቃት ያስተዳድሩ' : 'Manage your bakery branches efficiently' }}</p>
         </div>
       </div>
       <button
@@ -35,7 +35,7 @@
         <svg class="w-4 h-4 stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-        <span>Add Branch</span>
+        <span>{{ localeStore.isAmharic ? '+ ቅርንጫፍ ጨምር' : '+ Add Branch' }}</span>
       </button>
     </div>
 
@@ -55,15 +55,15 @@
         <table class="dash-table min-w-[580px]">
           <thead>
             <tr>
-              <th class="dash-th">Code</th>
-              <th class="dash-th">Branch</th>
-              <th class="dash-th">Type</th>
-              <th class="dash-th">Manager</th>
-              <th class="dash-th">City</th>
-              <th class="dash-th">Phone</th>
-              <th class="dash-th text-center">Status</th>
-              <th class="dash-th text-center">Shopping Access</th>
-              <th class="dash-th text-right">Action</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ኮድ' : 'Code' }}</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ቅርንጫፍ' : 'Branch' }}</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ዓይነት' : 'Type' }}</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ስራ አስኪያጅ' : 'Manager' }}</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ከተማ' : 'City' }}</th>
+              <th class="dash-th">{{ localeStore.isAmharic ? 'ስልክ' : 'Phone' }}</th>
+              <th class="dash-th text-center">{{ localeStore.isAmharic ? 'ሁኔታ' : 'Status' }}</th>
+              <th class="dash-th text-center">{{ localeStore.isAmharic ? 'የግዢ ፈቃድ' : 'Shopping Access' }}</th>
+              <th class="dash-th text-right">{{ localeStore.isAmharic ? 'ድርጊት' : 'Action' }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-[#F3EDE4]">
@@ -86,10 +86,10 @@
                   class="px-2 py-0.5 text-xs font-semibold rounded-full"
                   :class="b.branch_type === 'Main' ? 'bg-[#FFF3E0] text-[#E65100]' : 'bg-[#EAE2D8] text-[#55463C]'"
                 >
-                  {{ b.branch_type }}
+                  {{ localeStore.isAmharic ? (b.branch_type === 'Main' ? 'ዋና' : 'መደበኛ') : b.branch_type }}
                 </span>
               </td>
-              <td class="py-3.5 px-4 text-xs text-[#5A4B41]">{{ b.manager?.full_name || 'Assigned' }}</td>
+              <td class="py-3.5 px-4 text-xs text-[#5A4B41]">{{ b.manager?.full_name || (localeStore.isAmharic ? 'የተመደበ' : 'Assigned') }}</td>
               <td class="py-3.5 px-4 text-xs text-[#5A4B41]">{{ b.city }}</td>
               <td class="py-3.5 px-4 text-xs text-[#6A5A50] font-mono">{{ b.phone }}</td>
               <td class="py-3.5 px-4 text-center">
@@ -97,7 +97,7 @@
                   class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full border"
                   :class="b.status === 'Active' ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#F3EFE9] text-[#7A6B60] border-[#DDD3C7]'"
                 >
-                  {{ b.status }}
+                  {{ localeStore.isAmharic ? (b.status === 'Active' ? 'ንቁ' : 'ቦዝኗል') : b.status }}
                 </span>
               </td>
               <td class="py-3.5 px-4 text-center" @click.stop>
@@ -107,7 +107,7 @@
                     :class="b.is_shopping_enabled !== false ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-[#FAF0F0] text-[#B84B42] border-[#E8C4C4]'"
                   >
                     <span class="w-1.5 h-1.5 rounded-full mr-1" :class="b.is_shopping_enabled !== false ? 'bg-[#2E7D32]' : 'bg-[#B84B42]'"></span>
-                    {{ b.is_shopping_enabled !== false ? 'Enabled' : 'Disabled' }}
+                    {{ localeStore.isAmharic ? (b.is_shopping_enabled !== false ? 'የተፈቀደ' : 'የታገደ') : (b.is_shopping_enabled !== false ? 'Enabled' : 'Disabled') }}
                   </span>
                   <button
                     @click="toggleShopping(b)"
@@ -116,10 +116,10 @@
                     :class="b.is_shopping_enabled !== false
                       ? 'border-rose-300 text-rose-700 bg-rose-50 hover:bg-rose-100 hover:border-rose-400'
                       : 'border-emerald-400 text-white bg-[#2E7D32] hover:bg-[#256628] shadow-xs'"
-                    :title="b.is_shopping_enabled !== false ? 'Click to disable customer shopping for this branch' : 'Click to enable customer shopping for this branch'"
+                    :title="b.is_shopping_enabled !== false ? (localeStore.isAmharic ? 'የደንበኛ ግዢን ለማገድ ይጫኑ' : 'Click to disable customer shopping for this branch') : (localeStore.isAmharic ? 'የደንበኛ ግዢን ለመፍቀድ ይጫኑ' : 'Click to enable customer shopping for this branch')"
                   >
                     <span v-if="togglingBranchId === b.branch_id">...</span>
-                    <span v-else>{{ b.is_shopping_enabled !== false ? 'Disable' : 'Enable' }}</span>
+                    <span v-else>{{ b.is_shopping_enabled !== false ? (localeStore.isAmharic ? 'አግድ' : 'Disable') : (localeStore.isAmharic ? 'ፍቀድ' : 'Enable') }}</span>
                   </button>
                 </div>
               </td>
@@ -132,7 +132,7 @@
                     <svg class="w-3 h-3 text-[#7A6B60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
-                    <span>Edit</span>
+                    <span>{{ localeStore.isAmharic ? 'አስተካክል' : 'Edit' }}</span>
                   </button>
                   <button
                     type="button"
@@ -653,11 +653,13 @@ import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useDialogStore } from '../../stores/dialog';
 import { useBranchStore } from '../../stores/branch';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const authStore = useAuthStore();
 const dialog = useDialogStore();
 const branchStore = useBranchStore();
+const localeStore = useLocaleStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 
 const branches = ref([]);

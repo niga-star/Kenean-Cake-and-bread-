@@ -481,7 +481,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useLocaleStore } from '../stores/locale';
@@ -494,6 +494,84 @@ const authStore = useAuthStore();
 const localeStore = useLocaleStore();
 const unreadCount = ref(0);
 let notificationPollInterval = null;
+let adminDomObserver = null;
+let isTranslating = false;
+
+// Universal Admin DOM Translation Engine for All Dashboards & Pages
+function translateAdminDom() {
+  if (isTranslating || typeof document === 'undefined') return;
+  const container = document.getElementById('admin-main-scroll');
+  if (!container) return;
+
+  isTranslating = true;
+  try {
+    const isAm = localeStore.isAmharic;
+
+    // 1. Walk Text Nodes inside main content area
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tag = parent.tagName;
+          if (['SCRIPT', 'STYLE', 'SVG', 'PATH', 'CODE', 'PRE'].includes(tag)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (!node.nodeValue || !node.nodeValue.trim()) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node._origText === undefined) {
+        node._origText = node.nodeValue;
+      }
+      if (isAm) {
+        const translated = localeStore.translateText(node._origText);
+        if (translated !== node.nodeValue) {
+          node.nodeValue = translated;
+        }
+      } else {
+        if (node.nodeValue !== node._origText) {
+          node.nodeValue = node._origText;
+        }
+      }
+    }
+
+    // 2. Translate Input and Textarea Placeholders
+    const inputs = container.querySelectorAll('input[placeholder], textarea[placeholder]');
+    inputs.forEach((input) => {
+      if (input._origPlaceholder === undefined) {
+        input._origPlaceholder = input.placeholder;
+      }
+      if (isAm) {
+        const translated = localeStore.translateText(input._origPlaceholder);
+        if (translated !== input.placeholder) {
+          input.placeholder = translated;
+        }
+      } else {
+        if (input.placeholder !== input._origPlaceholder) {
+          input.placeholder = input._origPlaceholder;
+        }
+      }
+    });
+  } finally {
+    isTranslating = false;
+  }
+}
+
+// Watch language toggle to instantly translate or restore all page contents
+watch(() => localeStore.isAmharic, () => {
+  nextTick(() => {
+    translateAdminDom();
+  });
+});
 
 const fetchUnreadNotifications = async () => {
   if (!authStore.isAuthenticated) return;
@@ -514,20 +592,47 @@ onMounted(async () => {
   await fetchUnreadNotifications();
   // Real-time polling every 12 seconds for staff and managers
   notificationPollInterval = setInterval(fetchUnreadNotifications, 12000);
+
+  // Setup Observer for automatic translation of dynamic tables, modals, & tabs
+  const container = document.getElementById('admin-main-scroll');
+  if (container) {
+    adminDomObserver = new MutationObserver(() => {
+      if (localeStore.isAmharic && !isTranslating) {
+        requestAnimationFrame(translateAdminDom);
+      }
+    });
+    adminDomObserver.observe(container, {
+      childList: true,
+      subtree: true,
+      characterData: false
+    });
+  }
+  if (localeStore.isAmharic) {
+    nextTick(() => {
+      setTimeout(translateAdminDom, 60);
+    });
+  }
 });
 
 onBeforeUnmount(() => {
   if (notificationPollInterval) {
     clearInterval(notificationPollInterval);
   }
+  if (adminDomObserver) {
+    adminDomObserver.disconnect();
+    adminDomObserver = null;
+  }
 });
 
 // Mobile sidebar drawer state
 const sidebarOpen = ref(false);
 
-// Auto-close sidebar on route change for seamless mobile navigation
+// Auto-close sidebar and re-run translator on route change
 watch(() => route.path, () => {
   sidebarOpen.value = false;
+  nextTick(() => {
+    setTimeout(translateAdminDom, 80);
+  });
 });
 
 const currentRole = computed(() => authStore.user?.role || 'Super Admin');

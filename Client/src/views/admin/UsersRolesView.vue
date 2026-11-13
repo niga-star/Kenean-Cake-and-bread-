@@ -14,10 +14,10 @@
           </div>
           <div>
             <h1 class="font-serif text-2xl sm:text-3xl font-black text-[#2B1810] tracking-tight">
-              Users &amp; Staff Management
+              {{ localeStore.isAmharic ? 'የተጠቃሚዎች እና ሰራተኞች አስተዳደር' : 'Users & Staff Management' }}
             </h1>
             <p class="text-xs sm:text-sm text-[#7D6E64] font-medium mt-1">
-              Manage branch staff, roles, and permissions with ease.
+              {{ localeStore.isAmharic ? 'የቅርንጫፍ ሰራተኞችን፣ የስራ ሚናዎችን እና ፈቃዶችን በቀላሉ ያስተዳድሩ።' : 'Manage branch staff, roles, and permissions with ease.' }}
             </p>
           </div>
         </div>
@@ -29,7 +29,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by name, role or branch..."
+              :placeholder="localeStore.isAmharic ? 'በስም፣ በሚና ወይም በቅርንጫፍ ይፈልጉ...' : 'Search by name, role or branch...'"
               class="w-full pl-9 pr-3.5 py-2 bg-white/95 border border-[#E2D8CC] rounded-xl text-xs font-semibold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] shadow-2xs"
             />
           </div>
@@ -39,7 +39,7 @@
             class="px-4 py-2 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs sm:text-sm font-bold rounded-xl transition cursor-pointer flex items-center space-x-1.5 shadow-xs shrink-0"
           >
             <span class="text-base font-bold leading-none">+</span>
-            <span>Add User</span>
+            <span>{{ localeStore.isAmharic ? 'ተጠቃሚ ጨምር' : 'Add User' }}</span>
           </button>
         </div>
       </div>
@@ -82,7 +82,7 @@
           <div class="w-10 h-10 rounded-xl bg-[#FFF5F2] text-rose-700 flex items-center justify-center text-lg font-bold">👥</div>
           <div>
             <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ stats.totalStaff }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Total Staff</div>
+            <div class="text-[11px] text-[#7D6E64] font-medium">{{ localeStore.isAmharic ? 'ጠቅላላ ሰራተኞች' : 'Total Staff' }}</div>
           </div>
         </div>
         <span class="text-[11px] font-bold text-emerald-700">↑ +2%</span>
@@ -94,14 +94,14 @@
           <div class="w-10 h-10 rounded-xl bg-[#FEF7E6] text-amber-700 flex items-center justify-center text-lg font-bold">🏬</div>
           <div>
             <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">
-              {{ isBranchScoped ? (branches[0]?.branch_name || 'Assigned Branch') : stats.totalBranches }}
+              {{ isBranchScoped ? (branches[0]?.branch_name || (localeStore.isAmharic ? 'የተመደበ ቅርንጫፍ' : 'Assigned Branch')) : stats.totalBranches }}
             </div>
             <div class="text-[11px] text-[#7D6E64] font-medium">
-              {{ isBranchScoped ? 'Branch' : 'Branches' }}
+              {{ isBranchScoped ? (localeStore.isAmharic ? 'ቅርንጫፍ' : 'Branch') : (localeStore.isAmharic ? 'ቅርንጫፎች' : 'Branches') }}
             </div>
           </div>
         </div>
-        <span class="text-[11px] font-bold text-[#7D6E64]">Active</span>
+        <span class="text-[11px] font-bold text-[#7D6E64]">{{ localeStore.isAmharic ? 'ንቁ' : 'Active' }}</span>
       </div>
 
       <!-- 3 Managers (+0%) -->
@@ -110,7 +110,7 @@
           <div class="w-10 h-10 rounded-xl bg-[#F5F3FF] text-purple-700 flex items-center justify-center text-lg font-bold">🛡️</div>
           <div>
             <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ stats.totalManagers }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Managers</div>
+            <div class="text-[11px] text-[#7D6E64] font-medium">{{ localeStore.isAmharic ? 'ስራ አስኪያጆች' : 'Managers' }}</div>
           </div>
         </div>
         <span class="text-[11px] font-bold text-[#7D6E64]">↑ +0%</span>
@@ -122,7 +122,7 @@
           <div class="w-10 h-10 rounded-xl bg-[#F0FDF4] text-emerald-700 flex items-center justify-center text-lg font-bold">💼</div>
           <div>
             <div class="text-xl sm:text-2xl font-serif font-black text-[#2B1810]">{{ stats.staffMembers }}</div>
-            <div class="text-[11px] text-[#7D6E64] font-medium">Staff Members</div>
+            <div class="text-[11px] text-[#7D6E64] font-medium">{{ localeStore.isAmharic ? 'የቅርንጫፍ ሰራተኞች' : 'Staff Members' }}</div>
           </div>
         </div>
         <span class="text-[11px] font-bold text-emerald-700">↑ +1%</span>
@@ -139,7 +139,7 @@
         :class="roleFilterTab === 'all' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
       >
         <span>👥</span>
-        <span>All Users</span>
+        <span>{{ localeStore.isAmharic ? 'ሁሉም ተጠቃሚዎች' : 'All Users' }}</span>
       </button>
 
       <button
@@ -148,7 +148,7 @@
         :class="roleFilterTab === 'staff' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
       >
         <span>💼</span>
-        <span>Staff Members</span>
+        <span>{{ localeStore.isAmharic ? 'የቅርንጫፍ ሰራተኞች' : 'Staff Members' }}</span>
       </button>
 
       <button
@@ -157,7 +157,7 @@
         :class="roleFilterTab === 'managers' ? 'bg-[#3D251E] text-white shadow-xs' : 'bg-[#FAF7F2] text-[#6E5D52] hover:bg-[#EFE8DE]'"
       >
         <span>🛡️</span>
-        <span>Branch Managers</span>
+        <span>{{ localeStore.isAmharic ? 'የቅርንጫፍ ስራ አስኪያጆች' : 'Branch Managers' }}</span>
       </button>
     </div>
 
@@ -171,16 +171,16 @@
           <div class="flex items-center space-x-2">
             <span class="w-8 h-8 rounded-xl bg-[#3D251E] text-white flex items-center justify-center font-bold text-sm">+</span>
             <h2 class="font-serif font-black text-lg text-[#2B1810]">
-              Add New Team Member
+              {{ localeStore.isAmharic ? 'አዲስ የቡድን አባል ጨምር' : 'Add New Team Member' }}
             </h2>
           </div>
-          <p class="text-xs text-[#7D6E64] mt-1">Fill in the details to add a new user</p>
+          <p class="text-xs text-[#7D6E64] mt-1">{{ localeStore.isAmharic ? 'አዲስ ተጠቃሚ ለመጨመር ዝርዝሩን ይሙሉ' : 'Fill in the details to add a new user' }}</p>
         </div>
 
         <form @submit.prevent="submitAddUser" class="space-y-4 text-xs">
           <!-- Full Name -->
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Full Name *</label>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">{{ localeStore.isAmharic ? 'ሙሉ ስም *' : 'Full Name *' }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">👤</span>
               <input
@@ -195,7 +195,7 @@
 
           <!-- Email Address -->
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Email Address *</label>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">{{ localeStore.isAmharic ? 'ኢሜይል አድራሻ *' : 'Email Address *' }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">✉️</span>
               <input
@@ -210,7 +210,7 @@
 
           <!-- Phone Number -->
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Phone Number</label>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">{{ localeStore.isAmharic ? 'ስልክ ቁጥር' : 'Phone Number' }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64]">📞</span>
               <input
@@ -224,7 +224,7 @@
 
           <!-- Role Dropdown -->
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Role *</label>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">{{ localeStore.isAmharic ? 'የስራ ሚና *' : 'Role *' }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🛡️</span>
               <select
@@ -232,22 +232,22 @@
                 required
                 class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer"
               >
-                <option value="" disabled>Select Role</option>
+                <option value="" disabled>{{ localeStore.isAmharic ? 'የስራ ሚና ይምረጡ' : 'Select Role' }}</option>
                 <template v-if="isSuperAdmin">
-                  <option value="Main Branch Manager">Main Branch Manager</option>
-                  <option value="Branch Manager">Branch Manager</option>
+                  <option value="Main Branch Manager">{{ localeStore.tRole('Main Branch Manager') }}</option>
+                  <option value="Branch Manager">{{ localeStore.tRole('Branch Manager') }}</option>
                 </template>
-                <option value="Branch Seller / Cashier">Branch Seller / Cashier</option>
-                <option value="Branch Staff">Branch Staff</option>
-                <option value="Servant">Servant</option>
-                <option value="Delivery Staff">Delivery Staff</option>
+                <option value="Branch Seller / Cashier">{{ localeStore.tRole('Branch Seller / Cashier') }}</option>
+                <option value="Branch Staff">{{ localeStore.tRole('Branch Staff') }}</option>
+                <option value="Servant">{{ localeStore.tRole('Servant') }}</option>
+                <option value="Delivery Staff">{{ localeStore.tRole('Delivery Staff') }}</option>
               </select>
             </div>
           </div>
 
           <!-- Branch Dropdown -->
           <div>
-            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">Branch *</label>
+            <label class="block text-[11px] font-bold text-[#7D6E64] uppercase mb-1">{{ localeStore.isAmharic ? 'ቅርንጫፍ *' : 'Branch *' }}</label>
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#7D6E64] pointer-events-none">🏬</span>
               <select
@@ -255,9 +255,9 @@
                 :disabled="isBranchScoped"
                 class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-[#E2D8CC] rounded-xl font-bold text-[#2B1810] focus:ring-2 focus:ring-[#3D251E]/20 focus:border-[#3D251E] cursor-pointer disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option :value="null" disabled>Select Branch</option>
+                <option :value="null" disabled>{{ localeStore.isAmharic ? 'ቅርንጫፍ ይምረጡ' : 'Select Branch' }}</option>
                 <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-                  {{ b.branch_name }}
+                  {{ localeStore.tBranch(b.branch_name) }}
                 </option>
               </select>
             </div>
@@ -265,7 +265,7 @@
 
           <!-- Status Active Toggle Switch -->
           <div class="flex items-center justify-between py-1">
-            <span class="text-[11px] font-bold text-[#7D6E64] uppercase">Status</span>
+            <span class="text-[11px] font-bold text-[#7D6E64] uppercase">{{ localeStore.isAmharic ? 'ሁኔታ' : 'Status' }}</span>
             <label class="flex items-center space-x-2 cursor-pointer">
               <input
                 v-model="newUser.is_active"
@@ -273,7 +273,7 @@
                 class="sr-only peer"
               />
               <div class="w-10 h-5 bg-[#E5DACD] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600 relative"></div>
-              <span class="text-xs font-bold text-[#2B1810]">{{ newUser.is_active ? 'Active' : 'Inactive' }}</span>
+              <span class="text-xs font-bold text-[#2B1810]">{{ newUser.is_active ? (localeStore.isAmharic ? 'ንቁ' : 'Active') : (localeStore.isAmharic ? 'ቦዝኗል' : 'Inactive') }}</span>
             </label>
           </div>
 
@@ -285,7 +285,7 @@
               class="px-5 py-2.5 bg-[#FAF7F2] hover:bg-[#F0E6D8] border border-[#E2D6C6] text-xs font-bold text-[#3D251E] rounded-xl transition cursor-pointer flex items-center space-x-1"
             >
               <span>🔄</span>
-              <span>Reset</span>
+              <span>{{ localeStore.isAmharic ? 'እንደገና ጀምር' : 'Reset' }}</span>
             </button>
 
             <button
@@ -294,7 +294,7 @@
               class="px-6 py-2.5 bg-[#3D251E] hover:bg-[#2B1810] text-white text-xs font-bold rounded-xl transition cursor-pointer shadow-xs flex items-center space-x-1.5"
             >
               <span>💾</span>
-              <span>{{ savingUser ? 'Saving...' : 'Save User' }}</span>
+              <span>{{ savingUser ? (localeStore.isAmharic ? 'በመመዝገብ ላይ...' : 'Saving...') : (localeStore.isAmharic ? 'ተጠቃሚ መዝግብ' : 'Save User') }}</span>
             </button>
           </div>
         </form>
@@ -307,9 +307,9 @@
             <span class="text-lg">👥</span>
             <div>
               <h2 class="font-serif font-black text-lg text-[#2B1810]">
-                Staff Members
+                {{ localeStore.isAmharic ? 'የቅርንጫፍ ሰራተኞች' : 'Staff Members' }}
               </h2>
-              <p class="text-xs text-[#7D6E64]">Manage your team members across branches</p>
+              <p class="text-xs text-[#7D6E64]">{{ localeStore.isAmharic ? 'በሁሉም ቅርንጫፎች ያሉ የቡድን አባላትን ያስተዳድሩ' : 'Manage your team members across branches' }}</p>
             </div>
           </div>
 
@@ -319,15 +319,15 @@
               v-model="selectedBranchFilter"
               class="px-3 py-1.5 bg-[#FAF7F2] border border-[#E2D8CC] rounded-xl text-xs font-bold text-[#2B1810] cursor-pointer shadow-2xs"
             >
-              <option value="all">All Branches ⌵</option>
+              <option value="all">{{ localeStore.isAmharic ? 'ሁሉም ቅርንጫፎች ⌵' : 'All Branches ⌵' }}</option>
               <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
-                {{ b.branch_name }}
+                {{ localeStore.tBranch(b.branch_name) }}
               </option>
             </select>
           </div>
           <div v-else class="text-xs font-bold text-[#7D6E64] bg-[#FAF7F2] px-3 py-1.5 rounded-xl border border-[#E2D8CC] flex items-center space-x-1.5">
             <span>🏬</span>
-            <span>{{ branches[0]?.branch_name || 'My Branch' }}</span>
+            <span>{{ branches[0]?.branch_name ? localeStore.tBranch(branches[0].branch_name) : (localeStore.isAmharic ? 'የእኔ ቅርንጫፍ' : 'My Branch') }}</span>
           </div>
         </div>
 
@@ -336,12 +336,12 @@
           <table class="w-full text-left text-xs border-collapse">
             <thead>
               <tr class="bg-[#FAF7F2] text-[#6E5D52] uppercase font-bold text-[10px] tracking-wider border-b border-[#E9E0D4]">
-                <th class="py-3 px-3">Name</th>
-                <th class="py-3 px-3">Email</th>
-                <th class="py-3 px-3">Role</th>
-                <th class="py-3 px-3">Branch</th>
-                <th class="py-3 px-3">Status</th>
-                <th class="py-3 px-3 text-center">Action</th>
+                <th class="py-3 px-3">{{ localeStore.isAmharic ? 'ስም' : 'Name' }}</th>
+                <th class="py-3 px-3">{{ localeStore.isAmharic ? 'ኢሜይል' : 'Email' }}</th>
+                <th class="py-3 px-3">{{ localeStore.isAmharic ? 'ሚና' : 'Role' }}</th>
+                <th class="py-3 px-3">{{ localeStore.isAmharic ? 'ቅርንጫፍ' : 'Branch' }}</th>
+                <th class="py-3 px-3">{{ localeStore.isAmharic ? 'ሁኔታ' : 'Status' }}</th>
+                <th class="py-3 px-3 text-center">{{ localeStore.isAmharic ? 'ድርጊት' : 'Action' }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F2ECE4]">
@@ -592,11 +592,13 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useDialogStore } from '../../stores/dialog';
 import { useToastStore } from '../../stores/toast';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
 
 const authStore = useAuthStore();
 const dialog = useDialogStore();
 const toast = useToastStore();
+const localeStore = useLocaleStore();
 
 const users = ref([]);
 const branches = ref([]);
