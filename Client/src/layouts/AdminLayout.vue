@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-[#FAF7F2] text-[#2B1810] font-poppins antialiased overflow-hidden relative admin-dashboard selection:bg-[#F6EFE6] selection:text-[#3D251E]">
+  <div class="flex h-screen bg-[#FAF7F2] text-[#2B1810] font-sans antialiased overflow-hidden relative admin-dashboard selection:bg-[#F6EFE6] selection:text-[#3D251E]">
     <!-- Mobile Backdrop Overlay (< lg screens) -->
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
@@ -19,7 +19,7 @@
 
     <!-- Warm Luxury Chocolate Bakery Sidebar: Responsive Drawer on Mobile (< lg), Static on Desktop (lg+) -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 w-72 lg:w-72 bg-[#3D251E] flex flex-col justify-between shrink-0 select-none border-r border-[#4D3227] shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 font-poppins print:hidden"
+      class="fixed inset-y-0 left-0 z-50 w-72 lg:w-72 bg-[#3D251E] flex flex-col justify-between shrink-0 select-none border-r border-[#4D3227] shadow-2xl lg:shadow-none transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 font-sans print:hidden"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
     >
       <div class="flex-1 flex flex-col min-h-0">
