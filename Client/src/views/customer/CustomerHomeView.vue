@@ -20,30 +20,12 @@
 
         <!-- Desktop Left-Half Gradient Scrim (Leaves right cake 100% unobstructed on 1024px+) -->
         <div class="hidden lg:block absolute inset-0 bg-gradient-to-r from-[#FAF7F5]/95 via-[#FAF7F5]/75 via-45% to-transparent dark:from-[#170E0A]/95 dark:via-[#170E0A]/75 dark:via-45% dark:to-transparent pointer-events-none"></div>
-
-        <!-- Floating Luxury Artisan Stamp Badge on Image (Desktop) -->
-        <div class="animate-hero-stamp hidden xl:flex absolute bottom-12 right-10 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/60 dark:border-[#3E2319] shadow-xl items-center space-x-3 pointer-events-auto z-10">
-          <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-[#331A24] text-[#DE1B54] flex items-center justify-center text-xl shrink-0">
-            🍰
-          </div>
-          <div class="space-y-0.5">
-            <div class="text-xs font-serif font-black text-[#2A1810] dark:text-white leading-tight">Masterpiece Cakes</div>
-            <div class="text-[10px] text-amber-500 font-bold tracking-tight">★ 4.9 &middot; Handcrafted Daily</div>
-          </div>
-        </div>
       </div>
 
       <!-- Hero Foreground Grid (Single-Column Mobile -> 2-Col Tablet -> Left Editorial Column on Desktop) -->
       <div class="sweetbakes-container pt-6 pb-12 sm:pt-10 sm:pb-16 lg:py-24 relative z-10">
         <div class="grid grid-cols-1 md:grid-cols-12 lg:block gap-6 sm:gap-8 items-center">
           <div class="md:col-span-7 lg:max-w-xl xl:max-w-2xl space-y-3.5 sm:space-y-4 lg:space-y-5 text-center md:text-left mx-auto lg:mx-0">
-            <!-- Compact Artisan Pill Badge with Amber Star and Red Heart -->
-            <div class="animate-hero-badge inline-flex items-center space-x-1.5 sm:space-x-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md border border-rose-300/80 dark:border-[#58263A] text-[#DE1B54] text-[11px] xs:text-xs sm:text-sm font-bold tracking-wide shadow-xs max-w-full">
-              <span class="text-amber-500 font-black shrink-0">★</span>
-              <span class="font-bold tracking-wide truncate">{{ heroSubtitle }}</span>
-              <span class="text-[#DE1B54] font-black shrink-0">♥</span>
-            </div>
-
             <!-- Large Bold Serif Title with Hand-script "Love ♡" in Signature SweetBakes Red -->
             <h1 class="animate-hero-title text-fluid-hero font-serif font-black text-[#1A0C06] dark:text-white tracking-tight leading-[1.14] drop-shadow-[0_2px_4px_rgba(255,255,255,0.95)] dark:drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
               <template v-if="localeStore.isAmharic">
@@ -121,13 +103,6 @@
                 loading="eager"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none"></div>
-              <div class="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/70 dark:border-[#3E2319] shadow-md flex items-center space-x-2">
-                <span class="text-base leading-none">🍰</span>
-                <div class="leading-tight">
-                  <div class="text-[11px] font-serif font-black text-[#2A1810] dark:text-white">Masterpiece Cakes</div>
-                  <div class="text-[10px] text-amber-500 font-bold">★ 4.9 &middot; Handcrafted Daily</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

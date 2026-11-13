@@ -99,3 +99,4 @@ class CustomerReviewsSeeder extends Seeder
         }
     }
 }
+
