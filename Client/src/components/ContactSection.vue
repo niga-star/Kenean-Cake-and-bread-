@@ -118,7 +118,7 @@
                   loading="lazy"
                   @load="mapLoaded = true"
                   referrerpolicy="no-referrer-when-downgrade"
-                  title="SweetBakes Bakery Real GPS Location"
+                  title="Kenean Cake & Bread Real GPS Location"
                 ></iframe>
 
                 <!-- Facade Placeholder while waiting for scroll into view -->
@@ -296,10 +296,10 @@
                     {{ localeStore.isAmharic ? 'ኢሜይል ያድርጉልን' : 'Email Us' }}
                   </h4>
                   <a
-                    href="mailto:info@sweetbakes.com"
+                    href="mailto:info@keneanbakery.com"
                     class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#DE1B54] block truncate mt-0.5"
                   >
-                    info@sweetbakes.com
+                    info@keneanbakery.com
                   </a>
                 </div>
               </div>
@@ -951,7 +951,7 @@ function calculateDistanceToBakery() {
       } else {
         userDistanceText.value = `${Math.round(distance).toLocaleString()} km away`;
       }
-      toast.success(`You are ${userDistanceText.value} from SweetBakes!`);
+      toast.success(`You are ${userDistanceText.value} from Kenean Cake & Bread!`);
     },
     (err) => {
       calculatingDistance.value = false;
@@ -1022,7 +1022,7 @@ async function handleSubmitMessage() {
     toast.success(
       localeStore.isAmharic
         ? 'መልእክትዎ በተሳካ ሁኔታ ለዋና ጋጋሪዎቻችን ደርሷል!'
-        : (res.data?.message || 'Your message has been sent to SweetBakes!')
+        : (res.data?.message || 'Your message has been sent to Kenean Cake & Bread!')
     );
   } catch (err) {
     console.error('Contact submission error:', err);

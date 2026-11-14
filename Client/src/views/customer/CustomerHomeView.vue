@@ -177,8 +177,8 @@
             <!-- Header Row with Stamp in Top Right -->
             <div class="flex items-start justify-between gap-2.5 xs:gap-3 sm:gap-4">
               <div class="min-w-0 flex-1">
-                <div v-reveal:text="80" class="flex items-center space-x-2 text-[#DE1B54] font-script text-lg xs:text-xl sm:text-2xl lg:text-3xl mb-1">
-                  <span class="shrink-0">🧁</span>
+                <div v-reveal:text="80" class="flex items-center space-x-2.5 text-[#DE1B54] font-serif font-bold text-lg xs:text-xl sm:text-2xl lg:text-3xl mb-1">
+                  <img src="/images/kenean-logo.png" alt="Kenean Logo" class="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-full shadow-2xs shrink-0" />
                   <span class="leading-snug">{{ (localeStore.isAmharic ? businessInfo?.about_tag_am : businessInfo?.about_tag_en) || localeStore.t('about_tag') }}</span>
                 </div>
 
@@ -515,7 +515,7 @@
       <div class="text-center space-y-1.5 mb-8 sm:mb-10">
         <div v-reveal:text="80" class="flex items-center justify-center space-x-2.5 sm:space-x-3 text-rose-200 dark:text-[#58263A]">
           <span class="hidden xs:block h-px w-8 sm:w-24 bg-rose-200 dark:bg-[#58263A]"></span>
-          <span class="text-xl sm:text-2xl text-[#DE1B54]">🧁</span>
+          <img src="/images/kenean-logo.png" alt="Kenean" class="w-6 h-6 sm:w-7 sm:h-7 object-contain rounded-full shadow-2xs" />
           <h2 class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
             {{ localeStore.t('reviews_title') }}
           </h2>
@@ -530,7 +530,7 @@
       <div v-if="reviewSlides.length === 0" class="text-center py-16 px-4 rounded-3xl bg-rose-50/40 dark:bg-[#1E120B] border border-rose-100 dark:border-[#382318] max-w-lg mx-auto space-y-3">
         <span class="text-4xl block">💬</span>
         <h4 class="font-serif font-bold text-lg text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'እስካሁን ምንም አስተያየት አልተሰጠም' : 'No Customer Reviews Yet' }}</h4>
-        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የመጀመሪያው አስተያየት ሰጪ ይሁኑ! ኬክ ወይም ዳቦ በማዘዝ አስተያየትዎን ያካፍሉ።' : 'Be the first to order and share your SweetBakes celebration experience!' }}</p>
+        <p class="text-xs text-[#786B60] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'የመጀመሪያው አስተያየት ሰጪ ይሁኑ! ኬክ ወይም ዳቦ በማዘዝ አስተያየትዎን ያካፍሉ።' : 'Be the first to order and share your Kenean celebration experience!' }}</p>
         <router-link to="/shop" class="inline-block px-5 py-2 min-h-[38px] text-xs font-bold bg-[#DE1B54] text-white rounded-full hover:bg-[#C51345] transition cursor-pointer">
           {{ localeStore.isAmharic ? 'አሁን ይዘዙ' : 'Order Now' }}
         </router-link>

@@ -26,10 +26,25 @@
         <!-- Brand Logo Header + Mobile Close Button -->
         <div class="px-5 sm:px-6 py-5 border-b border-[#4D3227] dark:border-[#271810] flex items-center justify-between shrink-0">
           <div class="flex items-center space-x-3">
-            <span class="w-10 h-10 rounded-2xl bg-[#57392C] text-amber-200 border border-[#6E4636] flex items-center justify-center font-bold text-xl shadow-xs shrink-0">🧁</span>
+            <div class="relative w-11 h-11 rounded-full bg-[#FAF5EE] p-0.5 border border-[#DEBE92] shadow-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <img
+                src="/images/kenean-logo.png"
+                alt="Kenean Cake & Bread"
+                class="w-full h-full object-contain rounded-full"
+              />
+            </div>
             <router-link :to="homePath" @click="sidebarOpen = false" class="block leading-tight group">
-              <h1 class="text-xl sm:text-2xl font-serif font-black text-[#FAF4ED] tracking-tight group-hover:text-amber-200 transition">Sweet<span class="text-amber-300">Bakes</span></h1>
-              <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-[#C8B6A6] mt-0.5">Bakery</p>
+              <div class="flex items-baseline space-x-1.5">
+                <span class="text-xl sm:text-2xl font-brand font-black text-[#FAF4ED] tracking-tight group-hover:text-amber-200 transition">
+                  {{ localeStore.isAmharic ? 'ከነአን' : 'Kenean' }}
+                </span>
+                <span class="text-[11px] font-serif font-semibold text-amber-300 italic">
+                  {{ localeStore.isAmharic ? 'ኬክና ዳቦ' : 'Bakery' }}
+                </span>
+              </div>
+              <p class="text-[9.5px] uppercase font-bold tracking-[0.2em] text-[#C8B6A6] mt-0.5">
+                {{ localeStore.isAmharic ? 'የአስተዳደር ክፍል' : 'Management Portal' }}
+              </p>
             </router-link>
           </div>
           <!-- Close Button on Mobile (< lg) -->

@@ -57,9 +57,9 @@ export const useLocaleStore = defineStore('locale', () => {
       yetsom_badge: "Ye'Tsom / ጾም",
 
       // About Section
-      about_tag: 'About SweetBakes',
+      about_tag: 'About Kenean Cake & Bread',
       about_title: 'A Bakery You Can Trust',
-      about_desc: 'At SweetBakes, we believe in the joy of fresh-baked goodness. Our cakes and bread are made with love, using the finest ingredients and creative designs to make your moments sweeter.',
+      about_desc: 'At Kenean Cake & Bread, we believe in the joy of fresh-baked goodness. Our cakes and bread are made with love, using the finest ingredients and creative designs to make your moments sweeter.',
       premium_quality: 'Premium Quality',
       fresh_ingredients: 'Fresh Ingredients',
       custom_orders: 'Custom Cake Orders',
@@ -99,7 +99,7 @@ export const useLocaleStore = defineStore('locale', () => {
       subscribe_btn: 'Subscribe',
       privacy_policy: 'Privacy Policy',
       terms_service: 'Terms of Service',
-      copyright: '© 2026 SweetBakes. All rights reserved.',
+      copyright: '© 2026 Kenean Cake & Bread. All rights reserved.',
 
       // Shop Page Specifics
       filter_products: 'Filter Products',
@@ -122,7 +122,7 @@ export const useLocaleStore = defineStore('locale', () => {
       products_count_label: 'products',
 
       // Contact Page
-      contact_title: 'Contact SweetBakes',
+      contact_title: 'Contact Kenean Cake & Bread',
       contact_sub: "We'd love to hear from you, freshly baked with love!",
       helpline: 'Customer Helpline',
       helpline_desc: 'Direct Addis Ababa bakery support',
@@ -171,7 +171,7 @@ export const useLocaleStore = defineStore('locale', () => {
       free_pickup_notice: '✓ Free Shop Pickup (ETB 0 fulfillment fee)',
       step_2_title: '2. Contact Information',
       step_2_of_3: 'Step 2 of 3',
-      have_account_hint: 'Have a SweetBakes account?',
+      have_account_hint: 'Have a Kenean account?',
       signin_autofill: 'Sign In for 1-click address autofill →',
       full_name_req: 'Full Name',
       phone_req: 'Phone Number (Ethiopian format)',
@@ -256,7 +256,7 @@ export const useLocaleStore = defineStore('locale', () => {
       forgot_password_link: 'Forgot password?',
       dont_have_account: "Don't have an account yet?",
       already_have_account: 'Already have an account?',
-      register_sub: 'Join SweetBakes for fresh artisanal bread, custom cakes, and express delivery.',
+      register_sub: 'Join Kenean Cake & Bread for fresh artisanal bread, custom cakes, and express delivery.',
 
       // Order Tracking
       tracking_title: 'Track Your Bakery Order',
@@ -327,15 +327,15 @@ export const useLocaleStore = defineStore('locale', () => {
       artisan_badge: 'Artisan',
 
       // Auth Additional
-      login_header_desc: 'Sign in to your SweetBakes account to track orders, manage deliveries, and save favorite creations.',
+      login_header_desc: 'Sign in to your Kenean account to track orders, manage deliveries, and save favorite creations.',
       remember_me: 'Remember me',
-      sign_in_sweetbakes: 'Sign In to SweetBakes →',
+      sign_in_sweetbakes: 'Sign In to Kenean →',
       signing_in_btn: 'Signing in...',
-      join_sweetbakes_title: 'Join SweetBakes Bakery',
+      join_sweetbakes_title: 'Join Kenean Cake & Bread',
       join_sweetbakes_desc: 'Create your account for faster checkout, bespoke cake quotation tracking, and seasonal member offers.',
       password_min_6: 'Password (min 6 characters)',
       phone_courier_notice: 'Required for courier delivery updates',
-      terms_agree_text: 'I agree to SweetBakes Terms of Service and Freshness Guarantee.',
+      terms_agree_text: 'I agree to Kenean Cake & Bread Terms of Service and Freshness Guarantee.',
       creating_account_btn: 'Creating Account...',
       create_account_btn: 'Create Account →',
       pwd_recovery_title: 'Password Recovery',
@@ -506,9 +506,9 @@ export const useLocaleStore = defineStore('locale', () => {
       yetsom_badge: "የጾም / ጾም",
 
       // About Section
-      about_tag: 'ስለ ስዊትቤክስ',
+      about_tag: 'ስለ ከነአን ኬክ እና ዳቦ',
       about_title: 'የሚተማመኑበት ዳቦ ቤት',
-      about_desc: 'በስዊትቤክስ፣ በትኩስ መጋገሪያ ደስታ እናምናለን። ኬኮች እና ዳቦዎቻችን በላቀ ጥራት እና ፈጠራ የእርስዎን ልዩ ጊዜያት ለማጣፈጥ በፍቅር የተዘጋጁ ናቸው።',
+      about_desc: 'በከነአን ኬክ እና ዳቦ፣ በትኩስ መጋገሪያ ደስታ እናምናለን። ኬኮች እና ዳቦዎቻችን በላቀ ጥራት እና ፈጠራ የእርስዎን ልዩ ጊዜያት ለማጣፈጥ በፍቅር የተዘጋጁ ናቸው።',
       premium_quality: 'ከፍተኛ ጥራት',
       fresh_ingredients: 'ትኩስ ጥሬ እቃዎች',
       custom_orders: 'ልዩ የኬክ ትዕዛዞች',
@@ -548,7 +548,7 @@ export const useLocaleStore = defineStore('locale', () => {
       subscribe_btn: 'ተመዝገብ',
       privacy_policy: 'የግላዊነት ፖሊሲ',
       terms_service: 'የአገልግሎት ውሎች',
-      copyright: '© 2026 ስዊትቤክስ። መብቱ በሕግ የተጠበቀ ነው።',
+      copyright: '© 2026 ከነአን ኬክ እና ዳቦ። መብቱ በሕግ የተጠበቀ ነው።',
 
       // Shop Page Specifics
       filter_products: 'ምርቶችን አጣራ',
@@ -571,7 +571,7 @@ export const useLocaleStore = defineStore('locale', () => {
       products_count_label: 'ምርቶች',
 
       // Contact Page
-      contact_title: 'ስዊትቤክስን ያግኙ',
+      contact_title: 'ከነአን ኬክ እና ዳቦን ያግኙ',
       contact_sub: 'ከእርስዎ ለመስማት እንወዳለን፣ በፍቅር የተጋገረ!',
       helpline: 'የደንበኞች አገልግሎት',
       helpline_desc: 'የቀጥታ አዲስ አበባ የዳቦ ቤት ድጋፍ',
@@ -620,7 +620,7 @@ export const useLocaleStore = defineStore('locale', () => {
       free_pickup_notice: '✓ ነፃ የቅርንጫፍ ርክክብ (0 ብር ተጨማሪ ክፍያ)',
       step_2_title: '2. የግንኙነት መረጃ',
       step_2_of_3: 'ደረጃ 2 ከ 3',
-      have_account_hint: 'የስዊትቤክስ መለያ አለዎት?',
+      have_account_hint: 'የከነአን መለያ አለዎት?',
       signin_autofill: 'አድራሻዎን ወዲያውኑ ለመሙላት ይግቡ →',
       full_name_req: 'ሙሉ ስም',
       phone_req: 'ስልክ ቁጥር (የኢትዮጵያ ቅርጸት)',
@@ -705,7 +705,7 @@ export const useLocaleStore = defineStore('locale', () => {
       forgot_password_link: 'የይለፍ ቃል ረሱ?',
       dont_have_account: 'እስካሁን መለያ የለዎትም?',
       already_have_account: 'ቀደም ሲል መለያ አለዎት?',
-      register_sub: 'ለትኩስ ዳቦ፣ ለልዩ ኬኮች እና ለፈጣን ማድረስ የስዊትቤክስ ቤተሰብ ይሁኑ።',
+      register_sub: 'ለትኩስ ዳቦ፣ ለልዩ ኬኮች እና ለፈጣን ማድረስ የከነአን ቤተሰብ ይሁኑ።',
 
       // Order Tracking
       tracking_title: 'የትዕዛዝ ሁኔታ ክትትል',
@@ -776,15 +776,15 @@ export const useLocaleStore = defineStore('locale', () => {
       artisan_badge: 'ጥራት ያለው',
 
       // Auth Additional
-      login_header_desc: 'ትዕዛዞችዎን ለመከታተል፣ አድራሻዎችን ለመቆጣጠር እና ተወዳጅ ምርቶችዎን ለማስቀመጥ ወደ ስዊትቤክስ መለያዎ ይግቡ።',
+      login_header_desc: 'ትዕዛዞችዎን ለመከታተል፣ አድራሻዎችን ለመቆጣጠር እና ተወዳጅ ምርቶችዎን ለማስቀመጥ ወደ ከነአን መለያዎ ይግቡ።',
       remember_me: 'አስታውሰኝ',
-      sign_in_sweetbakes: 'ወደ ስዊትቤክስ ይግቡ →',
+      sign_in_sweetbakes: 'ወደ ከነአን ይግቡ →',
       signing_in_btn: 'በመግባት ላይ...',
-      join_sweetbakes_title: 'የስዊትቤክስ አባል ይሁኑ',
+      join_sweetbakes_title: 'የከነአን ኬክ እና ዳቦ አባል ይሁኑ',
       join_sweetbakes_desc: 'ለፈጣን ግዢ፣ ለልዩ ኬክ ዋጋ ክትትል እና ለአባልነት ቅናሾች መለያ ይፍጠሩ።',
       password_min_6: 'የይለፍ ቃል (ቢያንስ 6 ፊደላት)',
       phone_courier_notice: 'ለማድረሻ ሁኔታ መረጃ አስፈላጊ ነው',
-      terms_agree_text: 'በስዊትቤክስ የአገልግሎት ውሎች እና የትኩስነት ዋስትና እስማማለሁ።',
+      terms_agree_text: 'በከነአን ኬክ እና ዳቦ የአገልግሎት ውሎች እና የትኩስነት ዋስትና እስማማለሁ።',
       creating_account_btn: 'መለያ በመፍጠር ላይ...',
       create_account_btn: 'መለያ ይፍጠሩ →',
       pwd_recovery_title: 'የይለፍ ቃል ማግኛ',

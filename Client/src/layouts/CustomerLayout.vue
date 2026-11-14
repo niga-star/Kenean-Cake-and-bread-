@@ -74,19 +74,31 @@
     <!-- Main Navigation Bar: Pure White -->
     <header ref="headerRef" class="sticky top-0 z-40 bg-white dark:bg-[#1C110C] border-b border-[#F0EAE3] dark:border-[#352117] shadow-xs print:hidden">
       <div class="sweetbakes-container h-16 sm:h-20 flex items-center justify-between gap-1.5 xs:gap-2 sm:gap-4">
-        <!-- SweetBakes Logo -->
-        <router-link to="/" class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 lg:flex-initial lg:max-w-[210px] xl:max-w-[340px] 2xl:max-w-none group">
-          <!-- Cupcake Icon -->
-          <div class="w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 dark:bg-[#331A24] border border-rose-100 dark:border-[#58263A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
-            <span class="text-lg xs:text-xl sm:text-2xl">🧁</span>
+        <!-- Kenean Cake & Bread Official Logo & Brand Header -->
+        <router-link to="/" class="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0 flex-1 lg:flex-initial lg:max-w-[260px] xl:max-w-[370px] 2xl:max-w-none group">
+          <!-- Official Circular Logo Emblem -->
+          <div class="relative w-10 h-10 xs:w-11 xs:h-11 sm:w-13 sm:h-13 rounded-full bg-[#FAF5EE] dark:bg-[#2B1B14] p-0.5 border border-[#DEBE92] dark:border-[#5C3B28] shadow-xs flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:shadow-md transition-all duration-300">
+            <img
+              src="/images/kenean-logo.png"
+              alt="Kenean Cake & Bread Logo"
+              class="w-full h-full object-contain rounded-full"
+              loading="eager"
+            />
           </div>
+          <!-- Brand Typography -->
           <div class="min-w-0 flex-1 lg:flex-initial">
-            <div class="text-lg xs:text-xl sm:text-3xl lg:text-[28px] font-logo font-bold text-[#2A1810] dark:text-[#FBF4ED] leading-none truncate">
-              <template v-if="businessInfo?.site_name">{{ businessInfo.site_name }}</template>
-              <template v-else>Sweet<span class="text-[#DE1B54]">Bakes</span></template>
+            <div class="flex items-baseline space-x-1.5 leading-none">
+              <span class="text-xl xs:text-2xl sm:text-[27px] font-brand font-black text-[#2A1810] dark:text-[#FBF4ED] tracking-tight group-hover:text-[#DE1B54] transition-colors">
+                {{ localeStore.isAmharic ? 'ከነአን' : 'Kenean' }}
+              </span>
+              <span class="text-[11px] sm:text-xs font-serif font-semibold text-[#DE1B54] dark:text-[#FF4D7D] italic tracking-wide">
+                {{ localeStore.isAmharic ? 'ኬክ እና ዳቦ' : 'Cake & Bread' }}
+              </span>
             </div>
-            <div class="hidden sm:block text-[10px] sm:text-xs tracking-wider text-[#8C7E77] dark:text-[#A8988E] font-medium uppercase mt-0.5 truncate">
-              {{ businessInfo?.site_tagline || 'Cakes · Bread · Happiness' }}
+            <div class="hidden sm:flex items-center space-x-1.5 text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase text-[#8C7E77] dark:text-[#B5A59B] mt-1 truncate">
+              <span>{{ localeStore.isAmharic ? 'የእጅ ጥበብ ዳቦ መጋገሪያ' : 'Artisan Bakery' }}</span>
+              <span class="text-[#DE1B54] text-[8px]">•</span>
+              <span class="text-[#A08F83] dark:text-[#9A8A80]">{{ localeStore.isAmharic ? 'ደሴ' : 'Dessie' }}</span>
             </div>
           </div>
         </router-link>
@@ -776,19 +788,28 @@
     <!-- Footer: Deep Chocolate Brown #27160E -->
     <footer class="bg-[#27160E] text-[#E8DED8] pt-8 sm:pt-10 pb-8 relative w-full print:hidden">
       <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
-        <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 2 cols mobile/tablet) -->
+        <!-- Col 1: Kenean Cake & Bread Brand & Slogan (4 cols desktop, 2 cols mobile/tablet) -->
         <div class="sm:col-span-2 md:col-span-2 lg:col-span-4 space-y-4">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-2xl">
-              🧁
+          <div class="flex items-center space-x-3.5">
+            <div class="relative w-12 h-12 rounded-full bg-[#FAF5EE] p-0.5 border border-[#DEBE92] shadow-md flex items-center justify-center shrink-0">
+              <img
+                src="/images/kenean-logo.png"
+                alt="Kenean Cake & Bread Logo"
+                class="w-full h-full object-contain rounded-full"
+                loading="lazy"
+              />
             </div>
             <div>
-              <div class="text-3xl font-logo font-bold text-white leading-none">
-                <template v-if="businessInfo?.site_name">{{ businessInfo.site_name }}</template>
-                <template v-else>Sweet<span class="text-[#DE1B54]">Bakes</span></template>
+              <div class="flex items-baseline space-x-2 leading-none">
+                <span class="text-2xl sm:text-3xl font-brand font-black text-white tracking-tight">
+                  {{ localeStore.isAmharic ? 'ከነአን' : 'Kenean' }}
+                </span>
+                <span class="text-xs sm:text-sm font-serif font-semibold text-[#FF4D7D] italic tracking-wide">
+                  {{ localeStore.isAmharic ? 'ኬክ እና ዳቦ' : 'Cake & Bread' }}
+                </span>
               </div>
-              <div class="text-[10px] sm:text-xs tracking-wider text-[#AFA39B] uppercase mt-0.5">
-                {{ businessInfo?.site_tagline || 'Cakes · Bread · Happiness' }}
+              <div class="text-[10px] sm:text-xs tracking-[0.16em] text-[#C2B2A7] uppercase font-semibold mt-1">
+                {{ localeStore.isAmharic ? 'የእጅ ጥበብ ዳቦ መጋገሪያ • ደሴ፣ ኢትዮጵያ' : 'Artisan Bakery & Cafe • Dessie, Ethiopia' }}
               </div>
             </div>
           </div>

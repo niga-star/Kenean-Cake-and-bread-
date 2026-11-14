@@ -24,7 +24,8 @@
   --font-playfair: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
   --font-poppins: "Poppins", system-ui, -apple-system, "Noto Sans Ethiopic", sans-serif;
   --font-script: "Dancing Script", cursive;
-  --font-logo: "Dancing Script", cursive;
+  --font-logo: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
+  --font-brand: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
   --font-product: "Lora", Georgia, "Noto Serif Ethiopic", serif;
   --font-lora: "Lora", Georgia, "Noto Serif Ethiopic", serif;
   --font-fira: "Poppins", "Noto Sans Ethiopic", sans-serif;
@@ -52,8 +53,9 @@
   .product-title {
     font-family: "Lora", Georgia, "Noto Serif Ethiopic", serif;
   }
+  .font-brand,
   .font-logo {
-    font-family: "Dancing Script", cursive;
+    font-family: "Playfair Display", Georgia, "Noto Serif Ethiopic", serif;
   }
   .font-script {
     font-family: "Dancing Script", cursive;
@@ -338,9 +340,13 @@
     letter-spacing: 0.005em;
   }
 
-  /* Amharic Script accents (replaces cursive scripts which don't have Ge'ez glyphs) */
+  /* Amharic Script & Brand accents (replaces cursive scripts which don't have Ge'ez glyphs) */
   html[lang="am"] .font-script,
-  html.lang-am .font-script {
+  html.lang-am .font-script,
+  html[lang="am"] .font-logo,
+  html.lang-am .font-logo,
+  html[lang="am"] .font-brand,
+  html.lang-am .font-brand {
     font-family: "Noto Serif Ethiopic", "Nyala", serif !important;
     font-style: normal;
     letter-spacing: 0.015em;

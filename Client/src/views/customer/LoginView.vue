@@ -4,8 +4,8 @@
       <div class="max-w-md w-full bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] shadow-lg p-6 sm:p-10 space-y-6">
         <!-- Header -->
         <div class="text-center space-y-2">
-          <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] flex items-center justify-center mx-auto text-2xl shadow-xs text-[#DE1B54]">
-            🧁
+          <div class="relative w-16 h-16 rounded-full bg-[#FAF5EE] dark:bg-[#2B1B14] p-0.5 border border-[#DEBE92] dark:border-[#5C3B28] shadow-md flex items-center justify-center mx-auto">
+            <img src="/images/kenean-logo.png" alt="Kenean Cake & Bread" class="w-full h-full object-contain rounded-full" />
           </div>
           <h2 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
             {{ localeStore.t('welcome_back') }}
