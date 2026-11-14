@@ -296,7 +296,7 @@ class OrderService
                 'order_id' => $order->order_id,
                 'payment_method' => $validated['payment_method'],
                 'amount' => $totalAmount,
-                'payment_status' => 'Pending',
+                'payment_status' => 'PENDING',
                 'transaction_reference' => $txRef,
             ]);
 

@@ -17,6 +17,8 @@ class Payment extends Model
         'amount',
         'payment_status',
         'transaction_reference',
+        'is_test',
+        'test_details',
         'refund_reason',
         'refund_amount',
     ];
@@ -24,6 +26,8 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'refund_amount' => 'decimal:2',
+        'is_test' => 'boolean',
+        'test_details' => 'array',
     ];
 
     public function order()

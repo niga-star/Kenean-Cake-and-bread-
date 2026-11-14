@@ -24,9 +24,9 @@ class StoreOrderRequest extends FormRequest
                 'Online', 'online', 'Chapa', 'chapa' => 'Chapa',
                 'Telebirr', 'telebirr' => 'Telebirr',
                 'CBE Birr', 'cbe_birr', 'cbe', 'CBE' => 'CBE Birr',
-                'Pickup', 'Pay on pickup', 'pay_on_pickup' => 'Pay on pickup',
+                'CASH_ON_PICKUP', 'Cash on Pickup', 'cash_on_pickup', 'Pickup', 'Pay on pickup', 'pay_on_pickup' => 'CASH_ON_PICKUP',
                 'Cash on Delivery', 'COD', 'cod', 'Pay on delivery', 'pay_on_delivery' => 'Pay on delivery',
-                default => 'Pay on delivery',
+                default => 'CASH_ON_PICKUP',
             };
             $this->merge(['payment_method' => $mappedPayment]);
         }
@@ -50,7 +50,7 @@ class StoreOrderRequest extends FormRequest
             'items' => 'required|array|min:1|max:100',
             'items.*.product_id' => 'required|exists:products,product_id',
             'items.*.quantity' => 'required|integer|min:1|max:500',
-            'payment_method' => 'required|in:Chapa,Telebirr,CBE Birr,Pay on pickup,Pay on delivery',
+            'payment_method' => 'required|in:Chapa,Telebirr,CBE Birr,CASH_ON_PICKUP,Pay on pickup,Pay on delivery,Cash on Pickup',
             'promo_code' => 'nullable|string|max:50',
             'promotion_code' => 'nullable|string|max:50',
         ];

@@ -205,7 +205,15 @@
                 </td>
                 <td class="dash-td text-[#4A3A30]">{{ ord.fulfillment_method }}</td>
                 <td class="dash-td text-[#4A3A30]">
-                  {{ ord.payment ? `${ord.payment.payment_method} · ${ord.payment.payment_status}` : '—' }}
+                  <div class="flex items-center space-x-1.5 flex-wrap">
+                    <span>{{ ord.payment ? `${ord.payment.payment_method} · ${ord.payment.payment_status}` : '—' }}</span>
+                    <span
+                      v-if="ord.payment?.is_test || ord.payment?.transaction_reference?.startsWith('TEST-') || ord.payment?.payment_status?.includes('TEST')"
+                      class="px-1.5 py-0.2 text-[9px] font-black uppercase rounded bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-700"
+                    >
+                      TEST
+                    </span>
+                  </div>
                 </td>
                 <td class="dash-td font-bold font-mono text-[#2B1810]">
                   ETB {{ Number(ord.total_amount).toLocaleString() }}
@@ -284,6 +292,37 @@
           </div>
           <div v-if="selectedOrder.address?.street || selectedOrder.delivery_address" class="text-[#6A5A50] text-[11px]">
             📍 {{ selectedOrder.address?.street || selectedOrder.delivery_address }}
+          </div>
+        </div>
+
+        <!-- Payment & Transaction Details Card -->
+        <div class="bg-[#FAF7F5] dark:bg-[#1E120B] p-3 rounded-xl border border-[#EFE8DF] dark:border-[#382318] space-y-1.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold tracking-wider text-[#8A7B71] dark:text-[#A8988E]">Payment Info</span>
+            <span
+              v-if="selectedOrder.payment?.is_test || selectedOrder.payment?.transaction_reference?.startsWith('TEST-') || selectedOrder.payment?.payment_status?.includes('TEST')"
+              class="px-1.5 py-0.2 text-[9px] font-black uppercase rounded bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border border-purple-300"
+            >
+              TEST MODE
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Method:</span>
+            <span class="font-bold text-[#2A1D15] dark:text-[#FAF3EE]">{{ selectedOrder.payment?.payment_method || '—' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Payment Status:</span>
+            <span class="font-bold font-mono" :class="selectedOrder.payment?.payment_status?.includes('PAID') ? 'text-[#387A54] dark:text-emerald-400' : 'text-[#B98235] dark:text-amber-400'">
+              {{ selectedOrder.payment?.payment_status || 'PENDING' }}
+            </span>
+          </div>
+          <div v-if="selectedOrder.payment?.transaction_reference" class="flex items-center justify-between">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Reference:</span>
+            <span class="font-mono text-[11px] text-[#2A1D15] dark:text-[#FAF3EE]">{{ selectedOrder.payment.transaction_reference }}</span>
+          </div>
+          <div class="flex items-center justify-between border-t border-[#EFE8DF] dark:border-[#382318] pt-1">
+            <span class="text-[#786B60] dark:text-[#A8988E]">Order Amount:</span>
+            <span class="font-bold font-mono text-sm text-[#2A1D15] dark:text-[#FAF3EE]">ETB {{ Number(selectedOrder.total_amount).toLocaleString() }}</span>
           </div>
         </div>
 

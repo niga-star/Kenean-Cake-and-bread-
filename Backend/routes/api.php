@@ -96,8 +96,9 @@ Route::post('/contact', [ContactController::class, 'store'])->middleware('thrott
 Route::get('/promotions/active', [PromotionController::class, 'activePromotions']);
 Route::post('/promotions/validate', [PromotionController::class, 'validatePromo']);
 
-// Public Payment Webhook
+// Public Payment Webhook & Simulated Test Gateway
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+Route::post('/payments/simulate', [PaymentController::class, 'simulatePayment']);
 
 // Core application endpoints
 Route::middleware(['auth:sanctum'])->group(function () {

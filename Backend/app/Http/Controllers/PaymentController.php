@@ -51,16 +51,20 @@ class PaymentController extends Controller
         }
 
         $payments = $query->get()->map(function ($p) {
+            $isTest = (bool) ($p->is_test || str_starts_with($p->transaction_reference ?? '', 'TEST-') || str_contains($p->payment_status, 'TEST'));
             return [
                 'payment_id' => $p->payment_id,
                 'transaction_ref' => $p->transaction_reference ?? '—',
                 'order_number' => $p->order ? $p->order->order_number : '—',
                 'order_id' => $p->order_id,
                 'branch_name' => $p->order?->branch?->branch_name ?? '—',
+                'customer_name' => $p->order?->customer_name ?? $p->order?->user?->full_name ?? 'Customer',
                 'method' => $p->payment_method,
                 'amount' => (float) $p->amount,
                 'status' => $p->payment_status,
+                'is_test' => $isTest,
                 'created_at' => $p->created_at ? $p->created_at->format('H:i') : '—',
+                'order_date' => $p->created_at ? $p->created_at->format('Y-m-d H:i') : '—',
                 'refund_reason' => $p->refund_reason,
                 'refund_amount' => $p->refund_amount ? (float) $p->refund_amount : null,
             ];
@@ -368,5 +372,225 @@ class PaymentController extends Controller
             'payment_status' => $payment->fresh()->payment_status,
             'order_status' => $payment->order?->fresh()->order_status,
         ]);
+    }
+
+    /**
+     * Simulate Payment endpoint (TEST MODE ONLY)
+     * Supports: Telebirr, CBE Birr, Chapa
+     * Actions: success, fail, cancel
+     * Statuses: PAID_TEST, FAILED_TEST, CANCELLED_TEST
+     */
+    public function simulatePayment(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required',
+            'payment_method' => 'required|string',
+            'action' => 'required|string|in:success,fail,cancel',
+            'phone' => 'nullable|string|max:50',
+            'account' => 'nullable|string|max:50',
+            'card_name' => 'nullable|string|max:100',
+            'card_last4' => 'nullable|string|max:4',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        // Normalize payment method
+        $rawMethod = $validated['payment_method'];
+        $method = match (strtolower(str_replace([' ', '_', '-'], '', $rawMethod))) {
+            'telebirr' => 'Telebirr',
+            'cbebirr', 'cbe' => 'CBE Birr',
+            'chapa', 'card', 'creditcard', 'debitcard' => 'Chapa',
+            'cashonpickup', 'cash' => 'CASH_ON_PICKUP',
+            default => $rawMethod,
+        };
+
+        $orderIdentifier = $validated['order_id'];
+        $order = Order::with(['payment', 'branch', 'items'])->where(function ($q) use ($orderIdentifier) {
+            if (is_numeric($orderIdentifier)) {
+                $q->where('order_id', $orderIdentifier)->orWhere('order_number', $orderIdentifier);
+            } else {
+                $q->where('order_number', $orderIdentifier);
+            }
+        })->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        if ($order->order_status === 'Cancelled') {
+            return response()->json(['message' => 'This order has already been cancelled.'], 422);
+        }
+
+        $payment = Payment::where('order_id', $order->order_id)->latest('payment_id')->first();
+        if (!$payment) {
+            $payment = Payment::create([
+                'order_id' => $order->order_id,
+                'payment_method' => $method,
+                'amount' => $order->total_amount,
+                'payment_status' => 'PENDING',
+                'is_test' => true,
+            ]);
+        }
+
+        $action = $validated['action'];
+
+        if ($action === 'success') {
+            // Already paid idempotency
+            if (in_array($payment->payment_status, ['PAID_TEST', 'Paid'])) {
+                return response()->json([
+                    'status' => 'success',
+                    'order_number' => $order->order_number,
+                    'order_id' => $order->order_id,
+                    'payment_status' => $payment->payment_status,
+                    'order_status' => $order->order_status,
+                    'transaction_reference' => $payment->transaction_reference,
+                    'amount' => (float) $order->total_amount,
+                    'payment_method' => $payment->payment_method,
+                    'is_test' => true,
+                    'message' => 'Payment already completed in TEST MODE.',
+                ]);
+            }
+
+            $prefix = match ($method) {
+                'Telebirr' => 'TEST-TEL-',
+                'CBE Birr' => 'TEST-CBE-',
+                'Chapa' => 'TEST-CHP-',
+                default => 'TEST-PAY-',
+            };
+
+            $ref = $prefix . strtoupper(bin2hex(random_bytes(4)));
+
+            DB::transaction(function () use ($order, $payment, $method, $ref, $validated) {
+                $payment->payment_method = $method;
+                $payment->payment_status = 'PAID_TEST';
+                $payment->transaction_reference = $ref;
+                $payment->is_test = true;
+                $payment->test_details = [
+                    'phone' => $validated['phone'] ?? null,
+                    'account' => $validated['account'] ?? null,
+                    'card_name' => $validated['card_name'] ?? null,
+                    'card_last4' => $validated['card_last4'] ?? null,
+                    'mode' => 'TEST_SIMULATION',
+                    'simulated_at' => now()->toIso8601String(),
+                ];
+                $payment->save();
+
+                if ($order->order_status === 'Pending') {
+                    $order->order_status = 'Confirmed';
+                    $order->save();
+
+                    OrderStatusHistory::create([
+                        'order_id' => $order->order_id,
+                        'old_status' => 'Pending',
+                        'new_status' => 'Confirmed',
+                        'changed_by' => null,
+                        'note' => "Simulated {$method} payment successful [TEST MODE - Ref: {$ref}]",
+                        'changed_at' => now(),
+                    ]);
+                }
+
+                AuditLog::create([
+                    'user_id' => null,
+                    'user_name' => $order->customer_name ?: 'Customer',
+                    'action' => 'Simulated test payment succeeded',
+                    'record' => $order->order_number,
+                    'entity_type' => 'Payment',
+                    'entity_id' => (string) $payment->payment_id,
+                    'old_value' => 'PENDING',
+                    'new_value' => "PAID_TEST via {$method} (Ref: {$ref})",
+                    'created_at' => now(),
+                ]);
+
+                Notification::create([
+                    'user_id' => null,
+                    'branch_id' => $order->branch_id,
+                    'category' => 'Orders',
+                    'title' => "Simulated Payment: {$order->order_number}",
+                    'message' => "Order {$order->order_number} marked PAID (TEST) via {$method} (ETB " . number_format($order->total_amount, 0) . ")",
+                    'link' => '/admin/orders',
+                ]);
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'order_number' => $order->order_number,
+                'order_id' => $order->order_id,
+                'payment_status' => 'PAID_TEST',
+                'order_status' => $order->fresh()->order_status,
+                'transaction_reference' => $ref,
+                'amount' => (float) $order->total_amount,
+                'payment_method' => $method,
+                'is_test' => true,
+                'message' => "Simulated {$method} payment successful! Order marked as PAID (TEST).",
+            ]);
+        }
+
+        if ($action === 'fail') {
+            $reason = $validated['reason'] ?? 'Simulated payment failed (Insufficient test balance or declined).';
+            $failRef = 'TEST-FAIL-' . strtoupper(bin2hex(random_bytes(3)));
+
+            $payment->payment_method = $method;
+            $payment->payment_status = 'FAILED_TEST';
+            $payment->is_test = true;
+            if (!$payment->transaction_reference || !str_starts_with($payment->transaction_reference, 'TEST-')) {
+                $payment->transaction_reference = $failRef;
+            }
+            $payment->test_details = [
+                'reason' => $reason,
+                'mode' => 'TEST_SIMULATION',
+                'simulated_at' => now()->toIso8601String(),
+            ];
+            $payment->save();
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => $order->order_status,
+                'new_status' => $order->order_status,
+                'changed_by' => null,
+                'note' => "Simulated {$method} payment failed [TEST MODE: {$reason}]",
+                'changed_at' => now(),
+            ]);
+
+            return response()->json([
+                'status' => 'failed',
+                'order_number' => $order->order_number,
+                'order_id' => $order->order_id,
+                'payment_status' => 'FAILED_TEST',
+                'order_status' => $order->order_status,
+                'amount' => (float) $order->total_amount,
+                'payment_method' => $method,
+                'is_test' => true,
+                'reason' => $reason,
+                'message' => "Simulated payment failed: {$reason}. You may retry payment.",
+            ], 422);
+        }
+
+        if ($action === 'cancel') {
+            $cancelRef = 'TEST-CANC-' . strtoupper(bin2hex(random_bytes(3)));
+
+            $payment->payment_method = $method;
+            $payment->payment_status = 'CANCELLED_TEST';
+            $payment->is_test = true;
+            if (!$payment->transaction_reference || !str_starts_with($payment->transaction_reference, 'TEST-')) {
+                $payment->transaction_reference = $cancelRef;
+            }
+            $payment->test_details = [
+                'mode' => 'TEST_SIMULATION',
+                'cancelled_at' => now()->toIso8601String(),
+            ];
+            $payment->save();
+
+            return response()->json([
+                'status' => 'cancelled',
+                'order_number' => $order->order_number,
+                'order_id' => $order->order_id,
+                'payment_status' => 'CANCELLED_TEST',
+                'order_status' => $order->order_status,
+                'payment_method' => $method,
+                'is_test' => true,
+                'message' => 'Simulated payment cancelled by customer.',
+            ]);
+        }
+
+        return response()->json(['message' => 'Invalid action.'], 400);
     }
 }

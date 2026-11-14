@@ -50,40 +50,63 @@
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[540px] text-left text-sm">
-            <thead class="bg-[#FAF6F0] text-[11px] font-bold text-[#827165] tracking-wider uppercase border-b border-[#EFE8DF]">
+          <table class="w-full min-w-[700px] text-left text-sm">
+            <thead class="bg-[#FAF6F0] dark:bg-[#1C120C] text-[11px] font-bold text-[#827165] dark:text-[#A8988E] tracking-wider uppercase border-b border-[#EFE8DF] dark:border-[#382318]">
               <tr>
-                <th class="py-3 px-5">Transaction Ref</th>
                 <th class="py-3 px-4">Order</th>
-                <th class="py-3 px-4">Branch</th>
+                <th class="py-3 px-4">Customer</th>
                 <th class="py-3 px-4">Method</th>
                 <th class="py-3 px-4">Amount</th>
-                <th class="py-3 px-5 text-center">Status</th>
+                <th class="py-3 px-4">Transaction Ref</th>
+                <th class="py-3 px-4">Date</th>
+                <th class="py-3 px-4 text-center">Status</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#F3EDE4]">
+            <tbody class="divide-y divide-[#F3EDE4] dark:divide-[#382318]">
               <tr
                 v-for="p in payments"
                 :key="p.payment_id"
                 @click="populateRefund(p)"
-                class="hover:bg-[#FCFAF7] transition cursor-pointer"
+                class="hover:bg-[#FCFAF7] dark:hover:bg-[#2A1810]/50 transition cursor-pointer"
               >
-                <td class="py-3.5 px-5 font-mono text-xs text-[#5A4A3E]">{{ p.transaction_ref }}</td>
-                <td class="py-3.5 px-4 font-mono text-xs font-semibold text-[#382C24]">{{ p.order_number }}</td>
-                <td class="py-3.5 px-4 text-xs text-[#4A3B32] font-medium">{{ p.branch_name }}</td>
-                <td class="py-3.5 px-4 text-xs text-[#6A5A50]">{{ p.method }}</td>
-                <td class="py-3.5 px-4 text-xs font-semibold text-[#241710]">ETB {{ Number(p.amount).toLocaleString() }}</td>
-                <td class="py-3.5 px-5 text-center">
+                <td class="py-3.5 px-4 font-mono text-xs font-semibold text-[#382C24] dark:text-[#FAF3EE]">
+                  {{ p.order_number }}
+                </td>
+                <td class="py-3.5 px-4 text-xs text-[#4A3B32] dark:text-[#E8DDD4]">
+                  <div class="font-bold">{{ p.customer_name || 'Customer' }}</div>
+                  <div class="text-[10px] text-[#827165] dark:text-[#A8988E]">{{ p.branch_name }}</div>
+                </td>
+                <td class="py-3.5 px-4 text-xs text-[#6A5A50] dark:text-[#C5B7AF]">
+                  {{ p.method }}
+                </td>
+                <td class="py-3.5 px-4 text-xs font-bold font-mono text-[#241710] dark:text-[#FAF3EE]">
+                  ETB {{ Number(p.amount).toLocaleString() }}
+                </td>
+                <td class="py-3.5 px-4 font-mono text-xs text-[#5A4A3E] dark:text-[#C5B7AF]">
+                  <div class="flex items-center space-x-1.5 flex-wrap">
+                    <span>{{ p.transaction_ref }}</span>
+                    <span
+                      v-if="p.is_test || p.transaction_ref?.startsWith('TEST-') || p.status?.includes('TEST')"
+                      class="px-1.5 py-0.5 text-[9px] font-black uppercase rounded bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-700"
+                    >
+                      TEST
+                    </span>
+                  </div>
+                </td>
+                <td class="py-3.5 px-4 text-[11px] font-mono text-[#7A6B60] dark:text-[#A8988E]">
+                  {{ p.order_date || p.created_at }}
+                </td>
+                <td class="py-3.5 px-4 text-center">
                   <span
-                    class="inline-block px-2.5 py-0.5 text-xs font-semibold rounded-full"
+                    class="inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-full"
                     :class="{
-                      'bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]': p.status === 'Paid',
-                      'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]': p.status === 'Pending',
-                      'bg-[#FDEAEA] text-[#C62828] border border-[#FFCDD2]': p.status === 'Failed',
-                      'bg-[#F3EFE9] text-[#7A6B60] border border-[#DDD3C7]': p.status === 'Refunded'
+                      'bg-[#EAF5EA] text-[#2E7D32] border border-[#C8E6C9]': p.status === 'Paid' || p.status === 'PAID_TEST',
+                      'bg-[#FFF8E6] text-[#A67503] border border-[#FEE39E]': p.status === 'Pending' || p.status === 'PENDING',
+                      'bg-[#FDEAEA] text-[#C62828] border border-[#FFCDD2]': p.status === 'Failed' || p.status === 'FAILED_TEST',
+                      'bg-[#F3EFE9] text-[#7A6B60] border border-[#DDD3C7]': p.status === 'Refunded' || p.status === 'CANCELLED_TEST'
                     }"
                   >
-                    {{ p.status }}
+                    {{ p.status === 'PAID_TEST' ? 'PAID (TEST)' : (p.status === 'FAILED_TEST' ? 'FAILED (TEST)' : (p.status === 'CANCELLED_TEST' ? 'CANCELLED (TEST)' : p.status)) }}
                   </span>
                 </td>
               </tr>
@@ -205,14 +228,17 @@ const submitRefund = async () => {
 };
 
 const exportCSV = () => {
-  const headers = ['Transaction Ref', 'Order', 'Branch', 'Method', 'Amount', 'Status'];
+  const headers = ['Order', 'Customer', 'Branch', 'Method', 'Amount', 'Transaction Ref', 'Date', 'Status', 'Is Test'];
   const rows = payments.value.map(p => [
-    `"${p.transaction_ref}"`,
     `"${p.order_number}"`,
+    `"${p.customer_name || 'Customer'}"`,
     `"${p.branch_name}"`,
     `"${p.method}"`,
     p.amount,
-    `"${p.status}"`
+    `"${p.transaction_ref}"`,
+    `"${p.order_date || p.created_at}"`,
+    `"${p.status}"`,
+    p.is_test ? 'YES' : 'NO'
   ]);
   const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
   const encodedUri = encodeURI(csvContent);

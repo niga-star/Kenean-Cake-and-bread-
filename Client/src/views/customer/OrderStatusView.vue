@@ -81,6 +81,50 @@
         </div>
       </div>
 
+      <!-- Simulated Test Payment Success Alert -->
+      <div
+        v-if="order.payment?.payment_status === 'PAID_TEST' || order.payment?.is_test"
+        class="p-4 bg-purple-50 dark:bg-purple-950/40 border-2 border-purple-200 dark:border-purple-800 rounded-3xl text-xs text-purple-900 dark:text-purple-200 space-y-1.5 shadow-2xs"
+      >
+        <div class="font-bold flex items-center justify-between">
+          <span class="flex items-center space-x-2">
+            <span class="text-base">🧪</span>
+            <span class="text-sm font-serif font-black">{{ localeStore.isAmharic ? 'የተሳካ የሙከራ ክፍያ (TEST MODE)' : 'Simulated Payment Successful (TEST MODE)' }}</span>
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border border-purple-300">
+            PAID (TEST)
+          </span>
+        </div>
+        <p class="text-[11px] leading-relaxed text-purple-800 dark:text-purple-300">
+          {{ localeStore.isAmharic
+            ? `ይህ ክፍያ በ${order.payment?.payment_method || 'ቴስት'} በኩል የተመሰለ የሙከራ ክፍያ ነው። እውነተኛ ገንዘብ አልተከፈለም። ማጣቀሻ፡ ${order.payment?.transaction_reference || 'TEST-TX'}`
+            : `This payment was successfully simulated via ${order.payment?.payment_method || 'Test Gateway'} in sandbox mode. No real money was charged. Reference: ${order.payment?.transaction_reference || 'TEST-TX'}`
+          }}
+        </p>
+      </div>
+
+      <!-- Cash on Pickup Instruction Alert -->
+      <div
+        v-else-if="order.payment?.payment_method === 'CASH_ON_PICKUP' || order.payment?.payment_method === 'Pay on pickup'"
+        class="p-4 bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-200 dark:border-amber-800 rounded-3xl text-xs text-amber-900 dark:text-amber-200 space-y-1.5 shadow-2xs"
+      >
+        <div class="font-bold flex items-center justify-between">
+          <span class="flex items-center space-x-2">
+            <span class="text-base">🛍️</span>
+            <span class="text-sm font-serif font-black">{{ localeStore.isAmharic ? 'በቅርንጫፍ ሲረከቡ የሚከፈል (Cash on Pickup)' : 'Cash on Pickup · Payment Instructions' }}</span>
+          </span>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200 border border-amber-300">
+            PAYMENT PENDING
+          </span>
+        </div>
+        <p class="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+          {{ localeStore.isAmharic
+            ? `ትዕዛዝዎ ተመዝግቧል! እባክዎ ምርቱን ከ${localeStore.tBranch(order.branch?.branch_name || 'ቅርንጫፍ')} ዴስክ ሲረከቡ ጠቅላላ ${Number(order.total_amount || 0).toLocaleString()} ብር በጥሬ ገንዘብ ወይም በፖስ ካርድ ይክፈሉ።`
+            : `Your order is placed! Please pay the total amount of ETB ${Number(order.total_amount || 0).toLocaleString()} in cash or POS card when collecting your order at ${order.branch?.branch_name || 'the bakery counter'}.`
+          }}
+        </p>
+      </div>
+
     <!-- Main Content 2-Column Grid -->
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
       <!-- Left Column: Stepper Timeline (5 cols) -->
@@ -220,8 +264,23 @@
 
           <div class="flex justify-between items-center">
             <span class="text-[#786B60] dark:text-[#A8988E]">{{ localeStore.isAmharic ? 'የክፍያ ዘዴ' : 'Payment Method' }}</span>
-            <span class="font-bold text-[#387A54]">
-              {{ order?.payment?.payment_method || 'Online (Chapa)' }} &middot; {{ order?.payment?.payment_status || 'Paid' }}
+            <div class="flex items-center space-x-1.5 font-bold">
+              <span :class="order?.payment?.payment_status?.includes('PAID') ? 'text-[#387A54] dark:text-emerald-400' : 'text-[#B98235] dark:text-amber-400'">
+                {{ order?.payment?.payment_method === 'CASH_ON_PICKUP' ? (localeStore.isAmharic ? 'በቅርንጫፍ ሲረከቡ የሚከፈል' : 'Cash on Pickup') : (order?.payment?.payment_method || 'Online') }} &middot; {{ order?.payment?.payment_status === 'PAID_TEST' ? 'PAID' : (order?.payment?.payment_status || 'PENDING') }}
+              </span>
+              <span
+                v-if="order?.payment?.is_test || order?.payment?.transaction_reference?.startsWith('TEST-') || order?.payment?.payment_status?.includes('TEST')"
+                class="px-1.5 py-0.2 text-[9px] font-black uppercase rounded bg-purple-100 text-purple-700 dark:bg-purple-900/60 dark:text-purple-300 border border-purple-300 dark:border-purple-700"
+              >
+                TEST MODE
+              </span>
+            </div>
+          </div>
+
+          <div v-if="order?.payment?.transaction_reference" class="flex justify-between items-center">
+            <span class="text-[#786B60] dark:text-[#A8988E]">{{ localeStore.isAmharic ? 'የግብይት ማጣቀሻ' : 'Transaction Ref' }}</span>
+            <span class="font-mono text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+              {{ order?.payment?.transaction_reference }}
             </span>
           </div>
 
