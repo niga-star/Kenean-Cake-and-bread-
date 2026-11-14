@@ -775,9 +775,9 @@
 
     <!-- Footer: Deep Chocolate Brown #27160E -->
     <footer class="bg-[#27160E] text-[#E8DED8] pt-8 sm:pt-10 pb-8 relative w-full print:hidden">
-      <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
-        <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 3 cols tablet) -->
-        <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 space-y-4">
+      <div class="sweetbakes-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
+        <!-- Col 1: SweetBakes Brand & Slogan (4 cols desktop, 2 cols mobile/tablet) -->
+        <div class="sm:col-span-2 md:col-span-2 lg:col-span-4 space-y-4">
           <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-2xl">
               🧁
@@ -814,8 +814,8 @@
           </div>
         </div>
 
-        <!-- Col 2: Quick Links (2 cols) -->
-        <div class="lg:col-span-2 space-y-3">
+        <!-- Col 2: Quick Links (2 cols desktop) -->
+        <div class="sm:col-span-1 md:col-span-1 lg:col-span-2 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('quick_links') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li>
@@ -851,8 +851,8 @@
           </ul>
         </div>
 
-        <!-- Col 3: Our Services (2 cols) -->
-        <div class="lg:col-span-2 space-y-3">
+        <!-- Col 3: Our Services (3 cols desktop) -->
+        <div class="sm:col-span-1 md:col-span-1 lg:col-span-3 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('our_services') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li>
@@ -888,8 +888,8 @@
           </ul>
         </div>
 
-        <!-- Col 4: Our Branches (2 cols) -->
-        <div class="lg:col-span-2 space-y-3">
+        <!-- Col 4: Our Branches (3 cols desktop) -->
+        <div class="sm:col-span-2 md:col-span-1 lg:col-span-3 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('our_branches') }}</h4>
           <ul class="space-y-2 text-xs text-[#D8CDC5]">
             <li
@@ -911,31 +911,6 @@
               </router-link>
             </li>
           </ul>
-        </div>
-
-        <!-- Col 5: Newsletter (2 cols desktop, 3 cols tablet) -->
-        <div class="sm:col-span-2 md:col-span-3 lg:col-span-2 space-y-3">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-white">{{ localeStore.t('newsletter') }}</h4>
-          <p class="text-[11px] text-[#C7BBB3] leading-relaxed">
-            {{ localeStore.t('newsletter_sub') }}
-          </p>
-          <div class="space-y-2 max-w-sm">
-            <input
-              v-model="newsletterEmail"
-              type="email"
-              :placeholder="localeStore.t('enter_email')"
-              class="w-full bg-white dark:bg-[#1E120B] text-gray-800 dark:text-gray-100 rounded-xl px-3.5 py-2.5 text-xs placeholder:text-gray-400 dark:placeholder:text-[#8C786B] border border-transparent dark:border-[#3D261B] focus:outline-none focus:ring-2 focus:ring-[#DE1B54]"
-            />
-            <button
-              @click="handleSubscribe"
-              class="w-full py-2.5 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
-            >
-              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
-                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-              </svg>
-              <span>{{ localeStore.t('subscribe_btn') }}</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -998,7 +973,6 @@ const localeStore = useLocaleStore();
 const wishlistStore = useWishlistStore();
 
 const searchKeyword = ref('');
-const newsletterEmail = ref('');
 const accountMenuOpen = ref(false);
 const branchMenuOpen = ref(false);
 const mobileNavOpen = ref(false);
@@ -1247,20 +1221,6 @@ onBeforeUnmount(() => {
 function handleSearch() {
   if (searchKeyword.value.trim()) {
     router.push({ path: '/shop', query: { search: searchKeyword.value.trim() } });
-  }
-}
-
-async function handleSubscribe() {
-  if (!newsletterEmail.value || !newsletterEmail.value.includes('@')) {
-    toastStore.error('Please enter a valid email address.');
-    return;
-  }
-  try {
-    await api.post('/newsletter/subscribe', { email: newsletterEmail.value.trim() });
-    toastStore.success('Thank you for subscribing to SweetBakes news & special offers!');
-    newsletterEmail.value = '';
-  } catch (err) {
-    toastStore.error(err.response?.data?.message || 'Subscription failed. Please try again.');
   }
 }
 
