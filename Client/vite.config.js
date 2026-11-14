@@ -8,6 +8,21 @@ export default defineConfig({
     vue(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('three')) {
+            return 'vendor-three';
+          }
+          if (id.includes('leaflet')) {
+            return 'vendor-leaflet';
+          }
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     port: 5173,
     proxy: {

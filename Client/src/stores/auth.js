@@ -115,7 +115,12 @@ export const useAuthStore = defineStore('auth', {
     async fetchAvailableRoles() {
       if (!this.canSimulatePersona) return;
       try {
-        const res = await api.get('/auth/users');
+        let res;
+        try {
+          res = await api.get('/admin/auth/users');
+        } catch {
+          res = await api.get('/auth/users');
+        }
         const roles = [
           { role: 'Super Admin', label: 'Super Admin (All branches)', email: this.actualUser?.email || 'admin@goldencrust.com' }
         ];

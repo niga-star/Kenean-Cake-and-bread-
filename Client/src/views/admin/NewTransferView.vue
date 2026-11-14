@@ -282,9 +282,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const router = useRouter();
+const toast = useToastStore();
 
 const transferNumber = ref('Generated on save (e.g. TRF-2026-XXXX)');
 const destinationBranchId = ref(null);
@@ -405,10 +407,10 @@ const saveTransfer = async (status) => {
 const testReceiptConfirmation = () => {
   const line = receivingExample.value[0];
   if (line.received + line.damaged + line.missing !== line.sent) {
-    alert('Received + damaged + missing must equal sent (100).');
+    toast.warning('Received + damaged + missing must equal sent (100).');
     return;
   }
-  alert(`Receipt verified: ${line.received} units added to destination on hand. Discrepancy logged: ${line.missing} missing.`);
+  toast.success(`Receipt verified: ${line.received} units added to destination on hand. Discrepancy logged: ${line.missing} missing.`);
 };
 
 onMounted(() => {

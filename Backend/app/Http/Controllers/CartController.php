@@ -111,7 +111,8 @@ class CartController extends Controller
                 ->where('product_id', $it['product_id'])
                 ->first();
             $maxAvail = $inv ? max(0, (int)$inv->quantity_on_hand - (int)$inv->reserved_quantity) : 0;
-            $qty = min((int)$it['quantity'], $maxAvail > 0 ? $maxAvail : (int)$it['quantity']);
+            // Products with zero stock remain unavailable for purchase regardless of price
+            $qty = min((int)$it['quantity'], $maxAvail);
 
             if ($qty > 0) {
                 CartItem::create([

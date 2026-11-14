@@ -14,6 +14,7 @@
           Stock requests ({{ data.stock_requests ? data.stock_requests.length : 0 }})
         </button>
         <router-link
+          v-if="canCreateDispatch"
           to="/admin/transfers/new"
           class="dash-btn-primary text-xs sm:text-sm"
         >
@@ -82,6 +83,96 @@
         <div class="text-xs font-medium text-[#7D6E64] mb-1">Missing / damaged</div>
         <div class="text-3xl font-bold text-[#241710]">{{ data.missing_units ?? 0 }} / {{ data.damaged_units ?? 0 }}</div>
         <div class="text-xs text-[#8A7B71] mt-1 truncate">{{ data.dispute_note || 'None' }}</div>
+      </div>
+    </div>
+
+    <!-- Incoming Shipments from Main Branch (Dispatches) -->
+    <div
+      v-if="incomingDispatches.length > 0"
+      class="bg-gradient-to-br from-amber-50/90 via-[#FFFDF8] to-emerald-50/80 border-2 border-amber-300 rounded-2xl p-5 shadow-sm space-y-4 animate-in fade-in"
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/70 pb-3">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+            🚚
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-serif font-black text-base sm:text-lg text-[#2A1D15]">
+                Incoming Stock Dispatches from Main Branch
+              </h3>
+              <span class="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full bg-amber-200 text-amber-900 border border-amber-300 animate-pulse">
+                {{ incomingDispatches.length }} Awaiting Receipt
+              </span>
+            </div>
+            <p class="text-xs text-[#7A6B60]">
+              Shipments sent by the Main Branch. Click <strong>Confirm Receiving</strong> to verify and immediately add items to your branch inventory.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3.5">
+        <div
+          v-for="dsp in incomingDispatches"
+          :key="dsp.dispatch_id"
+          class="bg-white border border-amber-200/80 rounded-xl p-4 shadow-2xs space-y-3"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F4ECE3] pb-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono text-xs font-bold px-2.5 py-0.5 bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1] rounded-lg">
+                  📦 Manifest: {{ dsp.reference_number }}
+                </span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                  {{ dsp.status === 'partially_received' ? 'Partially Received' : 'In Transit' }}
+                </span>
+                <span class="text-xs text-[#8A7B71]">
+                  Sent: {{ dsp.sent_at ? new Date(dsp.sent_at).toLocaleString() : 'Recent' }}
+                </span>
+              </div>
+              <div class="text-xs text-[#55463C]">
+                <strong>Dispatched From:</strong> {{ dsp.from_branch_name || 'Main Production Facility' }}
+                <span v-if="dsp.notes" class="text-stone-500 italic ml-2">&bull; "{{ dsp.notes }}"</span>
+              </div>
+            </div>
+
+            <button
+              @click="openConfirmDispatchModal(dsp)"
+              class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer active:scale-95 shrink-0 border border-emerald-600"
+            >
+              <span>✓</span>
+              <span>Confirm Receiving ({{ dsp.items.reduce((s, it) => s + (it.remaining_to_receive ?? it.quantity_dispatched), 0) }} pcs)</span>
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs min-w-[480px]">
+              <thead class="bg-[#FAF7F2] text-[10px] font-bold text-[#827165] uppercase tracking-wider border-b border-[#EFE8DF]">
+                <tr>
+                  <th class="py-2 px-3">Product Name</th>
+                  <th class="py-2 px-3">Category</th>
+                  <th class="py-2 px-3 text-center">Dispatched</th>
+                  <th class="py-2 px-3 text-center">Already Received</th>
+                  <th class="py-2 px-3 text-center">Remaining to Receive</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#F3EDE4]">
+                <tr v-for="it in dsp.items" :key="it.id" class="hover:bg-[#FCFAF7]">
+                  <td class="py-2.5 px-3 font-product font-bold text-[#2A1D15]">{{ it.product_name }}</td>
+                  <td class="py-2.5 px-3 text-[#7A6B60]">{{ it.category_name }}</td>
+                  <td class="py-2.5 px-3 text-center font-bold text-[#2A1D15]">{{ it.quantity_dispatched }} pcs</td>
+                  <td class="py-2.5 px-3 text-center text-stone-500">{{ it.quantity_received }} pcs</td>
+                  <td class="py-2.5 px-3 text-center">
+                    <span class="font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      +{{ it.remaining_to_receive ?? it.quantity_dispatched }} pcs
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -162,32 +253,50 @@
                 <!-- Approved: Dispatch & Cancel -->
                 <template v-else-if="t.status === 'Approved'">
                   <button
+                    v-if="canCreateDispatch"
                     @click="dispatchTransfer(t)"
                     class="px-3 py-1 text-xs font-medium bg-[#BA5420] hover:bg-[#9E4314] text-white rounded-md shadow-sm transition"
                   >
                     Dispatch
                   </button>
                   <button
+                    v-if="canCreateDispatch"
                     @click="cancelTransfer(t)"
                     class="px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800"
                   >
                     Cancel
+                  </button>
+                  <button
+                    v-else
+                    @click="openViewModal(t)"
+                    class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
+                  >
+                    View
                   </button>
                 </template>
 
                 <!-- Draft: Approve & Cancel -->
                 <template v-else-if="t.status === 'Draft'">
                   <button
+                    v-if="canCreateDispatch"
                     @click="approveTransfer(t)"
                     class="px-3 py-1 text-xs font-medium bg-[#2E7D32] hover:bg-[#1B5E20] text-white rounded-md shadow-sm transition"
                   >
                     Approve
                   </button>
                   <button
+                    v-if="canCreateDispatch"
                     @click="cancelTransfer(t)"
                     class="px-2 py-1 text-xs font-medium text-red-600 hover:text-red-800"
                   >
                     Cancel
+                  </button>
+                  <button
+                    v-else
+                    @click="openViewModal(t)"
+                    class="px-3 py-1 text-xs font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-sm transition"
+                  >
+                    View
                   </button>
                 </template>
 
@@ -478,12 +587,127 @@
         </div>
       </div>
     </div>
+
+    <!-- Confirm Dispatch Modal (Requirement 1) -->
+    <div
+      v-if="activeConfirmDispatch"
+      class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+      @click.self="activeConfirmDispatch = null"
+    >
+      <div class="bg-white rounded-3xl border border-[#D8CDC0] max-w-xl w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between border-b border-[#F2EAE0] pb-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-11 h-11 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shrink-0 font-bold">
+              📥
+            </div>
+            <div>
+              <span class="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded uppercase tracking-wider">
+                Receive Stock Manifest
+              </span>
+              <h3 class="font-serif font-black text-xl text-[#2A1D15] mt-0.5">
+                Confirm Receiving: {{ activeConfirmDispatch.reference_number }}
+              </h3>
+              <p class="text-xs text-[#7A6B60]">
+                Dispatched from {{ activeConfirmDispatch.from_branch_name || 'Main Production Facility' }}
+              </p>
+            </div>
+          </div>
+          <button @click="activeConfirmDispatch = null" class="text-stone-400 hover:text-stone-700 font-bold text-xl cursor-pointer p-1">
+            ✕
+          </button>
+        </div>
+
+        <p class="text-xs text-[#55463C] leading-relaxed">
+          Verify product quantities received. Once confirmed, these items will automatically be added to your branch product stock.
+        </p>
+
+        <!-- Items verification table with pre-filled quantities -->
+        <div class="overflow-x-auto border border-[#E8DFD5] rounded-xl">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-[#FAF7F2] text-[10px] font-bold text-[#827165] uppercase tracking-wider border-b border-[#EFE8DF]">
+              <tr>
+                <th class="py-2.5 px-3">Product</th>
+                <th class="py-2.5 px-2 text-center">Dispatched</th>
+                <th class="py-2.5 px-3 text-center w-28">Quantity Received</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F3EDE4]">
+              <tr v-for="it in confirmDispatchLines" :key="it.product_id" class="hover:bg-[#FCFAF7]">
+                <td class="py-2.5 px-3 font-product font-bold text-[#2A1D15]">
+                  <div>{{ it.product_name }}</div>
+                  <div class="text-[10px] text-stone-500 font-normal">🏷️ {{ it.category_name }}</div>
+                </td>
+                <td class="py-2.5 px-2 text-center font-bold text-stone-700">
+                  {{ it.quantity_dispatched }} pcs
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <input
+                    type="number"
+                    min="1"
+                    :max="it.remaining_to_receive"
+                    v-model.number="it.quantity_received"
+                    class="w-20 border border-emerald-400 bg-emerald-50/60 rounded-lg px-2 py-1 text-center font-extrabold text-emerald-900 focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+                    required
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Notes field -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-[#65554B] mb-1">
+            Delivery / Inspection Notes (Optional)
+          </label>
+          <input
+            v-model="confirmDispatchNotes"
+            type="text"
+            placeholder="e.g. Received intact, delivery crate inspected"
+            class="w-full border border-[#D8CDC0] rounded-xl px-3 py-2 text-xs text-[#2D231D] bg-[#FDFBF7] focus:ring-1 focus:ring-emerald-600 focus:outline-none"
+          />
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end space-x-2.5 pt-3 border-t border-[#F2EAE0]">
+          <button
+            type="button"
+            @click="activeConfirmDispatch = null"
+            class="px-4 py-2 border border-[#D8CDC0] text-[#5A4B41] text-xs font-semibold rounded-xl hover:bg-[#FAF7F5] cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            @click="submitConfirmDispatch"
+            :disabled="isSubmittingConfirmDispatch"
+            class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center space-x-2"
+          >
+            <span>✓</span>
+            <span>{{ isSubmittingConfirmDispatch ? 'Adding to Stock...' : 'Confirm & Add to Stock' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import api from '../../api';
+import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
+
+const authStore = useAuthStore();
+const toast = useToastStore();
+const dialog = useDialogStore();
+const canCreateDispatch = computed(() => {
+  const role = authStore.user?.role;
+  if (role === 'Super Admin' || role === 'Main Branch Manager') return true;
+  if (role === 'Branch Manager' && authStore.user?.branch?.branch_type === 'Main') return true;
+  return false;
+});
 
 const data = ref({
   main_branch_stock: 0,
@@ -511,6 +735,50 @@ const receiveLines = ref([]);
 const receiveDiscrepancyReason = ref('');
 const submittingReceive = ref(false);
 
+// State for Incoming Dispatches & Confirm Receiving
+const incomingDispatches = ref([]);
+const activeConfirmDispatch = ref(null);
+const confirmDispatchLines = ref([]);
+const confirmDispatchNotes = ref('');
+const isSubmittingConfirmDispatch = ref(false);
+
+const openConfirmDispatchModal = (dsp) => {
+  activeConfirmDispatch.value = dsp;
+  confirmDispatchNotes.value = '';
+  confirmDispatchLines.value = (dsp.items || []).map(it => ({
+    product_id: it.product_id,
+    product_name: it.product_name,
+    category_name: it.category_name,
+    quantity_dispatched: it.quantity_dispatched,
+    quantity_received: it.remaining_to_receive ?? (it.quantity_dispatched - (it.quantity_received || 0)),
+    remaining_to_receive: it.remaining_to_receive ?? (it.quantity_dispatched - (it.quantity_received || 0)),
+  }));
+};
+
+const submitConfirmDispatch = async () => {
+  if (!activeConfirmDispatch.value) return;
+  isSubmittingConfirmDispatch.value = true;
+  try {
+    const payload = {
+      items: confirmDispatchLines.value.map(l => ({
+        product_id: l.product_id,
+        quantity_received: parseInt(l.quantity_received, 10),
+      })),
+      notes: confirmDispatchNotes.value || null,
+    };
+    const res = await api.post(`/admin/dispatches/${activeConfirmDispatch.value.dispatch_id}/receive`, payload);
+    const msg = res.data.message || `Shipment ${activeConfirmDispatch.value.reference_number} received successfully!`;
+    successMsg.value = msg;
+    toast.success(msg);
+    activeConfirmDispatch.value = null;
+    await loadDashboard();
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to confirm stock receipt.');
+  } finally {
+    isSubmittingConfirmDispatch.value = false;
+  }
+};
+
 const successMsg = ref('');
 const errorMsg = ref('');
 const resolveForm = ref({
@@ -530,6 +798,13 @@ const loadDashboard = async () => {
     console.error('Failed to load distribution dashboard', err);
     errorMsg.value = 'Failed to load distribution data.';
   }
+
+  try {
+    const rcvRes = await api.get('/admin/received-stocks');
+    incomingDispatches.value = rcvRes.data.in_transit_dispatches || [];
+  } catch (e) {
+    incomingDispatches.value = [];
+  }
 };
 
 const openResolveModal = (t) => {
@@ -542,10 +817,11 @@ const submitResolve = async () => {
   try {
     await api.post(`/admin/transfers/${activeDispute.value.transfer_id}/resolve`, resolveForm.value);
     successMsg.value = `Dispute for ${activeDispute.value.transfer} resolved successfully!`;
+    toast.success(successMsg.value);
     activeDispute.value = null;
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to resolve dispute');
+    toast.error(err.response?.data?.message || 'Failed to resolve dispute');
   }
 };
 
@@ -569,14 +845,14 @@ const submitReceive = async () => {
   for (const line of receiveLines.value) {
     const sum = (line.quantity_received || 0) + (line.damaged_quantity || 0) + (line.missing_quantity || 0);
     if (sum !== line.quantity_sent) {
-      alert(`For line "${line.product_name}", received (${line.quantity_received}) + damaged (${line.damaged_quantity}) + missing (${line.missing_quantity}) = ${sum}, but sent is ${line.quantity_sent}. The count must strictly equal sent before saving.`);
+      toast.warning(`For line "${line.product_name}", received (${line.quantity_received}) + damaged (${line.damaged_quantity}) + missing (${line.missing_quantity}) = ${sum}, but sent is ${line.quantity_sent}. The count must strictly equal sent before saving.`);
       return;
     }
   }
 
   // Check discrepancy reason
   if (hasDiscrepancyInReceive.value && !receiveDiscrepancyReason.value.trim()) {
-    alert('A discrepancy reason is mandatory when received quantity differs from sent.');
+    toast.warning('A discrepancy reason is mandatory when received quantity differs from sent.');
     return;
   }
 
@@ -594,10 +870,11 @@ const submitReceive = async () => {
 
     const res = await api.post(`/admin/transfers/${activeReceiveTransfer.value.transfer_id}/receive`, payload);
     successMsg.value = `Transfer ${activeReceiveTransfer.value.transfer} receipt confirmed! Status: ${res.data.status}.`;
+    toast.success(successMsg.value);
     activeReceiveTransfer.value = null;
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to confirm receipt');
+    toast.error(err.response?.data?.message || 'Failed to confirm receipt');
   } finally {
     submittingReceive.value = false;
   }
@@ -611,8 +888,9 @@ const sendReminder = async (t) => {
   try {
     const res = await api.post(`/admin/transfers/${t.transfer_id}/remind`);
     successMsg.value = res.data.message || `Reminder dispatched for transfer ${t.transfer}.`;
+    toast.success(successMsg.value);
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to send reminder');
+    toast.error(err.response?.data?.message || 'Failed to send reminder');
   }
 };
 
@@ -620,9 +898,10 @@ const dispatchTransfer = async (t) => {
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/dispatch`);
     successMsg.value = `Transfer ${t.transfer} dispatched! Stock deducted from Main Branch.`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to dispatch transfer');
+    toast.error(err.response?.data?.message || 'Failed to dispatch transfer');
   }
 };
 
@@ -630,20 +909,28 @@ const approveTransfer = async (t) => {
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/approve`);
     successMsg.value = `Transfer ${t.transfer} approved!`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to approve transfer');
+    toast.error(err.response?.data?.message || 'Failed to approve transfer');
   }
 };
 
 const cancelTransfer = async (t) => {
-  if (!confirm(`Are you sure you want to cancel transfer ${t.transfer}?`)) return;
+  const confirmed = await dialog.confirm({
+    title: 'Cancel Transfer',
+    message: `Are you sure you want to cancel transfer ${t.transfer}?`,
+    confirmText: 'Cancel Transfer',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
   try {
     await api.post(`/admin/transfers/${t.transfer_id}/cancel`);
     successMsg.value = `Transfer ${t.transfer} cancelled!`;
+    toast.info(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to cancel transfer');
+    toast.error(err.response?.data?.message || 'Failed to cancel transfer');
   }
 };
 
@@ -651,9 +938,10 @@ const convertRequest = async (req) => {
   try {
     const res = await api.post(`/admin/stock-requests/${req.request_id}/convert`);
     successMsg.value = `Stock request #${req.request_id} converted to ${res.data.transfer_number}!`;
+    toast.success(successMsg.value);
     await loadDashboard();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to convert request');
+    toast.error(err.response?.data?.message || 'Failed to convert request');
   }
 };
 

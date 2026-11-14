@@ -43,8 +43,8 @@ class AddressController extends Controller
         $address = Address::create([
             'user_id' => $user->user_id,
             'street' => $validated['street'],
-            'city' => $validated['city'] ?? 'Addis Ababa',
-            'region' => $validated['region'] ?? 'Bole',
+            'city' => $validated['city'] ?? 'Dessie',
+            'region' => $validated['region'] ?? 'Amhara',
             'notes' => $validated['notes'] ?? null,
             'is_default' => $validated['is_default'] ?? false,
         ]);

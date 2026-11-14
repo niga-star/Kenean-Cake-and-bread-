@@ -88,6 +88,37 @@ class OverviewController extends Controller
             ->where('order_status', '!=', 'Cancelled')
             ->sum('total_amount');
 
+        // Real trend calculation vs yesterday
+        $yesterday = (clone $today)->subDay();
+        $ordersYesterdayQuery = Order::whereDate('placed_at', $yesterday);
+        if ($hasBranchFilter) {
+            $ordersYesterdayQuery->where('branch_id', $selectedBranchId);
+        }
+        $ordersYesterday = (clone $ordersYesterdayQuery)->count();
+        $revenueYesterday = (float) (clone $ordersYesterdayQuery)
+            ->where('order_status', '!=', 'Cancelled')
+            ->sum('total_amount');
+
+        if ($ordersYesterday > 0) {
+            $diff = $ordersToday - $ordersYesterday;
+            $pct = round(($diff / $ordersYesterday) * 100);
+            $ordersTrend = ($pct >= 0 ? "+{$pct}%" : "{$pct}%") . " vs yesterday";
+        } elseif ($ordersToday > 0) {
+            $ordersTrend = "+{$ordersToday} vs yesterday";
+        } else {
+            $ordersTrend = "0 vs yesterday";
+        }
+
+        if ($revenueYesterday > 0) {
+            $revDiff = $revenueToday - $revenueYesterday;
+            $revPct = round(($revDiff / $revenueYesterday) * 100);
+            $revenueTrend = ($revPct >= 0 ? "+{$revPct}%" : "{$revPct}%") . " vs yesterday";
+        } elseif ($revenueToday > 0) {
+            $revenueTrend = "+ETB " . number_format($revenueToday, 0) . " vs yesterday";
+        } else {
+            $revenueTrend = "0 vs yesterday";
+        }
+
         $pendingOrdersQuery = Order::where('order_status', 'Pending');
         if ($hasBranchFilter) {
             $pendingOrdersQuery->where('branch_id', $selectedBranchId);
@@ -103,28 +134,28 @@ class OverviewController extends Controller
         $transfersList = $inTransitTransfers->get();
         $unitsInTransit = (int) StockTransferItem::whereIn('transfer_id', $transfersList->pluck('transfer_id'))->sum('quantity_sent');
 
-        // 3. Sales by Branch this week (Stacked Bar Chart: Cakes vs Bread & Pastries)
+        // 3. Sales by Branch this week (Single grouped query instead of N+1 per branch)
         $branches = Branch::where('status', 'Active')->get();
+        $branchSalesRows = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.order_id')
+            ->join('products', 'order_items.product_id', '=', 'products.product_id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.category_id')
+            ->where('orders.placed_at', '>=', $startOfWeek)
+            ->where('orders.order_status', '!=', 'Cancelled')
+            ->selectRaw("
+                orders.branch_id,
+                SUM(CASE WHEN categories.slug = 'cakes' OR categories.category_name LIKE '%Cake%' THEN order_items.subtotal ELSE 0 END) as cakes_revenue,
+                SUM(CASE WHEN COALESCE(categories.slug, '') != 'cakes' AND COALESCE(categories.category_name, '') NOT LIKE '%Cake%' THEN order_items.subtotal ELSE 0 END) as bread_revenue
+            ")
+            ->groupBy('orders.branch_id')
+            ->get()
+            ->keyBy('branch_id');
+
         $salesByBranch = [];
-
         foreach ($branches as $branch) {
-            $branchWeekOrders = Order::where('branch_id', $branch->branch_id)
-                ->where('placed_at', '>=', $startOfWeek)
-                ->where('order_status', '!=', 'Cancelled')
-                ->pluck('order_id');
-
-            $cakesRevenue = (float) OrderItem::whereIn('order_id', $branchWeekOrders)
-                ->whereHas('product.category', function ($q) {
-                    $q->where('slug', 'cakes')->orWhere('category_name', 'like', '%Cake%');
-                })
-                ->sum('subtotal');
-
-            $breadRevenue = (float) OrderItem::whereIn('order_id', $branchWeekOrders)
-                ->whereHas('product.category', function ($q) {
-                    $q->where('slug', '!=', 'cakes')->where('category_name', 'not like', '%Cake%');
-                })
-                ->sum('subtotal');
-
+            $row = $branchSalesRows->get($branch->branch_id);
+            $cakesRevenue = (float) ($row->cakes_revenue ?? 0);
+            $breadRevenue = (float) ($row->bread_revenue ?? 0);
             $totalBranchSales = $cakesRevenue + $breadRevenue;
 
             $salesByBranch[] = [
@@ -324,6 +355,8 @@ class OverviewController extends Controller
             'is_branch_view' => false,
             'revenue_today' => $revenueToday,
             'orders_today' => $ordersToday,
+            'orders_trend' => $ordersTrend,
+            'revenue_trend' => $revenueTrend,
             'pending_orders' => $pendingOrders,
             'out_for_delivery' => $pipeline['out_for_delivery'],
             'delivered_today' => $pipeline['delivered'],
@@ -356,6 +389,34 @@ class OverviewController extends Controller
         $revenueToday = (float) (clone $ordersTodayQuery)
             ->where('order_status', '!=', 'Cancelled')
             ->sum('total_amount');
+
+        // Real trend calculation vs yesterday
+        $yesterday = (clone $today)->subDay();
+        $ordersYesterday = Order::where('branch_id', $branchId)->whereDate('placed_at', $yesterday)->count();
+        $revenueYesterday = (float) Order::where('branch_id', $branchId)
+            ->whereDate('placed_at', $yesterday)
+            ->where('order_status', '!=', 'Cancelled')
+            ->sum('total_amount');
+
+        if ($ordersYesterday > 0) {
+            $diff = $ordersToday - $ordersYesterday;
+            $pct = round(($diff / $ordersYesterday) * 100);
+            $ordersTrend = ($pct >= 0 ? "+{$pct}%" : "{$pct}%") . " vs yesterday";
+        } elseif ($ordersToday > 0) {
+            $ordersTrend = "+{$ordersToday} vs yesterday";
+        } else {
+            $ordersTrend = "0 vs yesterday";
+        }
+
+        if ($revenueYesterday > 0) {
+            $revDiff = $revenueToday - $revenueYesterday;
+            $revPct = round(($revDiff / $revenueYesterday) * 100);
+            $revenueTrend = ($revPct >= 0 ? "+{$revPct}%" : "{$revPct}%") . " vs yesterday";
+        } elseif ($revenueToday > 0) {
+            $revenueTrend = "+ETB " . number_format($revenueToday, 0) . " vs yesterday";
+        } else {
+            $revenueTrend = "0 vs yesterday";
+        }
 
         $pendingOrders = Order::where('branch_id', $branchId)->where('order_status', 'Pending')->count();
         $confirmedOrders = Order::where('branch_id', $branchId)->where('order_status', 'Confirmed')->count();
@@ -476,6 +537,8 @@ class OverviewController extends Controller
             ],
             'revenue_today' => $revenueToday,
             'orders_today' => $ordersToday,
+            'orders_trend' => $ordersTrend,
+            'revenue_trend' => $revenueTrend,
             'pending_orders' => $pendingOrders,
             'confirmed_orders' => $confirmedOrders,
             'preparing_orders' => $preparingOrders,
@@ -586,18 +649,12 @@ class OverviewController extends Controller
         $invQuery = BranchInventory::with(['product', 'branch'])
             ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
             ->whereHas('product', fn($q) => $q->whereNull('deleted_at'))
+            ->whereRaw('(quantity_on_hand - reserved_quantity) <= reorder_level')
             ->orderByRaw('(quantity_on_hand - reserved_quantity) ASC')
-            ->take(4)
+            ->take(6)
             ->get();
 
         $alerts = [];
-        $fallbacks = [
-            ['name' => 'All-Purpose Flour', 'status' => 'Low stock', 'qty' => '5 kg', 'icon' => 'flour'],
-            ['name' => 'Unsalted Butter', 'status' => 'Low stock', 'qty' => '1.2 kg', 'icon' => 'butter'],
-            ['name' => 'Fresh Milk', 'status' => 'Running low', 'qty' => '2 L', 'icon' => 'milk'],
-            ['name' => 'Dark Chocolate', 'status' => 'Out of stock', 'qty' => '0 kg', 'icon' => 'chocolate'],
-        ];
-
         foreach ($invQuery as $inv) {
             $avail = max(0, $inv->quantity_on_hand - $inv->reserved_quantity);
             $status = 'Running low';
@@ -612,21 +669,8 @@ class OverviewController extends Controller
                 'name' => $inv->product?->product_name ?? 'Bakery Product',
                 'status' => $status,
                 'remaining' => "{$avail} units",
-                'branch_name' => $inv->branch?->branch_name,
+                'branch_name' => $inv->branch?->branch_name ?? 'Branch',
                 'icon' => 'box',
-            ];
-        }
-
-        while (count($alerts) < 4) {
-            $idx = count($alerts);
-            $fb = $fallbacks[$idx];
-            $alerts[] = [
-                'product_id' => null,
-                'name' => $fb['name'],
-                'status' => $fb['status'],
-                'remaining' => $fb['qty'],
-                'branch_name' => 'Central Pantry',
-                'icon' => $fb['icon'],
             ];
         }
 

@@ -4,8 +4,8 @@
       <div class="max-w-md w-full bg-white dark:bg-[#1E120B] rounded-3xl border border-gray-200 dark:border-[#382318] shadow-lg p-6 sm:p-10 space-y-6">
       <!-- Header -->
       <div class="text-center space-y-2">
-        <div class="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] flex items-center justify-center mx-auto text-2xl shadow-xs text-[#DE1B54]">
-          ✨
+        <div class="relative w-16 h-16 rounded-full bg-[#FAF5EE] dark:bg-[#2B1B14] p-0.5 border border-[#DEBE92] dark:border-[#5C3B28] shadow-md flex items-center justify-center mx-auto">
+          <img src="/images/kenean-logo.png" alt="Kenean Cake & Bread" class="w-full h-full object-contain rounded-full" />
         </div>
         <h2 class="text-2xl sm:text-3xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
           {{ localeStore.t('join_sweetbakes_title') }}
@@ -148,10 +148,10 @@
           />
           <label for="terms" class="ml-2 text-xs text-[#786B60] dark:text-[#C5B7AF] leading-relaxed">
             <template v-if="localeStore.isAmharic">
-              በስዊትቤክስ <router-link to="/about" class="text-[#DE1B54] underline">የአገልግሎት ውሎች</router-link> እና <router-link to="/about" class="text-[#DE1B54] underline">የትኩስነት ዋስትና</router-link> እስማማለሁ።
+              በከነአን ኬክ እና ዳቦ <router-link to="/about" class="text-[#DE1B54] underline">የአገልግሎት ውሎች</router-link> እና <router-link to="/about" class="text-[#DE1B54] underline">የትኩስነት ዋስትና</router-link> እስማማለሁ።
             </template>
             <template v-else>
-              I agree to SweetBakes <router-link to="/about" class="text-[#DE1B54] underline">Terms of Service</router-link> and <router-link to="/about" class="text-[#DE1B54] underline">Freshness Guarantee</router-link>.
+              I agree to Kenean Cake & Bread <router-link to="/about" class="text-[#DE1B54] underline">Terms of Service</router-link> and <router-link to="/about" class="text-[#DE1B54] underline">Freshness Guarantee</router-link>.
             </template>
           </label>
         </div>
@@ -309,7 +309,7 @@ async function handleRegister() {
     const res = await api.post('/auth/register', form.value);
     authStore.setAuth(res.data.token, res.data.user);
     wishlistStore.fetchWishlist();
-    toastStore.success(`Welcome to SweetBakes Bakery, ${res.data.user.full_name}!`);
+    toastStore.success(`Welcome to Kenean Cake & Bread, ${res.data.user.full_name}!`);
 
     // Process pending add-to-cart item if present
     try {

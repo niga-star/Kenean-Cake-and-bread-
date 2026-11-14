@@ -58,23 +58,23 @@
       </div>
 
       <!-- Custom Date Inputs -->
-      <div v-if="selectedDateFilter === 'custom'" class="flex flex-wrap items-center gap-3 p-3 bg-[#FAF7F2] rounded-xl border border-[#E9E0D4] text-xs">
+      <div v-if="selectedDateFilter === 'custom'" class="flex flex-wrap items-center gap-3 p-3 bg-[#FAF7F2] dark:bg-[#1E120B] rounded-xl border border-[#E9E0D4] dark:border-[#382318] text-xs">
         <div class="flex items-center space-x-2">
-          <label class="font-semibold text-[#65554B]">From:</label>
+          <label class="font-semibold text-[#65554B] dark:text-[#C5B7AF]">From:</label>
           <input
             v-model="customStartDate"
             @change="loadRequests"
             type="date"
-            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+            class="bg-white dark:bg-[#160E0A] border border-[#D8CDC0] dark:border-[#382318] rounded-lg px-2.5 py-1 text-xs text-[#2D231D] dark:text-[#FAF4ED]"
           />
         </div>
         <div class="flex items-center space-x-2">
-          <label class="font-semibold text-[#65554B]">To:</label>
+          <label class="font-semibold text-[#65554B] dark:text-[#C5B7AF]">To:</label>
           <input
             v-model="customEndDate"
             @change="loadRequests"
             type="date"
-            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+            class="bg-white dark:bg-[#160E0A] border border-[#D8CDC0] dark:border-[#382318] rounded-lg px-2.5 py-1 text-xs text-[#2D231D] dark:text-[#FAF4ED]"
           />
         </div>
         <button
@@ -795,9 +795,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
+const dialog = useDialogStore();
 const isSuperAdmin = computed(() => authStore.user?.role === 'Super Admin');
 const isBranchScoped = computed(() => authStore.user?.role !== 'Super Admin');
 const userBranchId = computed(() => authStore.user?.branch_id || authStore.user?.branch?.branch_id);
@@ -894,7 +898,14 @@ const openQuoteSlipModal = () => {
 };
 
 const printQuotation = () => {
+  const originalTitle = document.title;
+  if (selectedRequest.value?.request_number) {
+    document.title = `SweetBakes-Quotation-${selectedRequest.value.request_number}`;
+  }
   window.print();
+  setTimeout(() => {
+    document.title = originalTitle;
+  }, 1000);
 };
 
 const filteredRequests = computed(() => {
@@ -1012,9 +1023,10 @@ const submitQuote = async () => {
     });
     selectedRequest.value = res.data;
     successMsg.value = `Official quote sent to customer for #${selectedRequest.value.request_number}: ETB ${Number(quoteForm.value.quoted_price).toLocaleString()}`;
+    toast.success(successMsg.value);
     await loadRequests();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to submit quote');
+    toast.error(err.response?.data?.message || 'Failed to submit quote');
   } finally {
     isProcessing.value = false;
   }
@@ -1022,7 +1034,12 @@ const submitQuote = async () => {
 
 const promptUpdateQuote = async () => {
   if (!selectedRequest.value) return;
-  const newPrice = prompt(`Enter new quoted price (ETB) for #${selectedRequest.value.request_number}:`, selectedRequest.value.quoted_price || '');
+  const newPrice = await dialog.prompt({
+    title: 'Update Quotation Price',
+    message: `Enter new quoted price (ETB) for #${selectedRequest.value.request_number}:`,
+    defaultValue: selectedRequest.value.quoted_price || '',
+    placeholder: 'Amount in ETB (e.g. 1500)',
+  });
   if (!newPrice || isNaN(Number(newPrice))) return;
 
   isProcessing.value = true;
@@ -1033,9 +1050,10 @@ const promptUpdateQuote = async () => {
     });
     selectedRequest.value = res.data;
     successMsg.value = `Updated quote to ETB ${Number(newPrice).toLocaleString()}`;
+    toast.success(successMsg.value);
     await loadRequests();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update quote');
+    toast.error(err.response?.data?.message || 'Failed to update quote');
   } finally {
     isProcessing.value = false;
   }
@@ -1049,9 +1067,10 @@ const updateStatus = async (newStatus) => {
       status: newStatus,
     });
     successMsg.value = `Custom cake #${selectedRequest.value.request_number} marked as "${newStatus}"!`;
+    toast.success(successMsg.value);
     await loadRequests();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update status');
+    toast.error(err.response?.data?.message || 'Failed to update status');
   } finally {
     isProcessing.value = false;
   }
@@ -1059,7 +1078,12 @@ const updateStatus = async (newStatus) => {
 
 const rejectRequest = async () => {
   if (!selectedRequest.value) return;
-  const reason = rejectionReason.value || prompt(`Enter reason for declining #${selectedRequest.value.request_number}:`, 'Cannot fulfill requested design on schedule');
+  const reason = rejectionReason.value || await dialog.prompt({
+    title: 'Decline Custom Cake Request',
+    message: `Enter reason for declining #${selectedRequest.value.request_number}:`,
+    defaultValue: 'Cannot fulfill requested design on schedule',
+    placeholder: 'Reason for declining...',
+  });
   if (reason === null) return;
 
   isProcessing.value = true;
@@ -1069,9 +1093,10 @@ const rejectRequest = async () => {
       rejection_reason: reason,
     });
     successMsg.value = `Request #${selectedRequest.value.request_number} declined.`;
+    toast.info(successMsg.value);
     await loadRequests();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to decline request');
+    toast.error(err.response?.data?.message || 'Failed to decline request');
   } finally {
     isProcessing.value = false;
   }
@@ -1085,3 +1110,47 @@ onMounted(async () => {
   loadRequests();
 });
 </script>
+
+<style>
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    background: #ffffff !important;
+    color: #1a1412 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  aside, header, nav, .print\:hidden, .no-print {
+    display: none !important;
+  }
+
+  /* When printing quotation modal */
+  .fixed.inset-0.z-50 {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  #quotation-print-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: 760px !important;
+    margin: 0 auto !important;
+    padding: 16px 20px !important;
+    background: #ffffff !important;
+    border: 1px solid #d4c8be !important;
+    border-radius: 12px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+</style>

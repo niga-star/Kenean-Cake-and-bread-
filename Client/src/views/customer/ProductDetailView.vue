@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-16 animate-fade-in-up">
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-16">
     <div class="sweetbakes-container py-4 sm:py-6 space-y-6 sm:space-y-8">
       
       <!-- 1. BREADCRUMBS -->
@@ -289,18 +289,18 @@
             <button
               type="button"
               @click="handleAddToCart"
-              :disabled="(product?.available ?? 15) <= 0 || isAdding || !branchStore.isCurrentBranchShoppingEnabled"
+              :disabled="(product?.available ?? 0) <= 0 || isAdding || !branchStore.isCurrentBranchShoppingEnabled"
               class="w-full sm:flex-1 py-3 px-6 min-h-[44px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-all transform active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
               :class="{
                 'bg-emerald-600 hover:bg-emerald-700': isAdding,
-                'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed': !branchStore.isCurrentBranchShoppingEnabled || (product?.available ?? 15) <= 0
+                'bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed': !branchStore.isCurrentBranchShoppingEnabled || (product?.available ?? 0) <= 0
               }"
             >
               <span v-if="isAdding">✓</span>
-              <svg v-else-if="branchStore.isCurrentBranchShoppingEnabled" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg v-else-if="branchStore.isCurrentBranchShoppingEnabled && (product?.available ?? 0) > 0" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              <span>{{ !branchStore.isCurrentBranchShoppingEnabled ? (localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable') : (isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : localeStore.t('add_to_cart')) }}</span>
+              <span>{{ !branchStore.isCurrentBranchShoppingEnabled ? (localeStore.isAmharic ? 'ለግዢ ዝግ ነው' : 'Shopping Unavailable') : ((product?.available ?? 0) <= 0 ? (localeStore.isAmharic ? 'አልቋል' : 'Sold Out') : (isAdding ? (localeStore.isAmharic ? 'ተጨምሯል!' : 'Added to Bag!') : localeStore.t('add_to_cart'))) }}</span>
             </button>
 
             <!-- Add to Wishlist Button -->

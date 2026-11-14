@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'chapa' => [
+        'webhook_secret' => env('CHAPA_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -22,4 +22,13 @@ themeStore.initTheme();
 const localeStore = useLocaleStore(pinia);
 localeStore.initLocale();
 
+// Register PWA Service Worker for Offline Resilience
+if ('serviceWorker' in navigator && typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('PWA SW registration notice:', err);
+    });
+  });
+}
+
 app.mount('#app');

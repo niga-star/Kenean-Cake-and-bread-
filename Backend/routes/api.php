@@ -28,9 +28,27 @@ use App\Http\Controllers\OrderReportController;
 use App\Http\Controllers\ReceivedStockController;
 use App\Http\Controllers\StockDispatchController;
 
+// Lightweight API Health Check Endpoint
+Route::get('/health', function () {
+    try {
+        \Illuminate\Support\Facades\DB::select('SELECT 1');
+        $dbOk = true;
+    } catch (\Throwable $e) {
+        $dbOk = false;
+    }
+    return response()->json([
+        'status' => $dbOk ? 'ok' : 'degraded',
+        'service' => 'kenean-cake-api',
+        'database' => $dbOk ? 'connected' : 'error',
+        'timestamp' => now()->toIso8601String(),
+    ], $dbOk ? 200 : 503);
+});
+
 // Public Auth with Rate Limiting (v4.1 Section 10 & 11: 5 attempts/min)
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware('throttle:60,1');
+Route::post('/auth/send-verification-code', [AuthController::class, 'sendEmailVerification'])->middleware('throttle:15,1');
+Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:30,1');
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:30,1');
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:30,1');
 Route::post('/auth/switch-role', [AuthController::class, 'switchRole'])->middleware('throttle:30,1');
@@ -78,14 +96,18 @@ Route::post('/contact', [ContactController::class, 'store'])->middleware('thrott
 Route::get('/promotions/active', [PromotionController::class, 'activePromotions']);
 Route::post('/promotions/validate', [PromotionController::class, 'validatePromo']);
 
-// Public Payment Webhook
+// Public Payment Webhook & Simulated Test Gateway
 Route::post('/payments/webhook', [PaymentController::class, 'webhook']);
+Route::post('/payments/simulate', [PaymentController::class, 'simulatePayment']);
 
 // Core application endpoints
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/auth/user', [AuthController::class, 'user']);
+    Route::get('/auth/users', [AuthController::class, 'listUsers']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/auth/profile-photo', [AuthController::class, 'uploadProfilePhoto']);
+    Route::delete('/auth/profile-photo', [AuthController::class, 'deleteProfilePhoto']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/mark-read', [NotificationController::class, 'markAllRead']);
@@ -141,15 +163,17 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
     // Stock Dispatches (v4.1 Section 5 & 11)
     Route::get('/dispatches', [StockDispatchController::class, 'index']);
-    Route::post('/dispatches', [StockDispatchController::class, 'store']);
+    Route::post('/dispatches', [StockDispatchController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/dispatches/{id}', [StockDispatchController::class, 'show']);
-    Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send']);
-    Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
+    Route::post('/dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/dispatches/{id}/receive', [StockDispatchController::class, 'receive']);
     Route::get('/stock-dispatches', [StockDispatchController::class, 'index']);
-    Route::post('/stock-dispatches', [StockDispatchController::class, 'store']);
+    Route::post('/stock-dispatches', [StockDispatchController::class, 'store'])->middleware('role:Super Admin,Main Branch Manager');
     Route::get('/stock-dispatches/{id}', [StockDispatchController::class, 'show']);
-    Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send']);
-    Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel']);
+    Route::post('/stock-dispatches/{id}/send', [StockDispatchController::class, 'send'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/stock-dispatches/{id}/cancel', [StockDispatchController::class, 'cancel'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/stock-dispatches/{id}/receive', [StockDispatchController::class, 'receive']);
 
     // Transfers & Distribution
     Route::get('/transfers/dashboard', [TransferController::class, 'dashboard']);
@@ -168,6 +192,8 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Orders (Section 2: Branch Managers & Staff manage; Super Admin blocked from direct order processing)
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/pos', [OrderController::class, 'storePOSOrder'])
+        ->middleware('role:Branch Seller,Branch Seller / Cashier,Cashier,Branch Staff,Main Branch Manager,Branch Manager,Branch Admin,Super Admin');
     Route::match(['patch', 'put'], '/orders/{id}/status', [OrderController::class, 'updateStatus'])
         ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
     Route::patch('/orders/{id}/branch', [OrderController::class, 'reassignBranch'])->middleware('role:Super Admin');
@@ -181,8 +207,9 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
         ->middleware('role:Branch Manager,Branch Admin,Main Branch Manager,Branch Staff,Branch Seller,Branch Seller / Cashier,Cashier,Servant,Delivery Staff');
 
     // Payments & Refunds
-    Route::get('/payments', [PaymentController::class, 'index']);
+    Route::get('/payments', [PaymentController::class, 'index'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/payments/refund', [PaymentController::class, 'refund'])->middleware('role:Super Admin,Main Branch Manager');
+    Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint'])->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
 
     // Three-Level Order & Custom Cake Reporting System
     // Level 1: Branch Seller
@@ -207,9 +234,9 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     Route::post('/reports/manager/consolidate-and-submit', [OrderReportController::class, 'managerConsolidateAndSubmit'])
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports', [OrderReportController::class, 'managerConsolidatedReports'])
-        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::get('/reports/manager/consolidated-reports/{id}', [OrderReportController::class, 'managerConsolidatedShow'])
-        ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
+        ->middleware('role:Super Admin,Main Branch Manager,Branch Manager,Branch Admin');
     Route::post('/reports/manager/consolidated-reports/{id}/resubmit', [OrderReportController::class, 'managerConsolidatedResubmit'])
         ->middleware('role:Main Branch Manager,Branch Manager,Branch Admin');
 
@@ -226,6 +253,11 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
     // Legacy reports endpoint for backward compatibility where needed
     Route::get('/reports/summary', [ReportController::class, 'summary']);
     Route::get('/reports/data', [ReportController::class, 'reportData']);
+
+    // System & Website Content Settings (Super Admin Only)
+    Route::get('/settings', [SettingController::class, 'index'])->middleware('role:Super Admin');
+    Route::post('/settings', [SettingController::class, 'update'])->middleware('role:Super Admin');
+    Route::post('/settings/upload-image', [WebsiteSettingController::class, 'uploadImage'])->middleware('role:Super Admin');
 
     // Branch management (Super Admin Only)
     Route::post('/branches', [BranchController::class, 'store'])->middleware('role:Super Admin');
@@ -282,22 +314,25 @@ Route::prefix('/admin')->middleware(['admin.auth'])->group(function () {
 
 // Customer Storefront Order & Cake Endpoints
 Route::post('/orders/track', [OrderController::class, 'trackOrder'])->middleware('throttle:15,1');
-Route::get('/orders', [OrderController::class, 'index']);
-Route::get('/orders/{id}', [OrderController::class, 'show']);
-Route::post('/orders', [OrderController::class, 'store']);
-Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
-Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
-Route::post('/orders/clear-finished', [OrderController::class, 'clearFinishedHistory']);
-Route::post('/orders/release-expired', [OrderController::class, 'releaseExpiredEndpoint']);
-Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
-Route::post('/custom-cakes', [CustomCakeController::class, 'store']);
+Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:30,1');
+Route::post('/custom-cakes', [CustomCakeController::class, 'store'])->middleware('throttle:30,1');
 Route::post('/custom-cakes/upload-image', [CustomCakeController::class, 'uploadImage'])->middleware('throttle:60,1');
-Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
-Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
-Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);
 
-// Customer Addresses
-Route::get('/addresses', [\App\Http\Controllers\AddressController::class, 'index']);
-Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store']);
-Route::delete('/addresses/{id}', [\App\Http\Controllers\AddressController::class, 'destroy']);
-Route::post('/addresses/{id}/default', [\App\Http\Controllers\AddressController::class, 'makeDefault']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+    Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+    Route::post('/orders/clear-finished', [OrderController::class, 'clearFinishedHistory']);
+
+    Route::get('/custom-cakes', [CustomCakeController::class, 'index']);
+    Route::get('/custom-cakes/{id}', [CustomCakeController::class, 'show']);
+    Route::post('/custom-cakes/{id}/accept-quote', [CustomCakeController::class, 'acceptQuote']);
+    Route::post('/custom-cakes/{id}/cancel', [CustomCakeController::class, 'cancel']);
+
+    // Customer Addresses
+    Route::get('/addresses', [\App\Http\Controllers\AddressController::class, 'index']);
+    Route::post('/addresses', [\App\Http\Controllers\AddressController::class, 'store']);
+    Route::delete('/addresses/{id}', [\App\Http\Controllers\AddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [\App\Http\Controllers\AddressController::class, 'makeDefault']);
+});

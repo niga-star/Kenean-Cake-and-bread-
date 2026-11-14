@@ -16,6 +16,7 @@ class CustomCakeRequest extends Model
         'user_id',
         'customer_name',
         'customer_phone',
+        'customer_email',
         'branch_id',
         'cake_size',
         'flavor',

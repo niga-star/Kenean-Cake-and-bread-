@@ -209,7 +209,7 @@
               <!-- Primary Proceed to Checkout: Signature Red Pill Button -->
               <button
                 @click="goToCheckout"
-                :disabled="!branchStore.isCurrentBranchShoppingEnabled"
+                :disabled="!branchStore.isCurrentBranchShoppingEnabled || cartStore.hasSoldOutItems"
                 class="w-full py-4 min-h-[50px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-2xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <span>{{ localeStore.isAmharic ? 'ትዕዛዝ ያጠናቁ' : 'PROCEED TO CHECKOUT' }}</span>
@@ -287,6 +287,13 @@ function goToCart() {
 }
 
 function goToCheckout() {
+  if (cartStore.hasSoldOutItems) {
+    toastStore.error(localeStore.isAmharic 
+      ? 'አንዳንድ በቅርጫትዎ ውስጥ ያሉ ምርቶች አልቀዋል። እባክዎ ቅርጫትዎን ያስተካክሉ።' 
+      : 'Some items in your bag are sold out at this branch. Please review your bag.');
+    goToCart();
+    return;
+  }
   cartStore.closeDrawer();
   if (!branchStore.isCurrentBranchShoppingEnabled) {
     toastStore.warning(localeStore.isAmharic 

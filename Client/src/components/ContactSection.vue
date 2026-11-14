@@ -58,12 +58,12 @@
         </div>
 
         <!-- Section Title with Soft Pink Flanking Lines -->
-        <div class="flex items-center justify-center gap-4">
-          <div class="h-px bg-gradient-to-r from-transparent via-rose-300 dark:via-rose-500/40 to-rose-300 dark:to-rose-500/40 w-16 sm:w-28"></div>
-          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
+        <div class="flex items-center justify-center gap-3 sm:gap-4">
+          <div class="hidden xs:block h-px bg-gradient-to-r from-transparent via-rose-300 dark:via-rose-500/40 to-rose-300 dark:to-rose-500/40 w-10 sm:w-28"></div>
+          <h2 class="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
             {{ localeStore.isAmharic ? 'ያግኙን' : 'Contact Us' }}
           </h2>
-          <div class="h-px bg-gradient-to-l from-transparent via-rose-300 dark:via-rose-500/40 to-rose-300 dark:to-rose-500/40 w-16 sm:w-28"></div>
+          <div class="hidden xs:block h-px bg-gradient-to-l from-transparent via-rose-300 dark:via-rose-500/40 to-rose-300 dark:to-rose-500/40 w-10 sm:w-28"></div>
         </div>
 
         <!-- Subtitle -->
@@ -73,8 +73,8 @@
       </div>
 
       <!-- ================= MAIN CARD CONTAINER (Matching Mockup) ================= -->
-      <div class="bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EFE5DB] dark:border-[#382318] p-5 sm:p-8 lg:p-10 shadow-xl shadow-stone-900/5 dark:shadow-black/40">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      <div class="bg-white/95 dark:bg-[#1E120B]/95 backdrop-blur-md rounded-2xl sm:rounded-3xl border border-[#EFE5DB] dark:border-[#382318] p-4 xs:p-5 sm:p-8 lg:p-10 shadow-xl shadow-stone-900/5 dark:shadow-black/40">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-start">
           
           <!-- ================= LEFT COLUMN: REAL GPS MAP & CONTACT DETAILS (5 cols) ================= -->
           <div class="lg:col-span-5 space-y-6">
@@ -118,7 +118,7 @@
                   loading="lazy"
                   @load="mapLoaded = true"
                   referrerpolicy="no-referrer-when-downgrade"
-                  title="SweetBakes Bakery Real GPS Location"
+                  title="Kenean Cake & Bread Real GPS Location"
                 ></iframe>
 
                 <!-- Facade Placeholder while waiting for scroll into view -->
@@ -137,7 +137,7 @@
                 </div>
 
                 <!-- Top-Left Floating Info Card (Authentic Mockup Replication) -->
-                <div v-if="selectedBranchGPS" class="absolute top-3 left-3 bg-white/95 dark:bg-[#20120B]/95 backdrop-blur-md px-3 py-2 rounded-xl border border-gray-200/80 dark:border-[#3F2418] shadow-md pointer-events-auto max-w-[220px] space-y-0.5">
+                <div v-if="selectedBranchGPS" class="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-white/95 dark:bg-[#20120B]/95 backdrop-blur-md px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-gray-200/80 dark:border-[#3F2418] shadow-md pointer-events-auto max-w-[175px] xs:max-w-[205px] sm:max-w-[220px] space-y-0.5">
                   <div class="font-serif font-black text-xs text-[#2A1810] dark:text-white flex items-center space-x-1">
                     <span class="text-rose-500">🧁</span>
                     <span class="truncate">{{ selectedBranchGPS.name }}</span>
@@ -296,10 +296,10 @@
                     {{ localeStore.isAmharic ? 'ኢሜይል ያድርጉልን' : 'Email Us' }}
                   </h4>
                   <a
-                    href="mailto:info@sweetbakes.com"
+                    href="mailto:info@keneanbakery.com"
                     class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#DE1B54] block truncate mt-0.5"
                   >
-                    info@sweetbakes.com
+                    info@keneanbakery.com
                   </a>
                 </div>
               </div>
@@ -377,7 +377,7 @@
                 
                 <!-- Full Name: Required, Letters only (no numbers / special characters), 3–25 chars -->
                 <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
+                  <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
                     <label for="contact-name" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                       {{ localeStore.isAmharic ? 'ሙሉ ስም' : 'Full Name' }} <span class="text-[#DE1B54] font-bold">*</span>
                     </label>
@@ -418,7 +418,7 @@
 
                 <!-- Email: Required, Valid Email, Must be @gmail.com -->
                 <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
+                  <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
                     <label for="contact-email" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                       {{ localeStore.isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address' }} <span class="text-[#DE1B54] font-bold">*</span>
                     </label>
@@ -461,7 +461,7 @@
                 
                 <!-- Phone Number: Required, Ethiopian format (09, 07, +2519, +2517) -->
                 <div class="space-y-1.5">
-                  <div class="flex items-center justify-between">
+                  <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
                     <label for="contact-phone" class="block text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                       {{ localeStore.isAmharic ? 'ስልክ ቁጥር' : 'Phone Number' }} <span class="text-[#DE1B54] font-bold">*</span>
                     </label>
@@ -617,6 +617,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useLocaleStore } from '../stores/locale';
 import { useToastStore } from '../stores/toast';
 import { useBranchStore } from '../stores/branch';
+import { resolveBranchCoordinates } from '../utils/ethiopiaGeo';
 import api from '../api';
 
 const props = defineProps({
@@ -705,7 +706,7 @@ const submitSuccess = ref(false);
 
 // Validation Regex Constants
 const NAME_REGEX = /^[\p{L}\s]+$/u;
-const GMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const ETHIO_PHONE_REGEX = /^(?:\+251[97]\d{8}|0[97]\d{8})$/;
 
 // Field Validators (Bilingual English / Amharic)
@@ -733,10 +734,10 @@ function validateEmail(val) {
   if (!v) {
     return localeStore.isAmharic ? 'የኢሜይል አድራሻ ማስገባት ግዴታ ነው።' : 'Email Address is required.';
   }
-  if (!GMAIL_REGEX.test(v)) {
+  if (!EMAIL_REGEX.test(v)) {
     return localeStore.isAmharic
-      ? 'ኢሜይል የጂሜይል (Gmail) አድራሻ መሆን አለበት (ለምሳሌ፡ example@gmail.com)።'
-      : 'Must follow the Gmail format (e.g. example@gmail.com).';
+      ? 'እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ (ለምሳሌ፡ example@gmail.com)።'
+      : 'Please enter a valid email address (e.g. example@gmail.com).';
   }
   return '';
 }
@@ -801,110 +802,7 @@ function getFieldClass(field) {
   return 'border border-gray-200 dark:border-[#3E2319] bg-[#FAF7F5] dark:bg-[#2A1810] text-[#2A1810] dark:text-white focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20';
 }
 
-// Geolocation coordinate detection dictionary for Ethiopian cities and towns
-const KNOWN_GEO_COORDINATES = {
-  dessie: { lat: 11.1333, lng: 39.6333, elev: 2470 },
-  ደሴ: { lat: 11.1333, lng: 39.6333, elev: 2470 },
-  piazza_dessie: { lat: 11.1292, lng: 39.6387, elev: 2470 },
-  hotte_dessie: { lat: 11.1390, lng: 39.6320, elev: 2485 },
-  buanbua_dessie: { lat: 11.1480, lng: 39.6230, elev: 2510 },
-  segno_dessie: { lat: 11.1220, lng: 39.6450, elev: 2460 },
-  menafesha_dessie: { lat: 11.1340, lng: 39.6360, elev: 2475 },
-  wollo_dessie: { lat: 11.1550, lng: 39.6100, elev: 2530 },
-  kombolcha: { lat: 11.0833, lng: 39.7333, elev: 1857 },
-  ኮምቦልቻ: { lat: 11.0833, lng: 39.7333, elev: 1857 },
-  woldiya: { lat: 11.8333, lng: 39.6000, elev: 2112 },
-  ወልዲያ: { lat: 11.8333, lng: 39.6000, elev: 2112 },
-  addis_ababa: { lat: 9.0108, lng: 38.7495, elev: 2355 },
-  'አዲስ አበባ': { lat: 9.0108, lng: 38.7495, elev: 2355 },
-  bahir_dar: { lat: 11.5936, lng: 37.3908, elev: 1800 },
-  ባሕር_ዳር: { lat: 11.5936, lng: 37.3908, elev: 1800 },
-  gondar: { lat: 12.6030, lng: 37.4521, elev: 2133 },
-  ጎንደር: { lat: 12.6030, lng: 37.4521, elev: 2133 },
-  hawassa: { lat: 7.0504, lng: 38.4955, elev: 1708 },
-  ሐዋሳ: { lat: 7.0504, lng: 38.4955, elev: 1708 },
-  adama: { lat: 8.5400, lng: 39.2700, elev: 1712 },
-  አዳማ: { lat: 8.5400, lng: 39.2700, elev: 1712 },
-  mekelle: { lat: 13.4967, lng: 39.4753, elev: 2084 },
-  መቀሌ: { lat: 13.4967, lng: 39.4753, elev: 2084 },
-  dire_dawa: { lat: 9.6009, lng: 41.8501, elev: 1276 },
-  ድሬዳዋ: { lat: 9.6009, lng: 41.8501, elev: 1276 },
-  debre_birhan: { lat: 9.6800, lng: 39.5300, elev: 2840 },
-  ደብረ_ብርሃን: { lat: 9.6800, lng: 39.5300, elev: 2840 },
-  jimma: { lat: 7.6734, lng: 36.8344, elev: 1780 },
-  harar: { lat: 9.3149, lng: 42.1286, elev: 1885 },
-};
-
-function resolveBranchCoordinates(b) {
-  // 1. Explicit database coordinates if provided
-  if (b.latitude && b.longitude && !isNaN(b.latitude) && !isNaN(b.longitude)) {
-    return {
-      lat: Number(b.latitude),
-      lng: Number(b.longitude),
-      elev: (b.city && b.city.toLowerCase().includes('des')) ? 2470 : 2355,
-    };
-  }
-
-  // 2. Intelligent detection from town, city, or address
-  const fullText = `${b.address || ''} ${b.city || ''} ${b.region || ''}`.toLowerCase();
-  
-  if (fullText.includes('piazza') || fullText.includes('ፒያሳ') || fullText.includes('arada') || fullText.includes('አራዳ')) {
-    if (fullText.includes('des') || fullText.includes('ደሴ') || !fullText.includes('addis')) {
-      return KNOWN_GEO_COORDINATES.piazza_dessie;
-    }
-  }
-  if (fullText.includes('hotte') || fullText.includes('ሆቴ') || fullText.includes('akale')) {
-    return KNOWN_GEO_COORDINATES.hotte_dessie;
-  }
-  if (fullText.includes('buanbua') || fullText.includes('ቧንቧ') || fullText.includes('robit')) {
-    return KNOWN_GEO_COORDINATES.buanbua_dessie;
-  }
-  if (fullText.includes('segno') || fullText.includes('ሰኞ') || fullText.includes('shell')) {
-    return KNOWN_GEO_COORDINATES.segno_dessie;
-  }
-  if (fullText.includes('menafesha') || fullText.includes('መናፈሻ')) {
-    return KNOWN_GEO_COORDINATES.menafesha_dessie;
-  }
-  if (fullText.includes('wollo') || fullText.includes('ወሎ') || fullText.includes('tita')) {
-    return KNOWN_GEO_COORDINATES.wollo_dessie;
-  }
-  if (fullText.includes('des') || fullText.includes('ደሴ')) {
-    return KNOWN_GEO_COORDINATES.dessie;
-  }
-  if (fullText.includes('kombol') || fullText.includes('ኮምቦል')) {
-    return KNOWN_GEO_COORDINATES.kombolcha;
-  }
-  if (fullText.includes('wold') || fullText.includes('ወልድ')) {
-    return KNOWN_GEO_COORDINATES.woldiya;
-  }
-  if (fullText.includes('bahir') || fullText.includes('ባሕር')) {
-    return KNOWN_GEO_COORDINATES.bahir_dar;
-  }
-  if (fullText.includes('gond') || fullText.includes('ጎንደር')) {
-    return KNOWN_GEO_COORDINATES.gondar;
-  }
-  if (fullText.includes('hawas') || fullText.includes('ሐዋሳ')) {
-    return KNOWN_GEO_COORDINATES.hawassa;
-  }
-  if (fullText.includes('adama') || fullText.includes('አዳማ') || fullText.includes('nazret')) {
-    return KNOWN_GEO_COORDINATES.adama;
-  }
-  if (fullText.includes('mekel') || fullText.includes('መቀሌ')) {
-    return KNOWN_GEO_COORDINATES.mekelle;
-  }
-  if (fullText.includes('dire') || fullText.includes('ድሬ')) {
-    return KNOWN_GEO_COORDINATES.dire_dawa;
-  }
-  if (fullText.includes('debre') || fullText.includes('ደብረ')) {
-    return KNOWN_GEO_COORDINATES.debre_birhan;
-  }
-  if (fullText.includes('addis') || fullText.includes('አዲስ')) {
-    return KNOWN_GEO_COORDINATES.addis_ababa;
-  }
-
-  // Default to Dessie as current primary branch hub
-  return KNOWN_GEO_COORDINATES.dessie;
-}
+// Branch GPS Coordinates resolved dynamically via shared ethiopiaGeo helper
 
 // Dynamically mapped branches from database
 const branchGPSList = computed(() => {
@@ -1053,7 +951,7 @@ function calculateDistanceToBakery() {
       } else {
         userDistanceText.value = `${Math.round(distance).toLocaleString()} km away`;
       }
-      toast.success(`You are ${userDistanceText.value} from SweetBakes!`);
+      toast.success(`You are ${userDistanceText.value} from Kenean Cake & Bread!`);
     },
     (err) => {
       calculatingDistance.value = false;
@@ -1124,7 +1022,7 @@ async function handleSubmitMessage() {
     toast.success(
       localeStore.isAmharic
         ? 'መልእክትዎ በተሳካ ሁኔታ ለዋና ጋጋሪዎቻችን ደርሷል!'
-        : (res.data?.message || 'Your message has been sent to SweetBakes!')
+        : (res.data?.message || 'Your message has been sent to Kenean Cake & Bread!')
     );
   } catch (err) {
     console.error('Contact submission error:', err);

@@ -179,7 +179,7 @@
             </router-link>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
                 {{ localeStore.t('full_name_req') }} <span class="text-red-500">*</span>
@@ -201,6 +201,19 @@
                 v-model="customer.phone"
                 type="tel"
                 :placeholder="localeStore.isAmharic ? '+251 9XX XXX XXX ወይም 09XX XXX XXX' : '+251 9XX XXX XXX or 09XX XXX XXX'"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
+                required
+              />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
+                {{ localeStore.t('email_label') || 'Email Address' }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="customer.email"
+                type="email"
+                placeholder="example@gmail.com"
                 class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
                 required
               />
@@ -534,8 +547,9 @@
                       <span class="w-2.5 h-2.5 rounded-full bg-[#0072CE] inline-block"></span>
                       <span>{{ localeStore.t('telebirr_title') }}</span>
                     </span>
-                    <span class="text-[10px] font-bold bg-[#0072CE]/10 text-[#0072CE] px-2 py-0.5 rounded-full">
-                      {{ localeStore.t('telebirr_badge') }}
+                    <span class="text-[10px] font-bold bg-[#0072CE]/15 text-[#0072CE] dark:text-blue-300 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                      <span>🧪</span>
+                      <span>{{ localeStore.isAmharic ? 'የሙከራ ክፍያ (TEST)' : 'TEST MODE' }}</span>
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
@@ -561,8 +575,9 @@
                       <span class="w-2.5 h-2.5 rounded-full bg-[#7B2CBF] inline-block"></span>
                       <span>{{ localeStore.t('cbe_birr_title') }}</span>
                     </span>
-                    <span class="text-[10px] font-bold bg-[#7B2CBF]/10 text-[#7B2CBF] px-2 py-0.5 rounded-full">
-                      {{ localeStore.t('cbe_birr_badge') }}
+                    <span class="text-[10px] font-bold bg-[#7B2CBF]/15 text-[#7B2CBF] dark:text-purple-300 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                      <span>🧪</span>
+                      <span>{{ localeStore.isAmharic ? 'የሙከራ ክፍያ (TEST)' : 'TEST MODE' }}</span>
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
@@ -588,8 +603,9 @@
                       <span class="w-2.5 h-2.5 rounded-full bg-[#00A389] inline-block"></span>
                       <span>{{ localeStore.t('chapa_title') }}</span>
                     </span>
-                    <span class="text-[10px] font-bold bg-[#00A389]/10 text-[#00A389] px-2 py-0.5 rounded-full">
-                      {{ localeStore.t('chapa_badge') }}
+                    <span class="text-[10px] font-bold bg-[#00A389]/15 text-[#00A389] dark:text-emerald-300 px-2 py-0.5 rounded-full flex items-center space-x-1">
+                      <span>🧪</span>
+                      <span>{{ localeStore.isAmharic ? 'የሙከራ ክፍያ (TEST)' : 'TEST MODE' }}</span>
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
@@ -613,14 +629,14 @@
                   <div class="flex items-center justify-between">
                     <span class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
                       <span class="w-2.5 h-2.5 rounded-full bg-[#DE1B54] inline-block"></span>
-                      <span>{{ fulfillmentMethod === 'Pickup' ? localeStore.t('pay_on_pickup') : localeStore.t('cod_title') }}</span>
+                      <span>{{ fulfillmentMethod === 'Pickup' ? (localeStore.isAmharic ? 'በቅርንጫፍ ሲረከቡ የሚከፈል (ጥሬ ገንዘብ / ፖስ)' : 'Cash on Pickup (Cash / POS)') : localeStore.t('cod_title') }}</span>
                     </span>
                     <span class="text-[10px] font-bold bg-gray-100 dark:bg-[#2A1810] text-[#786B60] dark:text-[#C5B7AF] px-2 py-0.5 rounded-full">
-                      {{ localeStore.t('zero_upfront') }}
+                      {{ fulfillmentMethod === 'Pickup' ? (localeStore.isAmharic ? 'በመደብር የሚከፈል' : 'Pay at counter') : localeStore.t('zero_upfront') }}
                     </span>
                   </div>
                   <div class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] mt-0.5">
-                    {{ fulfillmentMethod === 'Pickup' ? localeStore.t('pickup_pay_desc') : localeStore.t('cod_desc') }}
+                    {{ fulfillmentMethod === 'Pickup' ? (localeStore.isAmharic ? 'ትዕዛዝዎን ከቅርንጫፉ ዴስክ ሲረከቡ በጥሬ ገንዘብ ወይም በካርድ ይክፈሉ።' : 'Pay with cash or card upon collecting your order at the counter.') : localeStore.t('cod_desc') }}
                   </div>
                 </div>
               </label>
@@ -665,6 +681,18 @@
         </div>
       </div>
     </form>
+
+    <!-- Simulated Test Payment Modal (Telebirr, CBE Birr, Chapa) -->
+    <TestPaymentModal
+      :is-open="isTestPaymentModalOpen"
+      :order="activeTestOrder"
+      :payment-method="paymentMethod"
+      :is-amharic="localeStore.isAmharic"
+      @success="onTestPaymentSuccess"
+      @failed="onTestPaymentFailed"
+      @cancelled="onTestPaymentCancelled"
+      @close="isTestPaymentModalOpen = false"
+    />
   </div>
 </template>
 
@@ -676,6 +704,7 @@ import { useCartStore } from '../../stores/cart';
 import { useAuthStore } from '../../stores/auth';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
+import TestPaymentModal from '../../components/TestPaymentModal.vue';
 import api from '../../api';
 
 const router = useRouter();
@@ -684,6 +713,10 @@ const cartStore = useCartStore();
 const authStore = useAuthStore();
 const toastStore = useToastStore();
 const localeStore = useLocaleStore();
+
+// Test Payment Modal State
+const isTestPaymentModalOpen = ref(false);
+const activeTestOrder = ref(null);
 
 // Form States
 const fulfillmentMethod = ref(cartStore.fulfillmentMethod || 'Delivery');
@@ -714,6 +747,7 @@ const selectedTimeSlot = ref('Morning (08:00 - 11:00 AM)');
 const customer = ref({
   name: '',
   phone: '',
+  email: '',
   address: '',
   notes: '',
 });
@@ -782,6 +816,7 @@ function saveDraftToStorage() {
     const draft = {
       name: customer.value.name,
       phone: customer.value.phone,
+      email: customer.value.email,
       address: customer.value.address,
       notes: customer.value.notes,
       fulfillmentMethod: fulfillmentMethod.value,
@@ -806,6 +841,7 @@ function restoreDraftFromStorage() {
     if (draft && typeof draft === 'object') {
       if (draft.name) customer.value.name = draft.name;
       if (draft.phone) customer.value.phone = draft.phone;
+      if (draft.email) customer.value.email = draft.email;
       if (draft.address) customer.value.address = draft.address;
       if (draft.notes) customer.value.notes = draft.notes;
       if (draft.fulfillmentMethod) fulfillmentMethod.value = draft.fulfillmentMethod;
@@ -829,9 +865,11 @@ function clearSavedDraft() {
   if (authStore.user) {
     customer.value.name = authStore.user.full_name || '';
     customer.value.phone = authStore.user.phone || '';
+    customer.value.email = authStore.user.email || '';
   } else {
     customer.value.name = '';
     customer.value.phone = '';
+    customer.value.email = '';
   }
   customer.value.address = '';
   customer.value.notes = '';
@@ -1082,8 +1120,8 @@ async function handlePlaceOrder() {
       mappedPayment = 'CBE Birr';
     } else if (paymentMethod.value === 'chapa' || paymentMethod.value === 'online') {
       mappedPayment = 'Chapa';
-    } else if (paymentMethod.value === 'cod') {
-      mappedPayment = fulfillmentMethod.value === 'Pickup' ? 'Pay on pickup' : 'Pay on delivery';
+    } else if (paymentMethod.value === 'cod' || paymentMethod.value === 'cash_on_pickup') {
+      mappedPayment = fulfillmentMethod.value === 'Pickup' ? 'CASH_ON_PICKUP' : 'Pay on delivery';
     }
 
     // Save address to user profile if requested
@@ -1101,6 +1139,13 @@ async function handlePlaceOrder() {
       }
     }
 
+    // Prevent duplicate submissions: If an unpaid test order is already created in this checkout view, reuse it
+    if (activeTestOrder.value && activeTestOrder.value.order_number && mappedPayment !== 'CASH_ON_PICKUP' && mappedPayment !== 'Pay on delivery') {
+      isTestPaymentModalOpen.value = true;
+      isSubmitting.value = false;
+      return;
+    }
+
     const idempotencyKey = 'order_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     const targetBranch = branchId.value;
 
@@ -1108,6 +1153,7 @@ async function handlePlaceOrder() {
       branch_id: targetBranch,
       customer_name: customer.value.name ? customer.value.name.trim() : '',
       customer_phone: customer.value.phone ? customer.value.phone.trim() : '',
+      customer_email: customer.value.email ? customer.value.email.trim() : (authStore.user?.email || ''),
       fulfillment_method: fulfillmentMethod.value,
       payment_method: mappedPayment,
       address_id: selectedAddressId.value || null,
@@ -1128,18 +1174,72 @@ async function handlePlaceOrder() {
       }
     });
 
-    const orderNumber = res.data?.order_number || 'ORD-1001';
+    const orderData = res.data;
+    const orderNumber = orderData?.order_number || 'ORD-1001';
 
-    // Clear Draft from storage upon successful order placement
-    localStorage.removeItem(DRAFT_KEY);
+    // 4. Cash on Pickup / Cash on Delivery:
+    // Create order immediately without simulated payment modal, set status PENDING, and direct to confirmation.
+    if (mappedPayment === 'CASH_ON_PICKUP' || mappedPayment === 'Pay on delivery') {
+      localStorage.removeItem(DRAFT_KEY);
+      cartStore.clearCart();
+      const successMsg = mappedPayment === 'CASH_ON_PICKUP'
+        ? (localeStore.isAmharic 
+            ? `ትዕዛዝ ${orderNumber} ተመዝግቧል! ምርቱን ከ${localeStore.tBranch(currentBranchName.value)} ዴስክ ሲረከቡ ETB ${grandTotal.value.toLocaleString()} በጥሬ ገንዘብ ወይም በፖስ ካርድ ይክፈሉ።`
+            : `Order ${orderNumber} placed successfully! You will pay ETB ${grandTotal.value.toLocaleString()} in cash or POS card when collecting your order at ${currentBranchName.value}.`)
+        : (localeStore.isAmharic
+            ? `ትዕዛዝ ${orderNumber} ተመዝግቧል! ምርቱ ሲደርስ ለአድራሹ ይክፈሉ።`
+            : `Order ${orderNumber} placed successfully! Please pay on delivery.`);
+      toastStore.success(successMsg);
+      router.push(`/orders/${orderNumber}`);
+      return;
+    }
 
-    cartStore.clearCart();
-    toastStore.success(localeStore.isAmharic ? `ትዕዛዝ ${orderNumber} በ${localeStore.tBranch(currentBranchName.value)} በተሳካ ሁኔታ ተጠናቋል!` : `Order ${orderNumber} placed successfully with ${currentBranchName.value} Branch!`);
-    router.push(`/orders/${orderNumber}`);
+    // For Digital Payment Methods (Telebirr, CBE Birr, Chapa):
+    // Open the simulated test payment screen
+    activeTestOrder.value = {
+      order_id: orderData.order_id,
+      order_number: orderNumber,
+      total_amount: orderData.total_amount ?? grandTotal.value,
+      customer_name: customer.value.name,
+      customer_phone: customer.value.phone,
+      branch_name: currentBranchName.value,
+    };
+    isTestPaymentModalOpen.value = true;
   } catch (err) {
     orderError.value = err.response?.data?.message || 'Failed to place order. Please review your stock or address.';
   } finally {
     isSubmitting.value = false;
   }
+}
+
+function onTestPaymentSuccess(data) {
+  isTestPaymentModalOpen.value = false;
+  localStorage.removeItem(DRAFT_KEY);
+  cartStore.clearCart();
+  const orderNum = data?.order_number || activeTestOrder.value?.order_number;
+  const ref = data?.transaction_reference || 'TEST-TX';
+  toastStore.success(
+    localeStore.isAmharic
+      ? `የሙከራ ክፍያ ተሳክቷል! (Ref: ${ref}) ትዕዛዝ ${orderNum} ተረጋግጧል።`
+      : `Test payment successful! (Ref: ${ref}) Order ${orderNum} confirmed.`
+  );
+  router.push(`/orders/${orderNum}`);
+}
+
+function onTestPaymentFailed() {
+  toastStore.error(
+    localeStore.isAmharic
+      ? 'የተመሰለው ክፍያ አልተሳካም። እባክዎ እንደገና ይሞክሩ።'
+      : 'Simulated payment declined. You may retry or choose another payment method.'
+  );
+}
+
+function onTestPaymentCancelled() {
+  isTestPaymentModalOpen.value = false;
+  toastStore.info(
+    localeStore.isAmharic
+      ? 'የክፍያ ሙከራው ተሰርዟል። የክፍያ ዘዴ መቀየር ወይም እንደገና መሞከር ይችላሉ።'
+      : 'Payment simulation cancelled. You can change your payment method and retry.'
+  );
 }
 </script>

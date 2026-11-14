@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12">
     <!-- 1. HERO BANNER: Responsive with fluid typography and dark mode overlay -->
     <section class="relative overflow-hidden bg-gradient-to-r from-[#FFF5F2] via-[#FDF3EE] to-[#FCEEE8] dark:from-[#22130C] dark:via-[#1E110A] dark:to-[#170E0A] min-h-[170px] sm:min-h-[220px] lg:min-h-[240px] flex items-center border-b border-[#F2E5DD] dark:border-[#382318]">
       <!-- Background Bakery Imagery on Right -->
@@ -43,7 +43,7 @@
       <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-[#1E120B] p-4 sm:p-5 rounded-2xl border border-[#EFE8E1] dark:border-[#382318] shadow-xs">
         
         <!-- Search Input -->
-        <div class="relative flex-1">
+        <div class="relative flex-1 min-w-0">
           <svg class="w-4 h-4 text-gray-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -51,33 +51,35 @@
             v-model="searchQuery"
             type="text"
             :placeholder="localeStore.t('search_branch_placeholder')"
-            class="w-full pl-10 pr-8 py-2 min-h-[40px] bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
+            class="w-full pl-10 pr-8 py-2 min-h-[42px] bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl text-xs sm:text-sm text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
           />
           <button
             v-if="searchQuery"
+            type="button"
             @click="searchQuery = ''"
-            class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer"
+            class="absolute right-2.5 top-2.5 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 cursor-pointer p-0.5"
+            aria-label="Clear search"
           >
             ✕
           </button>
         </div>
 
-        <!-- Filter Dropdowns & Active Branch Indicator -->
+        <!-- Dynamic Filter Dropdowns & Active Branch Indicator -->
         <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <select
-            v-model="cityFilter"
-            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
+            v-model="areaFilter"
+            data-testid="branch-area-filter"
+            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[42px]"
           >
-            <option value="all">{{ localeStore.t('all_subcities') }}</option>
-            <option value="Bole">Bole</option>
-            <option value="Kirkos">Kirkos / Mexico</option>
-            <option value="Yeka">Yeka / Megenagna</option>
-            <option value="Arada">Arada / Piassa</option>
+            <option value="all">{{ localeStore.isAmharic ? 'ሁሉም አካባቢዎች (ደሴ)' : 'All Areas' }}</option>
+            <option v-for="area in areaFilterOptions" :key="area" :value="area">
+              {{ area }}
+            </option>
           </select>
 
           <select
             v-model="fulfillmentFilter"
-            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[40px]"
+            class="bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-semibold focus:outline-none transition cursor-pointer min-h-[42px]"
           >
             <option value="all">{{ localeStore.t('all_fulfillment') }}</option>
             <option value="delivery">{{ localeStore.t('delivery_fleet_only') }}</option>
@@ -85,31 +87,44 @@
           </select>
 
           <!-- Current Active Branch Badge -->
-          <div class="px-3 py-1.5 min-h-[40px] rounded-xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] text-xs font-bold text-[#DE1B54] flex items-center space-x-1.5">
-            <span class="w-2 h-2 rounded-full bg-[#DE1B54] animate-ping"></span>
-            <span>{{ localeStore.t('active_branch_tag') }} {{ localeStore.tBranch(activeBranchName) }}</span>
+          <div class="px-3 py-1.5 min-h-[42px] rounded-xl bg-rose-50 dark:bg-[#341822] border border-rose-200 dark:border-[#58263A] text-xs font-bold text-[#DE1B54] flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-[#DE1B54] animate-ping shrink-0"></span>
+            <span class="truncate max-w-[160px]">{{ localeStore.t('active_branch_tag') }} {{ localeStore.tBranch(activeBranchName) }}</span>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- 3. MAIN SECTION: Branch Cards List (7 cols) & Interactive Map (5 cols) -->
+    <!-- 3. MAIN SECTION: Branch Cards List (7 cols) & Real Interactive Dessie Map (5 cols) -->
     <div class="sweetbakes-container pb-10">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         
-        <!-- ================= LEFT: BRANCH LIST (7 cols) ================= -->
+        <!-- ================= LEFT: REAL DATABASE BRANCH LIST (7 cols) ================= -->
         <div class="lg:col-span-7 space-y-4">
+          <!-- Loading State -->
+          <div v-if="branchStore.loading && branchesList.length === 0" class="py-12 text-center bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-6 space-y-2">
+            <div class="w-8 h-8 border-3 border-[#DE1B54] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] font-medium">
+              {{ localeStore.isAmharic ? 'የቅርንጫፎች ዝርዝር በመጫን ላይ...' : 'Loading bakery branch locations...' }}
+            </p>
+          </div>
+
           <!-- Empty State -->
-          <div v-if="filteredBranches.length === 0" class="py-12 text-center bg-gray-50 dark:bg-[#1E120B] rounded-2xl border border-gray-200 dark:border-[#382318] p-6 space-y-2">
+          <div v-else-if="filteredBranches.length === 0" class="py-12 text-center bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-6 space-y-3">
             <div class="text-3xl">🔍</div>
-            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">No branches found matching your search</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Try clearing your search query or selecting "All Sub-Cities".</p>
+            <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1810] dark:text-[#FAF3EE]">
+              {{ localeStore.isAmharic ? 'ከፍለጋዎ ጋር የሚዛመድ ቅርንጫፍ አልተገኘም' : 'No branches found matching your search' }}
+            </h3>
+            <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
+              {{ localeStore.isAmharic ? 'ፍለጋዎን ያጽዱ ወይም ሁሉንም አካባቢዎች ይምረጡ።' : 'Try clearing your search query or selecting "All Areas".' }}
+            </p>
             <button
-              @click="searchQuery = ''; cityFilter = 'all';"
-              class="px-4 py-2 min-h-[38px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
+              type="button"
+              @click="searchQuery = ''; areaFilter = 'all'; fulfillmentFilter = 'all';"
+              class="px-5 py-2.5 min-h-[40px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl hover:bg-[#C51345] transition shadow-xs cursor-pointer"
             >
-              Reset Filters
+              {{ localeStore.isAmharic ? 'ማጣሪያዎችን ዳግም አስጀምር' : 'Reset Filters' }}
             </button>
           </div>
 
@@ -118,49 +133,63 @@
             v-for="branch in filteredBranches"
             :key="branch.branch_id"
             class="bg-white dark:bg-[#1E120B] rounded-2xl border transition-all duration-300 p-5 sm:p-6 relative space-y-4 shadow-xs"
-            :class="branchStore.selectedBranchId === branch.branch_id 
-              ? 'border-[#DE1B54] ring-2 ring-[#DE1B54]/20 bg-rose-50/10 dark:bg-[#341822]/20' 
-              : 'border-[#EFE8E1] dark:border-[#382318] hover:border-[#DE1B54]/40 hover:shadow-md'"
+            :class="[
+              branchStore.selectedBranchId === branch.branch_id
+                ? 'border-[#DE1B54] ring-2 ring-[#DE1B54]/20 bg-rose-50/10 dark:bg-[#341822]/20'
+                : focusedBranchId === branch.branch_id
+                  ? 'border-[#DE1B54]/60 shadow-md'
+                  : 'border-[#EFE8E1] dark:border-[#382318] hover:border-[#DE1B54]/40 hover:shadow-md'
+            ]"
           >
-            <!-- Top Row: Name, Badge & Status -->
-            <div class="flex items-start justify-between gap-3">
-              <div class="space-y-1">
-                <div class="flex items-center space-x-2.5">
-                  <h3 class="text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+            <!-- Top Row: Name, Badge & Live Status -->
+            <div class="flex flex-wrap sm:flex-nowrap items-start justify-between gap-3">
+              <div class="space-y-1.5 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-base sm:text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
                     {{ localeStore.tBranch(branch.branch_name) }}
                   </h3>
                   <span
-                    class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                    class="px-2.5 py-0.5 rounded-full text-[11px] font-bold shrink-0"
                     :class="branch.branch_type === 'Main' || branch.is_main 
                       ? 'bg-[#24150D] text-white' 
                       : 'bg-rose-50 dark:bg-[#341822] text-[#DE1B54] border border-rose-200 dark:border-[#58263A]'"
                   >
-                    {{ branch.branch_type === 'Main' || branch.is_main ? (localeStore.isAmharic ? 'ዋና መጋገሪያ ማዕከል' : 'Central Kitchen HQ') : (localeStore.isAmharic ? `ቅርንጫፍ ${String(branch.branch_id).padStart(2, '0')}` : `Branch ${String(branch.branch_id).padStart(2, '0')}`) }}
+                    {{ branch.branch_type === 'Main' || branch.is_main
+                      ? (localeStore.isAmharic ? 'ዋና መጋገሪያ ማዕከል' : 'Central Kitchen HQ')
+                      : (branch.branch_code || (localeStore.isAmharic ? `ቅርንጫፍ ${String(branch.branch_id).padStart(2, '0')}` : `Branch ${String(branch.branch_id).padStart(2, '0')}`)) }}
                   </span>
                 </div>
 
-                <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-1.5">
-                  <span class="text-gray-400">📍</span>
-                  <span>{{ branch.address || branch.address_line1 || branch.city }}, {{ localeStore.isAmharic ? 'አዲስ አበባ' : 'Addis Ababa' }}</span>
+                <p class="text-xs sm:text-[13px] text-[#6E5D53] dark:text-[#C5B7AF] flex items-start space-x-1.5">
+                  <span class="text-[#DE1B54] shrink-0">📍</span>
+                  <span>{{ formatBranchLocation(branch, localeStore.isAmharic) }}</span>
                 </p>
 
-                <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex items-center space-x-2 pt-0.5">
+                <div class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] flex flex-wrap items-center gap-x-2.5 gap-y-1 pt-0.5">
                   <span class="flex items-center space-x-1">
                     <span>📞</span>
-                    <a :href="`tel:${branch.phone || '+251911123456'}`" class="hover:text-[#DE1B54] font-medium">{{ branch.phone || '+251 911 123 456' }}</a>
+                    <a :href="`tel:${branch.phone || '+251911123456'}`" class="hover:text-[#DE1B54] font-semibold">{{ branch.phone || '+251 911 123 456' }}</a>
                   </span>
-                  <span>&middot;</span>
+                  <span class="text-gray-300 dark:text-gray-600">&middot;</span>
                   <span class="flex items-center space-x-1">
                     <span>⏰</span>
-                    <span>{{ branch.opening_hours || (localeStore.isAmharic ? 'በየቀኑ ከጠዋቱ 12:30 – ማታ 3:30' : '06:30 – 21:30 Daily') }}</span>
+                    <span>{{ branch.opening_hours || (localeStore.isAmharic ? 'በየቀኑ 07:00 – 21:00' : 'Mon–Sun 07:00 – 21:00') }}</span>
                   </span>
-                </p>
+                </div>
               </div>
 
-              <!-- Open Status Badge -->
-              <span class="inline-flex items-center space-x-1.5 text-xs font-bold text-[#2E7D32] bg-[#EAF7EE] border border-[#C6EBD0] px-3 py-1 rounded-full shrink-0">
-                <span class="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse"></span>
-                <span>{{ localeStore.isAmharic ? 'በመጋገር ላይ' : 'Baking Now' }}</span>
+              <!-- Open / Paused Status Badge -->
+              <span
+                class="inline-flex items-center space-x-1.5 text-xs font-bold px-3 py-1 rounded-full shrink-0"
+                :class="branch.is_shopping_enabled === false
+                  ? 'text-amber-800 bg-amber-50 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900'
+                  : 'text-[#2E7D32] bg-[#EAF7EE] border border-[#C6EBD0] dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900'"
+              >
+                <span
+                  class="w-2 h-2 rounded-full"
+                  :class="branch.is_shopping_enabled === false ? 'bg-amber-500' : 'bg-[#2E7D32] animate-pulse'"
+                ></span>
+                <span>{{ branch.is_shopping_enabled === false ? (localeStore.isAmharic ? 'ለጊዜው ዝግ ነው' : 'Temporarily Paused') : (localeStore.isAmharic ? 'በመጋገር ላይ' : 'Baking Now') }}</span>
               </span>
             </div>
 
@@ -181,12 +210,13 @@
             </div>
 
             <!-- Bottom Action Row -->
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-[#382318]">
-              <div class="flex items-center space-x-2.5">
-                <!-- If currently selected -->
+            <div class="flex flex-wrap items-center justify-between gap-2.5 pt-3 border-t border-gray-100 dark:border-[#382318]">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- If currently active shopping branch -->
                 <button
                   v-if="branchStore.selectedBranchId === branch.branch_id"
-                  class="px-5 py-2.5 bg-[#DE1B54] text-white text-xs font-bold rounded-xl shadow-xs cursor-default flex items-center space-x-1.5"
+                  type="button"
+                  class="px-4 sm:px-5 py-2.5 min-h-[40px] bg-[#DE1B54] text-white text-xs font-bold rounded-xl shadow-xs cursor-default flex items-center space-x-1.5"
                 >
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -197,17 +227,29 @@
                 <!-- If not active: click to switch -->
                 <button
                   v-else
+                  type="button"
                   @click="selectBranch(branch)"
-                  class="px-5 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center space-x-1.5"
+                  class="px-4 sm:px-5 py-2.5 min-h-[40px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center space-x-1.5"
                 >
                   <span>{{ localeStore.isAmharic ? 'ይህንን ቅርንጫፍ ምረጥ' : 'Select & Shop This Branch' }}</span>
                   <span>&rarr;</span>
                 </button>
 
+                <!-- Focus Pin on Dessie Map -->
+                <button
+                  type="button"
+                  @click="focusBranchOnMap(branch, true)"
+                  class="px-3.5 py-2.5 min-h-[40px] bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] text-xs font-bold rounded-xl transition cursor-pointer flex items-center space-x-1"
+                >
+                  <span>📍</span>
+                  <span>{{ localeStore.isAmharic ? 'በካርታ ላይ እይ' : 'Show on Map' }}</span>
+                </button>
+
                 <!-- Delivery Areas Button -->
                 <button
+                  type="button"
                   @click="showZonesFor(branch)"
-                  class="px-4 py-2.5 bg-white dark:bg-[#1E120B] border border-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer"
+                  class="px-3.5 py-2.5 min-h-[40px] bg-white dark:bg-[#1E120B] border border-[#DE1B54]/60 hover:border-[#DE1B54] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer"
                 >
                   🚚 {{ localeStore.isAmharic ? 'የማድረሻ ዞኖች' : 'Delivery Areas' }}
                 </button>
@@ -224,136 +266,226 @@
           </div>
         </div>
 
-        <!-- ================= RIGHT: INTERACTIVE MAP & GUIDE (5 cols) ================= -->
-        <div class="lg:col-span-5 space-y-5">
-          <!-- Interactive Illustrative Map -->
-          <div class="bg-white rounded-2xl border border-[#EFE8E1] p-5 shadow-xs space-y-3">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
-              <div class="flex items-center space-x-2">
-                <span class="text-rose-500">📍</span>
-                <h3 class="font-serif font-bold text-sm text-[#2A1810]">Addis Ababa Branch Map</h3>
+        <!-- ================= RIGHT: REAL INTERACTIVE DESSIE TOWN MAP (5 cols) ================= -->
+        <div ref="mapCardSectionRef" class="lg:col-span-5 lg:sticky lg:top-24 space-y-5">
+          <!-- Interactive Map Card -->
+          <div class="bg-white dark:bg-[#1E120B] rounded-2xl border border-[#EFE8E1] dark:border-[#382318] p-4 sm:p-5 shadow-xs space-y-3.5">
+            <!-- Header -->
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 dark:border-[#382318] pb-3">
+              <div class="flex items-center space-x-2 min-w-0">
+                <span class="text-[#DE1B54] text-base shrink-0">📍</span>
+                <div class="min-w-0">
+                  <h2 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE] truncate">
+                    {{ localeStore.isAmharic ? 'የደሴ ቅርንጫፎች ካርታ' : 'Dessie Town Branch Map' }}
+                  </h2>
+                  <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF] truncate">
+                    {{ localeStore.isAmharic ? 'ደሴ፣ አማራ ክልል፣ ኢትዮጵያ · ቀጥታ GPS' : 'Dessie, Amhara Region, Ethiopia · Live GPS' }}
+                  </p>
+                </div>
               </div>
-              <span class="text-[11px] text-[#DE1B54] font-bold">5 Active Locations</span>
+              <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-[#341822] border border-rose-200/70 dark:border-[#58263A] text-[11px] text-[#DE1B54] font-bold shrink-0">
+                {{ mapBranches.length }} {{ localeStore.isAmharic ? 'ንቁ ቅርንጫፎች' : (mapBranches.length === 1 ? 'Active Location' : 'Active Locations') }}
+              </span>
             </div>
 
-            <!-- Stylized Map Container -->
-            <div class="relative w-full h-80 rounded-xl bg-gradient-to-br from-[#FAF7F5] via-[#FFF5F2] to-[#FAF7F5] overflow-hidden border border-gray-200">
-              <!-- Subtle street grid pattern -->
-              <svg class="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="streetGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#DE1B54" stroke-width="0.5" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#streetGrid)" />
-              </svg>
-
-              <!-- Illustrated Arterial Roads (Ring Road, Bole Rd, Churchill) -->
-              <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 20 240 Q 160 140 380 100" fill="none" stroke="#F0D9D1" stroke-width="7" />
-                <path d="M 110 30 Q 180 160 230 270" fill="none" stroke="#F0D9D1" stroke-width="6" />
-                <path d="M 250 40 Q 220 180 340 250" fill="none" stroke="#F0D9D1" stroke-width="5" />
-              </svg>
-
-              <!-- Mexico HQ Pin (ID: 1) -->
-              <div
-                @click="selectBranchById(1)"
-                class="absolute top-[48%] left-[26%] -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                title="Mexico Central Kitchen HQ"
-              >
-                <div
-                  class="w-8 h-8 rounded-full flex items-center justify-center shadow-md font-bold text-xs ring-4 transition group-hover:scale-110"
-                  :class="branchStore.selectedBranchId === 1 ? 'bg-[#DE1B54] text-white ring-[#DE1B54]/30 scale-110' : 'bg-[#24150D] text-white ring-[#24150D]/20'"
+            <!-- Interactive Map Controls Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318]">
+                <button
+                  type="button"
+                  @click="setMapLayer('route')"
+                  class="px-2.5 py-1 rounded-md font-bold transition cursor-pointer"
+                  :class="mapLayerMode === 'route' ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' : 'text-[#6E5D53] dark:text-[#C5B7AF]'"
                 >
-                  HQ
-                </div>
-                <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#2A1810] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow whitespace-nowrap">
-                  Mexico HQ
-                </span>
+                  📍 {{ localeStore.isAmharic ? 'የመንገድ ካርታ' : 'Route Map' }}
+                </button>
+                <button
+                  type="button"
+                  @click="setMapLayer('street')"
+                  class="px-2.5 py-1 rounded-md font-bold transition cursor-pointer"
+                  :class="mapLayerMode === 'street' ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' : 'text-[#6E5D53] dark:text-[#C5B7AF]'"
+                >
+                  🗺️ {{ localeStore.isAmharic ? 'መንገድ' : 'Street Map' }}
+                </button>
+                <button
+                  type="button"
+                  @click="setMapLayer('satellite')"
+                  class="px-2.5 py-1 rounded-md font-bold transition cursor-pointer"
+                  :class="mapLayerMode === 'satellite' ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' : 'text-[#6E5D53] dark:text-[#C5B7AF]'"
+                >
+                  🛰️ {{ localeStore.isAmharic ? 'ሳተላይት' : 'Satellite' }}
+                </button>
               </div>
 
-              <!-- Bole Flagship Pin (ID: 2) -->
-              <div
-                @click="selectBranchById(2)"
-                class="absolute top-[38%] left-[64%] -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                title="Bole Flagship & Espresso"
-              >
-                <div
-                  class="w-8 h-8 rounded-full flex items-center justify-center shadow-md font-bold text-xs ring-4 transition group-hover:scale-110"
-                  :class="branchStore.selectedBranchId === 2 ? 'bg-[#DE1B54] text-white ring-[#DE1B54]/30 scale-110' : 'bg-[#DE1B54] text-white ring-[#DE1B54]/20'"
+              <div class="flex items-center space-x-1.5">
+                <button
+                  v-if="mapLayerMode !== 'route'"
+                  type="button"
+                  @click="fitMapToAllBranches"
+                  class="px-2.5 py-1 rounded-lg bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] font-semibold transition cursor-pointer"
+                  title="Zoom to fit all branches in Dessie"
                 >
-                  1
-                </div>
-                <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#2A1810] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow whitespace-nowrap">
-                  Bole
-                </span>
-              </div>
-
-              <!-- Megenagna Pin (ID: 3) -->
-              <div
-                @click="selectBranchById(3)"
-                class="absolute top-[68%] left-[76%] -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                title="Megenagna Bakehouse"
-              >
-                <div
-                  class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-xs ring-4 transition group-hover:scale-110"
-                  :class="branchStore.selectedBranchId === 3 ? 'bg-[#DE1B54] text-white ring-[#DE1B54]/30 scale-110' : 'bg-gray-700 text-white ring-gray-700/20'"
+                  🎯 {{ localeStore.isAmharic ? 'ሁሉንም አሳይ' : 'Show All' }}
+                </button>
+                <button
+                  type="button"
+                  @click="refreshLiveBranches"
+                  :disabled="branchStore.loading"
+                  class="px-2.5 py-1 rounded-lg bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] font-semibold transition cursor-pointer disabled:opacity-50"
+                  title="Refresh branches from server"
                 >
-                  2
-                </div>
-                <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#2A1810] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow whitespace-nowrap">
-                  Megenagna
-                </span>
-              </div>
-
-              <!-- Piassa Pin (ID: 4) -->
-              <div
-                @click="selectBranchById(4)"
-                class="absolute top-[28%] left-[40%] -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                title="Piassa Heritage Bakehouse"
-              >
-                <div
-                  class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-xs ring-4 transition group-hover:scale-110"
-                  :class="branchStore.selectedBranchId === 4 ? 'bg-[#DE1B54] text-white ring-[#DE1B54]/30 scale-110' : 'bg-gray-700 text-white ring-gray-700/20'"
-                >
-                  3
-                </div>
-                <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#2A1810] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow whitespace-nowrap">
-                  Piassa
-                </span>
-              </div>
-
-              <!-- CMC Pin (ID: 5) -->
-              <div
-                @click="selectBranchById(5)"
-                class="absolute top-[75%] left-[45%] -translate-x-1/2 -translate-y-1/2 cursor-pointer group z-10"
-                title="CMC Royal Pastry Hub"
-              >
-                <div
-                  class="w-7 h-7 rounded-full flex items-center justify-center shadow-md font-bold text-xs ring-4 transition group-hover:scale-110"
-                  :class="branchStore.selectedBranchId === 5 ? 'bg-[#DE1B54] text-white ring-[#DE1B54]/30 scale-110' : 'bg-gray-700 text-white ring-gray-700/20'"
-                >
-                  4
-                </div>
-                <span class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-[#2A1810] text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow whitespace-nowrap">
-                  CMC Hub
-                </span>
+                  {{ branchStore.loading ? '⏳' : '↻' }}
+                </button>
               </div>
             </div>
 
-            <p class="text-[11px] text-[#6E5D53] leading-relaxed italic text-center pt-1">
-              Click any pin on the map to switch that kitchen to your active bakery.
+            <!-- Map View Container -->
+            <div class="relative w-full h-80 sm:h-[370px] rounded-xl overflow-hidden border border-[#E5DAD1] dark:border-[#382318] bg-[#FFF5F2] dark:bg-[#25150E]">
+              <!-- 1. Schematic Route Map (Exact match of Reference Design) -->
+              <div
+                v-if="mapLayerMode === 'route'"
+                class="w-full h-full relative overflow-hidden select-none bg-[#FFF8F5] dark:bg-[#22130C]"
+              >
+                <!-- Subtle warm grid background -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="dessieBakeryGrid" width="34" height="34" patternUnits="userSpaceOnUse">
+                      <path d="M 34 0 L 0 0 0 34" fill="none" stroke="#F6E7E0" class="dark:stroke-[#341822]" stroke-width="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#dessieBakeryGrid)" />
+                  <!-- Stylized connecting road ribbons (soft latte/tan curves) -->
+                  <g fill="none" stroke="#EFE4DC" class="dark:stroke-[#3D251A]" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M -20,240 C 80,180 180,160 320,110 S 480,80 540,40" />
+                    <path d="M 210,-20 C 210,100 230,170 270,320 S 310,400 320,440" />
+                    <path d="M 110,400 C 170,330 260,260 380,210 S 480,190 540,200" />
+                  </g>
+                </svg>
+
+                <!-- Interactive Bakery Pins Plotted on Schematic Grid -->
+                <div class="absolute inset-0">
+                  <div
+                    v-for="(b, idx) in schematicBranchPins"
+                    :key="b.branch_id"
+                    :style="{ left: `${b.x}%`, top: `${b.y}%` }"
+                    @click="onSchematicPinClick(b)"
+                    class="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer transition-transform duration-200 hover:scale-110 group z-20"
+                  >
+                    <!-- Pink Halo when active/selected -->
+                    <div
+                      v-if="branchStore.selectedBranchId === b.branch_id || focusedBranchId === b.branch_id"
+                      class="absolute -inset-2.5 rounded-full bg-[#DE1B54]/25 animate-pulse -z-10"
+                    ></div>
+
+                    <!-- Pin Circle -->
+                    <div
+                      class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-md border-2 border-white transition-colors duration-200"
+                      :class="branchStore.selectedBranchId === b.branch_id
+                        ? 'bg-[#DE1B54] text-white'
+                        : b.branch_type === 'Main' || b.is_main
+                          ? 'bg-[#24150D] text-white'
+                          : 'bg-[#3A2518] text-white group-hover:bg-[#DE1B54]'"
+                    >
+                      <span>{{ b.branch_type === 'Main' || b.is_main ? 'HQ' : (idx + 1) }}</span>
+                    </div>
+
+                    <!-- Black Pill Label Underneath (Matching Reference Image) -->
+                    <div
+                      class="mt-1 px-2.5 py-0.5 rounded-md text-[10px] font-bold text-white shadow-md whitespace-nowrap transition-colors duration-200"
+                      :class="branchStore.selectedBranchId === b.branch_id
+                        ? 'bg-[#DE1B54]'
+                        : 'bg-[#24150D] group-hover:bg-[#DE1B54]'"
+                    >
+                      {{ b.shortName }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Real Leaflet Map Canvas (Live GPS Street & Satellite) -->
+              <div
+                v-show="mapLayerMode !== 'route'"
+                ref="leafletMapContainerRef"
+                data-testid="dessie-leaflet-map"
+                class="w-full h-full z-10"
+              ></div>
+            </div>
+
+            <p class="text-[11px] text-[#786B60] dark:text-[#C5B7AF] italic text-center py-0.5 select-none">
+              {{ localeStore.isAmharic ? 'ወደ ንቁ መጋገሪያዎ ለመቀየር በካርታው ላይ ማንኛውንም ምልክት ይጫኑ።' : 'Click any pin on the map to switch that kitchen to your active bakery.' }}
+            </p>
+
+            <!-- Selected / Focused Branch Spotlight Card -->
+            <div
+              v-if="focusedBranch"
+              data-testid="map-selected-branch-card"
+              class="p-4 rounded-xl bg-gradient-to-br from-[#FFF5F8] to-[#FAF7F5] dark:from-[#2B151D] dark:to-[#22140D] border border-[#F5D2DC] dark:border-[#4A2632] space-y-2.5"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#DE1B54] shrink-0"></span>
+                    <h3 class="font-serif font-bold text-sm sm:text-base text-[#2A1810] dark:text-[#FAF3EE] truncate">
+                      {{ localeStore.tBranch(focusedBranch.branch_name) }}
+                    </h3>
+                  </div>
+                  <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] mt-0.5">
+                    📍 {{ formatBranchLocation(focusedBranch, localeStore.isAmharic) }}
+                  </p>
+                </div>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white/90 dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] text-[#DE1B54] shrink-0">
+                  {{ focusedBranch.lat.toFixed(4) }}°N, {{ focusedBranch.lng.toFixed(4) }}°E
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#2A1810] dark:text-[#FAF3EE]">
+                <a :href="`tel:${focusedBranch.phone || '+251911123456'}`" class="font-semibold hover:text-[#DE1B54] flex items-center space-x-1">
+                  <span>📞</span>
+                  <span>{{ focusedBranch.phone || '+251 911 123 456' }}</span>
+                </a>
+                <span class="text-gray-300 dark:text-gray-600">|</span>
+                <span class="text-[#6E5D53] dark:text-[#C5B7AF]">
+                  ⏰ {{ focusedBranch.opening_hours || '07:00 – 21:00' }}
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  @click="selectBranch(focusedBranch)"
+                  class="flex-1 min-w-[140px] px-3.5 py-2 min-h-[38px] bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-lg shadow-2xs transition cursor-pointer active:scale-98 flex items-center justify-center space-x-1.5"
+                >
+                  <span>{{ branchStore.selectedBranchId === focusedBranch.branch_id
+                    ? (localeStore.isAmharic ? '✓ አሁን የተመረጠ · ይዘዙ →' : '✓ Active Branch · Shop →')
+                    : (localeStore.isAmharic ? 'ይህን ቅርንጫፍ ምረጥ →' : 'Select & Shop Here →') }}</span>
+                </button>
+                <a
+                  :href="`https://www.google.com/maps/search/?api=1&query=${focusedBranch.lat},${focusedBranch.lng}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-3 py-2 min-h-[38px] bg-white dark:bg-[#1E120B] border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] hover:text-[#DE1B54] rounded-lg transition inline-flex items-center space-x-1"
+                >
+                  <span>🧭</span>
+                  <span>{{ localeStore.isAmharic ? 'አቅጣጫ' : 'Directions' }}</span>
+                </a>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed italic text-center">
+              {{ localeStore.isAmharic ? 'ዝርዝር መረጃ ለማየት በካርታው ላይ ማንኛውንም የቅርንጫፍ ምልክት ይጫኑ።' : 'Tap or click any pin on the Dessie map to view branch contact details and shop there.' }}
             </p>
           </div>
 
           <!-- Why Choose a Branch Callout Box -->
-          <div class="bg-gradient-to-br from-[#FFF5F2] to-[#FAF7F5] rounded-2xl border border-rose-100 p-5 space-y-2 text-xs">
-            <div class="font-bold text-[#2A1810] flex items-center space-x-1.5 uppercase tracking-wider text-[11px]">
+          <div class="bg-gradient-to-br from-[#FFF5F2] to-[#FAF7F5] dark:from-[#24150E] dark:to-[#1C100A] rounded-2xl border border-rose-100 dark:border-[#382318] p-5 space-y-2 text-xs">
+            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5 uppercase tracking-wider text-[11px]">
               <span>💡</span>
-              <span>Why choose a branch first?</span>
+              <span>{{ localeStore.isAmharic ? 'ለምን ቅርንጫፍ መጀመሪያ ይምረጡ?' : 'Why choose a branch first?' }}</span>
             </div>
-            <p class="text-[#6E5D53] leading-relaxed">
-              Every croissant, sourdough loaf, and chocolate cake is freshly pulled from the ovens on-site at each individual branch. Because inventory is localized, choosing the closest branch ensures the freshest bakery items and shortest delivery transit times across Addis Ababa.
+            <p class="text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed">
+              {{ localeStore.isAmharic
+                ? 'እያንዳንዱ ክሮሳን፣ ትኩስ ዳቦ እና የቸኮሌት ኬክ በየቅርንጫፉ ምድጃ በቀጥታ ተጋግሮ ይወጣል። በደሴ ከተማ ለእርስዎ ቅርብ የሆነውን ቅርንጫፍ መምረጥ ምርጥ ትኩስነት እና ፈጣን ማድረስ ያረጋግጥልዎታል።'
+                : 'Every croissant, sourdough loaf, and chocolate cake is freshly pulled from the ovens on-site at each individual branch. Choosing your closest Dessie branch ensures the freshest bakery items and fastest delivery.' }}
             </p>
           </div>
         </div>
@@ -368,19 +500,22 @@
       @click="activeZoneModalBranch = null"
     >
       <div
-        class="bg-white rounded-2xl border border-gray-100 max-w-md w-full p-6 space-y-5 shadow-2xl relative cursor-default"
+        class="bg-white dark:bg-[#1E120B] rounded-2xl border border-gray-100 dark:border-[#382318] max-w-md w-full p-6 space-y-5 shadow-2xl relative cursor-default"
         @click.stop
       >
-        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
           <div>
-            <h3 class="font-serif font-bold text-base text-[#2A1810]">
-              {{ activeZoneModalBranch.branch_name }} Delivery Zones
+            <h3 class="font-serif font-bold text-base text-[#2A1810] dark:text-[#FAF3EE]">
+              {{ localeStore.tBranch(activeZoneModalBranch.branch_name) }} {{ localeStore.isAmharic ? 'የማድረሻ ዞኖች' : 'Delivery Zones' }}
             </h3>
-            <p class="text-xs text-[#6E5D53]">Standard transit fees &amp; coverage areas</p>
+            <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
+              {{ localeStore.isAmharic ? 'መደበኛ የማድረሻ ክፍያ እና የአገልግሎት ክልሎች' : 'Standard transit fees & coverage areas' }}
+            </p>
           </div>
           <button
+            type="button"
             @click="activeZoneModalBranch = null"
-            class="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none cursor-pointer"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold leading-none cursor-pointer"
           >
             &times;
           </button>
@@ -390,28 +525,33 @@
           <div
             v-for="zone in modalZones"
             :key="zone.zone_id"
-            class="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF7F5] border border-gray-100"
+            class="flex items-center justify-between p-3.5 rounded-xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318]"
           >
             <div>
-              <div class="text-xs font-bold text-[#2A1810]">{{ zone.zone_name }}</div>
-              <div class="text-[11px] text-gray-400">Estimated delivery: 30–45 mins</div>
+              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ zone.zone_name }}</div>
+              <div class="text-[11px] text-gray-500 dark:text-gray-400">
+                {{ localeStore.isAmharic ? 'ግምታዊ የመድረሻ ጊዜ፡ 30–45 ደቂቃ' : 'Estimated delivery: 30–45 mins' }}
+              </div>
             </div>
             <div class="text-xs font-black text-[#DE1B54]">
-              ETB {{ zone.delivery_fee }}
+              {{ localeStore.formatPrice(zone.delivery_fee) }}
             </div>
           </div>
 
-          <div v-if="modalZones.length === 0" class="text-center py-6 text-xs text-gray-500">
-            No specific zones registered for this branch. Standard Addis Ababa delivery rate applies.
+          <div v-if="modalZones.length === 0" class="text-center py-6 text-xs text-gray-500 dark:text-gray-400">
+            {{ localeStore.isAmharic
+              ? 'ለዚህ ቅርንጫፍ የተለየ ዞን አልተመዘገበም። መደበኛ የደሴ የማድረሻ ክፍያ ተግባራዊ ይሆናል።'
+              : 'No specific zones registered for this branch. Standard local Dessie delivery rate applies.' }}
           </div>
         </div>
 
         <div class="pt-2 flex justify-end">
           <button
+            type="button"
             @click="activeZoneModalBranch = null"
             class="px-5 py-2.5 bg-[#DE1B54] hover:bg-[#C51345] text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition active:scale-95"
           >
-            Done
+            {{ localeStore.isAmharic ? 'ዝጋ' : 'Done' }}
           </button>
         </div>
       </div>
@@ -434,11 +574,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useBranchStore } from '../../stores/branch';
 import { useToastStore } from '../../stores/toast';
 import { useLocaleStore } from '../../stores/locale';
+import { DESSIE_CENTER, resolveBranchesForMap, formatBranchLocation } from '../../utils/ethiopiaGeo';
 import api from '../../api';
 
 const router = useRouter();
@@ -447,25 +590,57 @@ const toast = useToastStore();
 const localeStore = useLocaleStore();
 
 const searchQuery = ref('');
-const cityFilter = ref('all');
+const areaFilter = ref('all');
 const fulfillmentFilter = ref('all');
+const focusedBranchId = ref(null);
 
 const activeZoneModalBranch = ref(null);
 const modalZones = ref([]);
 
-onMounted(async () => {
-  if (branchStore.branches.length === 0) {
-    await branchStore.fetchBranches();
-  }
-});
+const leafletMapContainerRef = ref(null);
+const mapCardSectionRef = ref(null);
+const mapLayerMode = ref('route');
+
+let leafletMap = null;
+let markerLayerGroup = null;
+let streetTileLayer = null;
+let satelliteTileLayer = null;
+const markerLookup = new Map();
+
+function escapeHtml(raw) {
+  return String(raw || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 const branchesList = computed(() => {
-  return branchStore.branches || [];
+  const all = branchStore.branches || [];
+  const active = all.filter((b) => !b.status || b.status === 'Active');
+  return active;
+});
+
+// Dynamically derive unique real location/area filter options from DB branches
+const areaFilterOptions = computed(() => {
+  const seen = new Map();
+  branchesList.value.forEach((b) => {
+    const city = (b.city || '').trim();
+    if (city && !seen.has(city.toLowerCase())) {
+      seen.set(city.toLowerCase(), city);
+    }
+    const addrFirst = (b.address || '').split(',')[0]?.trim();
+    if (addrFirst && addrFirst.length <= 36 && !seen.has(addrFirst.toLowerCase())) {
+      seen.set(addrFirst.toLowerCase(), addrFirst);
+    }
+  });
+  return Array.from(seen.values());
 });
 
 const activeBranchName = computed(() => {
-  const current = branchesList.value.find(b => b.branch_id === branchStore.selectedBranchId);
-  return current?.branch_name || (branchesList.value[0]?.branch_name || 'Select Branch');
+  const current = branchesList.value.find((b) => b.branch_id === branchStore.selectedBranchId);
+  return current?.branch_name || branchesList.value[0]?.branch_name || 'Select Branch';
 });
 
 const filteredBranches = computed(() => {
@@ -473,26 +648,297 @@ const filteredBranches = computed(() => {
     const query = searchQuery.value.toLowerCase().trim();
     const matchSearch =
       !query ||
-      b.branch_name.toLowerCase().includes(query) ||
-      (b.city && b.city.toLowerCase().includes(query)) ||
-      (b.address && b.address.toLowerCase().includes(query));
+      (b.branch_name || '').toLowerCase().includes(query) ||
+      (b.branch_code || '').toLowerCase().includes(query) ||
+      (b.city || '').toLowerCase().includes(query) ||
+      (b.region || '').toLowerCase().includes(query) ||
+      (b.address || '').toLowerCase().includes(query) ||
+      (b.phone || '').toLowerCase().includes(query);
 
-    const matchCity = cityFilter.value === 'all' || (b.city && b.city.toLowerCase().includes(cityFilter.value.toLowerCase()));
-    return matchSearch && matchCity;
+    const areaNeedle = areaFilter.value.toLowerCase();
+    const matchArea =
+      areaFilter.value === 'all' ||
+      (b.city || '').toLowerCase().includes(areaNeedle) ||
+      (b.address || '').toLowerCase().includes(areaNeedle) ||
+      (b.region || '').toLowerCase().includes(areaNeedle) ||
+      (b.branch_name || '').toLowerCase().includes(areaNeedle);
+
+    const hasDelivery = !Array.isArray(b.delivery_zones) || b.delivery_zones.length > 0;
+    const isOpenForPickup = b.is_shopping_enabled !== false;
+    const matchFulfillment =
+      fulfillmentFilter.value === 'all' ||
+      (fulfillmentFilter.value === 'delivery' && hasDelivery && isOpenForPickup) ||
+      (fulfillmentFilter.value === 'pickup' && isOpenForPickup);
+
+    return matchSearch && matchArea && matchFulfillment;
   });
+});
+
+// Branches plotted on the interactive Dessie map (follows active filters dynamically, falls back cleanly when search returns 0)
+const mapBranches = computed(() => {
+  const source = filteredBranches.value.length > 0 ? filteredBranches.value : branchesList.value;
+  return resolveBranchesForMap(source);
+});
+
+// Dynamic layout positions corresponding to real Dessie geography and reference layout
+const schematicBranchPins = computed(() => {
+  const branches = mapBranches.value;
+  const defaultLayouts = [
+    { x: 28, y: 46 }, // HQ (Dessie Piazza HQ)
+    { x: 74, y: 34 }, // Pin 1 (Buabuha)
+    { x: 82, y: 66 }, // Pin 2 (Fuad / Hotte)
+    { x: 48, y: 22 }, // Pin 3 (Erobit)
+    { x: 50, y: 76 }, // Pin 4 (Additional branch)
+  ];
+
+  return branches.map((b, idx) => {
+    const isMain = b.branch_type === 'Main' || b.is_main;
+    const pos = isMain ? defaultLayouts[0] : (defaultLayouts[idx + 1] || { x: 30 + ((idx * 18) % 55), y: 30 + ((idx * 22) % 55) });
+    const shortName = (b.branch_name || 'Branch')
+      .replace(/^Main Branch\s*-\s*/i, '')
+      .replace(/Commercial Center/i, '')
+      .trim();
+    return {
+      ...b,
+      x: pos.x,
+      y: pos.y,
+      shortName,
+    };
+  });
+});
+
+function onSchematicPinClick(b) {
+  branchStore.setSelectedBranch(b.branch_id);
+  focusedBranchId.value = b.branch_id;
+  toast.success(`Active bakery branch set to ${b.branch_name}!`);
+}
+
+const focusedBranch = computed(() => {
+  const list = mapBranches.value;
+  if (list.length === 0) return null;
+  if (focusedBranchId.value) {
+    const found = list.find((b) => b.branch_id === focusedBranchId.value);
+    if (found) return found;
+  }
+  const active = list.find((b) => b.branch_id === branchStore.selectedBranchId);
+  return active || list[0];
+});
+
+function buildPinIcon(branch, idx, isFocused) {
+  const isMain = branch.branch_type === 'Main' || branch.is_main;
+  const badge = isMain ? 'HQ' : String(idx + 1);
+  const shortName = escapeHtml((branch.branch_name || 'Branch').replace(/^Main Branch\s*-\s*/i, ''));
+
+  return L.divIcon({
+    className: 'sweet-map-marker-wrapper',
+    html: `
+      <div class="sweet-map-pin ${isFocused ? 'sweet-map-pin--active' : ''} ${isMain ? 'sweet-map-pin--hq' : ''}">
+        <span class="sweet-map-pin-halo"></span>
+        <span class="sweet-map-pin-circle">${badge}</span>
+        <span class="sweet-map-pin-label">${shortName}</span>
+      </div>
+    `,
+    iconSize: [110, 56],
+    iconAnchor: [55, 22],
+    popupAnchor: [0, -24],
+  });
+}
+
+function buildPopupContent(branch) {
+  const name = escapeHtml(localeStore.tBranch(branch.branch_name));
+  const loc = escapeHtml(formatBranchLocation(branch, localeStore.isAmharic));
+  const phone = escapeHtml(branch.phone || '+251 911 123 456');
+  const hours = escapeHtml(branch.opening_hours || '07:00 – 21:00');
+  return `
+    <div style="min-width:190px;font-family:Poppins,system-ui,sans-serif;line-height:1.45;">
+      <div style="font-weight:800;font-size:13px;color:#2A1810;margin-bottom:3px;">${name}</div>
+      <div style="font-size:11px;color:#6E5D53;margin-bottom:4px;">📍 ${loc}</div>
+      <div style="font-size:11px;color:#DE1B54;font-weight:700;">📞 ${phone}</div>
+      <div style="font-size:10px;color:#786B60;margin-top:2px;">⏰ ${hours}</div>
+    </div>
+  `;
+}
+
+function initLeafletMap() {
+  if (!leafletMapContainerRef.value || leafletMap) return;
+
+  leafletMap = L.map(leafletMapContainerRef.value, {
+    center: [DESSIE_CENTER.lat, DESSIE_CENTER.lng],
+    zoom: 13,
+    zoomControl: true,
+    scrollWheelZoom: true,
+  });
+
+  streetTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  });
+
+  satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{x}/{y}', {
+    attribution: '&copy; Esri Imagery',
+    maxZoom: 18,
+  });
+
+  streetTileLayer.addTo(leafletMap);
+  markerLayerGroup = L.layerGroup().addTo(leafletMap);
+
+  syncMapMarkers(true);
+}
+
+function setMapLayer(mode) {
+  mapLayerMode.value = mode;
+  if (mode === 'route') return;
+  if (!leafletMap) {
+    nextTick(() => {
+      initLeafletMap();
+    });
+    return;
+  }
+  nextTick(() => {
+    leafletMap.invalidateSize();
+  });
+  if (mode === 'satellite') {
+    if (streetTileLayer && leafletMap.hasLayer(streetTileLayer)) leafletMap.removeLayer(streetTileLayer);
+    if (satelliteTileLayer && !leafletMap.hasLayer(satelliteTileLayer)) satelliteTileLayer.addTo(leafletMap);
+  } else {
+    if (satelliteTileLayer && leafletMap.hasLayer(satelliteTileLayer)) leafletMap.removeLayer(satelliteTileLayer);
+    if (streetTileLayer && !leafletMap.hasLayer(streetTileLayer)) streetTileLayer.addTo(leafletMap);
+  }
+}
+
+function syncMapMarkers(shouldFitBounds = false) {
+  if (!leafletMap || !markerLayerGroup) return;
+
+  markerLayerGroup.clearLayers();
+  markerLookup.clear();
+
+  const branches = mapBranches.value;
+  if (branches.length === 0) {
+    leafletMap.setView([DESSIE_CENTER.lat, DESSIE_CENTER.lng], 13);
+    return;
+  }
+
+  const currentFocusId = focusedBranch.value?.branch_id;
+  const latLngs = [];
+
+  branches.forEach((branch, idx) => {
+    const isFocused = branch.branch_id === currentFocusId;
+    const marker = L.marker([branch.lat, branch.lng], {
+      icon: buildPinIcon(branch, idx, isFocused),
+      title: branch.branch_name,
+      zIndexOffset: isFocused ? 500 : 100 - idx,
+    });
+
+    marker.bindPopup(buildPopupContent(branch));
+    marker.on('click', () => {
+      focusedBranchId.value = branch.branch_id;
+    });
+
+    marker.addTo(markerLayerGroup);
+    markerLookup.set(branch.branch_id, { marker, branch });
+    latLngs.push([branch.lat, branch.lng]);
+  });
+
+  if (shouldFitBounds && latLngs.length > 0) {
+    fitBoundsFromCoords(latLngs);
+  }
+}
+
+function fitBoundsFromCoords(latLngs) {
+  if (!leafletMap || latLngs.length === 0) return;
+  if (latLngs.length === 1) {
+    leafletMap.setView(latLngs[0], 14, { animate: true });
+    return;
+  }
+  const bounds = L.latLngBounds(latLngs);
+  leafletMap.fitBounds(bounds, { padding: [44, 44], maxZoom: 15, animate: true });
+}
+
+function fitMapToAllBranches() {
+  const latLngs = mapBranches.value.map((b) => [b.lat, b.lng]);
+  fitBoundsFromCoords(latLngs);
+}
+
+function focusBranchOnMap(branch, scrollIntoViewOnMobile = false) {
+  if (!branch) return;
+  focusedBranchId.value = branch.branch_id;
+
+  const entry = markerLookup.get(branch.branch_id);
+  if (leafletMap && entry) {
+    const targetZoom = Math.max(leafletMap.getZoom(), 14);
+    leafletMap.flyTo([entry.branch.lat, entry.branch.lng], targetZoom, { duration: 0.55 });
+    nextTick(() => {
+      entry.marker.openPopup();
+    });
+  }
+
+  if (scrollIntoViewOnMobile && window.innerWidth < 1024 && mapCardSectionRef.value) {
+    mapCardSectionRef.value.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+async function refreshLiveBranches() {
+  await branchStore.fetchBranches();
+}
+
+function handleWindowFocusRefresh() {
+  if (document.visibilityState === 'visible') {
+    branchStore.fetchBranches();
+  }
+}
+
+watch(
+  mapBranches,
+  (nextList, prevList) => {
+    const listChangedSizeOrIds =
+      !prevList ||
+      nextList.length !== prevList.length ||
+      nextList.some((b, i) => b.branch_id !== prevList[i]?.branch_id || b.lat !== prevList[i]?.lat || b.lng !== prevList[i]?.lng);
+    syncMapMarkers(listChangedSizeOrIds);
+  },
+  { deep: true }
+);
+
+watch(focusedBranchId, () => {
+  syncMapMarkers(false);
+  const entry = focusedBranchId.value ? markerLookup.get(focusedBranchId.value) : null;
+  if (entry) {
+    entry.marker.openPopup();
+  }
+});
+
+watch(() => localeStore.currentLocale, () => {
+  syncMapMarkers(false);
+});
+
+onMounted(async () => {
+  await branchStore.fetchBranches();
+  await nextTick();
+  initLeafletMap();
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', handleWindowFocusRefresh);
+    document.addEventListener('visibilitychange', handleWindowFocusRefresh);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('focus', handleWindowFocusRefresh);
+    document.removeEventListener('visibilitychange', handleWindowFocusRefresh);
+  }
+  if (leafletMap) {
+    leafletMap.remove();
+    leafletMap = null;
+  }
+  markerLayerGroup = null;
+  markerLookup.clear();
 });
 
 function selectBranch(branch) {
   branchStore.setSelectedBranch(branch.branch_id);
   toast.success(`Active branch set to ${branch.branch_name}!`);
   router.push('/shop');
-}
-
-function selectBranchById(id) {
-  const branch = branchesList.value.find((b) => b.branch_id === id);
-  if (branch) {
-    selectBranch(branch);
-  }
 }
 
 async function showZonesFor(branch) {
@@ -505,3 +951,89 @@ async function showZonesFor(branch) {
   }
 }
 </script>
+
+<style>
+.leaflet-container img,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+.sweet-map-marker-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.sweet-map-pin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sweet-map-pin-halo {
+  position: absolute;
+  top: -2px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background-color: rgba(36, 21, 13, 0.16);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.sweet-map-pin--active .sweet-map-pin-halo {
+  background-color: rgba(222, 27, 84, 0.28);
+  transform: scale(1.22);
+}
+
+.sweet-map-pin-circle {
+  position: relative;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background-color: #24150D;
+  color: #FFFFFF;
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  border: 2px solid #FFFFFF;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.sweet-map-pin--active .sweet-map-pin-circle {
+  background-color: #DE1B54;
+  transform: scale(1.12);
+}
+
+.sweet-map-pin:hover .sweet-map-pin-circle {
+  transform: scale(1.14);
+}
+
+.sweet-map-pin-label {
+  position: relative;
+  z-index: 2;
+  margin-top: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background-color: #2A1810;
+  color: #FFFFFF;
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+.sweet-map-pin--active .sweet-map-pin-label {
+  background-color: #DE1B54;
+}
+</style>

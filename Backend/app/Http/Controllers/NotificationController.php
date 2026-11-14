@@ -27,17 +27,17 @@ class NotificationController extends Controller
             if ($user->role === 'Customer') {
                 $query->where('user_id', $user->user_id);
             } elseif ($user->role === 'Super Admin') {
-                // Rule 1: Remove all Order and Custom Order-related notifications from the Super Admin dashboard.
-                // These notifications belong exclusively to the relevant Branch Sellers.
-                $query->where(function ($q) {
-                    $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
-                      ->orWhereNull('category');
-                })
-                ->where(function ($q) {
-                    $q->where('link', 'not like', '%/admin/orders%')
-                      ->where('link', 'not like', '%/admin/custom-cakes%')
-                      ->orWhereNull('link');
-                });
+                // Strict Requirement: Send notifications to Super Admin ONLY when a Branch Manager submits or forwards a report.
+                // Connected directly to the actual submitted reports; suppress all other events/activities.
+                $query->whereIn('category', ['Reports', 'Staff Reports', 'Report'])
+                      ->where(function ($q) use ($user) {
+                          $q->where('user_id', $user->user_id)
+                            ->orWhereNull('user_id');
+                      })
+                      ->where(function ($q) {
+                          $q->where('link', 'like', '%report%')
+                            ->orWhere('title', 'like', '%report%');
+                      });
 
                 if ($request->filled('branch_id') && $request->branch_id !== 'all') {
                     $query->where(function ($q) use ($request) {
@@ -138,15 +138,15 @@ class NotificationController extends Controller
         if ($user && $user->role === 'Customer') {
             $query->where('user_id', $user->user_id);
         } elseif ($user && $user->role === 'Super Admin') {
-            $query->where(function ($q) {
-                $q->whereNotIn('category', ['Orders', 'Custom Cakes'])
-                  ->orWhereNull('category');
-            })
-            ->where(function ($q) {
-                $q->where('link', 'not like', '%/admin/orders%')
-                  ->where('link', 'not like', '%/admin/custom-cakes%')
-                  ->orWhereNull('link');
-            });
+            $query->whereIn('category', ['Reports', 'Staff Reports', 'Report'])
+                  ->where(function ($q) use ($user) {
+                      $q->where('user_id', $user->user_id)
+                        ->orWhereNull('user_id');
+                  })
+                  ->where(function ($q) {
+                      $q->where('link', 'like', '%report%')
+                        ->orWhere('title', 'like', '%report%');
+                  });
         } elseif ($user && in_array($user->role, ['Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
             $query->where(function ($q) {
                 $q->whereNotIn('category', ['Orders', 'Custom Cakes'])

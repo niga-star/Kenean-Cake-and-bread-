@@ -25,9 +25,9 @@
           <!-- Outer Rotating Dashed Ring -->
           <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-2 border-dashed border-[#DE1B54]/40 dark:border-[#DE1B54]/60 animate-spin-slow"></div>
 
-          <!-- Pulsing Inner Circle -->
-          <div class="absolute inset-2 rounded-full bg-white dark:bg-[#20140E] shadow-xl border border-rose-100 dark:border-[#382318] flex items-center justify-center">
-            <span class="text-3xl sm:text-4xl filter drop-shadow-sm transform hover:scale-110 transition-transform">🧁</span>
+          <!-- Pulsing Inner Circle with Kenean Official Logo -->
+          <div class="absolute inset-2 rounded-full bg-[#FAF5EE] shadow-xl border border-[#DEBE92] dark:border-[#5C3B28] flex items-center justify-center overflow-hidden p-1">
+            <img src="/images/kenean-logo.png" alt="Kenean Cake & Bread" class="w-full h-full object-contain rounded-full" />
           </div>
 
           <!-- Little Sparkle Accents -->
@@ -35,13 +35,16 @@
           <span class="absolute -bottom-1 -left-1 text-xs animate-bounce text-amber-500" style="animation-delay: 0.5s;">★</span>
         </div>
 
-        <!-- Bakery Brand Name in Dancing Script -->
+        <!-- Bakery Brand Name in Luxury Serif & Berry Accent -->
         <div class="space-y-1">
-          <div class="text-4xl sm:text-5xl font-logo font-bold text-[#2A1810] dark:text-[#FAF4ED] tracking-normal leading-none drop-shadow-xs">
-            Sweet<span class="text-[#DE1B54]">Bakes</span>
+          <div class="flex items-baseline justify-center space-x-2 text-3xl sm:text-4xl font-brand font-black text-[#2A1810] dark:text-[#FAF4ED] tracking-tight leading-none drop-shadow-xs">
+            <span>{{ isAmharic ? 'ከነአን' : 'Kenean' }}</span>
+            <span class="text-xl sm:text-2xl font-serif font-bold text-[#DE1B54] dark:text-[#FF4D7D] italic">
+              {{ isAmharic ? 'ኬክ እና ዳቦ' : 'Cake & Bread' }}
+            </span>
           </div>
-          <div class="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#8C7E77] dark:text-[#A8988E] font-medium pt-1">
-            Cakes &middot; Bread &middot; Happiness
+          <div class="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] text-[#8C7E77] dark:text-[#A8988E] font-semibold pt-1">
+            {{ isAmharic ? 'የእጅ ጥበብ ዳቦ መጋገሪያ • ደሴ' : 'Artisan Bakery & Cafe • Dessie' }}
           </div>
         </div>
 

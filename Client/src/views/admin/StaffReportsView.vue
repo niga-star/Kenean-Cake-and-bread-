@@ -427,9 +427,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
 const branches = ref([]);
 const reports = ref([]);
 const selectedBranchFilter = ref('all');
@@ -502,7 +504,9 @@ const submitReport = async () => {
   try {
     await api.post('/admin/staff-reports', newReportForm.value);
     isSubmitModalOpen.value = false;
-    successMsg.value = 'Report submitted successfully.';
+    const msg = 'Report submitted successfully.';
+    successMsg.value = msg;
+    toast.success(msg);
     newReportForm.value = {
       report_type: 'Daily Sales',
       title: '',
@@ -510,7 +514,7 @@ const submitReport = async () => {
     };
     await loadReports();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to submit report.');
+    toast.error(err.response?.data?.message || 'Failed to submit report.');
   } finally {
     isSubmittingReport.value = false;
   }
@@ -533,11 +537,13 @@ const submitForwardReport = async () => {
       status: 'Forwarded to Super Admin',
       manager_notes: managerReviewNotes.value,
     });
-    successMsg.value = `Report "${reviewingReport.value.title}" verified and forwarded to Super Admin.`;
+    const msg = `Report "${reviewingReport.value.title}" verified and forwarded to Super Admin.`;
+    successMsg.value = msg;
+    toast.success(msg);
     reviewingReport.value = null;
     await loadReports();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to forward report.');
+    toast.error(err.response?.data?.message || 'Failed to forward report.');
   }
 };
 
@@ -548,10 +554,12 @@ const markResolved = async (rep) => {
       status: 'Resolved',
       manager_notes: 'Reviewed and acknowledged by Super Admin.',
     });
-    successMsg.value = `Report marked as Resolved.`;
+    const msg = 'Report marked as Resolved.';
+    successMsg.value = msg;
+    toast.success(msg);
     await loadReports();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to resolve report.');
+    toast.error(err.response?.data?.message || 'Failed to resolve report.');
   }
 };
 

@@ -68,11 +68,13 @@ class OrderController extends Controller
             }
         }
 
-        // Customer scoping: see own account orders
+        // Customer scoping: see own account orders & verified email historical orders
         if ($user && $user->role === 'Customer') {
             $query->where(function ($q) use ($user) {
                 $q->where('user_id', $user->user_id);
-                if (!empty($user->phone)) {
+                if ($user->email_verified_at) {
+                    $q->orWhereRaw('LOWER(customer_email) = ?', [strtolower(trim($user->email))]);
+                } elseif (!empty($user->phone)) {
                     $q->orWhere('customer_phone', $user->phone);
                 }
             });
@@ -145,24 +147,42 @@ class OrderController extends Controller
     /**
      * Show single order by ID or order_number
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to view order details.'], 401);
+        }
+
         $order = Order::with(['branch', 'user', 'address', 'items.product', 'payments', 'payment', 'statusHistory.user'])
-            ->where('order_id', $id)
-            ->orWhere('order_number', $id)
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('order_id', $id)->orWhere('order_number', $id);
+                } else {
+                    $q->where('order_number', $id);
+                }
+            })
             ->firstOrFail();
 
-        $user = request()->user();
-        if ($user && $user->role === 'Super Admin') {
+        if ($user->role === 'Super Admin') {
             return response()->json(['message' => 'Operational order management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
         }
-        $userBranchId = $user?->branch_id ?? ($user ? Branch::where('manager_id', $user->user_id)->value('branch_id') : null);
-        if ($user && $user->role !== 'Customer' && (!$userBranchId || $order->branch_id != $userBranchId)) {
+        $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+        if ($user->role !== 'Customer' && (!$userBranchId || $order->branch_id != $userBranchId)) {
             return response()->json(['message' => 'Access denied: You can only view orders for your assigned branch.'], 403);
         }
 
-        if ($user && $user->role === 'Customer' && $order->user_id && $order->user_id != $user->user_id) {
-            return response()->json(['message' => 'Access denied: You can only view your own orders.'], 403);
+        if ($user->role === 'Customer') {
+            $isOwner = ($order->user_id == $user->user_id);
+            if (!$isOwner && $user->email_verified_at && !empty($order->customer_email) && strcasecmp(trim($order->customer_email), trim($user->email)) === 0) {
+                $isOwner = true;
+            }
+            if (!$isOwner && !empty($user->phone) && !empty($order->customer_phone) && trim($order->customer_phone) === trim($user->phone)) {
+                $isOwner = true;
+            }
+            if (!$isOwner) {
+                return response()->json(['message' => 'Access denied: You can only view your own orders.'], 403);
+            }
         }
 
         return response()->json($order);
@@ -310,6 +330,37 @@ class OrderController extends Controller
             $headers = $result['is_replay'] ? ['X-Idempotent-Replay' => 'true'] : [];
 
             return response()->json($result['order'], $status, $headers);
+        } catch (\Exception $e) {
+            $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;
+            return response()->json(['message' => $e->getMessage()], $code);
+        }
+    }
+
+    /**
+     * Walk-in counter POS order creation for Branch Sellers, Cashiers and Managers
+     */
+    public function storePOSOrder(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $validated = $request->validate([
+            'items' => 'required|array|min:1|max:100',
+            'items.*.product_id' => 'required|integer|exists:products,product_id',
+            'items.*.quantity' => 'required|integer|min:1|max:500',
+            'customer_name' => 'nullable|string|max:100',
+            'customer_phone' => 'nullable|string|max:30',
+            'payment_method' => 'required|string|in:Cash,Card,Telebirr',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'amount_paid' => 'nullable|numeric|min:0',
+            'branch_id' => 'nullable|integer|exists:branches,branch_id',
+        ]);
+
+        try {
+            $result = $this->orderService->createPOSOrder($validated, $user);
+            return response()->json($result, 201);
         } catch (\Exception $e) {
             $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 422;
             return response()->json(['message' => $e->getMessage()], $code);
@@ -530,11 +581,39 @@ class OrderController extends Controller
      */
     public function cancel(Request $request, $id)
     {
-        $order = Order::with(['items', 'payment', 'branch'])->where('order_id', $id)->orWhere('order_number', $id)->firstOrFail();
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Authentication required to cancel an order.'], 401);
+        }
 
-        // Check if customer cancellation rule applies
-        $isCustomer = (!$user || $user->role === 'Customer' || $order->user_id === $user?->user_id);
+        $order = Order::with(['items', 'payment', 'branch'])
+            ->where(function ($q) use ($id) {
+                if (is_numeric($id)) {
+                    $q->where('order_id', $id)->orWhere('order_number', $id);
+                } else {
+                    $q->where('order_number', $id);
+                }
+            })
+            ->firstOrFail();
+
+        if ($user->role === 'Super Admin') {
+            return response()->json(['message' => 'Operational order management belongs exclusively to Branch Sellers and Branch Managers.'], 403);
+        }
+
+        $isCustomer = ($user->role === 'Customer');
+        if ($isCustomer) {
+            $isOwner = ($order->user_id == $user->user_id)
+                || ($user->email_verified_at && !empty($order->customer_email) && strcasecmp(trim($order->customer_email), trim($user->email)) === 0)
+                || (!empty($user->phone) && !empty($order->customer_phone) && trim($order->customer_phone) === trim($user->phone));
+            if (!$isOwner) {
+                return response()->json(['message' => 'Access denied: You can only cancel your own orders.'], 403);
+            }
+        } else {
+            $userBranchId = $user->branch_id ?? Branch::where('manager_id', $user->user_id)->value('branch_id');
+            if (!$userBranchId || $order->branch_id != $userBranchId) {
+                return response()->json(['message' => 'Access denied: You can only cancel orders for your assigned branch.'], 403);
+            }
+        }
 
         if ($isCustomer && in_array($order->order_status, ['Preparing', 'Ready', 'Out for delivery', 'Completed'])) {
             return response()->json([
@@ -793,8 +872,13 @@ class OrderController extends Controller
         return $releasedCount;
     }
 
-    public function releaseExpiredEndpoint()
+    public function releaseExpiredEndpoint(Request $request)
     {
+        $user = $request->user();
+        if (!$user || !in_array($user->role, ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'])) {
+            return response()->json(['message' => 'Unauthorized to trigger reservation cleanup.'], 403);
+        }
+
         $count = self::releaseExpiredReservations();
         return response()->json([
             'message' => "Successfully released reservations for {$count} expired orders.",

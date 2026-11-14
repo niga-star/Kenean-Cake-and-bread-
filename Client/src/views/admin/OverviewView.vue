@@ -5,13 +5,13 @@
     <!-- ======================================================== -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-serif font-black tracking-tight text-[#2B1810] leading-tight">
-          {{ greetingText }}, <span class="text-[#3D251E]">{{ currentUserName }}</span>! 👋
+        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-serif font-black tracking-tight text-[#2B1810] dark:text-[#FAF4ED] leading-tight">
+          {{ greetingText }}, <span class="text-[#3D251E] dark:text-[#E8A585]">{{ currentUserName }}</span>! 👋
         </h1>
-        <p class="text-xs sm:text-sm text-[#7D6E64] font-normal mt-1">
+        <p class="text-xs sm:text-sm text-[#7D6E64] dark:text-[#A69284] font-normal mt-1">
           {{ data.is_branch_view
-            ? `Here's what's happening with ${data.branch?.branch_name || 'your bakery'} today.`
-            : "Here's what's happening with your bakery today." }}
+            ? `Here's what's happening with ${data.branch?.branch_name || 'Kenean Cake & Bread'} today.`
+            : "Here's what's happening with Kenean Cake & Bread today." }}
         </p>
       </div>
 
@@ -22,7 +22,7 @@
           <select
             v-model="selectedBranch"
             @change="loadOverview"
-            class="bg-white border border-[#E8DFD5] hover:border-[#DACDC0] text-[#3D251E] text-xs sm:text-sm font-semibold rounded-xl px-3.5 py-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 cursor-pointer pr-8"
+            class="bg-white dark:bg-[#1C120C] border border-[#E8DFD5] dark:border-[#382318] hover:border-[#DACDC0] text-[#3D251E] dark:text-[#FAF4ED] text-xs sm:text-sm font-semibold rounded-xl px-3.5 py-2 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 cursor-pointer pr-8"
           >
             <option value="all">All Branches (Whole Business)</option>
             <option v-for="b in branches" :key="b.branch_id" :value="b.branch_id">
@@ -39,10 +39,10 @@
             class="dash-btn-secondary flex items-center space-x-2 py-2 px-3.5 text-xs sm:text-sm"
             title="Filter by date"
           >
-            <svg class="w-4 h-4 text-[#7D6E64]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-[#7D6E64] dark:text-[#A69284]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span class="font-medium text-[#2B1810]">{{ displayDateLabel }}</span>
+            <span class="font-medium text-[#2B1810] dark:text-[#FAF4ED]">{{ displayDateLabel }}</span>
             <svg class="w-3.5 h-3.5 text-[#9C8E84]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
@@ -63,21 +63,11 @@
         >
           Reset
         </button>
-
-        <!-- + New Order Dark Pill Button (Only shown to roles handling orders) -->
-        <router-link
-          v-if="canAccessOrders"
-          to="/admin/orders"
-          class="dash-btn-primary py-2 px-4 text-xs sm:text-sm flex items-center space-x-1.5 shadow-xs"
-        >
-          <span class="text-base leading-none font-bold">+</span>
-          <span>New Order</span>
-        </router-link>
       </div>
     </div>
 
     <!-- ======================================================== -->
-    <!-- 1. TOP 4 KPI STAT CARDS (Reference Single Source of Truth)-->
+    <!-- 1. TOP 4 KPI STAT CARDS (Real-time Business Data)       -->
     <!-- ======================================================== -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
       <!-- 1. Daily Orders Card -->
@@ -95,13 +85,13 @@
         </div>
 
         <div class="mt-4">
-          <div class="dash-subtitle font-medium text-[#7D6E64]">Daily Orders</div>
-          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.orders_today ?? 48 }}
+          <div class="dash-subtitle font-medium">Daily Orders</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black mt-0.5">
+            {{ data.orders_today ?? 0 }}
           </div>
-          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] dark:text-emerald-400 mt-1.5">
             <span class="font-bold">↗</span>
-            <span>+12% vs yesterday</span>
+            <span>{{ data.orders_trend || '0 vs yesterday' }}</span>
           </div>
         </div>
       </div>
@@ -121,13 +111,13 @@
         </div>
 
         <div class="mt-4">
-          <div class="dash-subtitle font-medium text-[#7D6E64]">Revenue (Today)</div>
-          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            ETB {{ Number(data.revenue_today || 1245).toLocaleString() }}
+          <div class="dash-subtitle font-medium">Revenue (Today)</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black mt-0.5">
+            ETB {{ Number(data.revenue_today ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
           </div>
-          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] dark:text-emerald-400 mt-1.5">
             <span class="font-bold">↗</span>
-            <span>+8% vs yesterday</span>
+            <span>{{ data.revenue_trend || '0 vs yesterday' }}</span>
           </div>
         </div>
       </div>
@@ -147,13 +137,12 @@
         </div>
 
         <div class="mt-4">
-          <div class="dash-subtitle font-medium text-[#7D6E64]">Out for Delivery</div>
-          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.out_for_delivery ?? data.delivery_pipeline?.out_for_delivery ?? 16 }}
+          <div class="dash-subtitle font-medium">Out for Delivery</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black mt-0.5">
+            {{ data.out_for_delivery ?? data.delivery_pipeline?.out_for_delivery ?? 0 }}
           </div>
-          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
-            <span class="font-bold">↗</span>
-            <span>+4 vs yesterday</span>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#7E57C2] dark:text-purple-400 mt-1.5">
+            <span>In dispatch &amp; transit</span>
           </div>
         </div>
       </div>
@@ -173,13 +162,12 @@
         </div>
 
         <div class="mt-4">
-          <div class="dash-subtitle font-medium text-[#7D6E64]">Delivered (Today)</div>
-          <div class="dash-metric text-3xl sm:text-[34px] font-black text-[#2B1810] mt-0.5">
-            {{ data.delivered_today ?? data.delivery_pipeline?.delivered ?? 32 }}
+          <div class="dash-subtitle font-medium">Delivered (Today)</div>
+          <div class="dash-metric text-3xl sm:text-[34px] font-black mt-0.5">
+            {{ data.delivered_today ?? data.delivery_pipeline?.delivered ?? 0 }}
           </div>
-          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] mt-1.5">
-            <span class="font-bold">↗</span>
-            <span>+9 vs yesterday</span>
+          <div class="flex items-center space-x-1 text-xs font-semibold text-[#2E7D32] dark:text-emerald-400 mt-1.5">
+            <span>Completed orders today</span>
           </div>
         </div>
       </div>
@@ -337,7 +325,7 @@
 
           <div class="mb-3">
             <div class="dash-metric text-2xl sm:text-3xl font-black text-[#2B1810]">
-              ETB {{ Number(data.revenue_overview?.total_revenue || 8560).toLocaleString() }}
+              ETB {{ Number(data.revenue_overview?.total_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
             </div>
             <div class="text-xs text-[#7D6E64] flex items-center space-x-1.5 mt-0.5">
               <span>Total Revenue</span>

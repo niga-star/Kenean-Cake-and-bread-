@@ -62,15 +62,22 @@ class RoleAuthorizationMiddleware
             $isAuthorized = in_array($user->role, $expandedRoles);
 
             if (!$isAuthorized) {
+                // Main Branch Manager equivalence (Branch Manager assigned to Main branch)
+                if (in_array('Main Branch Manager', $expandedRoles) && in_array($user->role, ['Branch Manager', 'Branch Admin'])) {
+                    $branch = $user->branch ?? \App\Models\Branch::where('manager_id', $user->user_id)->first();
+                    if ($branch && $branch->branch_type === 'Main') {
+                        $isAuthorized = true;
+                    }
+                }
                 // Branch Manager / Branch Admin equivalence
-                if (in_array('Branch Admin', $expandedRoles) && $user->role === 'Branch Manager') {
+                if (!$isAuthorized && in_array('Branch Admin', $expandedRoles) && $user->role === 'Branch Manager') {
                     $isAuthorized = true;
                 }
-                elseif (in_array('Branch Manager', $expandedRoles) && $user->role === 'Branch Admin') {
+                elseif (!$isAuthorized && in_array('Branch Manager', $expandedRoles) && $user->role === 'Branch Admin') {
                     $isAuthorized = true;
                 }
                 // Branch Staff includes specialized branch staff roles
-                elseif (in_array('Branch Staff', $expandedRoles) && in_array($user->role, [
+                elseif (!$isAuthorized && in_array('Branch Staff', $expandedRoles) && in_array($user->role, [
                     'Branch Staff',
                     'Branch Seller',
                     'Branch Seller / Cashier',

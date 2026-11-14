@@ -45,8 +45,8 @@ class WebsiteSettingController extends Controller
             'hero_desc_am' => $all['hero_desc_am'] ?? 'የልደትና የሰርግ ኬኮች እንዲሁም ትኩስ የተፈጥሮ ዳቦዎች በሁሉም የአዲስ አበባ ክፍሎች ባሉበት ይደርሳሉ።',
             'hero_button_text_en' => $all['hero_button_text_en'] ?? 'Order Online',
             'hero_button_text_am' => $all['hero_button_text_am'] ?? 'አሁን ይዘዙ',
-            'hero_button_link' => $all['hero_button_link'] ?? '/shop',
-            'hero_image_url' => $all['hero_image_url'] ?? '/mockup/hero_banner_hq.jpg',
+            'hero_button_link' => !empty($all['hero_button_link']) ? $all['hero_button_link'] : '/shop',
+            'hero_image_url' => !empty($all['hero_image_url']) ? $all['hero_image_url'] : '/mockup/hero_banner_hq.jpg',
 
             // About Page & Section Customization
             'about_tag_en' => $all['about_tag_en'] ?? 'About SweetBakes',
@@ -55,7 +55,7 @@ class WebsiteSettingController extends Controller
             'about_title_am' => $all['about_title_am'] ?? 'የሚተማመኑበት የዳቦና ኬክ መጋገሪያ',
             'about_story_en' => $all['about_story_en'] ?? 'At SweetBakes, we believe every celebration starts with the aroma of freshly baked butter, warm vanilla, and handcrafted pastries.',
             'about_story_am' => $all['about_story_am'] ?? 'በስዊትቤክስ እያንዳንዱ በዓል የሚጀምረው አዲስ በተጋገረ ቅቤ፣ ሞቅ ባለ ቫኒላ እና በእጅ በተዘጋጁ ኬኮች መዓዛ ነው።',
-            'about_image_url' => $all['about_image_url'] ?? '/mockup/baker_hires.jpg',
+            'about_image_url' => !empty($all['about_image_url']) ? $all['about_image_url'] : '/mockup/baker_hires.jpg',
             'about_chef_quote_en' => $all['about_chef_quote_en'] ?? '“Making life sweeter, one cake and bread at a time.”',
             'about_chef_quote_am' => $all['about_chef_quote_am'] ?? '“እያንዳንዱን ኬክ እና ዳቦ በፍቅር እና በጥንቃቄ እያዘጋጀን ህይወትዎን እናጣፍጣለን::”',
             'about_chef_title_en' => $all['about_chef_title_en'] ?? '— SweetBakes Master Pastry Chef',
@@ -119,6 +119,125 @@ class WebsiteSettingController extends Controller
             ->get();
 
         return response()->json($banners);
+    }
+
+    /**
+     * Upload a custom photo (from PC or mobile) for About section, Hero background, or Banners.
+     */
+    public function uploadImage(Request $request)
+    {
+        $slotPrefix = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $request->input('slot', 'setting'))) ?: 'setting';
+        $targetDir = public_path('uploads/settings');
+
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $imageUrl = null;
+
+        // 1. Check if uploaded as a standard multipart file
+        $fileKey = null;
+        foreach (['image', 'photo', 'file', 'upload'] as $candidate) {
+            if ($request->hasFile($candidate)) {
+                $fileKey = $candidate;
+                break;
+            }
+        }
+
+        // Check if file was sent but dropped by PHP ini limits
+        if (!$fileKey) {
+            foreach (['image', 'photo', 'file', 'upload'] as $candidate) {
+                if (isset($_FILES[$candidate]) && !empty($_FILES[$candidate]['name'])) {
+                    $err = $_FILES[$candidate]['error'];
+                    if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+                        return response()->json([
+                            'message' => 'The uploaded photo exceeds the server file size limit. Please choose a smaller image or allow auto-compression.'
+                        ], 422);
+                    }
+                    if ($err !== UPLOAD_ERR_OK) {
+                        return response()->json([
+                            'message' => 'File upload error code: ' . $err . '. Please try selecting the image again.'
+                        ], 422);
+                    }
+                }
+            }
+        }
+
+        // 2. Check if sent as Base64 Data URL (e.g. data:image/jpeg;base64,...)
+        $base64Input = $request->input('image_base64') ?? $request->input('image');
+        if (!$fileKey && is_string($base64Input) && preg_match('/^data:image\/([a-zA-Z0-9+]+);base64,/', $base64Input, $matches)) {
+            $ext = strtolower($matches[1]);
+            if ($ext === 'jpeg') $ext = 'jpg';
+            if (!in_array($ext, ['jpg', 'png', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif'])) {
+                $ext = 'jpg';
+            }
+            $cleanBase64 = substr($base64Input, strpos($base64Input, ',') + 1);
+            $decoded = base64_decode($cleanBase64);
+            if ($decoded !== false) {
+                $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $ext;
+                file_put_contents($targetDir . DIRECTORY_SEPARATOR . $filename, $decoded);
+                $imageUrl = '/uploads/settings/' . $filename;
+            }
+        }
+
+        if (!$imageUrl) {
+            if (!$fileKey) {
+                return response()->json(['message' => 'Please select a valid image file (JPG, PNG, WebP, GIF) to upload.'], 422);
+            }
+
+            $file = $request->file($fileKey);
+
+            // Flexible validation for all modern and standard image formats
+            $rawExt = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+            $validExtensions = ['jpeg', 'png', 'jpg', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif', 'ico', 'heic'];
+            
+            // Validate MIME / extension
+            $mime = strtolower((string) $file->getMimeType());
+            $isImageMime = str_starts_with($mime, 'image/') || in_array($rawExt, $validExtensions);
+            if (!$isImageMime) {
+                return response()->json(['message' => 'The uploaded file must be an image (JPG, PNG, WebP, GIF, etc.).'], 422);
+            }
+
+            $safeExtension = in_array($rawExt, $validExtensions) ? $rawExt : 'jpg';
+            if ($safeExtension === 'jpeg') $safeExtension = 'jpg';
+
+            $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $safeExtension;
+            $file->move($targetDir, $filename);
+            $imageUrl = '/uploads/settings/' . $filename;
+        }
+
+        // Persist setting if requested
+        $settingKey = $request->input('setting_key');
+        if ($settingKey) {
+            AppSetting::updateOrCreate(
+                ['key' => $settingKey],
+                ['value' => $imageUrl]
+            );
+
+            if ($settingKey === 'hero_image_url') {
+                $primaryBanner = Banner::find(1);
+                if ($primaryBanner) {
+                    $primaryBanner->update(['image_url' => $imageUrl]);
+                }
+            }
+
+            AuditLog::create([
+                'user_id' => $request->user()?->user_id,
+                'user_name' => $request->user()?->full_name ?? 'Super Admin',
+                'action' => 'Website photo uploaded',
+                'record' => $settingKey,
+                'entity_type' => 'AppSetting',
+                'entity_id' => $settingKey,
+                'old_value' => '—',
+                'new_value' => $imageUrl,
+                'created_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Photo uploaded successfully',
+            'image_url' => $imageUrl,
+        ]);
     }
 
     /**

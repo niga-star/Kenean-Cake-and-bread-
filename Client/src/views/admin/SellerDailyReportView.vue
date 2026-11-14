@@ -762,9 +762,13 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '../../stores/auth';
+import { useToastStore } from '../../stores/toast';
+import { useDialogStore } from '../../stores/dialog';
 import api from '../../api';
 
 const authStore = useAuthStore();
+const toast = useToastStore();
+const dialog = useDialogStore();
 
 const activeTab = ref('form');
 const saving = ref(false);
@@ -912,7 +916,7 @@ async function onDateChange() {
 // Save or Submit
 async function saveReport(action) {
   if (form.orders.length === 0 && form.custom_cakes.length === 0) {
-    alert('Please record at least one regular order or custom cake before submitting.');
+    toast.warning('Please record at least one regular order or custom cake before submitting.');
     return;
   }
 
@@ -920,7 +924,7 @@ async function saveReport(action) {
   for (let i = 0; i < form.orders.length; i++) {
     const o = form.orders[i];
     if (!o.order_number || !o.product_name) {
-      alert(`Regular order row #${i + 1} requires an order number and product name.`);
+      toast.warning(`Regular order row #${i + 1} requires an order number and product name.`);
       return;
     }
   }
@@ -928,14 +932,20 @@ async function saveReport(action) {
   for (let i = 0; i < form.custom_cakes.length; i++) {
     const c = form.custom_cakes[i];
     if (!c.cake_order_number || !c.customer_name) {
-      alert(`Custom cake row #${i + 1} requires a cake order number and customer name.`);
+      toast.warning(`Custom cake row #${i + 1} requires a cake order number and customer name.`);
       return;
     }
   }
 
   if (action === 'submit') {
     const confirmMsg = `Submit Daily Sales Report for ETB ${summaryTotals.value.combinedDailyRevenue.toFixed(2)} to your Branch Manager for verification?`;
-    if (!confirm(confirmMsg)) return;
+    const confirmed = await dialog.confirm({
+      title: 'Submit Daily Sales Report',
+      message: confirmMsg,
+      confirmText: 'Submit Report',
+      variant: 'primary',
+    });
+    if (!confirmed) return;
   }
 
   saving.value = true;
@@ -958,7 +968,7 @@ async function saveReport(action) {
     }
 
     if (res.data && res.data.success) {
-      alert(res.data.message || (action === 'submit' ? 'Submitted to your Branch Manager for verification successfully!' : 'Draft saved.'));
+      toast.success(res.data.message || (action === 'submit' ? 'Submitted to your Branch Manager for verification successfully!' : 'Draft saved.'));
       await fetchReportsHistory();
 
       // Reset form if submitted
@@ -972,7 +982,7 @@ async function saveReport(action) {
     }
   } catch (err) {
     console.error('Failed to submit report:', err);
-    alert(err.response?.data?.message || 'Error saving daily report. Please try again.');
+    toast.error(err.response?.data?.message || 'Error saving daily report. Please try again.');
   } finally {
     saving.value = false;
   }
@@ -998,7 +1008,7 @@ async function viewReportDetails(id) {
       selectedReport.value = res.data.report;
     }
   } catch (e) {
-    alert('Failed to load report details.');
+    toast.error('Failed to load report details.');
   }
 }
 
@@ -1018,22 +1028,27 @@ async function editReport(id) {
       activeTab.value = 'form';
     }
   } catch (e) {
-    alert('Failed to load report for editing.');
+    toast.error('Failed to load report for editing.');
   }
 }
 
 async function deleteDraft(id) {
-  if (!confirm('Are you sure you want to delete this draft daily report? Submitted reports cannot be deleted.')) {
-    return;
-  }
+  const confirmed = await dialog.confirm({
+    title: 'Delete Draft Report',
+    message: 'Are you sure you want to delete this draft daily report? Submitted reports cannot be deleted.',
+    confirmText: 'Delete Draft',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+
   try {
-    const res = await axios.delete(`/reports/seller/daily-reports/${id}`);
-    if (res.data.success) {
-      alert('Draft report deleted successfully.');
+    const res = await api.delete(`/admin/reports/seller/daily-reports/${id}`);
+    if (res.data?.success) {
+      toast.success('Draft report deleted successfully.');
       await fetchReportsHistory();
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete report.');
+    toast.error(err.response?.data?.message || 'Failed to delete report.');
   }
 }
 

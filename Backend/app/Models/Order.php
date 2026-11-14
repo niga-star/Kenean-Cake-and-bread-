@@ -17,6 +17,7 @@ class Order extends Model
         'user_id',
         'customer_name',
         'customer_phone',
+        'customer_email',
         'branch_id',
         'address_id',
         'fulfillment_method',

@@ -91,6 +91,7 @@ class ReceivedStockController extends Controller
                     'reference_number' => $d->reference_number,
                     'from_branch_name' => $d->fromBranch?->branch_name,
                     'status' => $d->status,
+                    'notes' => $d->notes,
                     'sent_at' => $d->sent_at ? $d->sent_at->toIso8601String() : null,
                     'items' => $d->items->map(fn($i) => [
                         'id' => $i->id,

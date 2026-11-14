@@ -1,76 +1,69 @@
 <template>
-  <div class="bg-white dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-12 animate-fade-in-up">
-    <!-- 1. HERO BANNER: 3D Cake Studio Luxury Landing (Matching Reference) -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-[#FFF8F7] via-[#FFF3F5] to-[#FCE8EE] dark:from-[#20120D] dark:via-[#1A0E0A] dark:to-[#2B141C] border-b border-[#F6DFE5] dark:border-[#382318] py-8 sm:py-10">
-      <!-- Soft Ambient Organic Pink Curves in Background -->
-      <div class="absolute right-0 top-0 bottom-0 w-full sm:w-[50%] lg:w-[48%] overflow-hidden pointer-events-none">
-        <div class="absolute -right-10 -bottom-10 w-[380px] h-[380px] sm:w-[480px] sm:h-[480px] rounded-full bg-gradient-to-tr from-[#F8B6C7]/45 to-[#FCE3EB]/55 dark:from-[#DE1B54]/20 dark:to-[#DE1B54]/5 blur-xs"></div>
-        <div class="absolute -right-20 -bottom-24 w-[360px] h-[220px] rounded-[100%] bg-[#F59EB5]/35 dark:bg-[#DE1B54]/20"></div>
+  <div class="bg-[#FAF7F5] dark:bg-[#170E0A] min-h-screen text-[#29231F] dark:text-[#FAF3EE] font-sans selection:bg-[#FCE7F0] selection:text-[#DE1B54] pb-16">
+    <!-- 1. HERO BANNER: 3D Cake Studio Luxury Landing (Exact Studio Showcase Design) -->
+    <section class="relative overflow-hidden bg-white dark:bg-[#1C110C] min-h-[340px] sm:min-h-[400px] lg:min-h-[440px] flex items-center border-b border-[#F6DFE5] dark:border-[#382318]">
+      <!-- Full-Bleed Ultra-HD Studio Background Image -->
+      <div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        <img
+          src="/mockup/cake_studio_hero_bg.jpg"
+          alt="SweetBakes 3D Cake Studio Masterpiece"
+          class="w-full h-full object-cover object-[76%_center] sm:object-right lg:object-center"
+          loading="eager"
+        />
+          <!-- Mobile & Tablet Readability Overlay -->
+          <div class="absolute inset-0 bg-gradient-to-b from-[#FFF9FA]/96 via-[#FFF9FA]/88 to-[#FFF9FA]/92 sm:bg-gradient-to-r sm:from-[#FFF9FA]/92 sm:via-[#FFF9FA]/65 sm:via-50% sm:to-transparent lg:from-[#FFF9FA]/35 lg:via-transparent lg:to-transparent dark:from-[#170E0A]/96 dark:via-[#170E0A]/86 dark:to-[#170E0A]/92 sm:dark:via-[#170E0A]/80 sm:dark:to-[#170E0A]/25 pointer-events-none"></div>
       </div>
 
-      <div class="sweetbakes-container relative z-10 w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <!-- Left Column: Typography & Launch Pill -->
-          <div class="lg:col-span-7 space-y-3 sm:space-y-4 text-center lg:text-left">
-            <!-- Pill Badge: 🍰 Cake Studio -->
-            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#FDE7EC] dark:bg-[#381B26] text-[#2C1810] dark:text-[#FAF3EE] font-bold text-xs sm:text-sm shadow-2xs">
-              <span class="text-base">🍰</span>
-              <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
-            </div>
-
-            <!-- Big Bold Title with Radiating Sparkle Lines -->
-            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[48px] font-sans font-black text-[#26150F] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
-              <template v-if="localeStore.isAmharic">
-                <span>የህልምዎን ኬክ</span><br />
-                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
-                  በ3D ይንደፉ
-                  <svg class="absolute -top-3.5 -right-7 sm:-top-4 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
-                    <path d="M6 18L10 14" />
-                    <path d="M14 11L17 5" />
-                    <path d="M22 15L27 12" />
-                  </svg>
-                </span><br />
-                <span>በቀላሉ ያዘጋጁ</span>
-              </template>
-              <template v-else>
-                <span>Create Your</span><br />
-                <span class="text-[#DE1B54] dark:text-rose-400 relative inline-block">
-                  Dream Masterpiece
-                  <svg class="absolute -top-3.5 -right-7 sm:-top-4.5 sm:-right-8 w-6 h-6 sm:w-7 sm:h-7 text-[#DE1B54]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
-                    <path d="M6 18L10 14" />
-                    <path d="M14 11L17 5" />
-                    <path d="M22 15L27 12" />
-                  </svg>
-                </span><br />
-                <span>in 3D</span>
-              </template>
-            </h1>
-
-            <!-- Clean Subtitle Paragraph -->
-            <p class="text-sm sm:text-base text-[#6E5C54] dark:text-[#C5B7AF] font-medium leading-relaxed max-w-md mx-auto lg:mx-0">
-              {{ localeStore.isAmharic
-                ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ። ሃሳብዎን ወደ እውነት ይለውጡ!'
-                : 'Design stunning cakes with ease. Make your ideas come to life!'
-              }}
-            </p>
+      <div class="sweetbakes-container relative z-10 w-full py-10 sm:py-12 lg:py-14">
+        <div class="max-w-md lg:max-w-lg xl:max-w-xl space-y-3 sm:space-y-4 text-center sm:text-left mx-auto sm:mx-0">
+          <!-- Pill Badge: 🍰 Cake Studio -->
+          <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/95 dark:bg-[#2A151B]/95 backdrop-blur-md text-[#26150F] dark:text-[#FAF3EE] border border-[#F5CAD8] dark:border-rose-900/60 font-bold text-xs sm:text-sm shadow-2xs">
+            <span class="text-base leading-none">🍰</span>
+            <span>{{ localeStore.isAmharic ? 'ኬክ ስቱዲዮ' : 'Cake Studio' }}</span>
           </div>
 
-          <!-- Right Column: Mouthwatering Chocolate Drip Cake & Pedestal -->
-          <div class="lg:col-span-5 flex justify-center items-center relative">
-            <img
-              src="/mockup/custom_studio_cake_pure.png"
-              alt="SweetBakes 3D Cake Studio Masterpiece"
-              class="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] h-auto object-contain drop-shadow-xl hover:scale-103 transition-transform duration-500"
-              loading="eager"
-            />
-          </div>
+          <!-- Big Bold Title with Radiating Pink Sparkle Lines on "Dream Masterpiece" -->
+          <h1 class="text-[22px] min-[360px]:text-[25px] xs:text-[27px] sm:text-4xl md:text-[42px] lg:text-[48px] xl:text-[52px] font-sans font-black text-[#22120D] dark:text-[#FAF3EE] tracking-tight leading-[1.12]">
+            <template v-if="localeStore.isAmharic">
+              <span>የህልምዎን ኬክ</span><br />
+              <span class="text-[#E61960] dark:text-rose-400 relative inline-block">
+                በ3D ይንደፉ
+                <svg class="absolute -top-2.5 -right-5 sm:-top-3.5 sm:-right-8 w-5 h-5 sm:w-7 sm:h-7 text-[#E61960]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                  <path d="M5 17L9 13" />
+                  <path d="M13 10L16 4" />
+                  <path d="M21 14L27 11" />
+                </svg>
+              </span><br />
+              <span>በቀላሉ ያዘጋጁ</span>
+            </template>
+            <template v-else>
+              <span>Create Your</span><br />
+              <span class="text-[#E61960] dark:text-rose-400 relative inline-block sm:whitespace-nowrap">
+                Dream Masterpiece
+                <svg class="absolute -top-2.5 -right-5 sm:-top-3.5 sm:-right-8 w-5 h-5 sm:w-7 sm:h-7 text-[#E61960]" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round">
+                  <path d="M5 17L9 13" />
+                  <path d="M13 10L16 4" />
+                  <path d="M21 14L27 11" />
+                </svg>
+              </span><br />
+              <span>in 3D</span>
+            </template>
+          </h1>
+
+          <!-- Clean 2-Line Subtitle Paragraph -->
+          <p class="text-sm sm:text-base lg:text-[17px] text-[#3A2720] dark:text-[#E5D7CE] font-medium leading-snug max-w-sm sm:max-w-md whitespace-pre-line">
+            {{ localeStore.isAmharic
+              ? 'አስደናቂ ኬኮችን በቀላሉ ይንደፉ።\nሃሳብዎን ወደ እውነት ይለውጡ!'
+              : 'Design stunning cakes with ease.\nMake your ideas come to life!'
+            }}
+          </p>
         </div>
       </div>
     </section>
 
     <!-- Restored Draft Banner -->
     <div v-if="hasRestoredDraft" class="sweetbakes-container pt-6">
-      <div class="bg-rose-50/70 dark:bg-[#2A1810] border border-rose-200 dark:border-[#4A2518] px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs text-[#2A1810] dark:text-[#FAF3EE] shadow-2xs">
+      <div class="bg-rose-50/90 dark:bg-[#2A1810] border border-rose-200 dark:border-[#4A2518] px-4 py-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-sm text-[#2A1810] dark:text-[#FAF3EE] shadow-2xs">
         <div class="flex items-center space-x-2">
           <span>💾</span>
           <span>{{ localeStore.isAmharic ? 'የቀደመውን የኬክ ንድፍዎን ረቂቅ መልሰነዋል::' : 'We restored your cake design draft from your last session.' }}</span>
@@ -78,7 +71,7 @@
         <button
           type="button"
           @click="clearSavedDraft"
-          class="text-xs font-bold text-[#DE1B54] hover:underline cursor-pointer"
+          class="text-xs sm:text-sm font-bold text-[#DE1B54] hover:underline cursor-pointer"
         >
           {{ localeStore.isAmharic ? 'ቅጹን አጽዳ' : 'Reset form' }}
         </button>
@@ -87,9 +80,9 @@
 
     <!-- 2. QUICK INSPIRATION PRESET CHIPS -->
     <div class="sweetbakes-container pt-6 sm:pt-8">
-      <div class="bg-gradient-to-r from-rose-50/50 via-white to-rose-50/50 dark:from-[#25150E] dark:via-[#1E120B] dark:to-[#25150E] border border-rose-100 dark:border-[#382318] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center space-x-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] font-bold">
-          <span class="text-rose-500 text-base">✨</span>
+      <div class="bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3.5 shadow-2xs">
+        <div class="flex items-center space-x-2 text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+          <span class="text-[#DE1B54] text-base">✨</span>
           <span>{{ localeStore.isAmharic ? 'ፈጣን የሃሳብ መነሻዎች:' : 'Quick Inspiration Presets:' }}</span>
         </div>
         <div class="flex flex-wrap items-center justify-center gap-2">
@@ -98,7 +91,7 @@
             :key="preset.name"
             type="button"
             @click="applyPreset(preset)"
-            class="px-3.5 py-1.5 bg-white dark:bg-[#1E120B] hover:bg-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] hover:text-white border border-gray-200 dark:border-[#382318] hover:border-[#DE1B54] rounded-full text-xs font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center space-x-1.5"
+            class="px-4 py-2 min-h-[38px] bg-[#FAF7F5] dark:bg-[#2A1810] hover:bg-[#DE1B54] text-[#2A1810] dark:text-[#FAF3EE] hover:text-white border border-[#E5DAD1] dark:border-[#382318] hover:border-[#DE1B54] rounded-full text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center space-x-1.5"
           >
             <span>{{ preset.icon }}</span>
             <span>{{ localeStore.isAmharic ? (preset.nameAm || preset.name) : preset.name }}</span>
@@ -108,24 +101,24 @@
     </div>
 
     <!-- 3. INTERACTIVE 3D/LAYERED CAKE CANVAS & TWO-COLUMN BUILDER -->
-    <div class="sweetbakes-container py-8 space-y-8">
+    <div class="sweetbakes-container py-8 space-y-8 sm:space-y-10">
       <!-- Interactive Cake Visualizer Studio (3D WebGL / 2D Graceful Fallback) -->
-      <div class="bg-gradient-to-b from-[#FAF7F5] via-[#FFFBF8] to-white dark:from-[#24150E] dark:via-[#1E110A] dark:to-[#170E0A] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-7 shadow-xs relative overflow-hidden">
+      <div class="bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 sm:p-7 shadow-sm relative overflow-hidden">
         
         <!-- Studio Header with Mode Toggle & Action Toolbar -->
         <div class="flex flex-col lg:flex-row items-center justify-between gap-4 border-b border-[#F0E6DD] dark:border-[#382318] pb-4 mb-5">
           <!-- Studio Title & Tech Pill -->
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#DE1B54] to-rose-400 text-white flex items-center justify-center text-sm shadow-xs font-bold">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#DE1B54] to-rose-400 text-white flex items-center justify-center text-lg shadow-xs font-bold shrink-0">
               🎂
             </div>
             <div>
-              <div class="flex items-center space-x-2">
-                <h2 class="text-base sm:text-lg font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-lg sm:text-xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE]">
                   {{ localeStore.isAmharic ? 'የቀጥታ 3D ኬክ ስቱዲዮ' : '3D Interactive Cake Studio' }}
                 </h2>
                 <span
-                  class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border"
+                  class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider border"
                   :class="visualizerMode === '3d' && webglSupported 
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300' 
                     : 'bg-stone-100 text-stone-700 border-stone-300 dark:bg-stone-900 dark:text-stone-300'"
@@ -133,8 +126,8 @@
                   {{ visualizerMode === '3d' && webglSupported ? 'WebGL 3D Active' : '2D Mode' }}
                 </span>
               </div>
-              <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
-                {{ localeStore.isAmharic ? 'ኬክዎን በ 3D አሽከርክረው፣ አቅርበው ይመልከቱ እና ቅጽበታዊ ፎቶ ያንሱ!' : 'Rotate, pan, zoom, customize frosting and capture your 3D centerpiece!' }}
+              <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] mt-0.5">
+                {{ localeStore.isAmharic ? 'ኬክዎን በ 3D አሽከርክረው፣ አቅርበው ይመልከቱ እና ቅጽበታዊ ፎቶ ያንሱ!' : 'Rotate, zoom, preview flavors, and capture a snapshot of your 3D cake!' }}
               </p>
             </div>
           </div>
@@ -147,7 +140,7 @@
                 type="button"
                 @click="switchVisualizerMode('3d')"
                 :disabled="!webglSupported"
-                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center space-x-1"
+                class="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center space-x-1"
                 :class="visualizerMode === '3d' 
                   ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' 
                   : 'text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#2A1810]'"
@@ -158,7 +151,7 @@
               <button
                 type="button"
                 @click="switchVisualizerMode('2d')"
-                class="px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center space-x-1"
+                class="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center space-x-1"
                 :class="visualizerMode === '2d' 
                   ? 'bg-white dark:bg-[#1E120B] text-[#DE1B54] shadow-2xs' 
                   : 'text-[#6E5D53] dark:text-[#C5B7AF] hover:text-[#2A1810]'"
@@ -173,7 +166,7 @@
               <button
                 type="button"
                 @click="autoRotate = !autoRotate"
-                class="px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                class="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
                 :class="autoRotate 
                   ? 'bg-rose-50 text-[#DE1B54] border-rose-300 dark:bg-rose-950/40 dark:border-rose-900' 
                   : 'bg-white text-stone-700 border-stone-200 dark:bg-[#2A1810] dark:text-[#C5B7AF] dark:border-[#382318] hover:bg-stone-50'"
@@ -186,7 +179,7 @@
               <button
                 type="button"
                 @click="resetCameraView"
-                class="px-3 py-1.5 bg-white dark:bg-[#2A1810] hover:bg-stone-50 dark:hover:bg-[#341822] text-stone-700 dark:text-[#FAF3EE] border border-stone-200 dark:border-[#382318] rounded-full text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
+                class="px-3.5 py-1.5 bg-white dark:bg-[#2A1810] hover:bg-stone-50 dark:hover:bg-[#341822] text-stone-700 dark:text-[#FAF3EE] border border-stone-200 dark:border-[#382318] rounded-full text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center space-x-1.5 shadow-2xs"
                 title="Reset camera view"
               >
                 <span>🎯</span>
@@ -196,11 +189,11 @@
               <button
                 type="button"
                 @click="take3DSnapshot"
-                class="px-3.5 py-1.5 bg-gradient-to-r from-[#DE1B54] to-[#B31340] hover:from-[#C51345] hover:to-[#960E34] text-white rounded-full text-xs font-bold transition shadow-xs cursor-pointer flex items-center space-x-1.5 active:scale-95"
+                class="px-4 py-1.5 bg-gradient-to-r from-[#DE1B54] to-[#B31340] hover:from-[#C51345] hover:to-[#960E34] text-white rounded-full text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer flex items-center space-x-1.5 active:scale-95"
                 title="Capture high-resolution 3D preview snapshot"
               >
                 <span>📸</span>
-                <span>{{ localeStore.isAmharic ? '3D ፎቶ አንሳ' : 'Capture 3D Snapshot' }}</span>
+                <span>{{ localeStore.isAmharic ? '3D ፎቶ አንሳ' : 'Capture Snapshot' }}</span>
               </button>
             </template>
           </div>
@@ -211,12 +204,14 @@
           
           <!-- Left Column: Specs Summary (3 cols) -->
           <div class="lg:col-span-3 space-y-3 text-center lg:text-left order-2 lg:order-1">
-            <div class="bg-white/80 dark:bg-[#1E120B]/80 backdrop-blur-xs p-4 rounded-2xl border border-stone-200 dark:border-[#382318] space-y-2 shadow-2xs">
-              <div class="text-[10px] font-bold uppercase tracking-wider text-[#7D6E64] dark:text-[#A8988C]">Configuration Summary</div>
-              <div class="text-base sm:text-lg font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-tight">
+            <div class="bg-[#FAF7F5] dark:bg-[#25150E] p-4 sm:p-5 rounded-2xl border border-[#EFE8E1] dark:border-[#382318] space-y-2.5 shadow-2xs">
+              <div class="text-xs font-bold uppercase tracking-wider text-[#DE1B54]">
+                {{ localeStore.isAmharic ? 'የተመረጠው ኬክ መግለጫ' : 'Live Configuration' }}
+              </div>
+              <div class="text-base sm:text-lg font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-snug">
                 {{ cakeSize }}
               </div>
-              <div class="space-y-1 text-xs text-[#6E5D53] dark:text-[#C5B7AF] pt-1 border-t border-stone-100 dark:border-[#382318]">
+              <div class="space-y-1.5 text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] pt-2 border-t border-[#EFE8E1] dark:border-[#382318]">
                 <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ጣዕም:' : 'Flavor:' }}</span> {{ flavor }}</div>
                 <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ክሬም:' : 'Frosting:' }}</span> {{ filling }}</div>
                 <div><span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ዝግጅት:' : 'Occasion:' }}</span> {{ occasion }}</div>
@@ -327,25 +322,25 @@
           <!-- Right Column: Palette & Snapshot Thumbnail (3 cols) -->
           <div class="lg:col-span-3 space-y-3 text-center lg:text-right order-3">
             <!-- Palette Card -->
-            <div class="bg-white/80 dark:bg-[#1E120B]/80 backdrop-blur-xs p-4 rounded-2xl border border-stone-200 dark:border-[#382318] text-xs space-y-2 shadow-2xs">
+            <div class="bg-[#FAF7F5] dark:bg-[#25150E] p-4 sm:p-5 rounded-2xl border border-[#EFE8E1] dark:border-[#382318] text-xs sm:text-sm space-y-2 shadow-2xs">
               <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የቀለም ቅንብር:' : 'Palette Preview:' }}</div>
               <div class="flex items-center justify-center lg:justify-end space-x-2">
                 <span
-                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
+                  class="w-7 h-7 rounded-full border-2 border-white shadow-xs inline-block"
                   :style="{ backgroundColor: cakeColorStyle.primary }"
                   :title="flavor"
                 ></span>
                 <span
-                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block"
+                  class="w-7 h-7 rounded-full border-2 border-white shadow-xs inline-block"
                   :style="{ backgroundColor: cakeColorStyle.fillingColor }"
                   :title="filling"
                 ></span>
                 <span
-                  class="w-6 h-6 rounded-full border-2 border-white shadow-xs inline-block bg-[#DE1B54]"
+                  class="w-7 h-7 rounded-full border-2 border-white shadow-xs inline-block bg-[#DE1B54]"
                   title="Signature SweetBakes Ribbon"
                 ></span>
               </div>
-              <div class="text-[10px] text-gray-500 dark:text-gray-400">
+              <div class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] font-medium">
                 {{ cakeColorStyle.name }}
               </div>
             </div>
@@ -353,11 +348,11 @@
             <!-- Captured 3D Snapshot Pill / Thumbnail -->
             <div
               v-if="capturedSnapshotUrl"
-              class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 p-3 rounded-2xl space-y-2 shadow-2xs"
+              class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 p-3.5 rounded-2xl space-y-2 shadow-2xs"
             >
-              <div class="flex items-center justify-between text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+              <div class="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300">
                 <span>3D Snapshot Saved ✓</span>
-                <span class="text-[9px] bg-emerald-200/60 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.5 rounded">Attached</span>
+                <span class="text-[11px] bg-emerald-200/60 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">Attached</span>
               </div>
               <div class="w-full aspect-video rounded-xl overflow-hidden border border-emerald-200/60 dark:border-emerald-800/60">
                 <img :src="capturedSnapshotUrl" alt="3D Cake Snapshot" class="w-full h-full object-cover" />
@@ -367,343 +362,468 @@
         </div>
       </div>
 
-      <!-- Builder Form Grid -->
-      <form @submit.prevent="handleSubmitCustomCake" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <!-- ================= LEFT COLUMN: CAKE ARCHITECTURE & FLAVORS (7 cols) ================= -->
-        <div class="lg:col-span-7 bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-6 sm:p-8 space-y-6 shadow-2xs">
-          <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
-            <div class="flex items-center space-x-2">
-              <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">1</span>
-              <h2 class="text-base sm:text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'የኬክ መዋቅር እና ጣዕም' : 'Cake Architecture & Flavors' }}
-              </h2>
-            </div>
-            <span class="text-xs text-[#DE1B54] font-bold">{{ localeStore.isAmharic ? 'ደረጃ 1 ከ 2' : 'Step 1 of 2' }}</span>
-          </div>
+      <!-- Clean Multi-Section Builder Form Grid -->
+      <form @submit.prevent="handleSubmitCustomCake" class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+        <!-- ================= LEFT COLUMN: STEP-BY-STEP CUSTOMIZATION CARDS (7 cols) ================= -->
+        <div class="lg:col-span-7 space-y-6">
 
-          <!-- Preparing Branch Selector -->
-          <div class="space-y-1.5 pb-2">
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              {{ localeStore.isAmharic ? 'አዘጋጅ ቅርንጫፍ (የአዲስ አበባ ማዕድ ቤት)' : 'Preparing Branch (Addis Ababa Kitchen)' }}
-            </label>
-            <select
-              v-model="preparingBranchId"
-              class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition font-semibold cursor-pointer min-h-[42px]"
-            >
-              <option
-                v-for="b in branchStore.branches"
-                :key="b.branch_id"
-                :value="b.branch_id"
-                :disabled="b.is_shopping_enabled === false || b.status !== 'Active'"
-              >
-                {{ localeStore.tBranch(b.branch_name) }} — {{ b.address || b.city }} {{ (b.is_shopping_enabled === false || b.status !== 'Active') ? (localeStore.isAmharic ? '(አገልግሎት አይሰጥም)' : '(Unavailable for Shopping)') : '' }}
-              </option>
-            </select>
-            <div
-              v-if="!isPreparingBranchAvailable"
-              class="p-3 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-xl text-xs text-[#DE1B54] flex items-center space-x-2 mt-2"
-            >
-              <span class="font-bold">⚠️</span>
-              <span class="font-medium">{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለትዕዛዝ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
-            </div>
-            <p v-else class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF]">
-              {{ localeStore.isAmharic ? 'በዚህ ቅርንጫፍ የሚገኘው ዋና ኬክ ዲኮሬተር ኬክዎን በእጅ ያዘጋጃል እና ያስጌጣል።' : 'The master pastry decorator at this branch will personally bake and decorate your centerpiece.' }}
-            </p>
-          </div>
-
-          <!-- Size & Tier Selection Cards -->
-          <div class="space-y-2.5">
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              {{ localeStore.isAmharic ? 'የመጠን እና የፎቅ አቀማመጥ' : 'Size & Tier Configuration' }}
-            </label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div
-                v-for="s in sizeOptions"
-                :key="s.name"
-                @click="cakeSize = s.name"
-                class="p-4 rounded-2xl border transition-all duration-200 cursor-pointer text-left flex items-start space-x-3 shadow-2xs hover:shadow-xs group"
-                :class="cakeSize === s.name 
-                  ? 'border-2 border-[#DE1B54] bg-rose-50/40 dark:bg-[#341822]/40 ring-1 ring-[#DE1B54]' 
-                  : 'border-gray-200 dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810] hover:border-[#DE1B54]/40'"
-              >
-                <span class="text-2xl shrink-0 mt-0.5 group-hover:scale-110 transition-transform">{{ s.icon }}</span>
+          <!-- CARD 1: Cake Size, Tiers, Bakery & Dietary -->
+          <section class="bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 xs:p-6 sm:p-8 space-y-6 shadow-sm">
+            <div class="flex items-start justify-between gap-3 border-b border-[#EFE8E1] dark:border-[#382318] pb-4">
+              <div class="flex items-start space-x-3">
+                <span class="w-8 h-8 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-sm font-black shrink-0 mt-0.5 shadow-xs">1</span>
                 <div>
-                  <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors">
-                    {{ localeStore.isAmharic ? (s.nameAm || s.name) : s.name }}
-                  </div>
-                  <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ localeStore.isAmharic ? (s.servesAm || s.serves) : s.serves }}</div>
-                  <div class="text-[11px] text-[#DE1B54] font-black mt-0.5">{{ localeStore.isAmharic ? 'ግምት:' : 'Est:' }} {{ localeStore.isAmharic ? (s.baseEstimateAm || s.baseEstimate) : s.baseEstimate }}</div>
+                  <h2 class="text-lg sm:text-2xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-snug">
+                    {{ localeStore.isAmharic ? 'የኬክ መጠን እና ቅርንጫፍ ይምረጡ' : 'Choose Size & Bakery' }}
+                  </h2>
+                  <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] mt-0.5">
+                    {{ localeStore.isAmharic ? 'ለበዓልዎ የሚስማማውን የፎቅ ብዛት፣ የሰው መጠን እና አዘጋጅ ቅርንጫፍ ይምረጡ።' : 'Select how many tiers you need and which bakery branch will craft your cake.' }}
+                  </p>
                 </div>
               </div>
+              <span class="px-3 py-1 rounded-full bg-rose-50 dark:bg-[#341822] text-xs font-bold text-[#DE1B54] shrink-0 whitespace-nowrap">
+                {{ localeStore.isAmharic ? 'ደረጃ 1 / 3' : 'Step 1 of 3' }}
+              </span>
             </div>
-          </div>
 
-          <!-- Ye'Tsom (Ethiopian Fasting) Toggle -->
-          <div
-            class="p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition"
-            :class="isFasting ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40' : 'border-gray-200 dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810]'"
-            @click="isFasting = !isFasting"
-          >
-            <div class="flex items-center space-x-2.5">
-              <input
-                type="checkbox"
-                v-model="isFasting"
-                class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer"
-              />
-              <div>
-                <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE] flex items-center space-x-1.5">
-                  <span>🌿 100% Ye'Tsom Certified (የጾም)</span>
-                  <span class="text-[9px] bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-semibold px-2 py-0.2 rounded-full">Vegan &amp; Dairy-Free</span>
-                </div>
-                <div class="text-[10px] text-emerald-700 dark:text-emerald-300">Strictly baked without dairy, butter, honey, or eggs.</div>
-              </div>
-            </div>
-            <span class="text-xs font-bold text-emerald-800 dark:text-emerald-300">{{ isFasting ? 'Active ✓' : 'Add' }}</span>
-          </div>
-
-          <!-- Sponge Flavor & Filling Selection -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'የስፖንጅ ጣዕም' : 'Sponge Flavor' }}
+            <!-- Size & Tier Selection Cards -->
+            <div class="space-y-3">
+              <label class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'የኬክ መጠን እና ፎቆች' : 'Select Cake Size & Tiers' }}
               </label>
-              <select
-                v-model="flavor"
-                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
-              >
-                <option value="Belgian Dark Chocolate">{{ localeStore.isAmharic ? 'የቤልጂየም ዳርክ ቸኮሌት 🍫' : 'Belgian Dark Chocolate 🍫' }}</option>
-                <option value="Madagascar Bourbon Vanilla">{{ localeStore.isAmharic ? 'የማዳጋስካር ቦርቦን ቫኒላ 🍦' : 'Madagascar Bourbon Vanilla 🍦' }}</option>
-                <option value="Classic Red Velvet">{{ localeStore.isAmharic ? 'ክላሲክ ሬድ ቬልቬት 🍰' : 'Classic Red Velvet 🍰' }}</option>
-                <option value="Ethiopian Mocha Espresso">{{ localeStore.isAmharic ? 'የኢትዮጵያ ሞካ ኤስፕሬሶ ☕' : 'Ethiopian Mocha Espresso ☕' }}</option>
-                <option value="Fresh Strawberry Chiffon">{{ localeStore.isAmharic ? 'ትኩስ ስትሮውቤሪ ሺፎን 🍓' : 'Fresh Strawberry Chiffon 🍓' }}</option>
-                <option value="Spiced Carrot & Walnut">{{ localeStore.isAmharic ? 'ካሮት እና ዋልነት ኬክ 🥕' : 'Spiced Carrot & Walnut 🥕' }}</option>
-                <option v-if="isFasting" value="Ye'Tsom Vegan Chocolate">{{ localeStore.isAmharic ? 'የጾም ቪጋን ቸኮሌት 🌿' : 'Ye\'Tsom Vegan Chocolate 🌿' }}</option>
-                <option v-if="isFasting" value="Ye'Tsom Vegan Vanilla Citrus">{{ localeStore.isAmharic ? 'የጾም ቫኒላ ሲትረስ 🌿' : 'Ye\'Tsom Vegan Vanilla Citrus 🌿' }}</option>
-              </select>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'ክሬም እና መሙያ' : 'Filling & Frosting' }}
-              </label>
-              <select
-                v-model="filling"
-                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
-              >
-                <option value="Silky Chocolate Ganache">{{ localeStore.isAmharic ? 'የቸኮሌት ጋናሽ' : 'Silky Chocolate Ganache' }}</option>
-                <option value="Whipped Vanilla Buttercream">{{ localeStore.isAmharic ? 'የቫኒላ ቅቤ ክሬም' : 'Whipped Vanilla Buttercream' }}</option>
-                <option value="Wild Berry Compote & Mascarpone">{{ localeStore.isAmharic ? 'የዱር ቤሪ እና ማስካርፖን' : 'Wild Berry Compote & Mascarpone' }}</option>
-                <option value="Salted Caramel Praline">{{ localeStore.isAmharic ? 'ሶልትድ ካራሜል ፕራሊን' : 'Salted Caramel Praline' }}</option>
-                <option value="Cream Cheese Frosting">{{ localeStore.isAmharic ? 'ክሬም ቺዝ ፍሮስቲንግ' : 'Cream Cheese Frosting' }}</option>
-                <option v-if="isFasting" value="Vegan Dark Choco Whip">{{ localeStore.isAmharic ? 'የጾም ዳርክ ቸኮሌት ክሬም 🌿' : 'Vegan Dark Choco Whip 🌿' }}</option>
-                <option v-if="isFasting" value="Whipped Coconut Cream Frosting">{{ localeStore.isAmharic ? 'የኮኮናት ክሬም ፍሮስቲንግ 🌿' : 'Whipped Coconut Cream Frosting 🌿' }}</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Occasion & Date Needed -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'የበዓሉ አይነት' : 'Celebration Occasion' }}
-              </label>
-              <select
-                v-model="occasion"
-                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[42px]"
-              >
-                <option value="Birthday">{{ localeStore.isAmharic ? 'የልደት በዓል 🎂' : 'Birthday Celebration 🎂' }}</option>
-                <option value="Wedding">{{ localeStore.isAmharic ? 'የሰርግ ኬክ 💍' : 'Wedding Centerpiece 💍' }}</option>
-                <option value="Anniversary">{{ localeStore.isAmharic ? 'የጋብቻ/የፍቅር ዓመት 🥂' : 'Anniversary Celebration 🥂' }}</option>
-                <option value="Corporate Event">{{ localeStore.isAmharic ? 'የድርጅት ዝግጅት 🏢' : 'Corporate / Office Gala 🏢' }}</option>
-                <option value="Graduation">{{ localeStore.isAmharic ? 'የምረቃ በዓል 🎓' : 'Graduation Ceremony 🎓' }}</option>
-                <option value="Baby Shower">{{ localeStore.isAmharic ? 'የህፃን መወለድ (ቤቢ ሻወር) 🍼' : 'Baby Shower / Gender Reveal 🍼' }}</option>
-                <option value="Other">{{ localeStore.isAmharic ? 'ልዩ ክብረ በዓል 🎉' : 'Special Celebration 🎉' }}</option>
-              </select>
-            </div>
-
-            <div class="space-y-1.5">
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'የሚያስፈልግበት ቀን' : 'Event Date Needed' }}
-              </label>
-              <input
-                v-model="neededBy"
-                type="date"
-                :min="minDate"
-                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-3.5 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition font-medium min-h-[42px]"
-                required
-              />
-              <span class="text-[10px] text-gray-400 dark:text-gray-500">{{ localeStore.isAmharic ? 'ለእጅ ጥበብ ፎቆች ቢያንስ የ48 ሰዓት ቅድመ ማስታወቂያ ያስፈልጋል።' : 'Requires min. 48 hours notice for handcrafted tiers.' }}</span>
-            </div>
-          </div>
-
-          <!-- Piped Inscription Message & Live Ribbon Preview -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ መልእክት' : 'Inscription on Cake (Piped Writing)' }}
-              </label>
-              <span class="text-[10px] text-[#DE1B54] font-semibold">{{ localeStore.isAmharic ? 'ነፃ' : 'Complimentary' }}</span>
-            </div>
-
-            <input
-              v-model="message"
-              type="text"
-              maxlength="45"
-              :placeholder="localeStore.isAmharic ? 'ለምሳሌ: መልካም ልደት ሳራ! 🎉' : 'e.g. Happy 30th Birthday Sara! 🎉'"
-              class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl px-4 py-2.5 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[42px]"
-            />
-          </div>
-
-          <!-- Detailed Theme Instructions -->
-          <div class="space-y-1.5">
-            <label class="block text-xs font-bold uppercase tracking-wider text-[#2A1810] dark:text-[#FAF3EE]">
-              {{ localeStore.isAmharic ? 'የዲዛይን እና የማስዋቢያ ዝርዝር' : 'Theme & Decoration Details' }}
-            </label>
-            <textarea
-              v-model="description"
-              rows="3"
-              :placeholder="localeStore.isAmharic ? 'የቀለም ምርጫዎን፣ የተፈጥሮ ወይም የስኳር አበባ፣ የቸኮሌት ጠብታ ወይም ሌላ የፈለጉትን እዚህ ይግለጹ...' : 'Describe color palette (e.g. blush pink & gold leaf), edible floral style, custom fondant toppers, chocolate drip...'"
-              class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] rounded-xl p-3 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- ================= RIGHT COLUMN: DESIGN INSPIRATION & QUOTE (5 cols) ================= -->
-        <div class="lg:col-span-5 bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-6 sm:p-8 space-y-6 shadow-2xs">
-          <div class="flex items-center justify-between border-b border-gray-100 dark:border-[#382318] pb-3">
-            <div class="flex items-center space-x-2">
-              <span class="w-6 h-6 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-xs font-bold">2</span>
-              <h2 class="text-base sm:text-lg font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-                {{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎች እና ግምታዊ ዋጋ' : 'Inspiration Photos & Quote' }}
-              </h2>
-            </div>
-            <span class="text-xs text-[#DE1B54] font-bold">{{ localeStore.isAmharic ? 'ደረጃ 2 ከ 2' : 'Step 2 of 2' }}</span>
-          </div>
-
-          <!-- Drag-and-drop Image Upload Dropzone -->
-          <div
-            @click="triggerUpload"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="onFileDrop"
-            class="border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all space-y-2 group"
-            :class="isDragging 
-              ? 'border-[#DE1B54] bg-rose-50/50 dark:bg-[#341822]/60 scale-99' 
-              : 'border-[#DE1B54]/40 hover:border-[#DE1B54] bg-[#FAF7F5] dark:bg-[#2A1810] hover:bg-rose-50/20 dark:hover:bg-[#341822]/40'"
-          >
-            <input ref="fileInput" type="file" multiple accept="image/*" class="hidden" @change="onFileChange" />
-            <div v-if="isUploadingImage" class="space-y-2 py-2">
-              <div class="w-8 h-8 border-3 border-[#DE1B54] border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <div class="text-xs font-bold text-[#DE1B54]">{{ localeStore.isAmharic ? 'ፎቶዎችን በመጫን እና በማረጋገጥ ላይ...' : 'Uploading & validating photo(s)...' }}</div>
-            </div>
-            <template v-else>
-              <div class="w-12 h-12 rounded-full bg-rose-50 dark:bg-[#341822] text-[#DE1B54] flex items-center justify-center mx-auto text-xl shadow-2xs group-hover:scale-110 transition-transform">
-                📸
-              </div>
-              <div class="text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎችን ይስቀሉ ወይም ጎትተው ያስቀምጡ' : 'Upload Reference Photos or Drag & Drop' }}</div>
-              <div class="text-[10px] text-gray-500 dark:text-gray-400">{{ localeStore.isAmharic ? 'PNG, JPG, WebP እስከ 5MB (ከPinterest፣ Instagram ወይም ንድፍ)' : 'PNG, JPG, WebP up to 5MB (Pinterest, Instagram, or sketches)' }}</div>
-            </template>
-          </div>
-
-          <!-- Attached Photo Gallery -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between text-xs font-bold text-[#2A1810] dark:text-[#FAF3EE]">
-              <span>{{ localeStore.isAmharic ? 'የተያያዙ ምሳሌዎች' : 'Inspiration References' }} ({{ referenceSamples.length }}):</span>
-              <span v-if="referenceSamples.length > 0" class="text-[10px] text-gray-400 dark:text-gray-500">{{ localeStore.isAmharic ? 'በትልቁ ለማየት ይጫኑ' : 'Click photo to zoom' }}</span>
-            </div>
-            <div v-if="referenceSamples.length > 0" class="grid grid-cols-3 gap-2.5">
-              <div
-                v-for="(img, idx) in referenceSamples"
-                :key="idx"
-                class="aspect-square rounded-xl overflow-hidden border border-gray-200 dark:border-[#382318] shadow-2xs relative group cursor-pointer"
-                @click="previewImage(img)"
-              >
-                <img :src="img" alt="Reference Cake" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" loading="lazy" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                 <button
+                  v-for="s in sizeOptions"
+                  :key="s.name"
                   type="button"
-                  @click.stop="removeReference(idx)"
-                  class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-[#DE1B54] text-white text-[10px] font-bold flex items-center justify-center transition opacity-0 group-hover:opacity-100"
-                  title="Remove reference"
+                  @click="cakeSize = s.name"
+                  class="relative p-4 sm:p-5 rounded-2xl border transition-all duration-200 cursor-pointer text-left flex items-start space-x-3.5 shadow-2xs hover:shadow-md group w-full"
+                  :class="cakeSize === s.name 
+                    ? 'border-2 border-[#DE1B54] bg-[#FFF5F8] dark:bg-[#341822]/60 ring-2 ring-[#DE1B54]/15' 
+                    : 'border-[#E5DAD1] dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810] hover:border-[#DE1B54]/50 hover:bg-white dark:hover:bg-[#25150E]'"
                 >
-                  ✕
+                  <span
+                    v-if="cakeSize === s.name"
+                    class="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-[#DE1B54] text-white text-[11px] font-bold shadow-2xs"
+                  >
+                    ✓ {{ localeStore.isAmharic ? 'ተመርጧል' : 'Selected' }}
+                  </span>
+                  <div class="w-11 h-11 rounded-xl bg-white dark:bg-[#1E120B] border border-[#EFE8E1] dark:border-[#382318] flex items-center justify-center text-2xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                    {{ s.icon }}
+                  </div>
+                  <div class="min-w-0 pr-12 sm:pr-14 space-y-1">
+                    <div class="text-sm sm:text-base font-serif font-bold text-[#2A1810] dark:text-[#FAF3EE] group-hover:text-[#DE1B54] transition-colors leading-snug">
+                      {{ localeStore.isAmharic ? (s.nameAm || s.name) : s.name }}
+                    </div>
+                    <div class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
+                      {{ localeStore.isAmharic ? (s.servesAm || s.serves) : s.serves }}
+                    </div>
+                    <div class="text-xs sm:text-sm text-[#DE1B54] font-black pt-0.5">
+                      {{ localeStore.isAmharic ? 'ግምት:' : 'Est.' }} {{ localeStore.isAmharic ? (s.baseEstimateAm || s.baseEstimate) : s.baseEstimate }}
+                    </div>
+                  </div>
                 </button>
               </div>
             </div>
-            <div v-else class="p-3 bg-[#FAF7F5] dark:bg-[#2A1810] rounded-xl border border-dashed border-gray-200 dark:border-[#382318] text-[11px] text-[#786B60] dark:text-[#C5B7AF] text-center">
-              {{ localeStore.isAmharic ? 'አስገዳጅ አይደለም: የምሳሌ ፎቶዎችን ይስቀሉ ወይም በዝርዝር መግለጫው ውስጥ ይጻፉ።' : 'Optional: Upload inspiration images, or describe your theme in the details field.' }}
-            </div>
-          </div>
 
-          <!-- Real-Time Itemized Price Breakdown & 50% Deposit Estimator -->
-          <div class="p-5 bg-gradient-to-br from-rose-50/80 to-[#FAF7F5] dark:from-[#2A1810] dark:to-[#1E120B] rounded-2xl border border-rose-100 dark:border-[#382318] space-y-3 shadow-2xs">
-            <div class="flex items-center justify-between border-b border-rose-200/40 dark:border-[#382318] pb-2 text-xs">
-              <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? 'ግምታዊ የዋጋ ዝርዝር:' : 'Estimated Price Breakdown:' }}</span>
-              <span class="font-black text-[#DE1B54] text-base">{{ estimatedPriceRange }}</span>
+            <!-- Preparing Branch Selector -->
+            <div class="space-y-2">
+              <label for="cake-branch-select" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'አዘጋጅ ቅርንጫፍ (የአዲስ አበባ ማዕድ ቤት)' : 'Preparing Bakery Branch' }}
+              </label>
+              <select
+                id="cake-branch-select"
+                v-model="preparingBranchId"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition font-medium cursor-pointer min-h-[48px]"
+              >
+                <option
+                  v-for="b in branchStore.branches"
+                  :key="b.branch_id"
+                  :value="b.branch_id"
+                  :disabled="b.is_shopping_enabled === false || b.status !== 'Active'"
+                >
+                  {{ localeStore.tBranch(b.branch_name) }} — {{ b.address || b.city }} {{ (b.is_shopping_enabled === false || b.status !== 'Active') ? (localeStore.isAmharic ? '(አገልግሎት አይሰጥም)' : '(Unavailable for Shopping)') : '' }}
+                </option>
+              </select>
+              <div
+                v-if="!isPreparingBranchAvailable"
+                class="p-3.5 bg-[#FAF0F0] dark:bg-rose-950/40 border border-[#E8C4C4] dark:border-rose-900/60 rounded-xl text-xs sm:text-sm text-[#DE1B54] flex items-center space-x-2 mt-2"
+              >
+                <span class="font-bold">⚠️</span>
+                <span class="font-medium">{{ localeStore.isAmharic ? 'ይቅርታ፣ ይህ ቅርንጫፍ በአሁኑ ጊዜ ለትዕዛዝ ዝግ ነው።' : 'Sorry, this branch is currently unavailable for shopping.' }}</span>
+              </div>
+              <p v-else class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
+                {{ localeStore.isAmharic ? 'በዚህ ቅርንጫፍ የሚገኘው ዋና ኬክ ዲኮሬተር ኬክዎን በእጅ ያዘጋጃል እና ያስጌጣል።' : 'Handcrafted by our pastry decorators at this branch for pickup or delivery.' }}
+              </p>
             </div>
 
-            <!-- Itemized breakdown lines -->
-            <div class="space-y-1.5 text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
-              <div class="flex justify-between items-center">
-                <span>{{ localeStore.isAmharic ? 'የፎቆች አሰራር' : 'Tier Construction' }} ({{ cakeSize }})</span>
-                <span class="font-medium text-[#2A1810] dark:text-[#FAF3EE]">{{ baseTierPriceText }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span>{{ localeStore.isAmharic ? 'የጣዕም እና ክሬም ዝግጅት' : 'Flavor & Filling Handcrafting' }}</span>
-                <span class="font-medium text-[#2A1810] dark:text-[#FAF3EE]">{{ flavorPriceText }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span>{{ localeStore.isAmharic ? 'የኬክ ላይ ጽሁፍ' : 'Custom Piped Inscription' }}</span>
-                <span class="font-bold text-[#387A54] dark:text-emerald-400">{{ localeStore.isAmharic ? 'በነፃ (0 ብር)' : 'Complimentary (ETB 0)' }}</span>
-              </div>
-              <div class="pt-2 border-t border-rose-200/40 dark:border-[#382318] flex justify-between items-center text-xs">
-                <span>{{ localeStore.isAmharic ? 'የ 50% ቅድመ ክፍያ (ግምታዊ):' : '50% Kitchen Booking Deposit (Est.):' }}</span>
-                <span class="font-black text-[#DE1B54]">{{ estimatedDepositText }}</span>
-              </div>
-            </div>
-
-            <p class="text-[11px] text-[#6E5D53] dark:text-[#C5B7AF] leading-snug pt-1">
-              {{ localeStore.isAmharic ? `ትክክለኛው ዋጋ በ ${chosenBranchName} ዋና ኬክ ዲኮሬተር በ 2–4 ሰዓታት ውስጥ ይሰላል። የ 50% ቅድመ ክፍያ ቀጠሮዎን ያረጋግጣል።` : `Final quotation is tailored by the head pastry decorator at ${chosenBranchName} within 2–4 hours. 50% deposit locks in your kitchen oven date.` }}
-            </p>
-          </div>
-
-          <!-- Contact Information (Autofilled for Authenticated Users) -->
-          <div class="p-4 rounded-2xl bg-[#FAF7F5] dark:bg-[#2A1810] border border-gray-100 dark:border-[#382318] space-y-3">
-            <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-xs flex items-center space-x-1.5">
-              <span>👤</span>
-              <span>{{ localeStore.isAmharic ? 'የመገኛ አድራሻ (ለዋጋ መረጃ)' : 'Contact Information (For Quotation Updates)' }}</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ሙሉ ስምዎ *' : 'Your Full Name *' }}</label>
+            <!-- Ye'Tsom (Ethiopian Fasting) Toggle -->
+            <div
+              class="p-4 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all"
+              :class="isFasting ? 'border-2 border-emerald-400 bg-emerald-50/90 dark:bg-emerald-950/40 shadow-2xs' : 'border-[#E5DAD1] dark:border-[#382318] bg-[#FAF7F5] dark:bg-[#2A1810] hover:border-emerald-300'"
+              @click="isFasting = !isFasting"
+            >
+              <div class="flex items-start sm:items-center space-x-3">
                 <input
-                  v-model="customerName"
-                  type="text"
-                  required
-                  :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Enter your full name'"
-                  class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[40px]"
+                  type="checkbox"
+                  v-model="isFasting"
+                  @click.stop
+                  class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500 cursor-pointer mt-0.5 sm:mt-0 shrink-0"
                 />
+                <div class="space-y-0.5">
+                  <div class="text-sm sm:text-base font-bold text-[#2A1810] dark:text-[#FAF3EE] flex flex-wrap items-center gap-2">
+                    <span>🌿 {{ localeStore.isAmharic ? '100% የጾም አማራጭ (Ye\'Tsom)' : "100% Ye'Tsom Certified (የጾም)" }}</span>
+                    <span class="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-semibold px-2.5 py-0.5 rounded-full">
+                      {{ localeStore.isAmharic ? 'ያለ ወተት እና እንቁላል' : 'Vegan & Dairy-Free' }}
+                    </span>
+                  </div>
+                  <div class="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300">
+                    {{ localeStore.isAmharic ? 'ያለ ቅቤ፣ ወተት፣ ማር ወይም እንቁላል በንጹህ የተፈጥሮ ግብዓቶች ይጋገራል።' : 'Strictly baked without dairy, butter, honey, or eggs.' }}
+                  </div>
+                </div>
               </div>
-              <div>
-                <label class="block text-[11px] font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1">{{ localeStore.isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *' }}</label>
-                <input
-                  v-model="customerPhone"
-                  type="tel"
-                  required
-                  placeholder="+251 9XX XXX XXX"
-                  class="w-full bg-white dark:bg-[#1E120B] border border-gray-200 dark:border-[#382318] focus:border-[#DE1B54] rounded-xl px-3 py-2 text-xs text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[40px]"
-                />
+              <span
+                class="px-3 py-1 rounded-full text-xs font-bold shrink-0 whitespace-nowrap"
+                :class="isFasting ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-[#1E120B] border border-emerald-200 dark:border-emerald-900 text-emerald-800 dark:text-emerald-300'"
+              >
+                {{ isFasting ? (localeStore.isAmharic ? 'ተመርጧል ✓' : 'Enabled ✓') : (localeStore.isAmharic ? 'ጨምር' : 'Select') }}
+              </span>
+            </div>
+          </section>
+
+          <!-- CARD 2: Flavors, Occasion & Personalization -->
+          <section class="bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 xs:p-6 sm:p-8 space-y-6 shadow-sm">
+            <div class="flex items-start justify-between gap-3 border-b border-[#EFE8E1] dark:border-[#382318] pb-4">
+              <div class="flex items-start space-x-3">
+                <span class="w-8 h-8 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-sm font-black shrink-0 mt-0.5 shadow-xs">2</span>
+                <div>
+                  <h2 class="text-lg sm:text-2xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-snug">
+                    {{ localeStore.isAmharic ? 'ጣዕም፣ በዓል እና ዝርዝር መግለጫ' : 'Flavors, Date & Message' }}
+                  </h2>
+                  <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] mt-0.5">
+                    {{ localeStore.isAmharic ? 'የውስጥ ጣዕሙን፣ የበዓሉን ቀን እና በኬኩ ላይ የሚጻፈውን መልዕክት ይሙሉ።' : 'Pick your sponge and cream flavors, choose your event date, and write your message.' }}
+                  </p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-rose-50 dark:bg-[#341822] text-xs font-bold text-[#DE1B54] shrink-0 whitespace-nowrap">
+                {{ localeStore.isAmharic ? 'ደረጃ 2 / 3' : 'Step 2 of 3' }}
+              </span>
+            </div>
+
+            <!-- Sponge Flavor & Filling Selection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div class="space-y-2">
+                <label for="cake-flavor-select" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'የስፖንጅ ጣዕም' : 'Sponge Flavor' }}
+                </label>
+                <select
+                  id="cake-flavor-select"
+                  v-model="flavor"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[48px] font-medium"
+                >
+                  <option value="Belgian Dark Chocolate">{{ localeStore.isAmharic ? 'የቤልጂየም ዳርክ ቸኮሌት 🍫' : 'Belgian Dark Chocolate 🍫' }}</option>
+                  <option value="Madagascar Bourbon Vanilla">{{ localeStore.isAmharic ? 'የማዳጋስካር ቦርቦን ቫኒላ 🍦' : 'Madagascar Bourbon Vanilla 🍦' }}</option>
+                  <option value="Classic Red Velvet">{{ localeStore.isAmharic ? 'ክላሲክ ሬድ ቬልቬት 🍰' : 'Classic Red Velvet 🍰' }}</option>
+                  <option value="Ethiopian Mocha Espresso">{{ localeStore.isAmharic ? 'የኢትዮጵያ ሞካ ኤስፕሬሶ ☕' : 'Ethiopian Mocha Espresso ☕' }}</option>
+                  <option value="Fresh Strawberry Chiffon">{{ localeStore.isAmharic ? 'ትኩስ ስትሮውቤሪ ሺፎን 🍓' : 'Fresh Strawberry Chiffon 🍓' }}</option>
+                  <option value="Spiced Carrot & Walnut">{{ localeStore.isAmharic ? 'ካሮት እና ዋልነት ኬክ 🥕' : 'Spiced Carrot & Walnut 🥕' }}</option>
+                  <option v-if="isFasting" value="Ye'Tsom Vegan Chocolate">{{ localeStore.isAmharic ? 'የጾም ቪጋን ቸኮሌት 🌿' : 'Ye\'Tsom Vegan Chocolate 🌿' }}</option>
+                  <option v-if="isFasting" value="Ye'Tsom Vegan Vanilla Citrus">{{ localeStore.isAmharic ? 'የጾም ቫኒላ ሲትረስ 🌿' : 'Ye\'Tsom Vegan Vanilla Citrus 🌿' }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label for="cake-filling-select" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'ክሬም እና መሙያ' : 'Filling & Frosting' }}
+                </label>
+                <select
+                  id="cake-filling-select"
+                  v-model="filling"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[48px] font-medium"
+                >
+                  <option value="Silky Chocolate Ganache">{{ localeStore.isAmharic ? 'የቸኮሌት ጋናሽ' : 'Silky Chocolate Ganache' }}</option>
+                  <option value="Whipped Vanilla Buttercream">{{ localeStore.isAmharic ? 'የቫኒላ ቅቤ ክሬም' : 'Whipped Vanilla Buttercream' }}</option>
+                  <option value="Wild Berry Compote & Mascarpone">{{ localeStore.isAmharic ? 'የዱር ቤሪ እና ማስካርፖን' : 'Wild Berry Compote & Mascarpone' }}</option>
+                  <option value="Salted Caramel Praline">{{ localeStore.isAmharic ? 'ሶልትድ ካራሜል ፕራሊን' : 'Salted Caramel Praline' }}</option>
+                  <option value="Cream Cheese Frosting">{{ localeStore.isAmharic ? 'ክሬም ቺዝ ፍሮስቲንግ' : 'Cream Cheese Frosting' }}</option>
+                  <option v-if="isFasting" value="Vegan Dark Choco Whip">{{ localeStore.isAmharic ? 'የጾም ዳርክ ቸኮሌት ክሬም 🌿' : 'Vegan Dark Choco Whip 🌿' }}</option>
+                  <option v-if="isFasting" value="Whipped Coconut Cream Frosting">{{ localeStore.isAmharic ? 'የኮኮናት ክሬም ፍሮስቲንግ 🌿' : 'Whipped Coconut Cream Frosting 🌿' }}</option>
+                </select>
               </div>
             </div>
-          </div>
 
-          <!-- Submit Request Button -->
-          <button
-            type="submit"
-            :disabled="isSubmitting || !isPreparingBranchAvailable"
-            class="w-full py-4 min-h-[48px] bg-[#DE1B54] hover:bg-[#C51345] disabled:opacity-50 text-white text-xs font-bold uppercase tracking-wider rounded-2xl shadow-md transition active:scale-98 flex items-center justify-center space-x-2 cursor-pointer"
-          >
-            <span>{{ isSubmitting ? (localeStore.isAmharic ? 'ጥያቄውን በመላክ ላይ...' : 'Transmitting Design Brief...') : (localeStore.isAmharic ? 'የኬክ ጥያቄውን ላክ →' : 'Submit Design Request →') }}</span>
-          </button>
+            <!-- Occasion & Date Needed -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div class="space-y-2">
+                <label for="cake-occasion-select" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'የበዓሉ አይነት' : 'Celebration Occasion' }}
+                </label>
+                <select
+                  id="cake-occasion-select"
+                  v-model="occasion"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition cursor-pointer min-h-[48px] font-medium"
+                >
+                  <option value="Birthday">{{ localeStore.isAmharic ? 'የልደት በዓል 🎂' : 'Birthday Celebration 🎂' }}</option>
+                  <option value="Wedding">{{ localeStore.isAmharic ? 'የሰርግ ኬክ 💍' : 'Wedding Centerpiece 💍' }}</option>
+                  <option value="Anniversary">{{ localeStore.isAmharic ? 'የጋብቻ/የፍቅር ዓመት 🥂' : 'Anniversary Celebration 🥂' }}</option>
+                  <option value="Corporate Event">{{ localeStore.isAmharic ? 'የድርጅት ዝግጅት 🏢' : 'Corporate / Office Gala 🏢' }}</option>
+                  <option value="Graduation">{{ localeStore.isAmharic ? 'የምረቃ በዓል 🎓' : 'Graduation Ceremony 🎓' }}</option>
+                  <option value="Baby Shower">{{ localeStore.isAmharic ? 'የህፃን መወለድ (ቤቢ ሻወር) 🍼' : 'Baby Shower / Gender Reveal 🍼' }}</option>
+                  <option value="Other">{{ localeStore.isAmharic ? 'ልዩ ክብረ በዓል 🎉' : 'Special Celebration 🎉' }}</option>
+                </select>
+              </div>
+
+              <div class="space-y-2">
+                <label for="cake-date-input" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'የሚያስፈልግበት ቀን' : 'Event Date Needed' }}
+                </label>
+                <input
+                  id="cake-date-input"
+                  v-model="neededBy"
+                  type="date"
+                  :min="minDate"
+                  class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition font-medium min-h-[48px]"
+                  required
+                />
+                <span class="block text-xs text-[#6E5D53] dark:text-[#C5B7AF]">
+                  {{ localeStore.isAmharic ? 'ለእጅ ጥበብ ፎቆች ቢያንስ የ48 ሰዓት ቅድመ ማስታወቂያ ያስፈልጋል።' : 'Requires at least 48 hours advance notice.' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Piped Inscription Message -->
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <label for="cake-message-input" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ መልእክት' : 'Message Written on Cake' }}
+                </label>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-xs text-emerald-700 dark:text-emerald-300 font-bold">
+                  {{ localeStore.isAmharic ? 'ነፃ (Complimentary)' : 'Free / Complimentary' }}
+                </span>
+              </div>
+
+              <input
+                id="cake-message-input"
+                v-model="message"
+                type="text"
+                maxlength="45"
+                :placeholder="localeStore.isAmharic ? 'ለምሳሌ: መልካም ልደት ሳራ! 🎉' : 'e.g. Happy 30th Birthday Sara! 🎉'"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-4 py-3 text-sm sm:text-[15px] text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition min-h-[48px]"
+              />
+            </div>
+
+            <!-- Detailed Theme Instructions -->
+            <div class="space-y-2">
+              <label for="cake-details-input" class="block text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                {{ localeStore.isAmharic ? 'የዲዛይን እና የማስዋቢያ ዝርዝር' : 'Theme, Colors & Decoration Notes' }}
+              </label>
+              <textarea
+                id="cake-details-input"
+                v-model="description"
+                rows="4"
+                :placeholder="localeStore.isAmharic ? 'የቀለም ምርጫዎን፣ የተፈጥሮ ወይም የስኳር አበባ፣ የቸኮሌት ጠብታ ወይም ሌላ የፈለጉትን እዚህ ይግለጹ...' : 'Describe colors (e.g. blush pink & gold), flowers, chocolate drip, or custom toppers...'"
+                class="w-full bg-[#FAF7F5] dark:bg-[#2A1810] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:bg-white dark:focus:bg-[#1E120B] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl p-4 text-sm sm:text-[15px] leading-relaxed text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none transition"
+              ></textarea>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= RIGHT COLUMN: PHOTOS, ORDER SUMMARY & SUBMIT (5 cols) ================= -->
+        <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+
+          <!-- CARD 3: Inspiration Photo Upload -->
+          <section class="bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 xs:p-6 sm:p-8 space-y-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3 border-b border-[#EFE8E1] dark:border-[#382318] pb-4">
+              <div class="flex items-start space-x-3">
+                <span class="w-8 h-8 rounded-full bg-[#DE1B54] text-white flex items-center justify-center text-sm font-black shrink-0 mt-0.5 shadow-xs">3</span>
+                <div>
+                  <h2 class="text-lg sm:text-xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] leading-snug">
+                    {{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎች' : 'Inspiration Photos' }}
+                  </h2>
+                  <p class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF] mt-0.5">
+                    {{ localeStore.isAmharic ? 'የሚፈልጉትን ዲዛይን ለማሳየት ፎቶ ይስቀሉ (አማራጭ)።' : 'Upload reference photos to show the look you love (optional).' }}
+                  </p>
+                </div>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-rose-50 dark:bg-[#341822] text-xs font-bold text-[#DE1B54] shrink-0 whitespace-nowrap">
+                {{ localeStore.isAmharic ? 'ደረጃ 3 / 3' : 'Step 3 of 3' }}
+              </span>
+            </div>
+
+            <!-- Drag-and-drop Image Upload Dropzone -->
+            <div
+              @click="triggerUpload"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="onFileDrop"
+              class="border-2 border-dashed rounded-2xl p-6 sm:p-7 text-center cursor-pointer transition-all space-y-2.5 group"
+              :class="isDragging 
+                ? 'border-[#DE1B54] bg-rose-50/70 dark:bg-[#341822]/60 scale-[0.99]' 
+                : 'border-[#DE1B54]/40 hover:border-[#DE1B54] bg-[#FAF7F5] dark:bg-[#2A1810] hover:bg-rose-50/30 dark:hover:bg-[#341822]/40'"
+            >
+              <input ref="fileInput" type="file" multiple accept="image/*" class="hidden" @change="onFileChange" />
+              <div v-if="isUploadingImage" class="space-y-2.5 py-2">
+                <div class="w-9 h-9 border-3 border-[#DE1B54] border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div class="text-sm font-bold text-[#DE1B54]">{{ localeStore.isAmharic ? 'ፎቶዎችን በመጫን እና በማረጋገጥ ላይ...' : 'Uploading photo(s)...' }}</div>
+              </div>
+              <template v-else>
+                <div class="w-14 h-14 rounded-2xl bg-white dark:bg-[#1E120B] border border-rose-100 dark:border-[#382318] text-[#DE1B54] flex items-center justify-center mx-auto text-2xl shadow-xs group-hover:scale-110 transition-transform">
+                  📸
+                </div>
+                <div class="text-sm sm:text-base font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'የምሳሌ ፎቶዎችን ይምረጡ ወይም እዚህ ይጣሉ' : 'Tap to Upload Photos or Drag & Drop' }}
+                </div>
+                <div class="text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
+                  {{ localeStore.isAmharic ? 'PNG, JPG, WebP እስከ 5MB ይቀበላል' : 'Supports JPG, PNG, WebP up to 5MB' }}
+                </div>
+              </template>
+            </div>
+
+            <!-- Attached Photo Gallery -->
+            <div v-if="referenceSamples.length > 0" class="space-y-2.5">
+              <div class="flex items-center justify-between text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                <span>{{ localeStore.isAmharic ? 'የተያያዙ ምሳሌዎች' : 'Attached Photos' }} ({{ referenceSamples.length }})</span>
+                <span class="text-xs font-normal text-[#6E5D53] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'በትልቁ ለማየት ይጫኑ' : 'Tap photo to zoom' }}</span>
+              </div>
+              <div class="grid grid-cols-3 gap-3">
+                <div
+                  v-for="(img, idx) in referenceSamples"
+                  :key="idx"
+                  class="aspect-square rounded-2xl overflow-hidden border border-[#E5DAD1] dark:border-[#382318] shadow-2xs relative group cursor-pointer"
+                  @click="previewImage(img)"
+                >
+                  <img :src="img" alt="Reference Cake" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" />
+                  <button
+                    type="button"
+                    @click.stop="removeReference(idx)"
+                    class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/75 hover:bg-[#DE1B54] text-white text-xs font-bold flex items-center justify-center transition opacity-90 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+                    title="Remove photo"
+                    aria-label="Remove photo"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CARD 4: Order Summary, Contact Info & Primary Submit CTA -->
+          <section class="bg-white dark:bg-[#1E120B] rounded-3xl border border-[#EFE8E1] dark:border-[#382318] p-5 xs:p-6 sm:p-8 space-y-5 shadow-sm">
+            <h2 class="text-lg sm:text-xl font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] border-b border-[#EFE8E1] dark:border-[#382318] pb-3 flex items-center space-x-2">
+              <span>🧾</span>
+              <span>{{ localeStore.isAmharic ? 'የትዕዛዝ ማጠቃለያ እና ግምት' : 'Order Summary & Estimate' }}</span>
+            </h2>
+
+            <!-- Selected Cake Quick Recap -->
+            <div class="p-4 rounded-2xl bg-[#FAF7F5] dark:bg-[#25150E] border border-[#EFE8E1] dark:border-[#382318] space-y-2 text-xs sm:text-sm">
+              <div class="flex justify-between gap-2">
+                <span class="text-[#6E5D53] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'መጠን:' : 'Size:' }}</span>
+                <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-right">{{ cakeSize }}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-[#6E5D53] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'ጣዕም:' : 'Flavor:' }}</span>
+                <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE] text-right">{{ flavor }}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-[#6E5D53] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'ክሬም:' : 'Frosting:' }}</span>
+                <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE] text-right">{{ filling }}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-[#6E5D53] dark:text-[#C5B7AF]">{{ localeStore.isAmharic ? 'ቅርንጫፍ እና ቀን:' : 'Branch & Date:' }}</span>
+                <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE] text-right">{{ chosenBranchName }} · {{ neededBy }}</span>
+              </div>
+            </div>
+
+            <!-- Price Breakdown & 50% Deposit -->
+            <div class="p-5 bg-gradient-to-br from-[#FFF5F8] to-[#FAF7F5] dark:from-[#2E161E] dark:to-[#24150E] rounded-2xl border border-[#F5D2DC] dark:border-[#4A2530] space-y-3 shadow-2xs">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#F2CAD6]/70 dark:border-[#4A2530] pb-3">
+                <span class="text-sm sm:text-base font-bold text-[#2A1810] dark:text-[#FAF3EE]">
+                  {{ localeStore.isAmharic ? 'ግምታዊ ጠቅላላ ዋጋ:' : 'Estimated Price Range' }}
+                </span>
+                <span class="font-black text-[#DE1B54] text-lg sm:text-xl">{{ estimatedPriceRange }}</span>
+              </div>
+
+              <div class="space-y-2 text-xs sm:text-sm text-[#6E5D53] dark:text-[#C5B7AF]">
+                <div class="flex justify-between items-center gap-2">
+                  <span>{{ localeStore.isAmharic ? 'መነሻ የፎቅ ዋጋ' : 'Tier Base Estimate' }}</span>
+                  <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE]">{{ baseTierPriceText }}</span>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span>{{ localeStore.isAmharic ? 'የጣዕም እና ክሬም ዝግጅት' : 'Flavor & Frosting Crafting' }}</span>
+                  <span class="font-semibold text-[#2A1810] dark:text-[#FAF3EE]">{{ flavorPriceText }}</span>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span>{{ localeStore.isAmharic ? 'በኬኩ ላይ የሚጻፍ ጽሁፍ' : 'Piped Cake Inscription' }}</span>
+                  <span class="font-bold text-[#387A54] dark:text-emerald-400">{{ localeStore.isAmharic ? 'በነፃ (0 ብር)' : 'Complimentary (ETB 0)' }}</span>
+                </div>
+                <div class="pt-2.5 border-t border-[#F2CAD6]/70 dark:border-[#4A2530] flex flex-wrap justify-between items-center gap-2 text-sm sm:text-base">
+                  <span class="font-bold text-[#2A1810] dark:text-[#FAF3EE]">{{ localeStore.isAmharic ? '50% ቅድመ ክፍያ (ግምት):' : '50% Booking Deposit (Est.):' }}</span>
+                  <span class="font-black text-[#DE1B54]">{{ estimatedDepositText }}</span>
+                </div>
+              </div>
+
+              <p class="text-xs text-[#6E5D53] dark:text-[#C5B7AF] leading-relaxed pt-1">
+                {{ localeStore.isAmharic ? `ትክክለኛው ዋጋ በ ${chosenBranchName} ዋና ኬክ ዲኮሬተር በ 2–4 ሰዓታት ውስጥ ይሰላል። የ 50% ቅድመ ክፍያ ቀጠሮዎን ያረጋግጣል።` : `Our head pastry chef at ${chosenBranchName} will confirm your exact quotation within 2–4 hours.` }}
+              </p>
+            </div>
+
+            <!-- Contact Information (Spacious Responsive Layout - Zero Truncation) -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-[#FAF7F5] dark:bg-[#25150E] border border-[#EFE8E1] dark:border-[#382318] space-y-3.5">
+              <div class="font-bold text-[#2A1810] dark:text-[#FAF3EE] text-sm sm:text-base flex items-center space-x-2">
+                <span>👤</span>
+                <span>{{ localeStore.isAmharic ? 'የእርስዎ መገኛ መረጃ' : 'Your Contact Details' }}</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label for="cake-customer-name" class="block text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
+                    {{ localeStore.isAmharic ? 'ሙሉ ስምዎ *' : 'Full Name *' }}
+                  </label>
+                  <input
+                    id="cake-customer-name"
+                    v-model="customerName"
+                    type="text"
+                    required
+                    :placeholder="localeStore.isAmharic ? 'ሙሉ ስምዎን ያስገቡ' : 'Enter your full name'"
+                    class="w-full bg-white dark:bg-[#1E120B] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-3.5 py-2.5 text-sm text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[46px]"
+                  />
+                </div>
+                <div>
+                  <label for="cake-customer-phone" class="block text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
+                    {{ localeStore.isAmharic ? 'ስልክ ቁጥር *' : 'Phone Number *' }}
+                  </label>
+                  <input
+                    id="cake-customer-phone"
+                    v-model="customerPhone"
+                    type="tel"
+                    required
+                    placeholder="+251 9XX XXX XXX"
+                    class="w-full bg-white dark:bg-[#1E120B] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-3.5 py-2.5 text-sm text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[46px]"
+                  />
+                </div>
+                <div class="sm:col-span-2">
+                  <label for="cake-customer-email" class="block text-xs sm:text-sm font-bold text-[#2A1810] dark:text-[#FAF3EE] mb-1.5">
+                    {{ localeStore.isAmharic ? 'ኢሜይል አድራሻ' : 'Email Address (for updates)' }}
+                  </label>
+                  <input
+                    id="cake-customer-email"
+                    v-model="customerEmail"
+                    type="email"
+                    :placeholder="localeStore.isAmharic ? 'ለክትትል እና ታሪክ' : 'example@gmail.com'"
+                    class="w-full bg-white dark:bg-[#1E120B] border border-[#DFD5CB] dark:border-[#382318] focus:border-[#DE1B54] focus:ring-2 focus:ring-[#DE1B54]/20 rounded-xl px-3.5 py-2.5 text-sm text-[#2A1810] dark:text-[#FAF3EE] focus:outline-none min-h-[46px]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Request Button -->
+            <button
+              type="submit"
+              :disabled="isSubmitting || !isPreparingBranchAvailable"
+              class="w-full py-4 min-h-[54px] bg-gradient-to-r from-[#DE1B54] to-[#C51345] hover:from-[#EE1D62] hover:to-[#B5103E] disabled:opacity-50 text-white text-sm sm:text-base font-bold rounded-2xl shadow-[0_10px_25px_rgba(222,27,84,0.3)] hover:shadow-[0_14px_30px_rgba(222,27,84,0.45)] transition-all active:scale-[0.98] flex items-center justify-center space-x-2 cursor-pointer"
+            >
+              <span>{{ isSubmitting ? (localeStore.isAmharic ? 'ጥያቄውን በመላክ ላይ...' : 'Sending Your Cake Request...') : (localeStore.isAmharic ? 'የልዩ ኬክ ጥያቄውን ላክ →' : 'Submit Custom Cake Request →') }}</span>
+            </button>
+          </section>
         </div>
       </form>
     </div>
@@ -831,6 +951,7 @@ const hasRestoredDraft = ref(false);
 
 const customerName = ref(authStore.user?.full_name || '');
 const customerPhone = ref(authStore.user?.phone || '');
+const customerEmail = ref(authStore.user?.email || '');
 
 const preparingBranchId = ref(2); // Bole Flagship default
 const cakeSize = ref('Single Tier 8"');
@@ -1471,6 +1592,7 @@ function saveDraftToStorage() {
       description: description.value,
       customerName: customerName.value,
       customerPhone: customerPhone.value,
+      customerEmail: customerEmail.value,
       referenceSamples: referenceSamples.value,
     };
     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -1504,6 +1626,11 @@ function restoreDraftFromStorage() {
       } else if (draft.customerPhone) {
         customerPhone.value = draft.customerPhone;
       }
+      if (authStore.user?.email) {
+        customerEmail.value = authStore.user.email;
+      } else if (draft.customerEmail) {
+        customerEmail.value = draft.customerEmail;
+      }
       if (Array.isArray(draft.referenceSamples) && draft.referenceSamples.length > 0) {
         referenceSamples.value = draft.referenceSamples;
       }
@@ -1529,12 +1656,13 @@ function clearSavedDraft() {
   if (authStore.user) {
     customerName.value = authStore.user.full_name || '';
     customerPhone.value = authStore.user.phone || '';
+    customerEmail.value = authStore.user.email || '';
   }
   toast.info('Custom cake draft cleared.');
 }
 
 watch(
-  [preparingBranchId, cakeSize, flavor, filling, isFasting, occasion, neededBy, message, description, customerName, customerPhone, referenceSamples],
+  [preparingBranchId, cakeSize, flavor, filling, isFasting, occasion, neededBy, message, description, customerName, customerPhone, customerEmail, referenceSamples],
   () => {
     saveDraftToStorage();
   },
@@ -1558,6 +1686,7 @@ onMounted(async () => {
   if (authStore.user) {
     if (authStore.user.full_name) customerName.value = authStore.user.full_name;
     if (authStore.user.phone) customerPhone.value = authStore.user.phone;
+    if (authStore.user.email) customerEmail.value = authStore.user.email;
   }
 
   if (!restored && branchStore.selectedBranchId) {
@@ -1657,11 +1786,10 @@ async function handleSubmitCustomCake() {
     return;
   }
 
-  if (!authStore.isAuthenticated) {
-    toast.info(localeStore.isAmharic 
-      ? 'የብጁ ኬክ ጥያቄዎን ለማስገባት እባክዎ ይግቡ ወይም ይመዝገቡ።' 
-      : 'Please sign in or create an account to submit your custom cake order.');
-    router.push({ path: '/login', query: { redirect: '/custom-cake' } });
+  if (!authStore.isAuthenticated && (!customerPhone.value || !customerEmail.value)) {
+    toast.error(localeStore.isAmharic 
+      ? 'እባክዎን ስልክ ቁጥርዎን እና ኢሜይልዎን ያስገቡ።' 
+      : 'Please provide your phone number and email address for order updates.');
     return;
   }
 
@@ -1680,8 +1808,9 @@ async function handleSubmitCustomCake() {
 
     const payload = {
       branch_id: preparingBranchId.value,
-      customer_name: customerName.value ? customerName.value.trim() : '',
-      customer_phone: customerPhone.value ? customerPhone.value.trim() : '',
+      customer_name: customerName.value ? customerName.value.trim() : (authStore.user?.full_name || 'Guest Customer'),
+      customer_phone: customerPhone.value ? customerPhone.value.trim() : (authStore.user?.phone || ''),
+      customer_email: customerEmail.value ? customerEmail.value.trim() : (authStore.user?.email || null),
       cake_size: cakeSize.value,
       flavor: `${flavor.value} with ${filling.value}${isFasting.value ? ' (100% Ye\'Tsom Fasting Certified)' : ''}`,
       needed_by: neededBy.value,

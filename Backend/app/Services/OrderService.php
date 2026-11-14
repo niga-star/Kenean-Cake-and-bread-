@@ -39,9 +39,17 @@ class OrderService
         // 1. Release expired unpaid orders before processing
         $this->inventoryService->releaseExpiredReservations();
 
-        // 2. Check idempotency replay
+        $branch = Branch::findOrFail($validated['branch_id']);
+        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
+            throw new Exception('Sorry, this branch is currently unavailable for shopping.', 422);
+        }
+
+        // 2. Check idempotency replay scoped to caller & branch
+        $idempotencyCacheKey = null;
         if ($idempotencyKey) {
-            $cachedOrderId = Cache::get("order_idempotency:{$idempotencyKey}");
+            $actorScope = $user?->user_id ?? ('guest:' . sha1((string) ($validated['customer_phone'] ?? $validated['customer_email'] ?? 'anon')));
+            $idempotencyCacheKey = "order_idempotency:{$actorScope}:{$branch->branch_id}:" . sha1($idempotencyKey);
+            $cachedOrderId = Cache::get($idempotencyCacheKey);
             if ($cachedOrderId) {
                 $existingOrder = Order::with(['branch', 'user', 'items.product', 'payment', 'statusHistory'])->find($cachedOrderId);
                 if ($existingOrder) {
@@ -53,29 +61,27 @@ class OrderService
             }
         }
 
-        $branch = Branch::findOrFail($validated['branch_id']);
-        if ($branch->status !== 'Active' || !$branch->is_shopping_enabled) {
-            throw new Exception('Sorry, this branch is currently unavailable for shopping.', 422);
-        }
-
         // 3. Resolve customer identity
         $customerName = trim($validated['customer_name'] ?? '');
         $customerPhone = trim($validated['customer_phone'] ?? '');
+        $customerEmail = trim($validated['customer_email'] ?? '');
 
         $orderUserId = null;
         if ($user && $user->role === 'Customer') {
             $orderUserId = $user->user_id;
             $customerName = $customerName ?: $user->full_name;
             $customerPhone = $customerPhone ?: $user->phone;
+            $customerEmail = $customerEmail ?: $user->email;
         } elseif (!empty($customerPhone)) {
             $existingCustomer = User::where('phone', $customerPhone)->first();
             if ($existingCustomer) {
                 $orderUserId = $existingCustomer->user_id;
                 $customerName = $customerName ?: $existingCustomer->full_name;
+                $customerEmail = $customerEmail ?: ($existingCustomer->email && !str_ends_with($existingCustomer->email, '@sweetbakes.local') ? $existingCustomer->email : '');
             } else {
                 $realCustomer = User::create([
                     'full_name' => $customerName ?: 'Customer',
-                    'email' => 'customer_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                    'email' => $customerEmail && !User::where('email', $customerEmail)->exists() ? $customerEmail : ('customer_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local'),
                     'phone' => $customerPhone,
                     'password' => Hash::make(bin2hex(random_bytes(16))),
                     'role' => 'Customer',
@@ -87,10 +93,11 @@ class OrderService
             $orderUserId = $user->user_id;
             $customerName = $customerName ?: $user->full_name;
             $customerPhone = $customerPhone ?: $user->phone;
+            $customerEmail = $customerEmail ?: $user->email;
         } else {
             $guestCustomer = User::create([
                 'full_name' => $customerName ?: 'Guest Customer',
-                'email' => 'guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local',
+                'email' => $customerEmail && !User::where('email', $customerEmail)->exists() ? $customerEmail : ('guest_' . time() . '_' . mt_rand(100, 999) . '@sweetbakes.local'),
                 'phone' => null,
                 'password' => Hash::make(bin2hex(random_bytes(16))),
                 'role' => 'Customer',
@@ -101,8 +108,16 @@ class OrderService
 
         $customerName = $customerName ?: 'Customer';
 
-        // 4. Resolve delivery address
+        // 4. Resolve and authorize delivery address
         $addressId = $validated['address_id'] ?? null;
+        if (!empty($addressId)) {
+            $ownedAddress = Address::where('address_id', $addressId)
+                ->where('user_id', $orderUserId)
+                ->first();
+            if (!$ownedAddress) {
+                throw new Exception('Selected delivery address does not belong to this account.', 403);
+            }
+        }
         if ($validated['fulfillment_method'] === 'Delivery' && empty($addressId)) {
             $address = Address::create([
                 'user_id' => $orderUserId,
@@ -138,11 +153,11 @@ class OrderService
         }
 
         // 6. Execute atomic stock reservation and order creation inside database transaction with retries
-        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $orderUserId, $customerName, $customerPhone, $user, $addressId) {
-            $rand = mt_rand(1000, 9999);
+        $order = DB::transaction(function () use ($validated, $branch, $deliveryFee, $orderUserId, $customerName, $customerPhone, $customerEmail, $user, $addressId) {
+            $rand = random_int(1000, 9999);
             $orderNumber = "ORD-{$rand}";
             while (Order::where('order_number', $orderNumber)->exists()) {
-                $orderNumber = "ORD-" . mt_rand(1000, 9999);
+                $orderNumber = "ORD-" . random_int(1000, 9999);
             }
 
             $subtotal = 0;
@@ -159,8 +174,8 @@ class OrderService
 
                 $available = $inv ? max(0, $inv->quantity_on_hand - $inv->reserved_quantity) : 0;
 
-                if ($available < $qty) {
-                    throw new Exception("Insufficient stock for {$product->product_name} at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
+                if ($available <= 0 || $available < $qty) {
+                    throw new Exception("Product {$product->product_name} is unavailable for purchase at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
                 }
 
                 $inv->reserved_quantity += $qty;
@@ -239,6 +254,7 @@ class OrderService
                 'user_id' => $orderUserId,
                 'customer_name' => $customerName,
                 'customer_phone' => $customerPhone,
+                'customer_email' => $customerEmail ?: null,
                 'branch_id' => $branch->branch_id,
                 'address_id' => $addressId,
                 'fulfillment_method' => $validated['fulfillment_method'],
@@ -274,13 +290,13 @@ class OrderService
                 : ($validated['payment_method'] === 'Telebirr' 
                     ? 'TB-' 
                     : ($validated['payment_method'] === 'CBE Birr' ? 'CBE-' : 'PAY-'));
-            $txRef = $isOnline ? ($txPrefix . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 6))) : null;
+            $txRef = $isOnline ? ($txPrefix . strtoupper(bin2hex(random_bytes(3)))) : null;
 
             Payment::create([
                 'order_id' => $order->order_id,
                 'payment_method' => $validated['payment_method'],
                 'amount' => $totalAmount,
-                'payment_status' => 'Pending',
+                'payment_status' => 'PENDING',
                 'transaction_reference' => $txRef,
             ]);
 
@@ -328,13 +344,185 @@ class OrderService
 
         $loadedOrder = $order->fresh(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
 
-        if ($idempotencyKey) {
-            Cache::put("order_idempotency:{$idempotencyKey}", $order->order_id, 86400);
+        if ($idempotencyCacheKey) {
+            Cache::put($idempotencyCacheKey, $order->order_id, 86400);
         }
 
         return [
             'order' => $loadedOrder,
             'is_replay' => false,
+        ];
+    }
+
+    /**
+     * Create an immediate walk-in counter POS order with immediate stock deduction and payment settlement
+     */
+    public function createPOSOrder(array $validated, object $staffUser): array
+    {
+        $branchId = $staffUser->branch_id ?? Branch::where('manager_id', $staffUser->user_id)->value('branch_id');
+        if (!$branchId && $staffUser->role === 'Super Admin' && !empty($validated['branch_id'])) {
+            $branchId = (int) $validated['branch_id'];
+        }
+
+        if (!$branchId) {
+            throw new Exception('Staff user must be assigned to an active branch to create counter sales.', 403);
+        }
+
+        $branch = Branch::findOrFail($branchId);
+        if ($branch->status !== 'Active') {
+            throw new Exception("Branch {$branch->branch_name} is currently inactive.", 422);
+        }
+
+        $customerName = trim($validated['customer_name'] ?? 'Walk-In Customer') ?: 'Walk-In Customer';
+        $customerPhone = trim($validated['customer_phone'] ?? '');
+        $paymentMethod = $validated['payment_method'] ?? 'Cash';
+        $amountPaid = isset($validated['amount_paid']) ? (float) $validated['amount_paid'] : null;
+
+        $orderData = DB::transaction(function () use ($validated, $branch, $customerName, $customerPhone, $paymentMethod, $amountPaid, $staffUser) {
+            $orderNumber = "ORD-" . random_int(1000, 9999);
+            while (Order::where('order_number', $orderNumber)->exists()) {
+                $orderNumber = "ORD-" . random_int(1000, 9999);
+            }
+
+            $subtotal = 0;
+            $itemsData = [];
+
+            foreach ($validated['items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                $qty = (int) $item['quantity'];
+
+                $inv = BranchInventory::where('branch_id', $branch->branch_id)
+                    ->where('product_id', $product->product_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                $available = $inv ? max(0, $inv->quantity_on_hand - $inv->reserved_quantity) : 0;
+                if ($available < $qty) {
+                    throw new Exception("Product {$product->product_name} has insufficient stock at {$branch->branch_name}. Requested: {$qty}, Available: {$available}.", 422);
+                }
+
+                // Direct stock decrement for immediate walk-in counter handoff
+                $inv->quantity_on_hand = max(0, $inv->quantity_on_hand - $qty);
+                $inv->save();
+
+                // Reorder level alert check
+                if ($inv->available_quantity <= $inv->reorder_level) {
+                    $alreadyNotified = Notification::where('branch_id', $branch->branch_id)
+                        ->where('category', 'Stock')
+                        ->where('title', 'like', "%{$product->product_name}%")
+                        ->where('created_at', '>=', now()->subHours(6))
+                        ->exists();
+
+                    if (!$alreadyNotified) {
+                        Notification::create([
+                            'user_id' => null,
+                            'branch_id' => $branch->branch_id,
+                            'category' => 'Stock',
+                            'title' => "Low stock: {$product->product_name}",
+                            'message' => "{$branch->branch_name} has {$inv->available_quantity} {$product->product_name} left (at or below reorder level {$inv->reorder_level}).",
+                            'link' => '/admin/inventory',
+                        ]);
+                    }
+                }
+
+                $unitPrice = $product->getPriceForBranch($branch->branch_id);
+                $lineTotal = $unitPrice * $qty;
+                $subtotal += $lineTotal;
+
+                $itemsData[] = [
+                    'product_id' => $product->product_id,
+                    'product_name' => $product->product_name,
+                    'quantity' => $qty,
+                    'unit_price' => $unitPrice,
+                    'subtotal' => $lineTotal,
+                ];
+
+                InventoryTransaction::create([
+                    'branch_id' => $branch->branch_id,
+                    'product_id' => $product->product_id,
+                    'transaction_type' => 'order_completed',
+                    'quantity' => -$qty,
+                    'reference_type' => 'Order',
+                    'reason' => "POS counter sale: {$orderNumber} by {$staffUser->full_name}",
+                    'created_by' => $staffUser->user_id,
+                    'created_at' => now(),
+                ]);
+            }
+
+            $discountAmount = isset($validated['discount_amount']) ? (float) $validated['discount_amount'] : 0.00;
+            $totalAmount = max(0, $subtotal - $discountAmount);
+            $changeDue = $amountPaid !== null ? max(0, $amountPaid - $totalAmount) : 0.00;
+
+            $order = Order::create([
+                'order_number' => $orderNumber,
+                'user_id' => $staffUser->user_id,
+                'customer_name' => $customerName,
+                'customer_phone' => $customerPhone,
+                'customer_email' => null,
+                'branch_id' => $branch->branch_id,
+                'address_id' => null,
+                'fulfillment_method' => 'Pickup',
+                'order_status' => 'Completed',
+                'delivery_fee' => 0.00,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'placed_at' => now(),
+            ]);
+
+            foreach ($itemsData as $item) {
+                OrderItem::create([
+                    'order_id' => $order->order_id,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['subtotal'],
+                ]);
+            }
+
+            $txRef = 'POS-' . strtoupper(bin2hex(random_bytes(3)));
+
+            Payment::create([
+                'order_id' => $order->order_id,
+                'payment_method' => $paymentMethod,
+                'amount' => $totalAmount,
+                'payment_status' => 'Paid',
+                'transaction_reference' => $txRef,
+            ]);
+
+            OrderStatusHistory::create([
+                'order_id' => $order->order_id,
+                'old_status' => null,
+                'new_status' => 'Completed',
+                'changed_by' => $staffUser->user_id,
+                'note' => "Walk-in counter sale completed by {$staffUser->full_name} ({$paymentMethod})",
+                'changed_at' => now(),
+            ]);
+
+            AuditLog::create([
+                'user_id' => $staffUser->user_id,
+                'user_name' => $staffUser->full_name,
+                'action' => 'POS counter sale completed',
+                'record' => "{$order->order_number} · {$branch->branch_name}",
+                'entity_type' => 'Order',
+                'entity_id' => (string) $order->order_id,
+                'old_value' => '—',
+                'new_value' => "Total ETB {$totalAmount} ({$paymentMethod})",
+                'created_at' => now(),
+            ]);
+
+            return [
+                'order' => $order,
+                'change_due' => $changeDue,
+            ];
+        }, 3);
+
+        $loadedOrder = $orderData['order']->fresh(['branch', 'user', 'items.product', 'payment', 'statusHistory']);
+
+        return [
+            'order' => $loadedOrder,
+            'change_due' => $orderData['change_due'],
+            'message' => "Counter sale {$loadedOrder->order_number} recorded successfully.",
         ];
     }
 }

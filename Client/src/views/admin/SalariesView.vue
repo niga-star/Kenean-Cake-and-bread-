@@ -9,8 +9,8 @@
           </svg>
         </div>
         <div>
-          <h1 class="dash-title text-xl sm:text-2xl">Salary &amp; Wage Management</h1>
-          <p class="dash-subtitle mt-0.5">Centralized payroll control, branch wage expense breakdown, and salary adjustments.</p>
+          <h1 class="dash-title text-xl sm:text-2xl">{{ localeStore.isAmharic ? 'የደመወዝ እና አበል አስተዳደር' : 'Salary & Wage Management' }}</h1>
+          <p class="dash-subtitle mt-0.5">{{ localeStore.isAmharic ? 'ማዕከላዊ የደመወዝ ቁጥጥር፣ የቅርንጫፍ ወጪዎች ዝርዝር እና የደመወዝ ማስተካከያ።' : 'Centralized payroll control, branch wage expense breakdown, and salary adjustments.' }}</p>
         </div>
       </div>
 
@@ -21,14 +21,14 @@
           class="transition cursor-pointer"
           :class="activeTab === 'payroll' ? 'dash-pill-active' : 'dash-pill-inactive'"
         >
-          Branch Payroll
+          {{ localeStore.isAmharic ? 'የቅርንጫፍ ደመወዝ' : 'Branch Payroll' }}
         </button>
         <button
           @click="activeTab = 'requests'"
           class="transition cursor-pointer flex items-center space-x-1.5"
           :class="activeTab === 'requests' ? 'dash-pill-active' : 'dash-pill-inactive'"
         >
-          <span>Correction Requests</span>
+          <span>{{ localeStore.isAmharic ? 'የማስተካከያ ጥያቄዎች' : 'Correction Requests' }}</span>
           <span v-if="pendingRequestsCount > 0" class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#DE1B54] text-white">
             {{ pendingRequestsCount }}
           </span>
@@ -45,35 +45,35 @@
     <!-- Top KPI Cards: Combined Business Payroll Expenses -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Combined Salary Expenses</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">{{ localeStore.isAmharic ? 'ጠቅላላ የደመወዝ ወጪ' : 'Combined Salary Expenses' }}</div>
         <div class="text-2xl font-serif font-bold text-[#BA5420]">
           ETB {{ Number(summary.total_wage_expenses || 0).toLocaleString() }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Total monthly payroll for all branches</p>
+        <p class="text-[11px] text-[#7A6B60]">{{ localeStore.isAmharic ? 'የሁሉም ቅርንጫፎች ጠቅላላ ወርሃዊ ደመወዝ' : 'Total monthly payroll for all branches' }}</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Total Staff on Payroll</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">{{ localeStore.isAmharic ? 'በደመወዝ መዝገብ ላይ ያሉ ሰራተኞች' : 'Total Staff on Payroll' }}</div>
         <div class="text-2xl font-serif font-bold text-[#2A1D15]">
-          {{ summary.total_employees || 0 }} <span class="text-xs font-normal text-[#8A7B71]">employees</span>
+          {{ summary.total_employees || 0 }} <span class="text-xs font-normal text-[#8A7B71]">{{ localeStore.isAmharic ? 'ሰራተኞች' : 'employees' }}</span>
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Managers, sellers, servants & delivery</p>
+        <p class="text-[11px] text-[#7A6B60]">{{ localeStore.isAmharic ? 'ስራ አስኪያጆች፣ ሻጮች፣ አስተናጋጆች እና አድራሾች' : 'Managers, sellers, servants & delivery' }}</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Average Monthly Wage</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">{{ localeStore.isAmharic ? 'አማካይ ወርሃዊ ደመወዝ' : 'Average Monthly Wage' }}</div>
         <div class="text-2xl font-serif font-bold text-[#2A1D15]">
           ETB {{ Number(summary.average_wage || 0).toLocaleString() }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Across all operating locations</p>
+        <p class="text-[11px] text-[#7A6B60]">{{ localeStore.isAmharic ? 'በሁሉም የስራ ቦታዎች' : 'Across all operating locations' }}</p>
       </div>
 
       <div class="bg-white border border-[#E9E0D4] rounded-2xl p-5 shadow-sm space-y-1">
-        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">Pending Correction Requests</div>
+        <div class="text-[11px] font-semibold text-[#8C7A6D] uppercase tracking-wider">{{ localeStore.isAmharic ? 'በመጠባበቅ ላይ ያሉ ጥያቄዎች' : 'Pending Correction Requests' }}</div>
         <div class="text-2xl font-serif font-bold" :class="pendingRequestsCount > 0 ? 'text-[#E53935]' : 'text-[#2E7D32]'">
           {{ pendingRequestsCount }}
         </div>
-        <p class="text-[11px] text-[#7A6B60]">Submitted by branch employees</p>
+        <p class="text-[11px] text-[#7A6B60]">{{ localeStore.isAmharic ? 'በቅርንጫፍ ሰራተኞች የቀረበ' : 'Submitted by branch employees' }}</p>
       </div>
     </div>
 
@@ -85,14 +85,14 @@
           <div>
             <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15] flex items-center space-x-2">
               <span>🏪</span>
-              <span>Click a Branch to View Staff & Salaries</span>
+              <span>{{ localeStore.isAmharic ? 'ሰራተኞችን እና ደመወዝ ለማየት ቅርንጫፍ ይምረጡ' : 'Click a Branch to View Staff & Salaries' }}</span>
             </h3>
             <p class="text-xs text-[#7A6B60] mt-0.5">
-              Click any branch card below to inspect its Branch Manager, staff members, and specific wage breakdown.
+              {{ localeStore.isAmharic ? 'የስራ አስኪያጅ፣ የሰራተኞች እና ዝርዝር የደመወዝ ክፍያን ለማየት ከስር ያለውን ቅርንጫፍ ይጫኑ።' : 'Click any branch card below to inspect its Branch Manager, staff members, and specific wage breakdown.' }}
             </p>
           </div>
           <span class="text-xs font-semibold text-[#BA5420]">
-            {{ selectedBranchFilter === 'all' ? 'Showing: Whole Business' : `Showing: ${currentSelectedBranchName}` }}
+            {{ selectedBranchFilter === 'all' ? (localeStore.isAmharic ? 'የሚታየው: መላው ንግድ' : 'Showing: Whole Business') : (localeStore.isAmharic ? 'የሚታየው: ' + localeStore.tBranch(currentSelectedBranchName) : `Showing: ${currentSelectedBranchName}`) }}
           </span>
         </div>
 
@@ -106,10 +106,8 @@
               : 'bg-[#FAF7F2] border-[#EFE4D6] hover:bg-[#F5EFE8]'"
           >
             <div class="flex items-center justify-between">
-              <span class="font-bold text-sm text-[#2A1D15]">All Branches</span>
-              <span class="text-[10px] text-[#BA5420] font-bold bg-[#FAF0E6] px-1.5 py-0.5 rounded border border-[#F0D5C1]">
-                Combined
-              </span>
+              <span class="font-bold text-sm text-[#2A1D15]">{{ localeStore.isAmharic ? 'ሁሉም ቅርንጫፎች' : 'All Branches' }}</span>
+              <span class="text-[10px] text-[#BA5420] font-bold bg-[#FAF0E6] px-1.5 py-0.5 rounded border border-[#F0D5C1]">{{ localeStore.isAmharic ? 'ጥምር' : 'Combined' }}</span>
             </div>
             <div>
               <div class="text-lg font-serif font-bold text-[#BA5420]">
@@ -162,14 +160,14 @@
           <div>
             <div class="flex items-center space-x-2">
               <h3 class="font-serif font-bold text-base sm:text-lg text-[#2A1D15]">
-                {{ selectedBranchFilter === 'all' ? 'All Employees & Assigned Salaries' : `Employees assigned to ${currentSelectedBranchName}` }}
+                {{ selectedBranchFilter === 'all' ? (localeStore.isAmharic ? 'ሁሉም ሰራተኞች እና የተመደበላቸው ደመወዝ' : 'All Employees & Assigned Salaries') : (localeStore.isAmharic ? `ለ${localeStore.tBranch(currentSelectedBranchName)} የተመደቡ ሰራተኞች` : `Employees assigned to ${currentSelectedBranchName}`) }}
               </h3>
               <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FAF0E6] text-[#BA5420] border border-[#F0D5C1]">
-                {{ filteredEmployees.length }} employees
+                {{ filteredEmployees.length }} {{ localeStore.isAmharic ? 'ሰራተኞች' : 'employees' }}
               </span>
             </div>
             <p class="text-xs text-[#7A6B60] mt-0.5">
-              Click any employee row to inspect complete profile. Salary editing is restricted to Super Admin.
+              {{ localeStore.isAmharic ? 'የሙሉ መረጃ ለማየት ሰራተኛውን ይጫኑ። ደመወዝ ማስተካከል ለዋና የበላይ አስተዳዳሪ ብቻ የተፈቀደ ነው።' : 'Click any employee row to inspect complete profile. Salary editing is restricted to Super Admin.' }}
             </p>
           </div>
 
@@ -178,7 +176,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="Search by name, amharic, phone..."
+              :placeholder="localeStore.isAmharic ? 'በስም፣ በአማርኛ ስም፣ በስልክ ይፈልጉ...' : 'Search by name, amharic, phone...'"
               class="bg-[#FDFBF7] border border-[#D8CDC0] rounded-lg px-3 py-1.5 text-xs text-[#2D231D] focus:ring-1 focus:ring-[#BA5420] min-w-[200px]"
             />
 
@@ -188,7 +186,7 @@
               @click="selectBranch('all')"
               class="px-3 py-1.5 text-xs font-semibold bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#3E3027] rounded-lg shadow-2xs transition cursor-pointer"
             >
-              ✕ Clear Filter
+              {{ localeStore.isAmharic ? '✕ ማጣሪያውን አጽዳ' : '✕ Clear Filter' }}
             </button>
           </div>
         </div>
@@ -197,14 +195,14 @@
           <table class="w-full text-left text-xs min-w-[780px]">
             <thead class="bg-[#FAF6F0] text-[#88786B] uppercase font-semibold border-b border-[#EFE8DF]">
               <tr>
-                <th class="py-3.5 px-5">Employee</th>
-                <th class="py-3.5 px-4">Amharic (ተያዥ)</th>
-                <th class="py-3.5 px-4">Role</th>
-                <th class="py-3.5 px-4">Phone Number</th>
-                <th class="py-3.5 px-4">Branch</th>
-                <th class="py-3.5 px-4 text-right">Monthly Salary</th>
-                <th class="py-3.5 px-4 text-center">Status</th>
-                <th class="py-3.5 px-5 text-right">Actions</th>
+                <th class="py-3.5 px-5">{{ localeStore.isAmharic ? 'ሰራተኛ' : 'Employee' }}</th>
+                <th class="py-3.5 px-4">{{ localeStore.isAmharic ? 'አማርኛ ስም' : 'Amharic (ተያዥ)' }}</th>
+                <th class="py-3.5 px-4">{{ localeStore.isAmharic ? 'የስራ ሚና' : 'Role' }}</th>
+                <th class="py-3.5 px-4">{{ localeStore.isAmharic ? 'ስልክ ቁጥር' : 'Phone Number' }}</th>
+                <th class="py-3.5 px-4">{{ localeStore.isAmharic ? 'ቅርንጫፍ' : 'Branch' }}</th>
+                <th class="py-3.5 px-4 text-right">{{ localeStore.isAmharic ? 'ወርሃዊ ደመወዝ' : 'Monthly Salary' }}</th>
+                <th class="py-3.5 px-4 text-center">{{ localeStore.isAmharic ? 'ሁኔታ' : 'Status' }}</th>
+                <th class="py-3.5 px-5 text-right">{{ localeStore.isAmharic ? 'ተግባራት' : 'Actions' }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#F3EDE4]">
@@ -231,13 +229,13 @@
                       'bg-[#F3EFE9] text-[#5A4B41]': !['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(emp.role)
                     }"
                   >
-                    {{ emp.role === 'Branch Admin' ? 'Branch Manager' : emp.role }}
+                    {{ localeStore.tRole(emp.role === 'Branch Admin' ? 'Branch Manager' : emp.role) }}
                   </span>
                 </td>
                 <td class="py-3 px-4 text-xs font-mono text-[#55463C]">
                   {{ emp.phone || '—' }}
                 </td>
-                <td class="py-3 px-4 text-xs text-[#4A3B32] font-medium">{{ emp.branch_name }}</td>
+                <td class="py-3 px-4 text-xs text-[#4A3B32] font-medium">{{ localeStore.tBranch(emp.branch_name) }}</td>
                 <td class="py-3 px-4 text-right font-serif font-bold text-sm text-[#BA5420]">
                   ETB {{ Number(emp.salary || 0).toLocaleString() }}
                 </td>
@@ -246,23 +244,23 @@
                     class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
                     :class="emp.status === 'Active' ? 'bg-[#EAF5EA] text-[#2E7D32] border-[#C8E6C9]' : 'bg-gray-100 text-gray-700 border-gray-200'"
                   >
-                    {{ emp.employment_status || emp.status }}
+                    {{ (emp.employment_status || emp.status) === 'Active' ? (localeStore.isAmharic ? 'ንቁ' : 'Active') : (localeStore.isAmharic ? 'ቦዝኗል' : (emp.employment_status || emp.status)) }}
                   </span>
                 </td>
                 <td class="py-3 px-5 text-right space-x-1" @click.stop>
                   <button
                     @click="openProfileModal(emp)"
                     class="inline-flex items-center px-2 py-1 text-[11px] font-medium bg-white border border-[#D8CDC0] hover:bg-[#F4ECE3] text-[#4A3B32] rounded-md shadow-2xs transition"
-                    title="View complete information"
+                    :title="localeStore.isAmharic ? 'የሙሉ መረጃ ተመልከት' : 'View complete information'"
                   >
-                    View
+                    {{ localeStore.isAmharic ? 'ተመልከት' : 'View' }}
                   </button>
                   <button
                     @click="openEditSalaryModal(emp)"
                     class="inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-semibold bg-[#FAF0E6] border border-[#F0D5C1] hover:bg-[#BA5420] hover:text-white text-[#BA5420] rounded-md shadow-2xs transition cursor-pointer"
-                    title="Edit salary as Super Admin"
+                    :title="localeStore.isAmharic ? 'ደመወዝ አስተካክል' : 'Edit salary as Super Admin'"
                   >
-                    <span>Edit Wage</span>
+                    <span>{{ localeStore.isAmharic ? 'ደመወዝ አርም' : 'Edit Wage' }}</span>
                   </button>
                 </td>
               </tr>
@@ -508,7 +506,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
+import { useLocaleStore } from '../../stores/locale';
 import api from '../../api';
+
+const dialog = useDialogStore();
+const toast = useToastStore();
+const localeStore = useLocaleStore();
 
 const activeTab = ref('payroll');
 const summary = ref({});
@@ -608,27 +613,40 @@ const submitUpdateSalary = async () => {
   try {
     await api.patch(`/admin/salaries/${selectedEmployee.value.user_id}`, editSalaryForm.value);
     isEditSalaryModalOpen.value = false;
-    successMsg.value = `Salary for ${selectedEmployee.value.full_name} updated successfully to ETB ${Number(editSalaryForm.value.salary).toLocaleString()}.`;
+    const msg = `Salary for ${selectedEmployee.value.full_name} updated successfully to ETB ${Number(editSalaryForm.value.salary).toLocaleString()}.`;
+    successMsg.value = msg;
+    toast.success(msg);
     await loadSalaryData();
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to update salary.');
+    const msg = err.response?.data?.message || 'Failed to update salary.';
+    toast.error(msg);
   } finally {
     isUpdatingSalary.value = false;
   }
 };
 
 const reviewRequest = async (requestItem, status) => {
-  const notes = prompt(`Enter optional remarks for ${status.toLowerCase()} this salary request:`) || '';
+  const notes = await dialog.prompt({
+    title: `${status} Salary Correction Request`,
+    message: `Enter remarks or justification for marking request as ${status.toLowerCase()}:`,
+    defaultValue: '',
+    placeholder: 'Optional administrative remarks...',
+    confirmText: `Confirm ${status}`,
+    variant: status === 'Approved' ? 'success' : 'warning',
+  });
+  if (notes === null) return; // User cancelled
   try {
     await api.patch(`/admin/salary-requests/${requestItem.request_id}/status`, {
       status,
-      admin_notes: notes,
+      admin_notes: notes || '',
       approved_salary: requestItem.requested_salary,
     });
-    successMsg.value = `Request from ${requestItem.user?.full_name} marked as ${status}.`;
+    const msg = `Request from ${requestItem.user?.full_name} marked as ${status}.`;
+    successMsg.value = msg;
+    toast.success(msg);
     await Promise.all([loadRequests(), loadSalaryData()]);
   } catch (err) {
-    alert(err.response?.data?.message || 'Failed to review request.');
+    toast.error(err.response?.data?.message || 'Failed to review request.');
   }
 };
 

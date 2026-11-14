@@ -4,22 +4,26 @@
     <InitialLoadingScreen />
 
     <!-- Slim SweetBakes Berry Pink Top Loading Progress Bar -->
-    <div v-if="isLoading" class="sweet-top-loader">
+    <div v-if="isLoading" class="sweet-top-loader print:hidden">
       <div
         class="sweet-top-loader-bar"
         :style="{ width: `${progress}%`, opacity: progress >= 100 ? 0 : 1 }"
       ></div>
     </div>
 
-    <!-- Router View with Smooth Page Fade Transition -->
-    <router-view v-slot="{ Component }">
-      <transition name="page-fade" mode="out-in">
-        <component :is="Component" />
-      </transition>
+    <!-- Router View with Smooth Page Transition (Layout Level) -->
+    <router-view v-slot="{ Component, route }">
+      <PageTransition
+        :component="Component"
+        :transition-key="route.matched[0]?.path || route.path"
+      />
     </router-view>
 
     <!-- Global SweetBakes Toast Notifications Stack -->
-    <ToastNotification />
+    <ToastNotification class="print:hidden" />
+
+    <!-- Global SweetBakes Confirmation & Prompt Modal Dialog -->
+    <ModalDialog class="print:hidden" />
   </div>
 </template>
 
@@ -27,14 +31,16 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import InitialLoadingScreen from './components/InitialLoadingScreen.vue';
+import PageTransition from './components/PageTransition.vue';
 import ToastNotification from './components/ToastNotification.vue';
+import ModalDialog from './components/ModalDialog.vue';
 
 const router = useRouter();
 const isLoading = ref(false);
 const progress = ref(0);
 let progressTimer = null;
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   if (to.path !== from.path) {
     isLoading.value = true;
     progress.value = 25;
@@ -45,7 +51,7 @@ router.beforeEach((to, from, next) => {
       }
     }, 120);
   }
-  next();
+  return true;
 });
 
 router.afterEach(() => {

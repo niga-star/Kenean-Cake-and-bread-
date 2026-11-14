@@ -799,7 +799,12 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useDialogStore } from '../../stores/dialog';
+import { useToastStore } from '../../stores/toast';
 import api from '../../api';
+
+const dialog = useDialogStore();
+const toast = useToastStore();
 
 const activePeriod = ref('all');
 const selectedBranchId = ref('all');
@@ -921,22 +926,29 @@ async function inspectReport(id) {
       superAdminNotes.value = activeInspection.value.super_admin_notes || '';
     }
   } catch (e) {
-    alert('Failed to load consolidated report details.');
+    toast.error('Failed to load consolidated report details.');
   }
 }
 
 // Super Admin decision: verify or return
 async function submitSuperAdminDecision(action) {
   if (action === 'return' && !superAdminNotes.value.trim()) {
-    alert('Please provide clarification notes explaining what the Branch Manager must verify.');
+    toast.warning('Please provide clarification notes explaining what the Branch Manager must verify.');
     return;
   }
 
+  const confirmTitle = action === 'verify' ? 'Verify Consolidated Report' : 'Return Report for Clarification';
   const confirmMsg = action === 'verify'
     ? 'Mark this consolidated branch report as Verified by Super Admin?'
     : 'Return this report to the Branch Manager for clarification?';
 
-  if (!confirm(confirmMsg)) return;
+  const confirmed = await dialog.confirm({
+    title: confirmTitle,
+    message: confirmMsg,
+    confirmText: action === 'verify' ? 'Verify Report' : 'Return Report',
+    variant: action === 'verify' ? 'success' : 'warning',
+  });
+  if (!confirmed) return;
 
   decisionSubmitting.value = true;
   try {
@@ -946,13 +958,13 @@ async function submitSuperAdminDecision(action) {
     });
 
     if (res.data && res.data.success) {
-      alert(res.data.message);
+      toast.success(res.data.message || (action === 'verify' ? 'Report verified successfully!' : 'Report returned.'));
       activeInspection.value = null;
       await fetchOverviewData();
     }
   } catch (err) {
     console.error('Decision submission failed:', err);
-    alert(err.response?.data?.message || 'Action failed.');
+    toast.error(err.response?.data?.message || 'Action failed.');
   } finally {
     decisionSubmitting.value = false;
   }

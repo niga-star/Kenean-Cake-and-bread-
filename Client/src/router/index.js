@@ -1,5 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { nextTick } from 'vue';
 import { useToastStore } from '../stores/toast';
+import { beginPageTransition, waitForPageLeave, prefersReducedMotion } from '../composables/usePageTransition';
+
+async function waitForHashElement(hash, maxFrames = 15) {
+  if (typeof document === 'undefined' || !hash) return false;
+  for (let i = 0; i < maxFrames; i++) {
+    if (document.querySelector(hash)) return true;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  return !!document.querySelector(hash);
+}
+
+function getStoredUser() {
+  try {
+    const rawUser = localStorage.getItem('user');
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+}
 
 // Core Layouts (Lazy Loaded)
 const AdminLayout = () => import('../layouts/AdminLayout.vue');
@@ -48,8 +69,7 @@ const routes = [
     path: '/admin',
     component: AdminLayout,
     redirect: () => {
-      const rawUser = localStorage.getItem('user');
-      const user = rawUser ? JSON.parse(rawUser) : null;
+      const user = getStoredUser();
       if (user?.role === 'Branch Staff') {
         return '/admin/orders';
       }
@@ -70,7 +90,7 @@ const routes = [
       { path: 'custom-cakes', component: CustomCakesView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier', 'Servant', 'Delivery Staff'] } },
       { path: 'payments', component: PaymentsView, meta: { roles: ['Super Admin'] } },
       { path: 'seller-reports', component: SellerDailyReportView, meta: { roles: ['Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Cashier'] } },
-      { path: 'manager-reports', component: ManagerOrderReportsView, meta: { roles: ['Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
+      { path: 'manager-reports', component: ManagerOrderReportsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'] } },
       { path: 'reports', redirect: '/admin/overview' },
       { path: 'notifications', component: NotificationsView, meta: { roles: ['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin', 'Branch Staff', 'Branch Seller / Cashier', 'Branch Seller', 'Servant', 'Delivery Staff'] } },
       { path: 'settings', component: SettingsView, meta: { roles: ['Super Admin'] } },
@@ -83,24 +103,24 @@ const routes = [
     path: '/',
     component: CustomerLayout,
     children: [
-      { path: '', component: CustomerHomeView },
-      { path: 'home', component: CustomerHomeView },
-      { path: 'shop', component: ShopView },
+      { path: '', component: CustomerHomeView, meta: { title: 'Kenean Cake & Bread | Artisan Bakery in Dessie, Ethiopia', description: 'Fresh custom celebration cakes, sourdough breads, pastries, and same-day branch delivery across Dessie.' } },
+      { path: 'home', component: CustomerHomeView, meta: { title: 'Kenean Cake & Bread | Artisan Bakery in Dessie, Ethiopia', description: 'Fresh custom celebration cakes, sourdough breads, pastries, and same-day branch delivery across Dessie.' } },
+      { path: 'shop', component: ShopView, meta: { title: 'Shop Cakes, Bread & Pastries | Kenean Cake', description: 'Browse fresh daily pastries, birthday cakes, wedding cakes, and artisanal bread by branch.' } },
       { path: 'cakes-and-bread', redirect: '/shop' },
-      { path: 'product/:id', component: ProductDetailView },
-      { path: 'cart', component: CartView },
-      { path: 'checkout', component: CheckoutView },
-      { path: 'custom-cake', component: CustomCakeBuilderView },
+      { path: 'product/:id', component: ProductDetailView, meta: { title: 'Product Details | Kenean Cake' } },
+      { path: 'cart', component: CartView, meta: { title: 'Shopping Bag | Kenean Cake' } },
+      { path: 'checkout', component: CheckoutView, meta: { title: 'Checkout | Kenean Cake' } },
+      { path: 'custom-cake', component: CustomCakeBuilderView, meta: { title: '3D Custom Cake Studio | Kenean Cake', description: 'Design your custom birthday or wedding cake in 3D and request a bespoke bakery quote.' } },
       { path: 'custom-cakes-builder', redirect: '/custom-cake' },
-      { path: 'branches', component: BranchesView },
-      { path: 'orders/:order_number', component: OrderStatusView },
-      { path: 'track-order', component: OrderTrackingView },
-      { path: 'login', component: LoginView },
-      { path: 'register', component: RegisterView },
-      { path: 'contact', component: ContactView },
+      { path: 'branches', component: BranchesView, meta: { title: 'Bakery Branches in Dessie | Kenean Cake', description: 'Explore interactive Dessie branch locations, delivery coverage zones, and opening hours.' } },
+      { path: 'orders/:order_number', component: OrderStatusView, meta: { title: 'Order Status & Receipt | Kenean Cake' } },
+      { path: 'track-order', component: OrderTrackingView, meta: { title: 'Track Your Order | Kenean Cake', description: 'Check live preparation, baking, and delivery progress for your bakery order.' } },
+      { path: 'login', component: LoginView, meta: { title: 'Sign In | Kenean Cake' } },
+      { path: 'register', component: RegisterView, meta: { title: 'Create Account | Kenean Cake' } },
+      { path: 'contact', component: ContactView, meta: { title: 'Contact Us | Kenean Cake', description: 'Reach our Dessie bakery branches for custom cake inquiries, catering, and customer support.' } },
       { path: 'about', redirect: '/#about' },
-      { path: 'faq', component: FAQView },
-      { path: 'account', component: AccountView },
+      { path: 'faq', component: FAQView, meta: { title: 'Frequently Asked Questions | Kenean Cake', description: 'Answers on cake customization, delivery zones in Dessie, ordering lead times, and payments.' } },
+      { path: 'account', component: AccountView, meta: { title: 'My Account | Kenean Cake' } },
       { path: 'my-orders', redirect: '/account' },
     ],
   },
@@ -118,54 +138,78 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (to.hash) {
+  async scrollBehavior(to, from, savedPosition) {
+    const scrollStyle = prefersReducedMotion() ? 'auto' : 'smooth';
+    const isRoutePathChange = from.matched.length > 0 && to.path !== from.path;
+
+    // Wait until the exiting page finishes its fade-out so it stays stationary while leaving
+    if (isRoutePathChange) {
+      await waitForPageLeave();
+      await nextTick();
+    }
+
+    if (savedPosition) {
       return {
-        el: to.hash,
-        behavior: 'smooth',
+        ...savedPosition,
+        behavior: isRoutePathChange ? 'auto' : scrollStyle,
       };
     }
-    if (savedPosition) {
-      return savedPosition;
+
+    if (to.hash) {
+      await waitForHashElement(to.hash);
+      return {
+        el: to.hash,
+        top: 84,
+        behavior: isRoutePathChange ? 'auto' : scrollStyle,
+      };
     }
-    return { top: 0, behavior: 'smooth' };
+
+    return {
+      top: 0,
+      behavior: isRoutePathChange ? 'auto' : scrollStyle,
+    };
   },
 });
 
+router.beforeResolve((to, from) => {
+  if (from.matched.length > 0 && to.path !== from.path) {
+    beginPageTransition();
+  }
+});
+
 // Navigation Guard for Role Enforcement
-router.beforeEach((to, from, next) => {
-  const rawUser = localStorage.getItem('user');
+router.beforeEach((to, from) => {
   const token = localStorage.getItem('token');
-  const user = rawUser ? JSON.parse(rawUser) : null;
+  const user = getStoredUser();
 
   // Protect Customer Account from unauthenticated guest access;
   // If staff/admin visits customer /account, redirect them to their staff portal /admin/my-account (Section 8)
   if (to.path === '/account') {
     if (!user || !token) {
       const redirectTarget = to.fullPath || to.path;
-      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+      return `/login?redirect=${encodeURIComponent(redirectTarget)}`;
     }
     if (user.role !== 'Customer') {
-      return next('/admin/my-account');
+      return '/admin/my-account';
     }
   }
 
   if (to.path === '/checkout') {
     if (!user || !token) {
       const redirectTarget = to.fullPath || to.path;
-      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+      return `/login?redirect=${encodeURIComponent(redirectTarget)}`;
     }
   }
 
   // Redirect already authenticated users away from login/register
   if ((to.path === '/login' || to.path === '/register') && token && user) {
     if (['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(user.role)) {
-      return next('/admin/overview');
+      return '/admin/overview';
     } else if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(user.role)) {
-      return next('/admin/orders');
+      return '/admin/orders';
     } else {
       const redirectPath = to.query.redirect || '/account';
-      return next(redirectPath);
+      return redirectPath;
     }
   }
 
@@ -174,14 +218,14 @@ router.beforeEach((to, from, next) => {
 
     if (!user || !token) {
       toast.error('Access restricted: Please sign in with staff credentials to access the admin portal.');
-      return next('/login');
+      return '/login';
     }
 
     const role = user.role;
 
     if (role === 'Customer') {
       toast.error('Access denied: Customer accounts cannot access the bakery admin portal.');
-      return next('/account');
+      return '/account';
     }
 
     if (to.meta?.roles) {
@@ -206,17 +250,29 @@ router.beforeEach((to, from, next) => {
       if (!hasAccess) {
         toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
         if (role === 'Super Admin') {
-          return next('/admin/overview');
+          return '/admin/overview';
         }
         if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(role)) {
-          return next('/admin/orders');
+          return '/admin/orders';
         }
-        return next('/admin/overview');
+        return '/admin/overview';
       }
     }
   }
 
-  next();
+  return true;
+});
+
+router.afterEach((to) => {
+  if (typeof document === 'undefined') return;
+  const pageTitle = to.meta?.title || (to.path.startsWith('/admin') ? 'Management Portal | Kenean Cake' : 'Kenean Cake & Bread | Artisan Bakery');
+  document.title = pageTitle;
+
+  const defaultDesc = 'Kenean Cake & Bread (SweetBakes) in Dessie, Ethiopia — freshly baked celebration cakes, custom 3D cake studio, pastries, and branch delivery.';
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) {
+    metaDesc.setAttribute('content', to.meta?.description || defaultDesc);
+  }
 });
 
 export default router;
