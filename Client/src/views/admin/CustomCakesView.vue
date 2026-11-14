@@ -58,23 +58,23 @@
       </div>
 
       <!-- Custom Date Inputs -->
-      <div v-if="selectedDateFilter === 'custom'" class="flex flex-wrap items-center gap-3 p-3 bg-[#FAF7F2] rounded-xl border border-[#E9E0D4] text-xs">
+      <div v-if="selectedDateFilter === 'custom'" class="flex flex-wrap items-center gap-3 p-3 bg-[#FAF7F2] dark:bg-[#1E120B] rounded-xl border border-[#E9E0D4] dark:border-[#382318] text-xs">
         <div class="flex items-center space-x-2">
-          <label class="font-semibold text-[#65554B]">From:</label>
+          <label class="font-semibold text-[#65554B] dark:text-[#C5B7AF]">From:</label>
           <input
             v-model="customStartDate"
             @change="loadRequests"
             type="date"
-            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+            class="bg-white dark:bg-[#160E0A] border border-[#D8CDC0] dark:border-[#382318] rounded-lg px-2.5 py-1 text-xs text-[#2D231D] dark:text-[#FAF4ED]"
           />
         </div>
         <div class="flex items-center space-x-2">
-          <label class="font-semibold text-[#65554B]">To:</label>
+          <label class="font-semibold text-[#65554B] dark:text-[#C5B7AF]">To:</label>
           <input
             v-model="customEndDate"
             @change="loadRequests"
             type="date"
-            class="bg-white border border-[#D8CDC0] rounded-lg px-2.5 py-1 text-xs text-[#2D231D]"
+            class="bg-white dark:bg-[#160E0A] border border-[#D8CDC0] dark:border-[#382318] rounded-lg px-2.5 py-1 text-xs text-[#2D231D] dark:text-[#FAF4ED]"
           />
         </div>
         <button

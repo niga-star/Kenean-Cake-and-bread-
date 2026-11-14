@@ -1,0 +1,32 @@
+{
+  "name": "Kenean Cake & Bread | ኬንያን ኬክ እና ዳቦ",
+  "short_name": "Kenean Bakery",
+  "description": "Artisanal Celebration Cakes, 3D Bespoke Studio, Pastries & Sourdough Bread in Dessie, Ethiopia.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#3D251E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/kenean-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/kenean-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["food", "shopping", "lifestyle"],
+  "lang": "en-ET"
+}
