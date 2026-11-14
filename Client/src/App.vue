@@ -40,7 +40,7 @@ const isLoading = ref(false);
 const progress = ref(0);
 let progressTimer = null;
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   if (to.path !== from.path) {
     isLoading.value = true;
     progress.value = 25;
@@ -51,7 +51,7 @@ router.beforeEach((to, from, next) => {
       }
     }, 120);
   }
-  next();
+  return true;
 });
 
 router.afterEach(() => {
