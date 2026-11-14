@@ -26,7 +26,7 @@
         <!-- Brand Logo Header + Mobile Close Button -->
         <div class="px-5 sm:px-6 py-5 border-b border-[#4D3227] dark:border-[#271810] flex items-center justify-between shrink-0">
           <div class="flex items-center space-x-3">
-            <div class="relative w-11 h-11 rounded-full bg-[#FAF5EE] p-0.5 border border-[#DEBE92] shadow-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+            <div class="relative w-12 h-12 rounded-full bg-[#FAF5EE] p-0.5 border border-[#DEBE92] shadow-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <img
                 src="/images/kenean-logo.png"
                 alt="Kenean Cake & Bread"
@@ -34,15 +34,15 @@
               />
             </div>
             <router-link :to="homePath" @click="sidebarOpen = false" class="block leading-tight group">
-              <div class="flex items-baseline space-x-1.5">
-                <span class="text-xl sm:text-2xl font-brand font-black text-[#FAF4ED] tracking-tight group-hover:text-amber-200 transition">
+              <div class="flex items-baseline space-x-2">
+                <span class="text-2xl sm:text-[26px] font-black text-[#FAF4ED] tracking-tight group-hover:text-amber-200 transition">
                   {{ localeStore.isAmharic ? 'ከነአን' : 'Kenean' }}
                 </span>
-                <span class="text-[11px] font-serif font-semibold text-amber-300 italic">
+                <span class="text-xs sm:text-[13px] font-bold text-amber-300">
                   {{ localeStore.isAmharic ? 'ኬክና ዳቦ' : 'Bakery' }}
                 </span>
               </div>
-              <p class="text-[9.5px] uppercase font-bold tracking-[0.2em] text-[#C8B6A6] mt-0.5">
+              <p class="text-xs sm:text-[12px] uppercase font-bold tracking-wider text-[#D8CDC5] mt-1">
                 {{ localeStore.isAmharic ? 'የአስተዳደር ክፍል' : 'Management Portal' }}
               </p>
             </router-link>
@@ -60,25 +60,25 @@
         </div>
 
         <!-- Navigation Menu with Touch-Friendly Links & Unified Reference Styling -->
-        <nav class="px-3.5 py-4 space-y-4 overflow-y-auto flex-1">
+        <nav class="px-3.5 py-4 space-y-3.5 overflow-y-auto flex-1">
           <!-- Mobile Super Admin Persona Simulator (< lg screens) -->
           <div
             v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1"
-            class="lg:hidden p-3 bg-[#4D3227] dark:bg-[#1E120B] rounded-2xl border border-[#634234] dark:border-[#382216] space-y-2 mb-2"
+            class="lg:hidden p-3.5 bg-[#4D3227] dark:bg-[#1E120B] rounded-2xl border border-[#634234] dark:border-[#382216] space-y-2.5 mb-2.5"
           >
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="text-xs sm:text-sm font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
                 <span>🎭</span>
                 <span>{{ localeStore.t('dash_simulate_role') }}</span>
               </span>
-              <span v-if="authStore.isSimulating" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">
+              <span v-if="authStore.isSimulating" class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400 text-amber-950">
                 Active
               </span>
             </div>
             <select
               :value="selectedRoleKey"
               @change="handleRoleChange($event.target.value); sidebarOpen = false"
-              class="w-full bg-[#352017] dark:bg-[#140C07] border border-[#634234] dark:border-[#382216] text-[#FAF4ED] text-xs font-semibold rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+              class="w-full bg-[#352017] dark:bg-[#140C07] border border-[#634234] dark:border-[#382216] text-[#FAF4ED] text-sm font-semibold rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
             >
               <option
                 v-for="(r, idx) in authStore.availableRoles"
@@ -91,7 +91,7 @@
             <div v-if="authStore.isSimulating" class="flex justify-end pt-1">
               <button
                 @click="handleExitSimulation(); sidebarOpen = false"
-                class="text-xs bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-1 rounded-lg transition cursor-pointer"
+                class="text-xs sm:text-sm bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-3 py-1.5 rounded-xl transition cursor-pointer shadow-xs"
               >
                 {{ localeStore.t('dash_exit') }} {{ localeStore.isAmharic ? 'ወደ ዋና አስተዳዳሪ' : 'to Super Admin' }}
               </button>
@@ -103,10 +103,10 @@
             <router-link
               to="/admin/overview"
               @click="sidebarOpen = false"
-              class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 group"
+              class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200 group"
               :class="$route.path === '/admin/overview' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
             >
-              <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
               <span>{{ isBranchScoped ? localeStore.t('dash_branch_overview') : localeStore.t('dash_overview') }}</span>
@@ -115,16 +115,16 @@
 
           <!-- BUSINESS Section -->
           <div v-if="canAccess('branches') || canAccess('users') || canAccess('products')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_business') }}</div>
+            <div class="admin-category-header px-4 pt-3 pb-1.5 text-xs sm:text-[13px] font-bold tracking-wide text-[#E2D4C7] dark:text-[#C8B6A6] uppercase">{{ localeStore.t('dash_business') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('branches')"
                 to="/admin/branches"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/branches') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
                 <span>{{ localeStore.t('dash_branches') }}</span>
@@ -134,10 +134,10 @@
                 v-if="canAccess('users')"
                 to="/admin/users"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/users') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
                 <span>{{ isBranchScoped ? localeStore.t('dash_branch_staff') : localeStore.t('dash_users_staff') }}</span>
@@ -147,10 +147,10 @@
                 v-if="canAccess('salaries')"
                 to="/admin/salaries"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/salaries') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{{ localeStore.t('dash_salaries') }}</span>
@@ -160,10 +160,10 @@
                 v-if="canAccess('products')"
                 to="/admin/products"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/products') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
                 <span>{{ localeStore.t('dash_products_prices') }}</span>
@@ -173,16 +173,16 @@
 
           <!-- STOCK Section -->
           <div>
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_stock_inventory') }}</div>
+            <div class="admin-category-header px-4 pt-3 pb-1.5 text-xs sm:text-[13px] font-bold tracking-wide text-[#E2D4C7] dark:text-[#C8B6A6] uppercase">{{ localeStore.t('dash_stock_inventory') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('inventory')"
                 to="/admin/inventory"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/inventory' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
                 <span>{{ isBranchScoped ? localeStore.t('dash_my_inventory') : localeStore.t('dash_inventory') }}</span>
@@ -192,11 +192,11 @@
                 v-if="canAccess('distribution')"
                 to="/admin/distribution"
                 @click="sidebarOpen = false"
-                class="flex items-center justify-between px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center justify-between px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/distribution' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
                 <div class="flex items-center">
-                  <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                   </svg>
                   <span>{{ isBranchScoped ? localeStore.t('dash_stock_receiving') : localeStore.t('dash_distribution') }}</span>
@@ -207,10 +207,10 @@
                 v-if="canAccess('transfers/new')"
                 to="/admin/transfers/new"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/transfers/new') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 <span>{{ localeStore.t('dash_new_transfer') }}</span>
@@ -220,16 +220,16 @@
 
           <!-- ORDERS & SALES Section (Only visible to roles with retail order/sales duties) -->
           <div v-if="canAccess('orders') || canAccess('custom-cakes') || canAccess('payments') || canAccess('seller-reports') || canAccess('manager-reports') || canAccess('reports')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_orders_sales') }}</div>
+            <div class="admin-category-header px-4 pt-3 pb-1.5 text-xs sm:text-[13px] font-bold tracking-wide text-[#E2D4C7] dark:text-[#C8B6A6] uppercase">{{ localeStore.t('dash_orders_sales') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('orders')"
                 to="/admin/orders"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/orders' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 <span>{{ currentRole === 'Branch Staff' ? localeStore.t('dash_order_preparation') : (['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? localeStore.t('dash_branch_orders') : localeStore.t('dash_orders')) }}</span>
@@ -239,10 +239,10 @@
                 v-if="canAccess('custom-cakes')"
                 to="/admin/custom-cakes"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/custom-cakes' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.5a3.5 3.5 0 01-7 0 3.5 3.5 0 01-7 0M12 4v4m-4-2h8m-9 9.5V20a1 1 0 001 1h16a1 1 0 001-1v-4.5" />
                 </svg>
                 <span>{{ ['Branch Manager', 'Main Branch Manager', 'Branch Admin'].includes(currentRole) ? localeStore.t('dash_branch_custom_cakes') : localeStore.t('dash_custom_cakes') }}</span>
@@ -252,10 +252,10 @@
                 v-if="canAccess('payments')"
                 to="/admin/payments"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/payments' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 <span>{{ isBranchScoped ? localeStore.t('dash_branch_sales') : localeStore.t('dash_payments') }}</span>
@@ -266,10 +266,10 @@
                 v-if="canAccess('seller-reports')"
                 to="/admin/seller-reports"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/seller-reports') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
                 <span>{{ localeStore.t('dash_seller_reports') }}</span>
@@ -280,10 +280,10 @@
                 v-if="canAccess('manager-reports')"
                 to="/admin/manager-reports"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/manager-reports') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span>{{ localeStore.t('dash_manager_reports') }}</span>
@@ -293,16 +293,16 @@
 
           <!-- SYSTEM Section -->
           <div v-if="canAccess('notifications') || canAccess('settings') || canAccess('my-account')">
-            <div class="px-4 mb-2 text-[11px] font-bold tracking-wider text-[#B29E91] uppercase">{{ localeStore.t('dash_settings_account') }}</div>
+            <div class="admin-category-header px-4 pt-3 pb-1.5 text-xs sm:text-[13px] font-bold tracking-wide text-[#E2D4C7] dark:text-[#C8B6A6] uppercase">{{ localeStore.t('dash_settings_account') }}</div>
             <div class="space-y-1">
               <router-link
                 v-if="canAccess('my-account')"
                 to="/admin/my-account"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path.startsWith('/admin/my-account') ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 <span>{{ localeStore.t('dash_my_account') }}</span>
@@ -312,26 +312,26 @@
                 v-if="canAccess('notifications')"
                 to="/admin/notifications"
                 @click="sidebarOpen = false"
-                class="flex items-center justify-between px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center justify-between px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/notifications' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
                 <div class="flex items-center">
-                  <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   <span>{{ localeStore.t('dash_notifications') }}</span>
                 </div>
-                <span v-if="unreadCount > 0" class="w-5 h-5 rounded-full bg-[#DE1B54] text-white text-xs font-bold flex items-center justify-center shadow-xs">{{ unreadCount }}</span>
+                <span v-if="unreadCount > 0" class="min-w-[22px] h-[22px] px-1.5 rounded-full bg-[#DE1B54] text-white text-xs font-bold flex items-center justify-center shadow-xs">{{ unreadCount }}</span>
               </router-link>
 
               <router-link
                 v-if="canAccess('settings')"
                 to="/admin/settings"
                 @click="sidebarOpen = false"
-                class="flex items-center px-4 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200"
+                class="flex items-center px-4 py-3 text-[15.5px] sm:text-base font-semibold rounded-xl transition-all duration-200"
                 :class="$route.path === '/admin/settings' ? 'bg-[#57392C] text-white shadow-xs font-bold' : 'text-[#D8CDC5] hover:bg-white/5 hover:text-white'"
               >
-                <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 mr-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -344,27 +344,27 @@
       </div>
 
       <!-- Bottom User Profile Card with Role & Branch -->
-      <div class="p-3.5 border-t border-[#4D3227] dark:border-[#271810] bg-[#301B14] dark:bg-[#100A06] flex items-center justify-between shrink-0">
+      <div class="p-4 border-t border-[#4D3227] dark:border-[#271810] bg-[#301B14] dark:bg-[#100A06] flex items-center justify-between shrink-0">
         <router-link
           to="/admin/my-account"
           class="flex items-center space-x-3 min-w-0 pr-2 hover:opacity-95 transition group cursor-pointer"
           title="View My Account"
         >
-          <div class="w-9 h-9 rounded-full overflow-hidden bg-[#57392C] shrink-0 border border-[#6E4636] shadow-xs flex items-center justify-center text-amber-200 text-xs font-bold font-serif">
+          <div class="w-10 h-10 rounded-full overflow-hidden bg-[#57392C] shrink-0 border border-[#6E4636] shadow-xs flex items-center justify-center text-amber-200 text-xs font-bold font-serif">
             <img
               v-if="authStore.user?.avatar_url"
               :src="authStore.user.avatar_url"
               alt="Avatar"
               class="w-full h-full object-cover"
             />
-            <span v-else>{{ authStore.user?.full_name ? authStore.user.full_name.substring(0, 2).toUpperCase() : 'SB' }}</span>
+            <span v-else>{{ authStore.user?.full_name ? authStore.user.full_name.substring(0, 2).toUpperCase() : 'KN' }}</span>
           </div>
           <div class="min-w-0">
-            <div class="text-xs sm:text-sm font-bold text-[#FAF4ED] truncate leading-tight group-hover:text-amber-200 transition">
+            <div class="text-sm sm:text-base font-bold text-[#FAF4ED] truncate leading-tight group-hover:text-amber-200 transition">
               {{ authStore.user?.full_name || (localeStore.isAmharic ? 'የስርዓቱ ተጠቃሚ' : 'Admin User') }}
             </div>
-            <div class="text-[11px] text-[#C8B6A6] truncate mt-0.5 leading-tight">
-              <span class="text-amber-200/90 font-medium">{{ localeStore.tRole(displayRole) }}</span>
+            <div class="text-xs sm:text-[13px] text-[#D8CDC5] truncate mt-1 leading-tight">
+              <span class="text-amber-300 font-semibold">{{ localeStore.tRole(displayRole) }}</span>
               <span v-if="authStore.user?.branch"> &middot; {{ localeStore.tBranch(authStore.user.branch.branch_name) }}</span>
             </div>
           </div>
@@ -372,11 +372,11 @@
 
         <button
           @click="handleLogout"
-          class="p-2 text-[#C8B6A6] hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
+          class="p-2.5 text-[#D8CDC5] hover:text-white hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
           :title="localeStore.t('dash_sign_out')"
           :aria-label="localeStore.t('dash_sign_out')"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
         </button>

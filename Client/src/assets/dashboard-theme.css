@@ -4,6 +4,8 @@
 /* ========================================================================== */
 
 :root {
+  --font-inter: "Noto Sans Ethiopic", "Ebrima", "Segoe UI", "Inter", "Poppins", system-ui, sans-serif;
+  --font-playfair: "Noto Sans Ethiopic", "Ebrima", "Segoe UI", "Playfair Display", Georgia, serif;
   --dash-sidebar-bg: #3D251E;
   --dash-sidebar-hover: #4E2F26;
   --dash-sidebar-active: #57392C;
