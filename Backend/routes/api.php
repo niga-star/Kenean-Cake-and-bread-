@@ -103,6 +103,7 @@ Route::post('/payments/simulate', [PaymentController::class, 'simulatePayment'])
 // Core application endpoints
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/auth/user', [AuthController::class, 'user']);
+    Route::get('/auth/users', [AuthController::class, 'listUsers']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/profile-photo', [AuthController::class, 'uploadProfilePhoto']);

@@ -126,39 +126,87 @@ class WebsiteSettingController extends Controller
      */
     public function uploadImage(Request $request)
     {
-        $fileKey = null;
-        foreach (['image', 'photo', 'file'] as $candidate) {
-            if ($request->hasFile($candidate)) {
-                $fileKey = $candidate;
-                break;
-            }
-        }
-
-        if (!$fileKey) {
-            return response()->json(['message' => 'Please select an image file to upload.'], 422);
-        }
-
-        $request->validate([
-            $fileKey => 'required|image|mimes:jpeg,png,jpg,webp,gif|max:10240',
-            'slot' => 'nullable|string|max:40',
-            'setting_key' => 'nullable|string|in:about_image_url,hero_image_url',
-        ]);
-
-        $file = $request->file($fileKey);
-        $rawExt = strtolower($file->extension() ?: $file->getClientOriginalExtension() ?: 'jpg');
-        $safeExtension = in_array($rawExt, ['jpeg', 'png', 'jpg', 'webp', 'gif']) ? $rawExt : 'jpg';
         $slotPrefix = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) $request->input('slot', 'setting'))) ?: 'setting';
-
-        $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $safeExtension;
         $targetDir = public_path('uploads/settings');
 
         if (!file_exists($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
 
-        $file->move($targetDir, $filename);
-        $imageUrl = '/uploads/settings/' . $filename;
+        $imageUrl = null;
 
+        // 1. Check if uploaded as a standard multipart file
+        $fileKey = null;
+        foreach (['image', 'photo', 'file', 'upload'] as $candidate) {
+            if ($request->hasFile($candidate)) {
+                $fileKey = $candidate;
+                break;
+            }
+        }
+
+        // Check if file was sent but dropped by PHP ini limits
+        if (!$fileKey) {
+            foreach (['image', 'photo', 'file', 'upload'] as $candidate) {
+                if (isset($_FILES[$candidate]) && !empty($_FILES[$candidate]['name'])) {
+                    $err = $_FILES[$candidate]['error'];
+                    if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+                        return response()->json([
+                            'message' => 'The uploaded photo exceeds the server file size limit. Please choose a smaller image or allow auto-compression.'
+                        ], 422);
+                    }
+                    if ($err !== UPLOAD_ERR_OK) {
+                        return response()->json([
+                            'message' => 'File upload error code: ' . $err . '. Please try selecting the image again.'
+                        ], 422);
+                    }
+                }
+            }
+        }
+
+        // 2. Check if sent as Base64 Data URL (e.g. data:image/jpeg;base64,...)
+        $base64Input = $request->input('image_base64') ?? $request->input('image');
+        if (!$fileKey && is_string($base64Input) && preg_match('/^data:image\/([a-zA-Z0-9+]+);base64,/', $base64Input, $matches)) {
+            $ext = strtolower($matches[1]);
+            if ($ext === 'jpeg') $ext = 'jpg';
+            if (!in_array($ext, ['jpg', 'png', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif'])) {
+                $ext = 'jpg';
+            }
+            $cleanBase64 = substr($base64Input, strpos($base64Input, ',') + 1);
+            $decoded = base64_decode($cleanBase64);
+            if ($decoded !== false) {
+                $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $ext;
+                file_put_contents($targetDir . DIRECTORY_SEPARATOR . $filename, $decoded);
+                $imageUrl = '/uploads/settings/' . $filename;
+            }
+        }
+
+        if (!$imageUrl) {
+            if (!$fileKey) {
+                return response()->json(['message' => 'Please select a valid image file (JPG, PNG, WebP, GIF) to upload.'], 422);
+            }
+
+            $file = $request->file($fileKey);
+
+            // Flexible validation for all modern and standard image formats
+            $rawExt = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'jpg');
+            $validExtensions = ['jpeg', 'png', 'jpg', 'webp', 'gif', 'bmp', 'svg', 'jfif', 'avif', 'ico', 'heic'];
+            
+            // Validate MIME / extension
+            $mime = strtolower((string) $file->getMimeType());
+            $isImageMime = str_starts_with($mime, 'image/') || in_array($rawExt, $validExtensions);
+            if (!$isImageMime) {
+                return response()->json(['message' => 'The uploaded file must be an image (JPG, PNG, WebP, GIF, etc.).'], 422);
+            }
+
+            $safeExtension = in_array($rawExt, $validExtensions) ? $rawExt : 'jpg';
+            if ($safeExtension === 'jpeg') $safeExtension = 'jpg';
+
+            $filename = $slotPrefix . '_' . time() . '_' . uniqid() . '.' . $safeExtension;
+            $file->move($targetDir, $filename);
+            $imageUrl = '/uploads/settings/' . $filename;
+        }
+
+        // Persist setting if requested
         $settingKey = $request->input('setting_key');
         if ($settingKey) {
             AppSetting::updateOrCreate(

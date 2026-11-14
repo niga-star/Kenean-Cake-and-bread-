@@ -178,7 +178,7 @@ router.beforeResolve((to, from) => {
 });
 
 // Navigation Guard for Role Enforcement
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const token = localStorage.getItem('token');
   const user = getStoredUser();
 
@@ -187,29 +187,29 @@ router.beforeEach((to, from, next) => {
   if (to.path === '/account') {
     if (!user || !token) {
       const redirectTarget = to.fullPath || to.path;
-      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+      return `/login?redirect=${encodeURIComponent(redirectTarget)}`;
     }
     if (user.role !== 'Customer') {
-      return next('/admin/my-account');
+      return '/admin/my-account';
     }
   }
 
   if (to.path === '/checkout') {
     if (!user || !token) {
       const redirectTarget = to.fullPath || to.path;
-      return next(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+      return `/login?redirect=${encodeURIComponent(redirectTarget)}`;
     }
   }
 
   // Redirect already authenticated users away from login/register
   if ((to.path === '/login' || to.path === '/register') && token && user) {
     if (['Super Admin', 'Main Branch Manager', 'Branch Manager', 'Branch Admin'].includes(user.role)) {
-      return next('/admin/overview');
+      return '/admin/overview';
     } else if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(user.role)) {
-      return next('/admin/orders');
+      return '/admin/orders';
     } else {
       const redirectPath = to.query.redirect || '/account';
-      return next(redirectPath);
+      return redirectPath;
     }
   }
 
@@ -218,14 +218,14 @@ router.beforeEach((to, from, next) => {
 
     if (!user || !token) {
       toast.error('Access restricted: Please sign in with staff credentials to access the admin portal.');
-      return next('/login');
+      return '/login';
     }
 
     const role = user.role;
 
     if (role === 'Customer') {
       toast.error('Access denied: Customer accounts cannot access the bakery admin portal.');
-      return next('/account');
+      return '/account';
     }
 
     if (to.meta?.roles) {
@@ -250,17 +250,17 @@ router.beforeEach((to, from, next) => {
       if (!hasAccess) {
         toast.error(`Access restricted: The "${to.path.replace('/admin/', '')}" page is only accessible to: ${to.meta.roles.join(', ')}.`);
         if (role === 'Super Admin') {
-          return next('/admin/overview');
+          return '/admin/overview';
         }
         if (['Branch Staff', 'Branch Seller', 'Branch Seller / Cashier', 'Cashier', 'Servant', 'Delivery Staff'].includes(role)) {
-          return next('/admin/orders');
+          return '/admin/orders';
         }
-        return next('/admin/overview');
+        return '/admin/overview';
       }
     }
   }
 
-  next();
+  return true;
 });
 
 router.afterEach((to) => {

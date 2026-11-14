@@ -11,6 +11,7 @@
       <div
         v-if="dialogStore.isOpen"
         class="fixed inset-0 z-50 overflow-y-auto bg-[#2A1810]/60 dark:bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6"
+        :class="$attrs.class"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="dialogTitleId"
@@ -135,6 +136,10 @@
 </template>
 
 <script setup>
+defineOptions({
+  inheritAttrs: false
+});
+
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useDialogStore } from '../stores/dialog';
 

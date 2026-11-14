@@ -417,14 +417,14 @@
               title="Upload hero photo from PC or mobile"
             >
               <span>{{ uploadingSlot === 'hero' ? '⏳ Uploading...' : '📁 Upload' }}</span>
-              <input
-                data-testid="upload-hero-image-input"
-                type="file"
-                accept="image/*"
-                :disabled="uploadingSlot === 'hero'"
-                class="hidden"
-                @change="e => uploadSettingImage(e, form, 'hero_image_url', 'hero', 'hero_image_url')"
-              />
+                <input
+                  data-testid="upload-hero-image-input"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/jfif,image/avif,image/*"
+                  :disabled="uploadingSlot === 'hero'"
+                  class="hidden"
+                  @change="e => uploadSettingImage(e, form, 'hero_image_url', 'hero', 'hero_image_url')"
+                />
             </label>
           </div>
           <p class="text-[11px] text-[#8A7B71] mt-1">Upload from PC or mobile (JPG, PNG, WebP up to 10MB) or enter an image URL.</p>
@@ -506,7 +506,7 @@
                 <input
                   data-testid="upload-about-image-input"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/jfif,image/avif,image/*"
                   :disabled="uploadingSlot === 'about'"
                   class="hidden"
                   @change="e => uploadSettingImage(e, form, 'about_image_url', 'about', 'about_image_url')"
@@ -902,7 +902,7 @@
                 :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'banner-new' }"
               >
                 <span>{{ uploadingSlot === 'banner-new' ? '⏳ Uploading...' : '📁 Upload' }}</span>
-                <input type="file" accept="image/*" :disabled="uploadingSlot === 'banner-new'" class="hidden" @change="e => uploadSettingImage(e, newBanner, 'image_url', 'banner-new')" />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/jfif,image/avif,image/*" :disabled="uploadingSlot === 'banner-new'" class="hidden" @change="e => uploadSettingImage(e, newBanner, 'image_url', 'banner-new')" />
               </label>
             </div>
           </div>
@@ -982,7 +982,7 @@
                 :class="{ 'opacity-60 pointer-events-none': uploadingSlot === 'banner-edit' }"
               >
                 <span>{{ uploadingSlot === 'banner-edit' ? '⏳ Uploading...' : '📁 Upload' }}</span>
-                <input type="file" accept="image/*" :disabled="uploadingSlot === 'banner-edit'" class="hidden" @change="e => uploadSettingImage(e, editingBanner, 'image_url', 'banner-edit')" />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/jfif,image/avif,image/*" :disabled="uploadingSlot === 'banner-edit'" class="hidden" @change="e => uploadSettingImage(e, editingBanner, 'image_url', 'banner-edit')" />
               </label>
             </div>
           </div>
@@ -1272,20 +1272,65 @@ const loadSubscribers = async () => {
   }
 };
 
+const optimizeImageBeforeUpload = (file, maxDimension = 1920, quality = 0.90) => {
+  return new Promise((resolve) => {
+    // Preserve animated gifs or svg vector graphics
+    if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+      return resolve(file);
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob && (blob.size < file.size || !file.type || file.type.includes('octet-stream') || file.name?.toLowerCase().endsWith('.jfif'))) {
+              const safeName = (file.name || 'photo').replace(/\.[^/.]+$/, '') + '.jpg';
+              resolve(new File([blob], safeName, { type: 'image/jpeg' }));
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+};
+
 const uploadSettingImage = async (event, targetObj, fieldKey, slot, persistSettingKey = null) => {
-  const file = event?.target?.files?.[0];
-  if (!file) return;
+  const originalFile = event?.target?.files?.[0];
+  if (!originalFile) return;
 
-  if (file.type && !file.type.startsWith('image/')) {
-    const msg = 'Please select a valid image file (JPG, PNG, WebP, or GIF).';
-    errorMsg.value = msg;
-    toast.error(msg);
-    event.target.value = '';
-    return;
-  }
+  const fileName = (originalFile.name || '').toLowerCase();
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.jfif', '.avif', '.svg'];
+  const hasValidExt = validExtensions.some(ext => fileName.endsWith(ext));
+  const isImageMime = originalFile.type ? originalFile.type.startsWith('image/') : false;
 
-  if (file.size > 10 * 1024 * 1024) {
-    const msg = 'Image size exceeds 10MB limit. Please choose a smaller image.';
+  if (!isImageMime && !hasValidExt) {
+    const msg = 'Please select a valid image file (JPG, PNG, WebP, GIF, or BMP).';
     errorMsg.value = msg;
     toast.error(msg);
     event.target.value = '';
@@ -1295,14 +1340,17 @@ const uploadSettingImage = async (event, targetObj, fieldKey, slot, persistSetti
   uploadingSlot.value = slot;
   errorMsg.value = '';
 
-  const formData = new FormData();
-  formData.append('image', file);
-  formData.append('slot', slot.replace(/-.+$/, ''));
-  if (persistSettingKey) {
-    formData.append('setting_key', persistSettingKey);
-  }
-
   try {
+    // Automatically optimize large photos from phone or desktop before upload
+    const file = await optimizeImageBeforeUpload(originalFile);
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('slot', slot.replace(/-.+$/, ''));
+    if (persistSettingKey) {
+      formData.append('setting_key', persistSettingKey);
+    }
+
     const res = await api.post('/admin/settings/upload-image', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
@@ -1319,7 +1367,10 @@ const uploadSettingImage = async (event, targetObj, fieldKey, slot, persistSetti
       if (successMsg.value === msg) successMsg.value = '';
     }, 3500);
   } catch (err) {
-    const msg = err.response?.data?.message || 'Failed to upload photo';
+    console.error('Settings photo upload error:', err);
+    const serverErrors = err.response?.data?.errors;
+    const firstFieldErr = serverErrors ? Object.values(serverErrors)[0]?.[0] : null;
+    const msg = firstFieldErr || err.response?.data?.message || 'Failed to upload photo. Please try a different image.';
     errorMsg.value = msg;
     toast.error(msg);
   } finally {
