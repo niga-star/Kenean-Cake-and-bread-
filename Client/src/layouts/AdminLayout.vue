@@ -60,7 +60,44 @@
         </div>
 
         <!-- Navigation Menu with Touch-Friendly Links & Unified Reference Styling -->
-        <nav class="px-3.5 py-4 space-y-5 overflow-y-auto flex-1">
+        <nav class="px-3.5 py-4 space-y-4 overflow-y-auto flex-1">
+          <!-- Mobile Super Admin Persona Simulator (< lg screens) -->
+          <div
+            v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1"
+            class="lg:hidden p-3 bg-[#4D3227] dark:bg-[#1E120B] rounded-2xl border border-[#634234] dark:border-[#382216] space-y-2 mb-2"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎭</span>
+                <span>{{ localeStore.t('dash_simulate_role') }}</span>
+              </span>
+              <span v-if="authStore.isSimulating" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-amber-950">
+                Active
+              </span>
+            </div>
+            <select
+              :value="selectedRoleKey"
+              @change="handleRoleChange($event.target.value); sidebarOpen = false"
+              class="w-full bg-[#352017] dark:bg-[#140C07] border border-[#634234] dark:border-[#382216] text-[#FAF4ED] text-xs font-semibold rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 cursor-pointer"
+            >
+              <option
+                v-for="(r, idx) in authStore.availableRoles"
+                :key="idx"
+                :value="idx"
+              >
+                {{ formatPersonaLabel(r) }}
+              </option>
+            </select>
+            <div v-if="authStore.isSimulating" class="flex justify-end pt-1">
+              <button
+                @click="handleExitSimulation(); sidebarOpen = false"
+                class="text-xs bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-2.5 py-1 rounded-lg transition cursor-pointer"
+              >
+                {{ localeStore.t('dash_exit') }} {{ localeStore.isAmharic ? 'ወደ ዋና አስተዳዳሪ' : 'to Super Admin' }}
+              </button>
+            </div>
+          </div>
+
           <!-- Overview Direct Link -->
           <div v-if="canAccess('overview')">
             <router-link
@@ -348,15 +385,15 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <!-- Top Bakery Header Bar (Reference System) -->
-      <header class="min-h-[4rem] bg-white/95 dark:bg-[#160E09]/95 backdrop-blur-md border-b border-[#EFE8DE] dark:border-[#271810] px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-[0_1px_3px_rgba(61,38,29,0.02)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] print:hidden">
-        <!-- Left: Hamburger Toggle + Persona Selector -->
-        <div class="flex items-center space-x-3 flex-1 min-w-0">
-          <!-- Hamburger Button (visible on < lg screens) -->
+      <!-- Top Bakery Header Bar: 100% Responsive Single-Row Design -->
+      <header class="h-16 bg-white/95 dark:bg-[#160E09]/95 backdrop-blur-md border-b border-[#EFE8DE] dark:border-[#271810] px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4 shrink-0 shadow-[0_1px_3px_rgba(61,38,29,0.02)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.3)] print:hidden">
+        <!-- Left Section: Mobile Drawer Trigger & User Identity | Desktop Persona & Badges -->
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <!-- Mobile Hamburger Toggle (< lg) -->
           <button
             @click="sidebarOpen = !sidebarOpen"
             type="button"
-            class="lg:hidden p-2 rounded-xl text-[#4A3B32] dark:text-[#C8B6A6] hover:bg-[#FAF6F0] dark:hover:bg-[#25150D] hover:text-[#3D251E] dark:hover:text-white transition cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#3D251E] dark:focus:ring-rose-500"
+            class="lg:hidden p-2 -ml-1 rounded-xl text-[#4A3B32] dark:text-[#C8B6A6] hover:bg-[#FAF6F0] dark:hover:bg-[#25150D] hover:text-[#3D251E] dark:hover:text-white transition cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-[#3D251E] dark:focus:ring-rose-500"
             title="Open navigation menu"
             aria-label="Open navigation menu"
           >
@@ -365,13 +402,29 @@
             </svg>
           </button>
 
-          <!-- 1. Super Admin Only: Persona Simulator -->
-          <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
-            <span class="text-[#7D6E64] dark:text-[#A69284] font-semibold text-xs hidden sm:inline shrink-0">{{ localeStore.t('dash_simulate_role') }}</span>
+          <!-- Mobile User Identity Pill (< lg) -->
+          <div class="lg:hidden flex items-center gap-2 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-[#FAF5EE] border border-[#DEBE92] p-0.5 shrink-0 flex items-center justify-center shadow-2xs">
+              <img src="/images/kenean-logo.png" alt="Kenean" class="w-full h-full object-contain rounded-full" />
+            </div>
+            <div class="min-w-0">
+              <div class="text-xs font-bold text-[#2B1810] dark:text-[#FAF4ED] truncate leading-tight">
+                {{ authStore.user?.full_name || 'Staff' }}
+              </div>
+              <div class="text-[10.5px] font-semibold text-[#8C4A28] dark:text-[#E8A585] truncate leading-tight flex items-center gap-1">
+                <span v-if="['Super Admin', 'Main Branch Manager'].includes(currentRole)">👑</span>
+                <span>{{ localeStore.tRole(displayRole) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Persona Simulator (lg+) -->
+          <div v-if="authStore.canSimulatePersona && authStore.availableRoles && authStore.availableRoles.length > 1" class="hidden lg:flex items-center gap-2 text-xs sm:text-sm shrink-0">
+            <span class="text-[#7D6E64] dark:text-[#A69284] font-semibold text-xs shrink-0">{{ localeStore.t('dash_simulate_role') }}</span>
             <select
               :value="selectedRoleKey"
               @change="handleRoleChange($event.target.value)"
-              class="bg-[#FAF7F2] dark:bg-[#20130C] border border-[#E2D8CC] dark:border-[#382216] text-[#2B1810] dark:text-[#FAF4ED] text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 dark:focus:ring-rose-500/20 focus:border-[#3D251E] dark:focus:border-[#DE1B54] cursor-pointer max-w-[160px] xs:max-w-[200px] sm:max-w-none shadow-2xs"
+              class="bg-[#FAF7F2] dark:bg-[#20130C] border border-[#E2D8CC] dark:border-[#382216] text-[#2B1810] dark:text-[#FAF4ED] text-xs font-semibold rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#3D251E]/20 dark:focus:ring-rose-500/20 focus:border-[#3D251E] dark:focus:border-[#DE1B54] cursor-pointer shadow-2xs"
             >
               <option
                 v-for="(r, idx) in authStore.availableRoles"
@@ -381,37 +434,22 @@
                 {{ formatPersonaLabel(r) }}
               </option>
             </select>
-
-            <!-- Simulating Indicator with Exit Button -->
-            <span
-              v-if="authStore.isSimulating"
-              class="text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FEF7E6] dark:bg-[#2E1E09] text-[#B87A14] dark:text-[#F3BA59] border border-[#FBEAC2] dark:border-[#523712] flex items-center space-x-1.5 shrink-0 shadow-2xs"
-            >
-              <span class="truncate max-w-[120px] sm:max-w-none">{{ localeStore.isAmharic ? 'የተመረጠው ሚና:' : 'Simulating:' }} {{ localeStore.tRole(currentRole) }}</span>
-              <button
-                @click="handleExitSimulation"
-                class="text-[10px] bg-[#FBEAC2] dark:bg-[#3D280E] hover:bg-[#F6DE9F] dark:hover:bg-[#4E3412] text-[#8C5D0C] dark:text-[#F8C36A] font-bold px-1.5 py-0.5 rounded-md transition cursor-pointer ml-1"
-                :title="localeStore.isAmharic ? 'ወደ ዋና አስተዳዳሪ ተመለስ' : 'Return to Super Admin'"
-              >
-                {{ localeStore.t('dash_exit') }}
-              </button>
-            </span>
           </div>
 
-          <!-- 2. Role, Branch, & Scope Badges (Exact Reference Design Standard) -->
-          <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm min-w-0">
-            <!-- Logged in as: [AH] [Name] -->
-            <div class="flex items-center space-x-1.5 min-w-0">
-              <span class="text-xs text-[#7D6E64] dark:text-[#A69284] font-medium hidden sm:inline">{{ localeStore.t('dash_logged_in_as') }}</span>
+          <!-- Desktop Badges: Logged In, Role, Branch, Scope (lg+) -->
+          <div class="hidden lg:flex items-center gap-2 text-xs sm:text-sm min-w-0">
+            <!-- Logged in as: [Initial] [Full Name] -->
+            <div class="flex items-center gap-1.5 min-w-0 shrink-0">
+              <span class="text-xs text-[#7D6E64] dark:text-[#A69284] font-medium">{{ localeStore.t('dash_logged_in_as') }}</span>
               <span class="w-6 h-6 rounded-full bg-[#57392C] text-amber-200 text-[10px] font-serif font-bold flex items-center justify-center shrink-0 shadow-2xs">
                 {{ userInitials }}
               </span>
-              <span class="text-xs sm:text-sm font-bold text-[#2B1810] dark:text-[#FAF4ED] truncate max-w-[130px] sm:max-w-none">{{ authStore.user?.full_name || 'Staff' }}</span>
+              <span class="text-xs sm:text-sm font-bold text-[#2B1810] dark:text-[#FAF4ED] truncate max-w-[130px] xl:max-w-none">{{ authStore.user?.full_name || 'Staff' }}</span>
             </div>
 
             <!-- Role Badge -->
             <span
-              class="text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0 shadow-2xs flex items-center space-x-1"
+              class="text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0 shadow-2xs flex items-center gap-1"
               :class="{
                 'bg-[#FEF7E6] dark:bg-[#2E1E09] text-[#B87A14] dark:text-[#F3BA59] border-[#FBEAC2] dark:border-[#523712]': ['Super Admin', 'Main Branch Manager', 'Branch Admin', 'Branch Manager'].includes(currentRole),
                 'bg-[#FFE4E6] dark:bg-[#34111B] text-[#9F1239] dark:text-[#FCA5A5] border-[#FECDD3] dark:border-[#5C1D2D]': ['Branch Seller', 'Branch Seller / Cashier', 'Cashier'].includes(currentRole),
@@ -425,25 +463,25 @@
             <!-- Branch Badge (if branch assigned) -->
             <span
               v-if="authStore.user?.branch?.branch_name"
-              class="hidden md:inline-flex text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FAF7F2] dark:bg-[#20130C] text-[#6E5D52] dark:text-[#C8B6A6] border border-[#E5DACD] dark:border-[#382216] truncate"
+              class="hidden xl:inline-flex text-xs px-2.5 py-0.5 rounded-full font-bold bg-[#FAF7F2] dark:bg-[#20130C] text-[#6E5D52] dark:text-[#C8B6A6] border border-[#E5DACD] dark:border-[#382216] truncate"
             >
               📍 {{ localeStore.tBranch(authStore.user.branch.branch_name) }}
             </span>
 
             <!-- Scope Badge -->
-            <span class="hidden lg:inline-flex text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#FAF7F2] dark:bg-[#20130C] text-[#6B5A4E] dark:text-[#C8B6A6] border border-[#E5DCD0] dark:border-[#382216] truncate">
+            <span class="hidden 2xl:inline-flex text-xs px-2.5 py-0.5 rounded-full font-medium bg-[#FAF7F2] dark:bg-[#20130C] text-[#6B5A4E] dark:text-[#C8B6A6] border border-[#E5DCD0] dark:border-[#382216] truncate">
               {{ localeStore.t('dash_scope') }} {{ roleScope }}
             </span>
           </div>
         </div>
 
-        <!-- Right: Language Toggle, Theme Toggle, Notifications & Direct Link to Storefront -->
-        <div class="flex items-center space-x-2 sm:space-x-2.5 shrink-0">
-          <!-- Bilingual Language Toggle Button: EN | አማ (Identical to Client Page) -->
+        <!-- Right Section: Language Toggle, Theme Toggle, Notifications & Store Shortcut -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <!-- Bilingual Language Toggle Button: EN | አማ -->
           <button
             @click="localeStore.toggleLocale()"
             data-testid="admin-header-lang-toggle"
-            class="flex items-center px-1.5 xs:px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] dark:hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition-all duration-200 shadow-2xs cursor-pointer select-none bg-white dark:bg-[#20130C] text-[#3D251E] dark:text-[#FAF4ED] min-h-[34px] sm:min-h-[36px] whitespace-nowrap shrink-0"
+            class="flex items-center px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] dark:hover:border-[#DE1B54] text-[11px] sm:text-xs font-bold transition-all duration-200 shadow-2xs cursor-pointer select-none bg-white dark:bg-[#20130C] text-[#3D251E] dark:text-[#FAF4ED] h-8 sm:h-9 whitespace-nowrap shrink-0"
             :title="localeStore.isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'"
             aria-label="Language Switcher"
           >
@@ -456,7 +494,7 @@
           <button
             @click="themeStore.toggleTheme()"
             data-testid="admin-header-theme-toggle"
-            class="w-8 h-8 xs:w-9 xs:h-9 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] dark:hover:border-[#DE1B54] flex items-center justify-center text-xs sm:text-sm transition-all duration-200 shadow-2xs cursor-pointer select-none bg-white dark:bg-[#20130C] shrink-0"
+            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-gray-200 dark:border-[#3D261B] hover:border-[#DE1B54] dark:hover:border-[#DE1B54] flex items-center justify-center text-xs sm:text-sm transition-all duration-200 shadow-2xs cursor-pointer select-none bg-white dark:bg-[#20130C] shrink-0"
             :title="themeStore.isDark ? (localeStore.isAmharic ? 'ወደ ብሩህ ገጽታ ቀይር (Light Mode)' : 'Switch to Light Mode') : (localeStore.isAmharic ? 'ወደ ጨለማ ገጽታ ቀይር (Dark Mode)' : 'Switch to Dark Mode')"
             aria-label="Theme Switcher"
           >
@@ -467,7 +505,7 @@
           <!-- Notification Bell -->
           <router-link
             to="/admin/notifications"
-            class="relative p-2 sm:p-2.5 text-[#6B5A4E] dark:text-[#C8B6A6] hover:text-[#3D251E] dark:hover:text-white hover:bg-[#FAF7F2] dark:hover:bg-[#24150D] rounded-xl transition cursor-pointer"
+            class="relative p-2 sm:p-2.5 text-[#6B5A4E] dark:text-[#C8B6A6] hover:text-[#3D251E] dark:hover:text-white hover:bg-[#FAF7F2] dark:hover:bg-[#24150D] rounded-xl transition cursor-pointer shrink-0"
             :title="localeStore.isAmharic ? 'ማሳወቂያዎች' : 'Notifications'"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,18 +518,39 @@
           <router-link
             to="/"
             target="_blank"
-            class="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-[#8C4A28] dark:text-[#E8A585] bg-[#FAF0E6] dark:bg-[#24150D] hover:bg-[#F5E5D5] dark:hover:bg-[#321C11] border border-[#EED7C5] dark:border-[#3E2316] px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-2xs group cursor-pointer"
+            class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#8C4A28] dark:text-[#E8A585] bg-[#FAF0E6] dark:bg-[#24150D] hover:bg-[#F5E5D5] dark:hover:bg-[#321C11] border border-[#EED7C5] dark:border-[#3E2316] px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl transition shadow-2xs group cursor-pointer shrink-0"
             :title="localeStore.isAmharic ? 'የደንበኛ መደብር በአዲስ ገጽ ይክፈቱ' : 'Open customer bakery store in new tab'"
           >
             <span class="text-sm">🍰</span>
             <span class="hidden sm:inline">{{ localeStore.t('dash_view_store') }}</span>
-            <span class="sm:hidden">{{ localeStore.isAmharic ? 'መደብር' : 'Store' }}</span>
-            <svg class="w-3.5 h-3.5 text-[#8C4A28] dark:text-[#E8A585] group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 text-[#8C4A28] dark:text-[#E8A585] group-hover:translate-x-0.5 transition-transform hidden sm:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </router-link>
         </div>
       </header>
+
+      <!-- Active Persona Simulation Banner: Visible on Mobile & Desktop -->
+      <div
+        v-if="authStore.isSimulating"
+        class="bg-[#FEF7E6] dark:bg-[#2E1E09] border-b border-[#FBEAC2] dark:border-[#523712] px-3 sm:px-6 py-2 flex items-center justify-between text-xs font-semibold text-[#B87A14] dark:text-[#F3BA59] shrink-0"
+      >
+        <div class="flex items-center gap-2 truncate">
+          <span class="text-sm">🎭</span>
+          <span class="truncate">
+            {{ localeStore.isAmharic ? 'በአሁኑ ሰዓት እየተመሰለ ያለው ሚና:' : 'Active Persona Simulation:' }}
+            <strong class="font-bold underline ml-1">{{ localeStore.tRole(currentRole) }}</strong>
+          </span>
+        </div>
+        <button
+          @click="handleExitSimulation"
+          class="ml-3 shrink-0 bg-[#DE1B54] hover:bg-[#B31340] text-white font-bold px-2.5 py-1 rounded-lg text-[11px] transition shadow-xs cursor-pointer flex items-center gap-1"
+          :title="localeStore.isAmharic ? 'ወደ ዋና አስተዳዳሪ ተመለስ' : 'Return to Super Admin'"
+        >
+          <span>✕</span>
+          <span>{{ localeStore.t('dash_exit') }}</span>
+        </button>
+      </div>
 
       <!-- View Slot with Warm Bakery Background & Smooth Page Transition -->
       <main id="admin-main-scroll" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#FAF7F2] dark:bg-[#120B07] text-[#2B1810] dark:text-[#FAF4ED]">
@@ -757,7 +816,7 @@ const currentRole = computed(() => authStore.user?.role || 'Super Admin');
 
 const userInitials = computed(() => {
   const name = authStore.user?.full_name;
-  if (!name) return 'SB';
+  if (!name) return 'KN';
   const parts = name.trim().split(' ');
   return parts.length > 1
     ? (parts[0][0] + parts[1][0]).toUpperCase()

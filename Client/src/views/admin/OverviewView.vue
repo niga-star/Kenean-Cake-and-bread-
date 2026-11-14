@@ -5,13 +5,13 @@
     <!-- ======================================================== -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-serif font-black tracking-tight text-[#2B1810] leading-tight">
-          {{ greetingText }}, <span class="text-[#3D251E]">{{ currentUserName }}</span>! 👋
+        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-serif font-black tracking-tight text-[#2B1810] dark:text-[#FAF4ED] leading-tight">
+          {{ greetingText }}, <span class="text-[#3D251E] dark:text-[#E8A585]">{{ currentUserName }}</span>! 👋
         </h1>
-        <p class="text-xs sm:text-sm text-[#7D6E64] font-normal mt-1">
+        <p class="text-xs sm:text-sm text-[#7D6E64] dark:text-[#A69284] font-normal mt-1">
           {{ data.is_branch_view
-            ? `Here's what's happening with ${data.branch?.branch_name || 'your bakery'} today.`
-            : "Here's what's happening with your bakery today." }}
+            ? `Here's what's happening with ${data.branch?.branch_name || 'Kenean Cake & Bread'} today.`
+            : "Here's what's happening with Kenean Cake & Bread today." }}
         </p>
       </div>
 
