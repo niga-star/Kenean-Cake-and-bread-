@@ -51,7 +51,7 @@
     <div class="p-3.5 sm:p-4 flex flex-col flex-1 justify-between space-y-3">
       <div>
         <div class="flex items-baseline justify-between gap-2 mb-1.5">
-          <router-link :to="`/product/${product.product_id}`" class="product-name font-product font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
+          <router-link :to="`/product/${product.product_id}`" class="text-base sm:text-[17px] font-product font-bold text-[#29231F] dark:text-[#FBF7F4] group-hover:text-[#DE1B54] transition-colors line-clamp-1">
             {{ localeStore.tProduct(product.product_name) }}
           </router-link>
         </div>
