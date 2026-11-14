@@ -652,53 +652,6 @@
         </button>
       </div>
     </section>
-
-    <!-- 6. "SPECIAL OFFER: MAKE EVERY MOMENT SWEETER!" BANNER -->
-    <section class="sweetbakes-container" v-reveal>
-      <div class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-[#FFF0F4] via-[#FDE4EE] to-[#FCE4EC] dark:from-[#341822] dark:via-[#29121B] dark:to-[#381A25] border border-[#F6C5D6] dark:border-[#552438] p-4 xs:p-5 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-sm group">
-        <!-- Left Column: Special Offer Text & Call to Action -->
-        <div class="space-y-3 sm:space-y-4 text-center md:text-left z-10 max-w-xl w-full">
-          <span v-reveal:text="80" class="inline-block px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#DE1B54] text-white shadow-2xs">
-            {{ localeStore.t('special_offer') }}
-          </span>
-          <h3 v-reveal:text="150" class="text-fluid-h2 font-serif font-black text-[#2A1810] dark:text-[#FAF3EE] tracking-tight">
-            {{ localeStore.t('offer_title_1') }} <span class="text-[#DE1B54] font-script italic">{{ localeStore.t('offer_title_2') }}</span>
-          </h3>
-          <p v-reveal:text="220" class="text-sm sm:text-base lg:text-[17px] font-bold text-[#2A1810] dark:text-[#FAF3EE] leading-relaxed">
-            {{ localeStore.t('offer_desc') }}
-          </p>
-        </div>
-
-        <!-- Right Column: Dynamic Discount Badge, Action Button, and Featured Celebration Cake -->
-        <div v-reveal:text="280" class="flex flex-wrap sm:flex-nowrap items-center justify-center md:justify-end gap-2.5 xs:gap-3 sm:gap-4 z-10 w-full md:w-auto">
-          <!-- Discount Badge (from Database) -->
-          <div class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-[#DE1B54] text-white font-black text-xs xs:text-sm sm:text-base tracking-wide shadow-md whitespace-nowrap animate-pulse">
-            {{ activePromotion ? `${activePromotion.discount_value}% OFF` : localeStore.t('discount_label') }}
-          </div>
-
-          <!-- Shop the Offer Button -->
-          <router-link
-            to="/shop"
-            class="px-5 sm:px-6 py-2.5 sm:py-3 min-h-[44px] sm:min-h-[46px] rounded-full bg-white dark:bg-[#221610] hover:bg-rose-50 dark:hover:bg-[#341822] text-[#DE1B54] font-black text-xs xs:text-sm sm:text-base border border-[#DE1B54]/30 shadow-xs hover:shadow-md transition-all inline-flex items-center space-x-2 whitespace-nowrap cursor-pointer hover:scale-103"
-          >
-            <span>{{ localeStore.t('shop_offer') }}</span>
-            <span>&rarr;</span>
-          </router-link>
-
-          <!-- Pink Celebration Cake Image -->
-          <div class="block w-20 xs:w-24 sm:w-32 lg:w-40 shrink-0 sm:-my-3 sm:-mr-2">
-            <img
-              src="/mockup/offer_cake.jpg"
-              alt="SweetBakes Celebration Cake"
-              class="w-full h-auto object-contain rounded-2xl sm:rounded-none drop-shadow-md group-hover:scale-105 transition-all duration-500"
-              :class="offerImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'"
-              loading="lazy"
-              @load="offerImageLoaded = true"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -724,7 +677,6 @@ const localeStore = useLocaleStore();
 const wishlistStore = useWishlistStore();
 const heroImageLoaded = ref(false);
 const aboutImageLoaded = ref(false);
-const offerImageLoaded = ref(false);
 const loadedImages = ref({});
 
 // Dynamic Homepage Banners from Database
@@ -923,7 +875,6 @@ const categoryItems = [
 
 // Live products loaded from MySQL database
 const liveProducts = ref([]);
-const activePromotion = ref(null);
 const loadingProducts = ref(true);
 
 async function fetchLiveProducts() {
@@ -1065,17 +1016,6 @@ async function fetchFeaturedReviews() {
   }
 }
 
-async function fetchActivePromotion() {
-  try {
-    const res = await api.get('/promotions/active');
-    if (Array.isArray(res.data) && res.data.length > 0) {
-      activePromotion.value = res.data[0];
-    }
-  } catch (err) {
-    console.error('Failed to load active promotion from API', err);
-  }
-}
-
 const activeReviewSlide = ref(0);
 let reviewTimer = null;
 
@@ -1125,7 +1065,6 @@ onMounted(() => {
   fetchBusinessInfo();
   fetchLiveProducts();
   fetchFeaturedReviews();
-  fetchActivePromotion();
   wishlistStore.init();
   startReviewAutoplay();
   startTypewriter();
